@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playmate — Goodnight, AI</title>
+<style>
+  /* ── base ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #1a1030;
+    color: #f5efe0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+  }
+  h1 { font-size: 1.6rem; color: #f7c948; margin: 1rem 0 0.25rem; }
+  .subtitle { font-size: 0.9rem; color: #b0a0d0; margin-bottom: 1.5rem; }
+
+  /* ── tabs ── */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center; }
+  .tab {
+    padding: 0.5rem 1.1rem;
+    border-radius: 20px;
+    border: 2px solid #5a3fa0;
+    background: transparent;
+    color: #c8b8f0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .tab.active, .tab:hover { background: #5a3fa0; color: #fff; }
+
+  /* ── card ── */
+  .card {
+    background: #2a1f50;
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    display: none;
+  }
+  .card.active { display: block; }
+
+  /* ── True / False Zapper ── */
+  .tf-statement {
+    background: #3a2860;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  .tf-buttons { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .btn-true, .btn-false {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s;
+  }
+  .btn-true  { background: #3ecf6e; color: #fff; }
+  .btn-false { background: #e05c5c; color: #fff; }
+  .btn-true:active, .btn-false:active { transform: scale(0.95); }
+  .tf-feedback { font-size: 0.85rem; margin-top: 0.4rem; min-height: 1.2em; }
+  .correct   { color: #3ecf6e; }
+  .incorrect { color: #e05c5c; }
+
+  /* ── Scene Tap ── */
+  .scene-box {
+    background: #3a2860;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    font-style: italic;
+    color: #c8b8f0;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  .tap-items { display: flex; flex-direction: column; gap: 0.5rem; }
+  .tap-item {
+    background: #4a3870;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+  }
+  .tap-item:hover { background: #5a3fa0; }
+  .tap-item .label { font-weight: bold; color: #f7c948; }
+  .tap-item .fact  { font-size: 0.82rem; color: #c8b8f0; display: none; margin-top: 0.3rem; }
+  .tap-item.revealed .fact  { display: block; }
+  .tap-item.revealed { background: #5a3fa0; }
+  .tap-emoji { font-size: 1.3rem; }
+
+  /* ── Word Flip Card ── */
+  .flip-container {
+    perspective: 800px;
+    width: 100%;
+    height: 180px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+  .flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+  }
+  .flip-container.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+  }
+  .flip-front { background: linear-gradient(135deg, #5a3fa0, #7a5fbf); }
+  .flip-back  { background: linear-gradient(135deg, #2a6e50, #3a9e70); transform: rotateY(180deg); }
+  .flip-word  { font-size: 1.5rem; font-weight: bold; color: #f7c948; }
+  .flip-hint  { font-size: 0.8rem; color: #c8b8f0; margin-top: 0.5rem; }
+  .flip-def   { font-size: 0.95rem; color: #fff; line-height: 1.4; }
+  .flip-ex    { font-size: 0.8rem; color: #b0e8c8; margin-top: 0.5rem; font-style: italic; }
+  .save-word-btn {
+    width: 100%;
+    padding: 0.7rem;
+    background: #f7c948;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #1a1030;
+    cursor: pointer;
+  }
+  .save-word-btn:hover { background: #ffd966; }
+
+  /* ── Badge & Streak ── */
+  .streak-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #3a2860;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .streak-num { font-size: 2rem; font-weight: bold; color: #f7c948; }
+  .streak-label { font-size: 0.85rem; color: #b0a0d0; }
+  .badges-title { font-size: 0.9rem; color: #b0a0d0; margin-bottom: 0.5rem; }
+  .badges-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .badge {
+    background: #3a2860;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+    text-align: center;
+    min-width: 70px;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+  }
+  .badge.earned { opacity: 1; border: 2px solid #f7c948; }
+  .badge .badge-icon { font-size: 1.3rem; display: block; }
+  .word-collection { background: #3a2860; border-radius: 12px; padding: 0.75rem; }
+  .word-collection h3 { font-size: 0.85rem; color: #b0a0d0; margin-bottom: 0.4rem; }
+  .word-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .word-tag {
+    background: #5a3fa0;
+    border-radius: 8px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+    color: #f5efe0;
+  }
+
+  /* ── Screen Time ── */
+  .timer-display {
+    text-align: center;
+    background: #3a2860;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .timer-clock { font-size: 3rem; font-weight: bold; color: #f7c948; font-family: monospace; }
+  .timer-label { font-size: 0.85rem; color: #b0a0d0; margin-top: 0.3rem; }
+  .timer-bar-bg {
+    background: #1a1030;
+    border-radius: 8px;
+    height: 12px;
+    overflow: hidden;
+    margin: 0.75rem 0;
+  }
+  .timer-bar { height: 100%; background: #3ecf6e; border-radius: 8px; transition: width 0.5s, background 0.5s; }
+  .timer-warning { font-size: 0.85rem; color: #f7c948; text-align: center; min-height: 1.2em; }
+  .timer-controls { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .timer-btn {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background: #5a3fa0;
+    color: #fff;
+    font-weight: bold;
+  }
+  .timer-btn:hover { background: #7a5fbf; }
+  .timer-btn.danger { background: #e05c5c; }
+  .coppa-box {
+    background: #2a3850;
+    border-radius: 10px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    color: #90b8d0;
+    line-height: 1.6;
+  }
+  .coppa-box strong { color: #60d8f0; }
+
+  /* ── section header ── */
+  .section-title { font-size: 1rem; color: #f7c948; margin-bottom: 0.75rem; font-weight: bold; }
+
+  /* ── moon animation ── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
+  }
+  .moon { font-size: 2rem; animation: float 3s ease-in-out infinite; display: inline-block; }
+</style>
+</head>
+<body>
+
+<h1>🌙 Playmate</h1>
+<p class="subtitle">Goodnight, AI — Prototyping Demo · Owner: Madhuri Dusad</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('tf')">True/False</button>
+  <button class="tab" onclick="showTab('tap')">Scene Tap</button>
+  <button class="tab" onclick="showTab('flip')">Word Card</button>
+  <button class="tab" onclick="showTab('progress')">Progress</button>
+  <button class="tab" onclick="showTab('timer')">Screen Time</button>
+</div>
+
+<!-- ── True / False Zapper ─────────────────────────────────────────────── -->
+<div class="card active" id="tab-tf">
+  <div class="section-title">True or False Zapper · Ages 8–10</div>
+  <div id="tf-container"></div>
+  <div id="tf-score" style="margin-top:1rem; text-align:center; font-size:0.9rem; color:#b0a0d0;"></div>
+</div>
+
+<!-- ── Story Scene Tap ────────────────────────────────────────────────── -->
+<div class="card" id="tab-tap">
+  <div class="section-title">Story Scene Tap · Ages 5–7</div>
+  <div class="scene-box" id="scene-desc"></div>
+  <div class="tap-items" id="tap-container"></div>
+</div>
+
+<!-- ── Word Flip Card ─────────────────────────────────────────────────── -->
+<div class="card" id="tab-flip">
+  <div class="section-title">Word of the Night</div>
+  <div class="flip-container" id="flip-card" onclick="flipCard()">
+    <div class="flip-inner">
+      <div class="flip-front">
+        <span class="flip-word" id="word-front"></span>
+        <span class="flip-hint">Tap to reveal the meaning</span>
+      </div>
+      <div class="flip-back">
+        <span class="flip-def" id="word-def"></span>
+        <span class="flip-ex" id="word-ex"></span>
+      </div>
+    </div>
+  </div>
+  <button class="save-word-btn" onclick="saveWord()">+ Add to My Word Collection</button>
+  <div id="word-saved-msg" style="text-align:center;font-size:0.82rem;color:#3ecf6e;margin-top:0.4rem;min-height:1em;"></div>
+</div>
+
+<!-- ── Progress / Badges ──────────────────────────────────────────────── -->
+<div class="card" id="tab-progress">
+  <div class="section-title">My Progress</div>
+  <div class="streak-row">
+    <div class="streak-num" id="streak-num">0</div>
+    <div>
+      <div style="font-size:1rem;">🔥 Night Streak</div>
+      <div class="streak-label">Read one story every night to keep your streak!</div>
+    </div>
+  </div>
+  <div class="badges-title">Badges</div>
+  <div class="badges-grid" id="badges-grid"></div>
+  <div class="word-collection">
+    <h3>Word Collection (<span id="word-count">0</span> words)</h3>
+    <div class="word-tags" id="word-tags"></div>
+  </div>
+  <div style="margin-top:0.75rem;">
+    <button class="timer-btn" onclick="simulateStory()" style="width:100%">▶ Simulate Reading a Story</button>
+  </div>
+</div>
+
+<!-- ── Screen Time Timer ──────────────────────────────────────────────── -->
+<div class="card" id="tab-timer">
+  <div class="section-title">Screen Time Limit</div>
+  <div class="timer-display">
+    <div class="moon">🌙</div>
+    <div class="timer-clock" id="clock">10:00</div>
+    <div class="timer-label">Remaining tonight</div>
+    <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+    <div class="timer-warning" id="timer-warning"></div>
+  </div>
+  <div class="timer-controls">
+    <button class="timer-btn" id="start-btn" onclick="startTimer()">Start Story</button>
+    <button class="timer-btn" onclick="extendTimer()">+5 min (parent)</button>
+    <button class="timer-btn danger" onclick="resetTimer()">Reset</button>
+  </div>
+  <div style="margin-top:1rem;">
+    <div class="section-title" style="font-size:0.85rem;">COPPA Compliance Check</div>
+    <div class="coppa-box">
+      <strong>Stored in localStorage (device only):</strong><br>
+      ✅ streak (number)<br>
+      ✅ badges (list of milestone names)<br>
+      ✅ word_collection (list of AI words)<br>
+      ✅ age_level ("5to7" or "8to10")<br>
+      ✅ screen_time_ms (remaining ms)<br>
+      <br>
+      <strong>Never collected:</strong><br>
+      ❌ name &nbsp; ❌ birthday &nbsp; ❌ photo &nbsp; ❌ voice &nbsp; ❌ email &nbsp; ❌ location
+    </div>
+  </div>
+  <div style="margin-top:0.75rem; font-size:0.78rem; color:#70609a; text-align:center;">
+    Open DevTools → Application → Local Storage to inspect saved data
+  </div>
+</div>
+
+<script>
+// ── data (mirrors mock_input.json) ──────────────────────────────────────────
+const STORY = {
+  title: "Pip and the Thinking Machine",
+  tf_statements: [
+    { statement: "GPT-5 was made by OpenAI",                   answer: true  },
+    { statement: "GPT-5 can never make mistakes",              answer: false },
+    { statement: "GPT-5 learned from books and websites",      answer: true  },
+  ],
+  scene_desc: "Pip looking at a glowing newspaper with stars around it",
+  hidden_elements: [
+    { element: "glowing newspaper", emoji: "📰", fun_fact: "AI learns from millions of articles — more than any person could read!" },
+    { element: "colorful stars",    emoji: "⭐", fun_fact: "Scientists use star ratings to show how confident they are about an answer." },
+    { element: "friendly robot",    emoji: "🤖", fun_fact: "Robots like Pip are called AI assistants — they help people think!" },
+  ],
+  ai_word: "Chain-of-thought",
+  word_def: "When an AI shows each step it used to find an answer, just like showing your work in math class.",
+  word_ex: "The AI used chain-of-thought to solve the puzzle one step at a time.",
+};
+
+const BADGE_MILESTONES = [
+  { count: 5,   label: "5 stories",   icon: "🌱", reward: "Park trip!" },
+  { count: 10,  label: "10 stories",  icon: "🌟", reward: "Game zone!" },
+  { count: 25,  label: "25 stories",  icon: "🚀", reward: "Movie night!" },
+  { count: 50,  label: "50 stories",  icon: "🏆", reward: "Family day out!" },
+  { count: 100, label: "100 stories", icon: "🦸", reward: "Anything you want!" },
+];
+
+// ── localStorage helpers ──────────────────────────────────────────────────
+function getProgress() {
+  const defaults = { streak: 0, badges: [], word_collection: [], age_level: "5to7", stories_read: 0, screen_time_ms: 10 * 60 * 1000 };
+  try { return { ...defaults, ...JSON.parse(localStorage.getItem("goodnight_progress") || "{}") }; }
+  catch(e) { return defaults; }
+}
+function saveProgress(p) {
+  localStorage.setItem("goodnight_progress", JSON.stringify(p));
+}
+
+// ── tabs ─────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── True / False Zapper ──────────────────────────────────────────────────
+let tfAnswered = 0, tfCorrect = 0;
+function buildTF() {
+  const container = document.getElementById('tf-container');
+  container.innerHTML = '';
+  STORY.tf_statements.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'tf-statement';
+    div.id = `tf-${i}`;
+    div.innerHTML = `
+      <div>${item.statement}</div>
+      <div class="tf-buttons">
+        <button class="btn-true"  onclick="answerTF(${i}, true)">✅ True</button>
+        <button class="btn-false" onclick="answerTF(${i}, false)">❌ False</button>
+      </div>
+      <div class="tf-feedback" id="tf-fb-${i}"></div>`;
+    container.appendChild(div);
+  });
+}
+function answerTF(i, choice) {
+  const item = STORY.tf_statements[i];
+  const fb = document.getElementById(`tf-fb-${i}`);
+  const box = document.getElementById(`tf-${i}`);
+  box.querySelectorAll('button').forEach(b => b.disabled = true);
+  if (choice === item.answer) {
+    fb.textContent = "✓ Correct!"; fb.className = 'tf-feedback correct'; tfCorrect++;
+  } else {
+    fb.textContent = `✗ The answer is ${item.answer ? 'True' : 'False'}.`; fb.className = 'tf-feedback incorrect';
+  }
+  tfAnswered++;
+  if (tfAnswered === STORY.tf_statements.length) {
+    document.getElementById('tf-score').textContent = `You got ${tfCorrect} of ${STORY.tf_statements.length} correct!`;
+  }
+}
+
+// ── Story Scene Tap ───────────────────────────────────────────────────────
+function buildTap() {
+  document.getElementById('scene-desc').textContent = STORY.scene_desc;
+  const container = document.getElementById('tap-container');
+  STORY.hidden_elements.forEach(el => {
+    const div = document.createElement('div');
+    div.className = 'tap-item';
+    div.innerHTML = `
+      <div>
+        <div class="label">${el.element}</div>
+        <div class="fact">${el.fun_fact}</div>
+      </div>
+      <span class="tap-emoji">${el.emoji}</span>`;
+    div.onclick = () => div.classList.toggle('revealed');
+    container.appendChild(div);
+  });
+}
+
+// ── Word Flip Card ────────────────────────────────────────────────────────
+function buildFlip() {
+  document.getElementById('word-front').textContent = STORY.ai_word;
+  document.getElementById('word-def').textContent   = STORY.word_def;
+  document.getElementById('word-ex').textContent    = STORY.word_ex;
+}
+function flipCard() {
+  document.getElementById('flip-card').classList.toggle('flipped');
+}
+function saveWord() {
+  const p = getProgress();
+  if (!p.word_collection.includes(STORY.ai_word)) {
+    p.word_collection.push(STORY.ai_word);
+    saveProgress(p);
+    document.getElementById('word-saved-msg').textContent = `"${STORY.ai_word}" added to your collection!`;
+    renderProgress();
+  } else {
+    document.getElementById('word-saved-msg').textContent = "Already in your collection!";
+  }
+}
+
+// ── Progress / Badges ─────────────────────────────────────────────────────
+function renderProgress() {
+  const p = getProgress();
+  document.getElementById('streak-num').textContent = p.streak;
+  document.getElementById('word-count').textContent = p.word_collection.length;
+  const tags = document.getElementById('word-tags');
+  tags.innerHTML = p.word_collection.length
+    ? p.word_collection.map(w => `<span class="word-tag">${w}</span>`).join('')
+    : '<span style="color:#70609a;font-size:0.82rem;">No words yet — read a story!</span>';
+  const grid = document.getElementById('badges-grid');
+  grid.innerHTML = BADGE_MILESTONES.map(b => {
+    const earned = p.stories_read >= b.count;
+    return `<div class="badge ${earned ? 'earned' : ''}">
+      <span class="badge-icon">${b.icon}</span>
+      ${b.label}${earned ? `<br><span style="font-size:0.7rem;color:#f7c948">${b.reward}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+function simulateStory() {
+  const p = getProgress();
+  p.stories_read++;
+  p.streak++;
+  if (!p.word_collection.includes(STORY.ai_word)) p.word_collection.push(STORY.ai_word);
+  saveProgress(p);
+  renderProgress();
+  alert(`Story read! 🌙 Streak: ${p.streak} night${p.streak === 1 ? '' : 's'} · Stories: ${p.stories_read}`);
+}
+
+// ── Screen Time Timer ─────────────────────────────────────────────────────
+const LIMIT_MS    = 10 * 60 * 1000;
+const WARN_MS     = 2  * 60 * 1000;
+const EXTEND_MS   = 5  * 60 * 1000;
+let timerInterval = null;
+let remaining_ms  = LIMIT_MS;
+let extended      = false;
+
+function fmtTime(ms) {
+  const m = Math.floor(ms / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function updateTimerUI() {
+  const pct = Math.max(0, remaining_ms / LIMIT_MS) * 100;
+  document.getElementById('clock').textContent = fmtTime(remaining_ms);
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = remaining_ms <= WARN_MS ? '#e05c5c' : (remaining_ms <= 4 * 60000 ? '#f7c948' : '#3ecf6e');
+  const warn = document.getElementById('timer-warning');
+  if (remaining_ms <= 0) {
+    warn.textContent = "🌙 Story time is over for tonight. Sweet dreams!";
+  } else if (remaining_ms <= WARN_MS) {
+    warn.textContent = "🌕 2 minutes left — time to wind down!";
+  } else {
+    warn.textContent = "";
+  }
+  const p = getProgress();
+  p.screen_time_ms = remaining_ms;
+  saveProgress(p);
+}
+function startTimer() {
+  if (timerInterval) return;
+  document.getElementById('start-btn').textContent = 'Pause';
+  document.getElementById('start-btn').onclick = pauseTimer;
+  timerInterval = setInterval(() => {
+    remaining_ms -= 1000;
+    updateTimerUI();
+    if (remaining_ms <= 0) { clearInterval(timerInterval); timerInterval = null; }
+  }, 1000);
+}
+function pauseTimer() {
+  clearInterval(timerInterval); timerInterval = null;
+  document.getElementById('start-btn').textContent = 'Resume';
+  document.getElementById('start-btn').onclick = startTimer;
+}
+function extendTimer() {
+  if (extended) { alert("Extension already used tonight."); return; }
+  remaining_ms += EXTEND_MS;
+  extended = true;
+  updateTimerUI();
+}
+function resetTimer() {
+  clearInterval(timerInterval); timerInterval = null;
+  remaining_ms = LIMIT_MS; extended = false;
+  document.getElementById('start-btn').textContent = 'Start Story';
+  document.getElementById('start-btn').onclick = startTimer;
+  updateTimerUI();
+}
+
+// ── init ──────────────────────────────────────────────────────────────────
+buildTF();
+buildTap();
+buildFlip();
+renderProgress();
+updateTimerUI();
+</script>
+</body>
+</html>
