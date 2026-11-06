@@ -51,19 +51,18 @@ python run_tests.py      # 10 stories, all hypotheses, saves results.json
 
 ## Competitive Analysis (P5)
 
-Seven apps were reviewed: Khan Academy Kids, Duolingo ABC, PBS Kids, Epic!, Newsela, NatGeo Kids, and Highlights Kids. The children's edtech market is valued at $9.8B (2024), growing to $43B by 2034, with 77% of parents supporting AI literacy education for their children.
+Competitors were mapped across all four product layers — news, story, narration, and gamification — covering 13 apps across four categories: kids news (Newsela, News-O-Matic, TIME for Kids, BBC Newsround), bedtime story apps (Moshi, Calm, Bedtime Stories AI), AI literacy tools (AI4K12, Machine Learning for Kids, Scratch), and gamified learning (Khan Academy Kids, Duolingo ABC, Epic!).
 
-Key findings across four dimensions:
+**No direct competitor exists.** Goodnight AI sits at the intersection of all four categories, a space no single product occupies. Key findings:
 
-**Quizzes:** Picture-first games for ages 5–7 (Khan Academy Kids model) and text-based True/False for ages 8–10 (Epic! model) are the industry standard. Goodnight AI follows this split.
+- **News apps** (Newsela, BBC Newsround) cover current events but are human-written, not age-split into narratives, and have no gamification.
+- **Bedtime story apps** (Moshi, Calm) produce high-quality narrated stories but are fictional and static — the same content every night, never tied to real events.
+- **AI literacy tools** (AI4K12, MIT Day of AI) all target ages 10+ and require active screen time, not a passive bedtime habit.
+- **Gamified learning apps** (Epic!, Khan Academy Kids) offer the strongest model for streaks and badges but cover no AI news content.
 
-**Streaks:** Duolingo's streak mechanic drives the strongest retention but causes anxiety in young children. For ages 5–7, a soft moon counter replaces a numeric streak at-risk. Ages 8–10 retain the streak with a shield protection option.
+Goodnight AI is the only product combining verified AI news, age-split narrative generation, illustrated bedtime format, and gamification for children under 10. The in-story screen timer and real-world badge rewards are features no competitor has.
 
-**Badges:** Epic! gives printable certificates at reading milestones. No app reviewed offers real-world reward suggestions (park trip, movie night). This is a clear Goodnight AI differentiator.
-
-**Screen Time & Data:** Only Epic! offers a parental time limit — none show an in-story timer to the child. Our 10-minute moon timer is unique across all seven apps. On data privacy, Khan Academy Kids and Duolingo ABC match our localStorage-only, no-account approach. No competitor covers AI news for ages 5–10.
-
-See `competitive_analysis.html` for the full report with charts.
+See `competitive_analysis.md` and `competitive_analysis.html` for full tables and charts.
 
 ## Input format required from Storyteller
 Playmate reads from the Storyteller output JSON. Required fields:
