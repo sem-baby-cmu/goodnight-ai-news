@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitive Analysis — Goodnight, AI · Playmate</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:       #0f0c24;
+    --bg2:      #1a1636;
+    --bg3:      #231d4a;
+    --accent:   #7c5cbf;
+    --gold:     #f7c948;
+    --green:    #3ecf6e;
+    --red:      #e05c5c;
+    --cyan:     #5dd8f0;
+    --text:     #f0eaf8;
+    --muted:    #9080b8;
+    --border:   #2e2860;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--cyan); }
+
+  /* ── layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .header { text-align: center; padding: 3rem 1rem 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+  .header h1 { font-size: 2rem; color: var(--gold); margin-bottom: 0.4rem; }
+  .header .meta { font-size: 0.85rem; color: var(--muted); }
+  .section { margin-bottom: 3rem; }
+  .section-title { font-size: 1.3rem; color: var(--gold); margin-bottom: 1.2rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border); }
+  .subsection-title { font-size: 1rem; color: var(--cyan); margin: 1.2rem 0 0.6rem; font-weight: 600; }
+
+  /* ── grid helpers ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+  @media (max-width: 700px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── stat cards ── */
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 2.2rem; font-weight: 700; color: var(--gold); }
+  .stat-card .label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; line-height: 1.3; }
+  .stat-card .sub { font-size: 0.72rem; color: var(--accent); margin-top: 0.3rem; }
+
+  /* ── chart cards ── */
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+  .chart-card h3 { font-size: 0.95rem; color: var(--cyan); margin-bottom: 1rem; }
+  .chart-wrap { position: relative; }
+
+  /* ── feature table ── */
+  .feat-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .feat-table th {
+    background: var(--bg3);
+    color: var(--gold);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .feat-table td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .feat-table tr:hover td { background: rgba(124,92,191,0.08); }
+  .feat-table .app-name { font-weight: 600; color: var(--text); }
+  .feat-table .ours { background: rgba(247,201,72,0.06); }
+  .feat-table .ours td { color: var(--gold); }
+
+  .yes  { color: var(--green); font-weight: 600; }
+  .no   { color: var(--red); }
+  .part { color: #f7a048; }
+  .na   { color: var(--muted); }
+
+  /* ── app profile cards ── */
+  .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+  .app-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem;
+  }
+  .app-card .app-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+  .app-card .app-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .app-card .app-age   { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+  .stars { color: var(--gold); font-size: 0.9rem; white-space: nowrap; }
+  .app-pill {
+    display: inline-block;
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.72rem;
+    margin: 0.15rem 0.1rem;
+    color: var(--muted);
+  }
+  .pill-green { background: rgba(62,207,110,0.15); color: var(--green); }
+  .pill-red   { background: rgba(224,92,92,0.15);  color: var(--red); }
+  .pill-gold  { background: rgba(247,201,72,0.15); color: var(--gold); }
+  .app-card .row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border); }
+  .app-card .row:last-child { border-bottom: none; }
+  .app-card .row .key { color: var(--muted); }
+  .app-card .row .val { color: var(--text); font-weight: 500; text-align: right; max-width: 55%; }
+  .app-card .strengths { font-size: 0.78rem; color: var(--green); margin-top: 0.6rem; line-height: 1.6; }
+  .app-card .weaknesses { font-size: 0.78rem; color: var(--red); margin-top: 0.3rem; line-height: 1.6; }
+
+  /* ── gap matrix ── */
+  .gap-wrap { overflow-x: auto; }
+  .gap-table { min-width: 700px; width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .gap-table th { background: var(--bg3); color: var(--muted); padding: 0.5rem 0.6rem; border: 1px solid var(--border); text-align: center; font-weight: 500; }
+  .gap-table th.row-h { text-align: left; color: var(--text); font-weight: 600; }
+  .gap-table td { padding: 0.45rem 0.6rem; border: 1px solid var(--border); text-align: center; }
+  .gap-table tr.ours-row td { background: rgba(247,201,72,0.08); font-weight: 600; }
+  .gap-table tr.ours-row th { background: rgba(247,201,72,0.08); color: var(--gold); }
+  .dot-full  { color: var(--green);  font-size: 1.1rem; }
+  .dot-part  { color: #f7a048;      font-size: 1.1rem; }
+  .dot-none  { color: var(--red);   font-size: 1.1rem; }
+
+  /* ── insight callouts ── */
+  .insight {
+    background: rgba(124,92,191,0.12);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 0.8rem 1rem;
+    margin: 0.6rem 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .insight .label { color: var(--gold); font-weight: 700; margin-bottom: 0.2rem; }
+  .insight-green { border-color: var(--green); background: rgba(62,207,110,0.08); }
+  .insight-red   { border-color: var(--red);   background: rgba(224,92,92,0.08); }
+
+  /* ── market share donut label ── */
+  .legend { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── coppa bars ── */
+  .coppa-row { margin-bottom: 0.6rem; }
+  .coppa-row .label-row { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem; }
+  .coppa-row .bar-bg { background: var(--bg3); border-radius: 6px; height: 10px; overflow: hidden; }
+  .coppa-row .bar-fill { height: 100%; border-radius: 6px; }
+
+  /* ── footer ── */
+  footer { text-align: center; padding: 2rem; font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 3rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="container">
+    <h1>Competitive Analysis</h1>
+    <div class="meta">
+      Goodnight, AI — Playmate Component &nbsp;·&nbsp; Owner: Madhuri Dusad &nbsp;·&nbsp; November 2026<br>
+      Rubric: Hypothesis P5 · Section 4.2 · Team deliverable
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════════════════════
+     1. MARKET OVERVIEW
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">1. Market Overview</div>
+
+  <div class="grid-3" style="margin-bottom:1.5rem">
+    <div class="stat-card">
+      <div class="num">$9.8B</div>
+      <div class="label">Kids Educational Apps<br>Market Size (2024)</div>
+      <div class="sub">↑ 17–21% CAGR through 2034</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">$43B</div>
+      <div class="label">Projected Market Size<br>by 2034</div>
+      <div class="sub">North America leads at $2.9B (2024)</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">0</div>
+      <div class="label">Apps covering AI news<br>for ages 5–10</div>
+      <div class="sub">Confirmed across 7 apps reviewed</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">77%</div>
+      <div class="label">US parents want schools<br>to teach AI tools effectively</div>
+      <div class="sub">85% want AI safety taught</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">3.5 hrs</div>
+      <div class="label">Average daily screen time<br>ages 5–8 (all media)</div>
+      <div class="sub">Recommendation: &lt;1.5 hrs/day rec. screen</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">99%</div>
+      <div class="label">Child-directed apps lacking<br>verifiable parental consent</div>
+      <div class="sub">COPPA industry-wide problem</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <h3>Parent Support for AI Literacy Education (by child age group)</h3>
+      <div class="chart-wrap"><canvas id="parentSupportChart" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Kids Educational App Market Growth ($B)</h3>
+      <div class="chart-wrap"><canvas id="marketGrowthChart" height="200"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     2. APPS REVIEWED
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">2. Apps Reviewed — Profiles</div>
+
+  <div class="app-grid">
+
+    <!-- Khan Academy Kids -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Khan Academy Kids</div>
+          <div class="app-age">Ages 2–8 · Math, Reading, SEL</div>
+        </div>
+        <div class="stars">4.8 ★</div>
+      </div>
+      <span class="app-pill pill-green">100% Free</span>
+      <span class="app-pill pill-green">No Ads</span>
+      <span class="app-pill pill-green">12.5M+ downloads</span>
+      <span class="app-pill">iOS · Android · Web</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free, no in-app purchases</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">Daily missions (soft)</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">No formal badge system</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">No</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">Parent email only</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Partial (Kodi's Suitcase)</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">Self-attested ✅</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">None</span></div>
+      </div>
+      <div class="strengths">✅ Highest iOS rating (4.8★) · Zero data selling · Strong parent controls</div>
+      <div class="weaknesses">❌ No AI news · No hard screen time limit · Self-attested only (not certified)</div>
+    </div>
+
+    <!-- Duolingo ABC -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Duolingo ABC</div>
+          <div class="app-age">Ages 3–7 · Phonics & Early Reading</div>
+        </div>
+        <div class="stars">4.2 ★</div>
+      </div>
+      <span class="app-pill pill-green">100% Free</span>
+      <span class="app-pill pill-green">No Ads</span>
+      <span class="app-pill">5–18M downloads</span>
+      <span class="app-pill">iOS · Android</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free, no in-app purchases</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">No (anxiety risk for 3–6)</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">XP + level badges</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">No</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">Parental consent gate</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Not confirmed</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">Strong — parental consent ✅</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">None</span></div>
+      </div>
+      <div class="strengths">✅ No streak anxiety for young kids · Strong parental consent · Speech recognition</div>
+      <div class="weaknesses">❌ Lower Android rating (3.94★) · Reading-only focus · No AI news</div>
+    </div>
+
+    <!-- PBS Kids -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">PBS Kids Games</div>
+          <div class="app-age">Ages 2–8 · 280+ curriculum games</div>
+        </div>
+        <div class="stars">4.4 ★</div>
+      </div>
+      <span class="app-pill pill-green">100% Free</span>
+      <span class="app-pill pill-green">No Ads</span>
+      <span class="app-pill">10–15M downloads</span>
+      <span class="app-pill">iOS · Android · Web</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">100% Free</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">No (parent tools on website)</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">None — fully anonymous</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Not confirmed</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">100% — anonymous play ✅</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">None</span></div>
+      </div>
+      <div class="strengths">✅ Best-in-class COPPA (zero data, anonymous) · 280+ games · Bilingual</div>
+      <div class="weaknesses">❌ No personalization · No gamification · No AI news</div>
+    </div>
+
+    <!-- Epic! -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Epic!</div>
+          <div class="app-age">Ages 2–12 · 40,000+ books</div>
+        </div>
+        <div class="stars">4.7 ★</div>
+      </div>
+      <span class="app-pill pill-gold">Freemium</span>
+      <span class="app-pill">$11.99/mo or $72/yr</span>
+      <span class="app-pill">519K ratings</span>
+      <span class="app-pill">iOS · Android</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free (school hrs) / $11.99/mo</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">Reading stats only</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">Yes — reading milestones ✅</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">Partial — no in-app timer</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">Parent email + credit card</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Yes — book downloads ✅</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">Mixed — FTC violation history ⚠️</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">None</span></div>
+      </div>
+      <div class="strengths">✅ Badges & milestones · Offline mode · 40K+ titles · Closest to our model</div>
+      <div class="weaknesses">❌ FTC COPPA violation history · No in-app screen timer · Paid for full access</div>
+    </div>
+
+    <!-- Newsela -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Newsela</div>
+          <div class="app-age">Ages 8–18 · News at 5 reading levels</div>
+        </div>
+        <div class="stars">4.7 ★</div>
+      </div>
+      <span class="app-pill pill-gold">Freemium</span>
+      <span class="app-pill pill-red">Android removed 2023</span>
+      <span class="app-pill">School-focused</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free tier / Pro (school pricing)</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">School/district account</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Not confirmed</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">FERPA + COPPA compliant ✅</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">General news only</span></div>
+      </div>
+      <div class="strengths">✅ Closest to news format · 5 reading levels · AI writing feedback</div>
+      <div class="weaknesses">❌ No AI-specific news · No gamification · Android removed · School-only focus · Ages 8+ only</div>
+    </div>
+
+    <!-- Nat Geo Kids -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">National Geographic Kids</div>
+          <div class="app-age">Ages 6–12 · Animals & Science</div>
+        </div>
+        <div class="stars">1.7 ★</div>
+      </div>
+      <span class="app-pill pill-red">43% COPPA score</span>
+      <span class="app-pill pill-red">Weak controls</span>
+      <span class="app-pill">iOS only</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free (interactive magazine)</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">Parent email (under 16)</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">None</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">43% compliance score ❌</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">None</span></div>
+      </div>
+      <div class="strengths">✅ Quality NatGeo brand · Engaging nature content</div>
+      <div class="weaknesses">❌ Lowest rating (1.7★) · 43% COPPA score · iOS only · No gamification · No AI news</div>
+    </div>
+
+    <!-- Highlights Kids -->
+    <div class="app-card">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Highlights Kids</div>
+          <div class="app-age">Ages 3–12 · Puzzles & Stories</div>
+        </div>
+        <div class="stars">3.3–4.4 ★</div>
+      </div>
+      <span class="app-pill pill-gold">Freemium + IAP</span>
+      <span class="app-pill">iOS · Amazon</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free + in-app purchases</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">None</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">Optional</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Unknown</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">General compliance (unclear)</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">None</span></div>
+      </div>
+      <div class="strengths">✅ Iconic Highlights brand · Hidden Pictures signature · Multi-age range</div>
+      <div class="weaknesses">❌ Lower ratings (3.2–4.4★) · In-app purchases · No Android · No gamification system</div>
+    </div>
+
+    <!-- Goodnight AI -->
+    <div class="app-card" style="border-color: var(--gold); background: rgba(247,201,72,0.04);">
+      <div class="app-header">
+        <div>
+          <div class="app-title" style="color:var(--gold)">★ Goodnight, AI (Ours)</div>
+          <div class="app-age">Ages 5–10 · AI News Stories</div>
+        </div>
+        <div class="stars" style="color:var(--cyan)">TBD ★</div>
+      </div>
+      <span class="app-pill pill-green">Free</span>
+      <span class="app-pill pill-green">No Account</span>
+      <span class="app-pill pill-green">AI-first content</span>
+      <span class="app-pill pill-gold">Prototype</span>
+      <div style="margin-top:0.75rem">
+        <div class="row"><span class="key">Pricing</span><span class="val">Free (target)</span></div>
+        <div class="row"><span class="key">Streaks</span><span class="val">Yes — night streak ✅</span></div>
+        <div class="row"><span class="key">Badges</span><span class="val">Yes — real-world rewards ✅</span></div>
+        <div class="row"><span class="key">Screen time limit</span><span class="val">Yes — 10 min in-story ✅</span></div>
+        <div class="row"><span class="key">Account required</span><span class="val">None — localStorage only ✅</span></div>
+        <div class="row"><span class="key">Offline mode</span><span class="val">Yes — localStorage ✅</span></div>
+        <div class="row"><span class="key">COPPA</span><span class="val">By design — no PII ever ✅</span></div>
+        <div class="row"><span class="key">AI content</span><span class="val">AI news ONLY ✅ (unique)</span></div>
+      </div>
+      <div class="strengths">✅ Only app with AI news for 5–10 · In-story screen timer (unique) · Real-world badge rewards (unique) · COPPA by design · No account needed</div>
+      <div class="weaknesses">⚠️ Prototype stage · No app store listing yet · Small content library at launch</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     3. QUANTITATIVE COMPARISONS
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">3. Quantitative Comparisons</div>
+
+  <div class="grid-2" style="margin-bottom:1.5rem">
+    <div class="chart-card">
+      <h3>App Store Ratings (iOS) — higher is better</h3>
+      <div class="chart-wrap"><canvas id="ratingsChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Pricing Tiers — monthly cost to parent ($)</h3>
+      <div class="chart-wrap"><canvas id="pricingChart" height="220"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <h3>Estimated Downloads (millions)</h3>
+      <div class="chart-wrap"><canvas id="downloadsChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>COPPA Compliance Scores</h3>
+      <div style="margin-top:0.5rem">
+        <div class="coppa-row">
+          <div class="label-row"><span>PBS Kids Games</span><span style="color:var(--green)">100%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#3ecf6e"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>Goodnight, AI (target)</span><span style="color:var(--green)">100%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#f7c948"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>Khan Academy Kids</span><span style="color:var(--green)">~95%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:95%;background:#3ecf6e"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>Duolingo ABC</span><span style="color:var(--green)">~90%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:90%;background:#3ecf6e"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>Newsela</span><span style="color:var(--green)">~85%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:85%;background:#3ecf6e"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>Epic!</span><span style="color:#f7a048">70%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:70%;background:#f7a048"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>Highlights Kids</span><span style="color:#f7a048">~60%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:60%;background:#f7a048"></div></div>
+        </div>
+        <div class="coppa-row">
+          <div class="label-row"><span>National Geographic Kids</span><span style="color:var(--red)">43%</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:43%;background:#e05c5c"></div></div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem">Sources: Pixalate Q1 2023 report; Common Sense Privacy evaluations; FTC enforcement records</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     4. FEATURE RADAR — TOP 3 vs OURS
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">4. Feature Radar — Top 3 Competitors vs Goodnight, AI</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <h3>Radar: 8 dimensions scored 0–10</h3>
+      <div class="chart-wrap"><canvas id="radarChart" height="280"></canvas></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;justify-content:center">
+      <div class="insight insight-green">
+        <div class="label">Dimension scoring method</div>
+        Each app scored 0–10 per dimension: Content Relevance (AI-focused?), Gamification depth, Age targeting precision, COPPA compliance, Screen time control, No account friction, Parental transparency, Offline capability.
+      </div>
+      <div class="insight">
+        <div class="label">Key takeaway</div>
+        Goodnight, AI scores highest on content relevance (only app with AI news), screen time control (only app with in-story timer), and COPPA (designed around zero PII). We score lower on library size and established brand trust — expected for a prototype.
+      </div>
+      <div class="insight insight-red">
+        <div class="label">Our biggest gap</div>
+        Library size. At launch we have one new story per day vs 40,000 books (Epic) or 280 games (PBS). We mitigate this with daily freshness and bedtime habit formation.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     5. FULL FEATURE MATRIX
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">5. Feature Matrix</div>
+  <div style="overflow-x:auto">
+    <table class="feat-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Khan Academy Kids</th>
+          <th>Duolingo ABC</th>
+          <th>PBS Kids</th>
+          <th>Epic!</th>
+          <th>Newsela</th>
+          <th>NatGeo Kids</th>
+          <th>Highlights</th>
+          <th style="color:var(--gold)">Goodnight, AI</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>AI news content</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅ only</td></tr>
+        <tr><td>Ages 5–7 coverage</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="no">✗</td><td class="part">▲</td><td class="yes">✅</td><td class="yes">✅</td></tr>
+        <tr><td>Ages 8–10 coverage</td><td class="part">▲</td><td class="no">✗</td><td class="part">▲</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td></tr>
+        <tr><td>No child account</td><td class="part">▲</td><td class="no">✗</td><td class="yes">✅</td><td class="no">✗</td><td class="no">✗</td><td class="part">▲</td><td class="part">▲</td><td class="yes">✅</td></tr>
+        <tr><td>In-story screen timer</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅ unique</td></tr>
+        <tr><td>Streaks</td><td class="part">soft</td><td class="no">✗</td><td class="no">✗</td><td class="part">▲</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅</td></tr>
+        <tr><td>Badges / milestones</td><td class="no">✗</td><td class="part">XP</td><td class="no">✗</td><td class="yes">✅</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅</td></tr>
+        <tr><td>Real-world badge rewards</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅ unique</td></tr>
+        <tr><td>Word collection / vocab</td><td class="no">✗</td><td class="part">▲</td><td class="no">✗</td><td class="part">Spotlight</td><td class="part">Power Words</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅ AI vocab</td></tr>
+        <tr><td>Fact-checked content</td><td class="no">✗</td><td class="na">N/A</td><td class="no">✗</td><td class="no">✗</td><td class="part">▲</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅</td></tr>
+        <tr><td>Parent card per story</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅ unique</td></tr>
+        <tr><td>Offline mode</td><td class="part">partial</td><td class="no">✗</td><td class="no">✗</td><td class="yes">✅</td><td class="no">✗</td><td class="no">✗</td><td class="na">?</td><td class="yes">✅ localStorage</td></tr>
+        <tr><td>Free (no paywall)</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="part">school only</td><td class="part">limited</td><td class="yes">✅</td><td class="part">IAP</td><td class="yes">✅</td></tr>
+        <tr><td>COPPA compliant</td><td class="yes">self-att.</td><td class="yes">✅</td><td class="yes">✅</td><td class="part">⚠️ FTC</td><td class="yes">✅</td><td class="part">43% ❌</td><td class="na">unclear</td><td class="yes">by design ✅</td></tr>
+        <tr><td>Bilingual support</td><td class="no">✗</td><td class="no">✗</td><td class="part">EN+ES</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="part">future (EN+ZH)</td></tr>
+        <tr><td>iOS available</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅ target</td></tr>
+        <tr><td>Android available</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="yes">✅</td><td class="no">removed ❌</td><td class="no">✗</td><td class="part">Amazon</td><td class="yes">✅ target</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem">✅ = fully present · ▲ = partial · ✗ = absent · ? = unknown</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     6. GAP ANALYSIS — MARKET OPPORTUNITY
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">6. Gap Analysis — Where Goodnight, AI Fits</div>
+  <div class="gap-wrap">
+    <table class="gap-table">
+      <thead>
+        <tr>
+          <th class="row-h">Unmet need</th>
+          <th>Khan<br>Academy</th>
+          <th>Duolingo<br>ABC</th>
+          <th>PBS Kids</th>
+          <th>Epic!</th>
+          <th>Newsela</th>
+          <th style="color:var(--gold)">Goodnight,<br>AI</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th class="row-h">AI news for ages 5–10</th>
+          <td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">Fact-checked story content</th>
+          <td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-part">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">In-app screen time enforcement</th>
+          <td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">Parent card: AI concept + discussion Q</th>
+          <td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">Real-world badge rewards (park trips etc.)</th>
+          <td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">AI vocabulary collection (1,825 words by age 11)</th>
+          <td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-part">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">COPPA compliance by design (zero PII ever)</th>
+          <td><span class="dot-part">●</span></td><td><span class="dot-part">●</span></td><td><span class="dot-full">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-part">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+        <tr>
+          <th class="row-h">Age-split content (5–7 vs 8–10)</th>
+          <td><span class="dot-part">●</span></td><td><span class="dot-none">●</span></td><td><span class="dot-part">●</span></td><td><span class="dot-part">●</span></td><td><span class="dot-none">●</span></td>
+          <td><span class="dot-full">●</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem">
+      <span style="color:var(--green)">●</span> Fully covered &nbsp;
+      <span style="color:#f7a048">●</span> Partially covered &nbsp;
+      <span style="color:var(--red)">●</span> Not covered
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     7. GAMIFICATION DESIGN — WHAT WORKS (P5)
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">7. Gamification Design Lessons (Hypothesis P5)</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <h3>Gamification feature presence by app</h3>
+      <div class="chart-wrap"><canvas id="gamifyChart" height="260"></canvas></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div class="insight insight-green">
+        <div class="label">Finding 1 — Streaks work, but not for ages 5–7</div>
+        Duolingo removed streaks from ABC (their 3–6 app) deliberately. For young children, losing a streak causes anxiety. We use a "night counter" framing for 5–7 (5 nights!) and a streak for 8–10. Industry validated.
+      </div>
+      <div class="insight insight-green">
+        <div class="label">Finding 2 — Badges need real meaning</div>
+        Epic! gives reading certificates parents can print. Khan Academy gives character rewards. We give real-world reward suggestions (park trip at 5 stories, movie night at 25). No competitor does this. It's our differentiator.
+      </div>
+      <div class="insight">
+        <div class="label">Finding 3 — Picture-first quiz for under-7 is the norm</div>
+        Khan Academy Kids and Duolingo ABC both use picture/tap-based activities for under-7, never text multiple choice. Our Story Scene Tap follows this exactly. True or False Zapper (swipe) is appropriate for 8+.
+      </div>
+      <div class="insight insight-red">
+        <div class="label">Finding 4 — No app has a word collection mechanic</div>
+        Newsela's Power Words and Epic's Spotlight Words both show vocabulary but don't let kids collect and own them. Our Word Flip Card + personal collection ("1,825 AI words by age 11") is a novel mechanic with no direct competitor.
+      </div>
+      <div class="insight insight-red">
+        <div class="label">Finding 5 — Screen time is an open gap</div>
+        Only Epic! has any parental screen time tool — and it's in the parent dashboard, not visible to the child. No app shows the child a timer during the story. Our in-story 10-minute moon timer is unique across all 7 apps.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     8. STRATEGIC IMPLICATIONS
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">8. Strategic Implications for Goodnight, AI</div>
+  <div class="grid-2">
+    <div>
+      <div class="subsection-title">Adopt from competitors</div>
+      <div class="insight insight-green">
+        <div class="label">From Khan Academy Kids</div>
+        Low-pressure daily missions for young kids instead of explicit streaks. Soft "you read last night!" not "streak broken!"
+      </div>
+      <div class="insight insight-green">
+        <div class="label">From PBS Kids</div>
+        Anonymous play is the gold standard for COPPA. We already match it: localStorage, no account, no server sync.
+      </div>
+      <div class="insight insight-green">
+        <div class="label">From Epic!</div>
+        Milestone certificates / printable badges that parents can download. Easy add: at 25 stories, generate a PDF parents can print.
+      </div>
+      <div class="insight insight-green">
+        <div class="label">From Newsela</div>
+        Five reading levels per article. We do two (5–7 and 8–10). Consider a third (pre-reader, with parent read-aloud) in a future version.
+      </div>
+    </div>
+    <div>
+      <div class="subsection-title">Our unique advantages — defend them</div>
+      <div class="insight">
+        <div class="label">AI news content</div>
+        Zero competitors cover AI news for 5–10. This is our entire market positioning. Never dilute into general news (confirmed set-aside).
+      </div>
+      <div class="insight">
+        <div class="label">In-story screen timer</div>
+        Unique across all 7 apps. Parents in research cite screen time as top concern. Lead with this in every parent-facing description.
+      </div>
+      <div class="insight">
+        <div class="label">Real-world badge rewards</div>
+        Unique. No app suggests physical rewards. This bridges digital habit and family life — central to our "parents keep control" value proposition.
+      </div>
+      <div class="insight">
+        <div class="label">Parent card per story</div>
+        Unique. 52% of parents say they don't feel equipped to discuss AI with kids. The parent card is the product's answer.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SOURCES
+══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Sources</div>
+  <div style="font-size:0.78rem;color:var(--muted);line-height:2;columns:2;column-gap:2rem">
+    <div>Khan Academy Kids App Store — apps.apple.com/us/app/khan-academy-kids</div>
+    <div>Duolingo ABC App Store — apps.apple.com/us/app/learn-to-read-duolingo-abc</div>
+    <div>PBS Kids Games App — apps.apple.com/us/app/pbs-kids-games</div>
+    <div>Epic! Kids Books — apps.apple.com/us/app/epic-kids-books-reading</div>
+    <div>Newsela Student — apps.apple.com/tc/app/newsela-student</div>
+    <div>National Geographic Kids — apps.apple.com/us/app/uk-national-geographic-kids</div>
+    <div>Pixalate Q1 2023 COPPA Violation Risk Report — prnewswire.com</div>
+    <div>Common Sense Privacy evaluations — privacy.commonsense.org</div>
+    <div>FTC COPPA enforcement database — ftc.gov/coppa</div>
+    <div>IMARC Kids Educational Apps Market Report 2024 — imarcgroup.com</div>
+    <div>Screen time statistics 2025 — monstermath.app/blog</div>
+    <div>National Literacy Trust AI survey 2026 — literacytrust.org.uk</div>
+    <div>KidsOutAndAbout parent AI survey 2025 — marketingaiinstitute.com</div>
+    <div>American Academy of Pediatrics screen time guidelines — aap.org</div>
+    <div>Epic parental controls guide — screenwiseapp.com/guides/epic</div>
+    <div>Khan Academy Kids safety guide — internetmatters.org</div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+  Goodnight, AI · Playmate Component · Competitive Analysis · Owner: Madhuri Dusad · November 2026<br>
+  Course: Software Engineering Management (49772) · Carnegie Mellon University
+</footer>
+
+<script>
+const APPS  = ['Khan Academy Kids','Duolingo ABC','PBS Kids','Epic!','Newsela','NatGeo Kids','Highlights','Goodnight, AI'];
+const COLORS = ['#5dd8f0','#7c5cbf','#3ecf6e','#f7c948','#e05c5c','#f7a048','#9080b8','#f7c948'];
+const ALPHAS = COLORS.map(c => c + '40');
+
+const defaults = {
+  responsive: true,
+  plugins: { legend: { labels: { color: '#9080b8', font: { size: 11 } } } }
+};
+
+// ── 1. Parent support by age group ──────────────────────────────────────────
+new Chart(document.getElementById('parentSupportChart'), {
+  type: 'bar',
+  data: {
+    labels: ['High school\n(14–18)', 'Middle school\n(11–14)', 'Elementary\n(5–10)', 'Overall\nUS avg'],
+    datasets: [{
+      label: '% supporting AI literacy education',
+      data: [81, 74, 58, 77],
+      backgroundColor: ['#3ecf6e88','#5dd8f088','#f7c94888','#7c5cbf88'],
+      borderColor:     ['#3ecf6e',  '#5dd8f0',  '#f7c948',  '#7c5cbf'],
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    ...defaults,
+    plugins: { ...defaults.plugins, legend: { display: false } },
+    scales: {
+      y: { min: 0, max: 100, ticks: { color: '#9080b8', callback: v => v+'%' }, grid: { color: '#2e2860' } },
+      x: { ticks: { color: '#9080b8' }, grid: { display: false } }
+    }
+  }
+});
+
+// ── 2. Market growth ─────────────────────────────────────────────────────────
+new Chart(document.getElementById('marketGrowthChart'), {
+  type: 'line',
+  data: {
+    labels: ['2022','2023','2024','2025','2026','2028','2030','2032','2034'],
+    datasets: [{
+      label: 'Market size ($B)',
+      data: [6.1, 7.2, 9.8, 11.5, 13.5, 18.4, 25.0, 33.0, 43.0],
+      borderColor: '#f7c948',
+      backgroundColor: '#f7c94820',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#f7c948',
+      pointRadius: 4,
+    }]
+  },
+  options: {
+    ...defaults,
+    plugins: { ...defaults.plugins, legend: { display: false } },
+    scales: {
+      y: { ticks: { color: '#9080b8', callback: v => '$'+v+'B' }, grid: { color: '#2e2860' } },
+      x: { ticks: { color: '#9080b8' }, grid: { display: false } }
+    }
+  }
+});
+
+// ── 3. Ratings ───────────────────────────────────────────────────────────────
+new Chart(document.getElementById('ratingsChart'), {
+  type: 'bar',
+  data: {
+    labels: APPS,
+    datasets: [{
+      label: 'iOS App Store Rating',
+      data: [4.8, 4.2, 4.4, 4.7, 4.7, 1.7, 3.8, null],
+      backgroundColor: ALPHAS,
+      borderColor:     COLORS,
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    ...defaults,
+    plugins: {
+      ...defaults.plugins,
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ctx.raw ? ctx.raw + ' ★' : 'TBD (prototype)' } }
+    },
+    scales: {
+      y: { min: 0, max: 5.5, ticks: { color: '#9080b8', callback: v => v+'★' }, grid: { color: '#2e2860' } },
+      x: { ticks: { color: '#9080b8', maxRotation: 30 }, grid: { display: false } }
+    }
+  }
+});
+
+// ── 4. Pricing ───────────────────────────────────────────────────────────────
+new Chart(document.getElementById('pricingChart'), {
+  type: 'bar',
+  data: {
+    labels: APPS,
+    datasets: [
+      { label: 'Free tier', data: [0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: '#3ecf6e55', borderColor: '#3ecf6e', borderWidth: 2, borderRadius: 6 },
+      { label: 'Full access cost/mo', data: [0, 0, 0, 11.99, 15, 0, 5, 0], backgroundColor: '#f7a04855', borderColor: '#f7a048', borderWidth: 2, borderRadius: 6 },
+    ]
+  },
+  options: {
+    ...defaults,
+    scales: {
+      y: { ticks: { color: '#9080b8', callback: v => '$'+v }, grid: { color: '#2e2860' } },
+      x: { ticks: { color: '#9080b8', maxRotation: 30 }, grid: { display: false } }
+    }
+  }
+});
+
+// ── 5. Downloads ──────────────────────────────────────────────────────────────
+new Chart(document.getElementById('downloadsChart'), {
+  type: 'bar',
+  data: {
+    labels: APPS.slice(0,7),
+    datasets: [{
+      label: 'Est. downloads (millions)',
+      data: [12.5, 11.5, 12.5, 8, 2.5, 1, 1.5],
+      backgroundColor: ALPHAS.slice(0,7),
+      borderColor:     COLORS.slice(0,7),
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    ...defaults,
+    plugins: { ...defaults.plugins, legend: { display: false } },
+    scales: {
+      y: { ticks: { color: '#9080b8', callback: v => v+'M' }, grid: { color: '#2e2860' } },
+      x: { ticks: { color: '#9080b8', maxRotation: 30 }, grid: { display: false } }
+    }
+  }
+});
+
+// ── 6. Radar ──────────────────────────────────────────────────────────────────
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Content\nRelevance','Gamification\nDepth','Age\nPrecision','COPPA\nCompliance','Screen Time\nControl','No Account\nFriction','Parental\nTransparency','Offline\nCapability'],
+    datasets: [
+      {
+        label: 'Khan Academy Kids',
+        data: [1, 3, 7, 9, 2, 8, 7, 4],
+        borderColor: '#5dd8f0', backgroundColor: '#5dd8f015', pointBackgroundColor: '#5dd8f0', borderWidth: 2,
+      },
+      {
+        label: 'Epic!',
+        data: [1, 7, 7, 5, 3, 4, 8, 9],
+        borderColor: '#f7c948', backgroundColor: '#f7c94815', pointBackgroundColor: '#f7c948', borderWidth: 2,
+      },
+      {
+        label: 'Newsela',
+        data: [2, 2, 4, 8, 1, 3, 6, 2],
+        borderColor: '#e05c5c', backgroundColor: '#e05c5c15', pointBackgroundColor: '#e05c5c', borderWidth: 2,
+      },
+      {
+        label: 'Goodnight, AI',
+        data: [10, 8, 10, 10, 10, 10, 9, 7],
+        borderColor: '#3ecf6e', backgroundColor: '#3ecf6e25', pointBackgroundColor: '#3ecf6e', borderWidth: 2.5,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#9080b8', font: { size: 10 } } } },
+    scales: {
+      r: {
+        min: 0, max: 10,
+        ticks: { display: false },
+        grid: { color: '#2e2860' },
+        angleLines: { color: '#2e2860' },
+        pointLabels: { color: '#9080b8', font: { size: 10 } }
+      }
+    }
+  }
+});
+
+// ── 7. Gamification presence ──────────────────────────────────────────────────
+new Chart(document.getElementById('gamifyChart'), {
+  type: 'bar',
+  data: {
+    labels: APPS,
+    datasets: [
+      { label: 'Streaks',           data: [1,0,0,1,0,0,0,1], backgroundColor: '#5dd8f088', borderColor: '#5dd8f0', borderWidth: 1 },
+      { label: 'Badges',            data: [0,1,0,1,0,0,0,1], backgroundColor: '#f7c94888', borderColor: '#f7c948', borderWidth: 1 },
+      { label: 'Quiz after content',data: [1,1,1,1,1,1,1,1], backgroundColor: '#7c5cbf88', borderColor: '#7c5cbf', borderWidth: 1 },
+      { label: 'Word mechanic',     data: [0,1,0,1,1,0,0,1], backgroundColor: '#3ecf6e88', borderColor: '#3ecf6e', borderWidth: 1 },
+      { label: 'Screen time control',data:[0,0,0,0,0,0,0,1], backgroundColor: '#e05c5c88', borderColor: '#e05c5c', borderWidth: 1 },
+      { label: 'Real-world rewards', data: [0,0,0,0,0,0,0,1], backgroundColor: '#f7a04888', borderColor: '#f7a048', borderWidth: 1 },
+    ]
+  },
+  options: {
+    ...defaults,
+    indexAxis: 'y',
+    scales: {
+      x: { stacked: true, max: 6, ticks: { color: '#9080b8', callback: v => v + ' feature' + (v!==1?'s':'') }, grid: { color: '#2e2860' } },
+      y: { stacked: true, ticks: { color: '#9080b8' }, grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
