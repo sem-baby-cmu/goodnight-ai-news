@@ -31,7 +31,6 @@ open playmate.html
 
 # Run the prompt tests (requires API key)
 pip install anthropic
-export ANTHROPIC_API_KEY=your_key_here
 python prompts.py        # single story, all prompt versions
 python run_tests.py      # 10 stories, all hypotheses, saves results.json
 ```
