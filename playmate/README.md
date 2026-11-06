@@ -49,6 +49,22 @@ python run_tests.py      # 10 stories, all hypotheses, saves results.json
 | P8 | Badge milestones are reachable | Check 5/10/25/50/100 story milestones | First badge in 5 days |
 | P9 | Offline mode works | Save to localStorage, disconnect wifi | Progress persists |
 
+## Competitive Analysis (P5)
+
+Seven apps were reviewed: Khan Academy Kids, Duolingo ABC, PBS Kids, Epic!, Newsela, NatGeo Kids, and Highlights Kids. The children's edtech market is valued at $9.8B (2024), growing to $43B by 2034, with 77% of parents supporting AI literacy education for their children.
+
+Key findings across four dimensions:
+
+**Quizzes:** Picture-first games for ages 5–7 (Khan Academy Kids model) and text-based True/False for ages 8–10 (Epic! model) are the industry standard. Goodnight AI follows this split.
+
+**Streaks:** Duolingo's streak mechanic drives the strongest retention but causes anxiety in young children. For ages 5–7, a soft moon counter replaces a numeric streak at-risk. Ages 8–10 retain the streak with a shield protection option.
+
+**Badges:** Epic! gives printable certificates at reading milestones. No app reviewed offers real-world reward suggestions (park trip, movie night). This is a clear Goodnight AI differentiator.
+
+**Screen Time & Data:** Only Epic! offers a parental time limit — none show an in-story timer to the child. Our 10-minute moon timer is unique across all seven apps. On data privacy, Khan Academy Kids and Duolingo ABC match our localStorage-only, no-account approach. No competitor covers AI news for ages 5–10.
+
+See `competitive_analysis.html` for the full report with charts.
+
 ## Input format required from Storyteller
 Playmate reads from the Storyteller output JSON. Required fields:
 - `key_facts[3]` — for True or False Zapper
