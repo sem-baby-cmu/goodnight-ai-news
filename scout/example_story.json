@@ -1,0 +1,13 @@
+{
+  "title": "Meta's Muse AI can create custom 'spaces' for the version of the app you need right now",
+  "full_text": "You can create things like a shopping hub, school dashboard, or music tracker directly within Muse. Meta will now allow you to build customized, app-like experiences within its Muse AI assistant. The new feature, called \"spaces,\" allows Muse to build things like a shopping hub, school dashboard, music tracker, trivia game, and more, which you can interact with directly in the app. If you connect your space to a relevant app, Muse will update pricing, dates, and other information in the background. Meta says you can create a new space by describing it, and continue to tweak it by asking Muse. You can also interact with your spaces by checking things off, adding notes, and making edits. You can add spaces to the sidebar in the Muse app, move them into your main tab, as well as schedule when you see them. \"For example, keep your weekly planner up front during the workweek, then swap it for your weekend plans on Saturday,\" Meta says. Meta is rolling out spaces to all Muse users, along with a \"specialized\" version of its Muse Wonder AI model. The company is also looking into ways to share your spaces with other users and collaborate with them.",
+  "source_links": ["https://www.theverge.com/tech/1028871/meta-muse-ai-spaces"],
+  "claims": [
+    {"text": "Spaces lets Muse build a shopping hub, school dashboard, music tracker, and trivia game.", "in_source": true, "quote": "allows Muse to build things like a shopping hub, school dashboard, music tracker, trivia game, and more"},
+    {"text": "If you connect a space to a relevant app, Muse updates pricing, dates, and other information in the background.", "in_source": true, "quote": "If you connect your space to a relevant app, Muse will update pricing, dates, and other information in the background."},
+    {"text": "Spaces is rolling out to all Muse users, with a specialized version of the Muse Wonder AI model.", "in_source": true, "quote": "Meta is rolling out spaces to all Muse users, along with a \"specialized\" version of its Muse Wonder AI model."},
+    {"text": "You can add spaces to the sidebar, move them to the main tab, and schedule when you see them.", "in_source": true, "quote": "You can add spaces to the sidebar in the Muse app, move them into your main tab, as well as schedule when you see them."}
+  ],
+  "confidence": 4,
+  "first_rating": "green"
+}
