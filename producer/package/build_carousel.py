@@ -25,6 +25,9 @@ def main():
     ap = _story.add_args(argparse.ArgumentParser())
     ap.add_argument("--full", action="store_true",
                     help="all pages, ignoring carousel_slots")
+    ap.add_argument("--url", default="lullabyte.app/tonight",
+                    help="where the closing card sends people")
+    ap.add_argument("--no-cta", action="store_true")
     a = ap.parse_args()
     date, script, pages, outdir = _story.load(a)
 
@@ -38,7 +41,11 @@ def main():
     out = outdir / a.age
 
     # After a cut the page numbers must be renumbered, or a card reads "9 / 6".
-    svgs = [C.card(p, len(pages), n=i) for i, p in enumerate(pages, 1)]
+    # The closing card counts toward the total, so it is added before numbering.
+    total = len(pages) + (0 if a.no_cta else 1)
+    svgs = [C.card(p, total, n=i) for i, p in enumerate(pages, 1)]
+    if not a.no_cta:
+        svgs.append(C.cta_card(a.url, total, total))
 
     # Nothing may be silently dropped: every word has to reach the card.
     for p, svg in zip(pages, svgs):

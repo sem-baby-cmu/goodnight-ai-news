@@ -27,7 +27,7 @@ BEAT = {
     "cover": "wave", "character": "read", "news_discovery": "point",
     "exploration": "peek", "challenge": "lost", "turning_point": "stand",
     "resolution": "cheer", "reflection": "sleep", "real_world_facts": "point",
-    "quiz": "think",
+    "quiz": "think", "cta": "point",
 }
 DEFAULT_SETTING = {"time": "night", "place": "street"}
 
@@ -57,6 +57,53 @@ def _wrap(text, per):
 def _esc(s):
     return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
              .replace('"', "&quot;").replace("'", "’"))
+
+
+def cta_card(url, n, total, time="dusk", place="plain"):
+    """Closing card. The feed is the hook; the web story is where the game is.
+
+    Playmate owns the quiz and the stickers. Producer only has to make the
+    handoff look worth taking.
+    """
+    back, front = world.place(place, time)
+    stickers = "".join(
+        f'<g transform="translate({x},{y}) rotate({r})">'
+        f'<circle cx="0" cy="0" r="52" fill="{c}" opacity=".9"/>'
+        f'<circle cx="0" cy="0" r="52" fill="none" stroke="#FFF4DE" stroke-width="7"/>'
+        f'<text x="0" y="16" text-anchor="middle" font-family="{FONT}" font-size="46" '
+        f'font-weight="700" fill="#FFF4DE">{g}</text></g>'
+        for x, y, r, c, g in ((214, 876, -14, "#5FD6A0", "\u2605"),
+                              (866, 842, 12, "#C3A6FF", "\u25CF"),
+                              (152, 700, 9, "#FFC266", "\u2665")))
+    return f"""<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg">
+<defs>{parts.PAINT_FILTER}{world.sky(time)}
+ <linearGradient id="band" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#05040E" stop-opacity=".88"/>
+  <stop offset=".72" stop-color="#05040E" stop-opacity=".66"/>
+  <stop offset="1" stop-color="#05040E" stop-opacity="0"/>
+ </linearGradient></defs>
+<rect width="{W}" height="{H}" fill="url(#sky)"/>
+{world.clouds(time)}{world.stars(time)}{world.light(time)}
+{back}
+{stickers}
+{pip(W//2, world.GROUND_Y + 58, 1.16, "excited", "cheer")}
+{front}
+<rect x="0" y="0" width="{W}" height="520" fill="url(#band)"/>
+<text x="{W//2}" y="250" text-anchor="middle" font-family="{FONT}" font-size="70"
+ font-weight="700" style="{FONT_VAR}" fill="{PAPER}">Read it together</text>
+<text x="{W//2}" y="334" text-anchor="middle" font-family="{FONT}" font-size="70"
+ font-weight="700" style="{FONT_VAR}" fill="{PAPER}">and play the game</text>
+<text x="{W//2}" y="420" text-anchor="middle" font-family="{FONT}" font-size="40"
+ fill="{GLOW}">tap through, answer three questions,</text>
+<text x="{W//2}" y="472" text-anchor="middle" font-family="{FONT}" font-size="40"
+ fill="{GLOW}">collect tonight&#8217;s sticker</text>
+<text x="{W//2}" y="{H-150}" text-anchor="middle" font-family="{FONT}" font-size="36"
+ font-weight="700" fill="{PAPER}" opacity=".9">{url}</text>
+<text x="64" y="{H-58}" font-family="{FONT}" font-size="26" font-weight="700"
+ fill="{PAPER}" opacity=".62">Lullabyte</text>
+<text x="{W-64}" y="{H-58}" text-anchor="end" font-family="{FONT}" font-size="26"
+ font-weight="700" fill="{PAPER}" opacity=".62">{n} / {total}</text>
+</svg>"""
 
 
 def card(page, total, n=None):

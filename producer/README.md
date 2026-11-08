@@ -262,3 +262,21 @@ the news swipes away.
 
 `--full` builds all ten. Cards are renumbered after the cut, or page 9 of a
 six-card set reads "9 / 6".
+
+## The funnel: feed hooks, web plays
+
+The cards are deliberately static. A feed card's only job is to earn the tap;
+the interaction lives on the web story, where it can actually work.
+
+| | does | owner |
+| :-- | :-- | :-- |
+| IG / Threads cards | hook, then hand off | Producer |
+| web story | tap moments, page turns, narration | Producer |
+| quiz, stickers, streaks | retention | **Playmate** |
+
+Every carousel closes with a call-to-action card: Pip cheering, three stickers,
+and the URL. `--url` sets the destination, `--no-cta` drops it. The closing card
+counts toward the total, so numbering stays honest.
+
+This is also why the sentence tags came off the cards. A feed card that tries to
+teach media literacy *and* hook a reader does neither.
