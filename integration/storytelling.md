@@ -182,14 +182,6 @@ changes. Each `scenes` artifact records the renderer and catalog version.
 A model cannot invent a new kind. A fun fact that is not in the source is
 tagged `imagine`.
 
-### 5.4 Phone performance (unknown)
-
-The paper-grain filter (`feTurbulence` + `feDisplacementMap` in
-`producer/scene/parts.py`) is the slow part. Before the reader is built,
-measure first page time, page turn time, and memory on a mid-range phone.
-Pages that are not on screen pause their animation. If the filter is too slow,
-use a pre-rendered paper texture instead.
-
 ## 6. Quality loop
 
 | Method | How |
@@ -223,7 +215,6 @@ use a pre-rendered paper texture instead.
 | S3 | Composer, catalog, and checks in TypeScript, reusing `pip.py`, `parts.py`, `world.py`, and `card.py` (about 41 KB of Python). Not estimated yet; estimate after the catalog is listed. | Judy, Jinyu |
 | S4 | Cost and time per story for steps 1 to 5. Not measured. Run the golden set once before choosing models. | Jinyu |
 | S5 | Word limits and the word list are starting values, not tested with children. | Sally |
-| S6 | Filter speed on phones (section 5.4). Not measured. | Jinyu |
 
 ## 9. Review record (Codex, 2026-11-08)
 
@@ -242,5 +233,5 @@ the claims marked verified here were also re-checked by hand.
 | 8 | Limits reject the real script (verified: four 9-word sentences) | Fixed: section 4.2 |
 | 9 | "Checked by code" was not defined | Fixed: section 4.2 table |
 | 10 | Port estimate left out `world.py` and `card.py` | Fixed: S3 |
-| 11 | Filter cost on phones | Recorded: section 5.4, S6 |
+| 11 | Filter cost on phones | Not a concern; dropped (Jinyu, 2026-11-08) |
 | 12 | Judge retries had no boundary or budget | Fixed: section 6 |
