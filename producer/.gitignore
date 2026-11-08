@@ -1,0 +1,7 @@
+# Generated output. Cards and video are rebuilt from input/ and scene/ in
+# seconds, so only the day's inputs are tracked.
+results/*/
+!results/.gitkeep
+*.zip
+__pycache__/
+*.pyc
