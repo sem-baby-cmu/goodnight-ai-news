@@ -226,10 +226,10 @@ use a pre-rendered paper texture instead.
 | :-- | :-- | :-- |
 | S1 | The contract changes in section 7. Agree before changing `story.schema.json`. | Sally, Judy, Madhuri |
 | S2 | What is Pip: a robot owl (script, style guide) or a round blue robot (prototype, `pip.py`)? Poses depend on it. | team |
-| S3 | Composer, catalog, and checks in TypeScript, reusing `pip.py`, `parts.py`, `world.py`, and `card.py` (about 41 KB of Python). Not estimated yet; estimate after the catalog is listed. | Judy, Simon |
-| S4 | Cost and time per story for steps 1 to 5. Not measured. Run the golden set once before choosing models. | Simon |
+| S3 | Composer, catalog, and checks in TypeScript, reusing `pip.py`, `parts.py`, `world.py`, and `card.py` (about 41 KB of Python). Not estimated yet; estimate after the catalog is listed. | Judy, Jinyu |
+| S4 | Cost and time per story for steps 1 to 5. Not measured. Run the golden set once before choosing models. | Jinyu |
 | S5 | Word limits and the word list are starting values, not tested with children. | Sally |
-| S6 | Filter speed on phones (section 5.5). Not measured. | Simon |
+| S6 | Filter speed on phones (section 5.5). Not measured. | Jinyu |
 
 ## 9. Review record (Codex, 2026-11-08)
 
