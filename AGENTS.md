@@ -44,7 +44,7 @@ Read [`README.md`](README.md) first for what the project is.
   README.
 - **Target:** Cloudflare. TypeScript Workers configured with `wrangler.jsonc`.
   Plan: Workers Paid. Services: Workers, Static Assets, Cron Triggers, Workflows,
-  D1, R2, AI Gateway, Browser Run, Access. Design:
+  D1, R2, AI Gateway, Access. Design:
   `integration/architecture.md` (proposed).
 - Before you design for a Cloudflare service, read its current limits page.
   Check both Workers Free and Workers Paid limits (CPU time, subrequests,

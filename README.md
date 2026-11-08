@@ -141,7 +141,6 @@ not yet ratified, is in
 | :-- | :-- |
 | Code for each stage, the API, and the reader | Workers (Hono API, React front end in Static Assets) |
 | Daily start (Scout only) | Cron Triggers |
-| Feed card images | Browser Run |
 | Reviewer page | Cloudflare Access |
 | Stage order, retries, review gates | Workflows (one instance per story) |
 | Stage outputs and story packages | D1 |

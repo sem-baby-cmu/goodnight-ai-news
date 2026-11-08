@@ -182,13 +182,7 @@ changes. Each `scenes` artifact records the renderer and catalog version.
 A model cannot invent a new kind. A fun fact that is not in the source is
 tagged `imagine`.
 
-### 5.4 Social cards
-
-Cards reuse the composer for the picture, but keep their own layout (caption
-fitting, gradient band, fixed size, fonts bundled, animation stopped at a
-fixed time). A screenshot of the reader is not a card.
-
-### 5.5 Phone performance (unknown)
+### 5.4 Phone performance (unknown)
 
 The paper-grain filter (`feTurbulence` + `feDisplacementMap` in
 `producer/scene/parts.py`) is the slow part. Before the reader is built,
@@ -229,7 +223,7 @@ use a pre-rendered paper texture instead.
 | S3 | Composer, catalog, and checks in TypeScript, reusing `pip.py`, `parts.py`, `world.py`, and `card.py` (about 41 KB of Python). Not estimated yet; estimate after the catalog is listed. | Judy, Jinyu |
 | S4 | Cost and time per story for steps 1 to 5. Not measured. Run the golden set once before choosing models. | Jinyu |
 | S5 | Word limits and the word list are starting values, not tested with children. | Sally |
-| S6 | Filter speed on phones (section 5.5). Not measured. | Jinyu |
+| S6 | Filter speed on phones (section 5.4). Not measured. | Jinyu |
 
 ## 9. Review record (Codex, 2026-11-08)
 
@@ -248,5 +242,5 @@ the claims marked verified here were also re-checked by hand.
 | 8 | Limits reject the real script (verified: four 9-word sentences) | Fixed: section 4.2 |
 | 9 | "Checked by code" was not defined | Fixed: section 4.2 table |
 | 10 | Port estimate left out `world.py` and `card.py` | Fixed: S3 |
-| 11 | Filter cost on phones | Recorded: section 5.5, S6 |
+| 11 | Filter cost on phones | Recorded: section 5.4, S6 |
 | 12 | Judge retries had no boundary or budget | Fixed: section 6 |

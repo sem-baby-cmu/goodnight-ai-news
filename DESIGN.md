@@ -214,7 +214,7 @@ parallax sky, drifting stars, soft particles. Parent and reviewer pages stay
 flat. Proposed for Producer in issue #3.
 
 - Pip and the scene stay SVG on top of the layer, so Pip is the same in the
-  reader, the cards, and the site.
+  reader and the site.
 - Text and buttons are never inside the 3D layer.
 - No WebGL: the SVG sky shows instead.
 - Reduced motion: one still frame.

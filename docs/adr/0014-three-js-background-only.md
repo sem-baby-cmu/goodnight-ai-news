@@ -8,8 +8,7 @@
 ## Context
 
 Child pages should feel alive and have depth. three.js can give depth, but
-Pip is one SVG component today, which keeps Pip the same on every page and
-every social card.
+Pip is one SVG component today, which keeps Pip the same on every page.
 
 ## Decision
 
@@ -23,11 +22,10 @@ every social card.
 
 | Option | Why not |
 | :-- | :-- |
-| Whole scene in three.js, 3D Pip | Needs a 3D model of Pip; loses the "same Pip everywhere" guarantee and the one renderer for reader and cards. |
+| Whole scene in three.js, 3D Pip | Needs a 3D model of Pip; loses the "same Pip everywhere" guarantee. |
 | No three.js | Less depth on child pages. |
 | three.js on every page | Extra download for parents who only need the landing page. |
 
 ## Consequences
 
-- Not measured yet: bundle size, phone performance, and whether Browser Run
-  can capture the WebGL layer for social cards.
+- Not measured yet: bundle size and phone performance.

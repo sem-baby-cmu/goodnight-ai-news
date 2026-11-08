@@ -191,7 +191,6 @@ A new voice or scene style is "regenerate from producer-scenes" or
 | Scout | Worker cron handler | RSS fetch; one model call per item through AI Gateway. |
 | Storyteller | Workflow step | Model calls through AI Gateway. Waiting on a model is not CPU time. |
 | Producer: scenes | Workflow step | SVG built in code from `slot`, `tone`, `setting`. The reader shows SVG directly. |
-| Producer: feed PNG | Browser Run | Only the 6 carousel cards need a raster image. |
 | Producer: voice | Workflow step | TTS and forced alignment through AI Gateway. MP3 and timings to R2. |
 | Playmate-gen | Workflow step | Quiz and word card from the approved script. |
 | Packager | Workflow step | No model call. Builds the manifest and checks R2 keys. |
@@ -232,7 +231,6 @@ Checked in the Cloudflare docs on 2026-11-08.
 | Concurrent running instances | 100 | 50,000 (waiting instances do not count) |
 | Finished instance state kept | 3 days | 7 days default, up to 30 days |
 | External subrequests per invocation | 50 | 10,000 default |
-| Browser Run | 10 min per day | 10 h per month included |
 | D1 row size | 2 MB | 2 MB |
 
 Waiting for a model is I/O, not CPU. Free breaks on CPU work (RSS parsing, SVG
