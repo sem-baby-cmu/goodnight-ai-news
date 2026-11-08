@@ -1,0 +1,675 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1684" height="1406"
+     viewBox="0 0 1684 1406">
+<defs>
+<filter id="paint" x="-8%" y="-8%" width="116%" height="116%">
+  <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="3" result="w"/>
+  <feDisplacementMap in="SourceGraphic" in2="w" scale="3.5"
+      xChannelSelector="R" yChannelSelector="G" result="d"/>
+  <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="11" result="g"/>
+  <feColorMatrix in="g" type="matrix"
+      values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -.9 .62" result="ga"/>
+  <feComposite in="ga" in2="d" operator="in" result="gi"/>
+  <feMerge><feMergeNode in="d"/><feMergeNode in="gi"/></feMerge>
+</filter>
+<filter id="ink">
+  <feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="2" result="w"/>
+  <feDisplacementMap in="SourceGraphic" in2="w" scale="2"/>
+</filter>
+<filter id="fuzz" x="-30%" y="-30%" width="160%" height="160%">
+  <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="7"/>
+  <feGaussianBlur stdDeviation=".6"/>
+</filter></defs>
+<rect width="1684" height="1406" fill="#FFF4DE"/>
+<text x="56" y="100" font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="52" fill="#101A33"
+      style="font-variation-settings:'wght' 700">Pip</text>
+<text x="56" y="136" font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="23" fill="#6B7399">
+One component. 9 poses and 5 moods, drawn as vectors.</text>
+<text x="56" y="210" font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="30" fill="#101A33" style="font-variation-settings:'wght' 700">Poses</text><text x="56" y="242" font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399">The story beat of each page picks one.</text>
+<text x="56" y="992" font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="30" fill="#101A33" style="font-variation-settings:'wght' 700">Moods</text><text x="56" y="1024" font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399">The tone of each page sets the antenna, the glow, and the eyes.</text>
+<g>
+<rect x="56" y="270" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(206,496) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C210 172 214 190 210 210" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="5.8" fill="#1A1A2E"/><circle cx="158" cy="130" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="206" y="550" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">stand</text>
+</g><g>
+<rect x="374" y="270" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(524,496) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    <animateTransform attributeName="transform" type="rotate" values="0 192 156; -16 192 156; 0 192 156" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 156 C216 142 228 116 222 92" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="5.8" fill="#1A1A2E"/><circle cx="158" cy="130" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="524" y="550" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">wave</text>
+</g><g>
+<rect x="692" y="270" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(842,496) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 162 C218 160 244 158 268 157" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="110" cy="135" r="5.8" fill="#1A1A2E"/><circle cx="162" cy="130" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="842" y="550" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">point</text>
+</g><g>
+<rect x="1010" y="270" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(1160,496) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-16; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    <path d="M58 43 L61 51 L69 54 L61 57 L58 65 L55 57 L47 54 L55 51 Z" fill="#FFD23F"><animate attributeName="opacity" values=".25;1;.25" dur="2.0s" begin="0.00s" repeatCount="indefinite"/></path><path d="M212 33 L216 42 L225 46 L216 50 L212 59 L208 50 L199 46 L208 42 Z" fill="#FFD23F"><animate attributeName="opacity" values=".25;1;.25" dur="2.0s" begin="0.22s" repeatCount="indefinite"/></path><path d="M40 104 L42 110 L48 112 L42 114 L40 120 L38 114 L32 112 L38 110 Z" fill="#FFD23F"><animate attributeName="opacity" values=".25;1;.25" dur="2.0s" begin="0.44s" repeatCount="indefinite"/></path><path d="M232 99 L235 105 L241 108 L235 111 L232 117 L229 111 L223 108 L229 105 Z" fill="#FFD23F"><animate attributeName="opacity" values=".25;1;.25" dur="2.0s" begin="0.66s" repeatCount="indefinite"/></path>
+    <path d="M112 230 L98 248 L108 262" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 230 L170 246 L160 260" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 154 C54 140 42 114 48 90" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 158 C216 144 228 118 222 94" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="5.8" fill="#1A1A2E"/><circle cx="158" cy="130" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="1160" y="550" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">cheer</text>
+</g><g>
+<rect x="1328" y="270" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(1478,496) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    <circle cx="216" cy="84" r="6" fill="#FFF1C9" opacity=".95"><animate attributeName="opacity" values=".15;.95;.15" dur="2.0s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="238" cy="58" r="9" fill="#FFF1C9" opacity=".95"><animate attributeName="opacity" values=".15;.95;.15" dur="2.0s" begin="0.3s" repeatCount="indefinite"/></circle><circle cx="266" cy="26" r="13" fill="#FFF1C9" opacity=".95"><animate attributeName="opacity" values=".15;.95;.15" dur="2.0s" begin="0.6s" repeatCount="indefinite"/></circle>
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M194 158 C216 150 216 118 196 104" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="109" cy="131" r="5.8" fill="#1A1A2E"/><circle cx="161" cy="126" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="1478" y="550" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">think</text>
+</g><g>
+<rect x="56" y="588" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(206,814) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g transform="rotate(-9 134 276)">
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 158 C62 172 58 192 66 208" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C206 174 204 192 194 204" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="101" cy="136" r="5.8" fill="#1A1A2E"/><circle cx="153" cy="131" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="206" y="868" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">peek</text>
+</g><g>
+<rect x="374" y="588" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(524,814) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 162 C66 182 82 198 102 200" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 164 C204 184 188 200 168 202" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="106" cy="139" r="5.8" fill="#1A1A2E"/><circle cx="158" cy="134" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    <g transform="rotate(-3 134 196) translate(0,-14)"><path d="M134 196 C118 188 96 186 80 190 L80 236 C96 232 118 234 134 242Z" fill="#FFF6E2" stroke="#1A1A2E" stroke-width="2.5" stroke-linejoin="round"/><path d="M134 196 C150 188 172 186 188 190 L188 236 C172 232 150 234 134 242Z" fill="#FFF6E2" stroke="#1A1A2E" stroke-width="2.5" stroke-linejoin="round"/><g stroke="#4B67C9" stroke-width="2" stroke-linecap="round" opacity=".55"><path d="M92 202 h30 M92 212 h30 M92 222 h24"/><path d="M146 202 h30 M146 212 h30 M146 222 h24"/></g><path d="M134 196 L134 242" stroke="#1A1A2E" stroke-width="2.5"/></g>
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="524" y="868" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">read</text>
+</g><g>
+<rect x="692" y="588" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(842,814) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g transform="rotate(5 134 276)">
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    <text x="210" y="92" font-family="Grandstander, Fredoka, sans-serif" font-size="26" fill="#FFFDF6" opacity=".85" style="font-variation-settings:'wght' 700">z<animate attributeName="opacity" values="0;.9;0" dur="3.0s" begin="0.00s" repeatCount="indefinite"/></text><text x="240" y="56" font-family="Grandstander, Fredoka, sans-serif" font-size="34" fill="#FFFDF6" opacity=".85" style="font-variation-settings:'wght' 700">z<animate attributeName="opacity" values="0;.9;0" dur="3.0s" begin="0.45s" repeatCount="indefinite"/></text><text x="276" y="16" font-family="Grandstander, Fredoka, sans-serif" font-size="44" fill="#FFFDF6" opacity=".85" style="font-variation-settings:'wght' 700">z<animate attributeName="opacity" values="0;.9;0" dur="3.0s" begin="0.90s" repeatCount="indefinite"/></text>
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 160 C60 176 56 196 62 212" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 162 C210 178 214 198 208 212" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g stroke="#1A1A2E" stroke-width="3.6" fill="none" stroke-linecap="round"><path d="M94 133 C100 142 112 142 118 132"/><path d="M146 128 C152 137 164 137 170 127"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="842" y="868" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">sleep</text>
+</g><g>
+<rect x="1010" y="588" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(1160,814) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    <text x="224" y="84" font-family="Grandstander, Fredoka, sans-serif" font-size="46" fill="#FFD23F" text-anchor="middle" style="font-variation-settings:'wght' 700">?<animateTransform attributeName="transform" type="rotate" values="-9 224 68; 9 224 68; -9 224 68" dur="2.8s" repeatCount="indefinite"/></text>
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 160 C54 170 42 184 40 200" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 162 C216 172 228 186 230 202" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="106" cy="130" r="5.8" fill="#1A1A2E"/><circle cx="158" cy="125" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="1160" y="868" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">lost</text>
+</g><g>
+<rect x="56" y="1050" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(206,1276) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C210 172 214 190 210 210" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.85" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.0" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="5.8" fill="#1A1A2E"/><circle cx="158" cy="130" r="5.8" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M120 152 C124 164 144 164 150 149" stroke="#1A1A2E" stroke-width="3.4" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(0 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="206" y="1330" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">calm</text>
+</g><g>
+<rect x="374" y="1050" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(524,1276) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C210 172 214 190 210 210" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="1.0" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="1.0" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="14.5" fill="#FFFDF6"/><circle cx="158" cy="126" r="14.5" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="6.2" fill="#1A1A2E"/><circle cx="158" cy="130" r="6.2" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M114 148 C120 170 150 170 156 146" stroke="#1A1A2E" stroke-width="3.6" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(-7 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="524" y="1330" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">warm</text>
+</g><g>
+<rect x="692" y="1050" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(842,1276) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C210 172 214 190 210 210" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.8" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.8" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="16.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="16.0" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="6.4" fill="#1A1A2E"/><circle cx="158" cy="130" r="6.4" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><ellipse cx="135" cy="156" rx="7" ry="9.5" fill="#1A1A2E"/></g>
+    </g>
+    
+    <g transform="rotate(-18 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="842" y="1330" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">curious</text>
+</g><g>
+<rect x="1010" y="1050" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(1160,1276) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C210 172 214 190 210 210" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="0.55" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="0.55" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="10.5" fill="#FFFDF6"/><circle cx="158" cy="126" r="10.5" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="4.9" fill="#1A1A2E"/><circle cx="158" cy="130" r="4.9" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M124 156 C130 161 141 161 147 155" stroke="#1A1A2E" stroke-width="3.2" fill="none" stroke-linecap="round"/></g>
+    </g>
+    
+    <g transform="rotate(9 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="1160" y="1330" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">quiet</text>
+</g><g>
+<rect x="1328" y="1050" width="300" height="300" rx="22" fill="#ffffff"
+      stroke="#E4DCC4" stroke-width="2"/>
+<g transform="translate(1478,1276) scale(0.62)">
+ <g transform="translate(-134,-276)">
+  <g>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="2.0s" repeatCount="indefinite" additive="sum"/>
+    
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="#1A1A2E" opacity=".16"/>
+    
+    <path d="M112 232 L102 258 L110 276" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M156 232 L168 254 L160 274" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M78 156 C60 168 52 186 56 206" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M192 160 C210 172 214 190 210 210" stroke="#6C8BEF" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="#6C8BEF"/>
+    <circle cx="72" cy="128" r="8" fill="#F7A23B"/>
+    <circle cx="198" cy="122" r="7" fill="#F7A23B"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="#B56A12" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="#4B67C9" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="#F7A6C8" opacity="1.0" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="#F7A6C8" opacity="1.0" filter="url(#fuzz)"/>
+     <g filter="url(#ink)"><circle cx="106" cy="131" r="17.0" fill="#FFFDF6"/><circle cx="158" cy="126" r="17.0" fill="#FFFDF6"/></g><circle cx="106" cy="135" r="6.9" fill="#1A1A2E"/><circle cx="158" cy="130" r="6.9" fill="#1A1A2E"/><g><animateTransform attributeName="transform" type="scale" values="1 1;1 .08;1 1" dur="5.2s" keyTimes="0;.94;.98" repeatCount="indefinite"/></g>
+     <g filter="url(#ink)"><path d="M115 147 C123 175 149 175 157 145 Z" fill="#1A1A2E"/><path d="M126 164 C130 170 142 170 146 163 Z" fill="#E8718C"/></g>
+    </g>
+    
+    <g transform="rotate(13 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="#FFF1C9" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="#FFD23F"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+<text x="1478" y="1330" text-anchor="middle"
+      font-family="Grandstander, Fredoka, Nunito, sans-serif" font-size="21" fill="#6B7399"
+      style="font-variation-settings:'wght' 600">excited</text>
+</g>
+</svg>

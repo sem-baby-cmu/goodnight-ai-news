@@ -5,3 +5,7 @@ results/*/
 *.zip
 __pycache__/
 *.pyc
+
+# The illustrator brief site is generated, but it is deployed from the repo,
+# so it is tracked. Rebuild it with tools/build_site.py.
+!site/
