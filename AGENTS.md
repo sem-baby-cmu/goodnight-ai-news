@@ -41,7 +41,7 @@ Read [`README.md`](README.md) first for what the project is.
   dependency only when the prototype needs it, and list it in the component
   README.
 - **Target:** Cloudflare. TypeScript Workers configured with `wrangler.jsonc`.
-  Plan: Workers Paid. Services: Workers, Static Assets, Cron Triggers, Queues,
+  Plan: Workers Paid. Services: Workers, Static Assets, Cron Triggers, Workflows,
   D1, R2, AI Gateway, Browser Run, Access. Design:
   `integration/architecture.md` (proposed).
 - Before you design for a Cloudflare service, read its current limits page.

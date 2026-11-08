@@ -1,65 +1,72 @@
 # Lullabyte production architecture (proposed)
 
-Status: **proposed 2026-11-08**, not ratified. Owner: Integration (Jinyu Liu).
-This document replaces the earlier draft `integration/architecture.html`, in
-which one cron-started Workflow ran every stage in one go.
+Status: **proposed 2026-11-08, revision 2**, not ratified. Owner: Integration
+(Jinyu Liu). Replaces the earlier draft `integration/architecture.html`, in
+which one cron-started run did every stage in one go.
+
+Revision 2 follows a cross-family review (Codex, 2026-11-08). Revision 1 used
+five queue consumers. The review showed that this needs an outbox, job leases,
+a fan-in coordinator, and stale-job fencing to be correct. A Workflow per story
+gives the same results with none of that code. Section 10 lists each finding.
 
 ## 1. Decisions in one table
 
 | # | Decision | Why |
 | :-- | :-- | :-- |
-| D1 | Run on **Workers Paid**. Free is for a demo only. | Free gives 10 ms CPU per invocation and 50 external subrequests. One story needs more (see section 7). |
-| D2 | Cron starts **Scout only**. | A cron run has no checkpoint. One failure would restart every stage, and no person can step in between stages. |
-| D3 | Each stage is a separate **queue consumer**. Stages share no code and no memory. | A stage can be re-run, replaced, or paused without touching the others. |
-| D4 | **D1 is the record. A queue message carries IDs only.** | Queue messages expire (24 h on Free, 14 days at most on Paid). A review can take longer than that. A D1 row does not expire. |
-| D5 | Every stage output is a **versioned artifact** row. Rows are never overwritten. | Any version can be compared, approved, or restored. A human edit is a new version. |
+| D1 | Run on **Workers Paid**. Free is for a demo only. | Free gives 10 ms CPU per invocation and 50 external subrequests. One story needs more (section 7). |
+| D2 | **Scout is its own job.** Cron starts it. It writes news items to D1 and stops. | Scout output is a buffer. Nothing downstream starts until an item is selected. Scout can run, fail, or re-run without touching any story. |
+| D3 | **One Workflow instance per story.** Selecting a news item creates it, with the story ID as the instance ID. | Each step is retried and checkpointed by the platform. A crash resumes at the failed step, not at the start. No queues, no outbox, no leases. |
+| D4 | **Every stage output is an artifact row in D1.** The Workflow passes artifact IDs between steps, not content. | Review, edit, and comparison work on D1 rows. Workflow state is only the cursor. D1 rows do not expire; Workflow state does (7 to 30 days on Paid). |
+| D5 | **Human gates are `step.waitForEvent`** with an explicit timeout (14 days). | A waiting instance does not count toward the concurrency limit. The reviewer page sends the event. |
 | D6 | The front end reads one **story package**: an immutable, versioned manifest in D1. Media is in R2. | The reader loads one object. A published story never changes under a reader. |
-| D7 | All IDs are **UUID v7**. Dates are attributes. | Time-ordered, unique across stages, no collisions between two stories on the same day. |
-| D8 | No Workflows and no KV in the first release. | Queues + D1 already give retry and state. Workflows wait at most a limited time for a human event, which does not fit a review gate. Status is a D1 column, so KV adds nothing. |
+| D7 | All IDs are **UUID v7**. Dates are attributes. Blocked on O1 (section 9). | Time-ordered and unique across stages. |
+| D8 | No Queues and no KV in the first release. | The Workflow already gives retry and ordering. Status is a D1 column. |
 
-## 2. Stage flow
+## 2. Flow
 
 ```
- Cron (daily, 05:00 UTC)
+ Cron (daily)
    |
    v
- [Scout] ---------> news_item rows (status = new)
-                           |
-                     GATE A: select  (human, or auto rule)
-                           |  q-script
-                           v
- [Storyteller] ---> artifact: script vN
-                           |
-                     GATE B: auto checks, then human review
-                           |  q-produce, q-play   (fan out)
-              +------------+-------------+
-              v                          v
-        [Producer]                  [Playmate-gen]
-        artifact: scenes, voice     artifact: quiz, word card
-              +------------+-------------+
-                           |  q-package (when both are passed)
-                           v
- [Packager] ------> story_package vN (immutable)
-                           |
-                     GATE C: approve for children
-                           v
-                     published  -->  Reader (Static Assets + API)
+ [Scout job] -----> news_item rows (status = new)          <- buffer, reviewable
+                          |
+                    GATE A: select (reviewer page, or auto rule)
+                          |  creates Workflow instance  id = story.id
+                          v
+ +------------------- StoryWorkflow (one per story) -------------------+
+ |                                                                      |
+ |  step: storyteller ---> artifact script vN                           |
+ |  step: check script     (schema, FK grade, claims, tone)             |
+ |  waitForEvent GATE B  -- approve | reject+notes | edit               |
+ |        ^                    |                                       |
+ |        +---- reject: loop ---+                                       |
+ |                                                                      |
+ |  step: producer-scenes   --> artifact scenes  (SVG, R2)              |
+ |  step: producer-voice    --> artifact voice   (MP3 + timings, R2)    |
+ |  step: playmate-gen      --> artifact play    (quiz, word card)      |
+ |  step: packager          --> story_package vN (immutable)            |
+ |  waitForEvent GATE C  -- approve | regenerate from <stage> + notes   |
+ |        ^                    |                                       |
+ |        +---- regenerate: loop back to <stage> ----------------------+
+ |                                                                      |
+ |  step: publish  --> story.published_package_id = package id          |
+ +----------------------------------------------------------------------+
+                          |
+                          v
+                 Reader (Static Assets + API)
 ```
 
-Rules for every stage:
+Each stage is a module owned by its component (`scout`, `storyteller`,
+`producer`, `playmate`). The Workflow only calls them in order and passes
+artifact IDs. A module reads its inputs from D1 by ID and writes one new
+artifact row. Modules never call each other.
 
-1. Read the input artifacts by ID from D1.
-2. Write one new artifact row with `status = pending`.
-3. Run the automatic checks. Set `status` to `passed` or `failed`.
-4. If `passed` and the next gate is automatic, send the next message.
-   Otherwise stop and wait for a person.
-
-A stage never calls the next stage. It only writes a row and, when allowed,
-sends a message that holds IDs.
+Producer and Playmate-gen run one after the other in the first release. This
+removes the fan-in. Running them in parallel is a later optimisation.
 
 ## 3. Data model (D1)
 
-All `id` columns are UUID v7 strings, made by the Worker that inserts the row.
+All `id` columns are UUID v7 strings.
 
 ```
 news_item      id, run_id, source_url, source_title, full_text, claims (json),
@@ -71,38 +78,46 @@ story          id, news_item_id, publish_date, status
                published_package_id, created_at
 
 artifact       id, story_id, stage (script|scenes|voice|play|package),
-               version, input_ids (json: the artifact ids it was made from),
-               input_hash, payload (json) or r2_prefix,
+               version, generation_id, input_ids (json), input_hash,
+               payload (json) or r2_prefix,
                author (model|human), model, prompt_version, cost_usd,
-               checks (json), status (pending|passed|failed|approved|
-               rejected|stale), notes, created_at
+               checks (json), status (passed|failed|approved|rejected),
+               notes, created_at
                UNIQUE (story_id, stage, version)
-               UNIQUE (stage, input_hash)          -- makes retries idempotent
+               UNIQUE (generation_id)
 
 review         id, artifact_id, reviewer, action
                (approve|reject|edit|regenerate), notes, created_at
 
-story_package  id, story_id, version, manifest (json), created_at,
-               approved_by, approved_at
+story_package  id, story_id, version, manifest (json), input_ids (json),
+               created_at, approved_by, approved_at
 ```
 
-Limits that shape the model (verified in the Cloudflare docs, 2026-11-08):
+### 3.1 Idempotency
 
-- A D1 row is at most 2 MB. A script and a manifest fit. Audio and PNG do
-  not, so they go to R2 and the row keeps the key.
-- Queues deliver at least once. A retried message must not make a second
-  artifact. The `UNIQUE (stage, input_hash)` constraint stops that: the stage
-  inserts first and exits when the insert conflicts.
+A Workflow step can run more than once (for example, it fails after the D1
+write). Each intended generation has a `generation_id` = Workflow instance ID +
+step name + loop round. A retry reuses the same ID, so
+`INSERT ... ON CONFLICT (generation_id) DO NOTHING` followed by a read returns
+the row that the first attempt wrote. A regeneration is a new round, so it
+gets a new `generation_id` and a new version, even when its inputs are the
+same. `input_hash` is kept for provenance only.
+
+### 3.2 Limits that shape the model
+
+- A D1 row is at most 2 MB. A script and a manifest fit. Audio and PNG go to
+  R2, and the row keeps the key.
+- A step result is at most 1 MiB, and an event payload is at most 1 MiB. Steps
+  return IDs, so both stay small.
 
 ## 4. Story package
 
-The package is what the front end loads. One row per version. It is never
-edited; a change makes version N+1.
+One row per version. Never edited; a change makes version N+1.
 
 ```json
 {
-  "package_id": "0193f1c2-...-v7",
-  "story_id": "0193f1a0-...-v7",
+  "package_id": "0193f1c2-...",
+  "story_id": "0193f1a0-...",
   "version": 2,
   "publish_date": "2026-11-09",
   "title": "...",
@@ -112,9 +127,9 @@ edited; a change makes version N+1.
     "5to7": {
       "pages": [
         {"page": 1, "slot": "cover", "tone": "calm", "text": "...",
-         "scene": "media/<story_id>/v2/5to7/p01.svg",
-         "audio": "media/<story_id>/v2/5to7/p01.mp3",
-         "timings": "media/<story_id>/v2/5to7/p01.json"}
+         "scene": "media/<story_id>/<package_id>/5to7/p01.svg",
+         "audio": "media/<story_id>/<package_id>/5to7/p01.mp3",
+         "timings": "media/<story_id>/<package_id>/5to7/p01.json"}
       ],
       "quiz": [{"question": "...", "choices": ["..."], "answer": 0}],
       "word_card": {"word": "...", "definition": "..."}
@@ -126,82 +141,87 @@ edited; a change makes version N+1.
 }
 ```
 
-The reader calls `GET /api/stories/today?age=5to7`. The API returns the
-published package for that date. Media paths resolve through the same Worker
-from R2.
+The reader calls `GET /api/stories/today?age=5to7` and gets the published
+package for that date. Media resolves through the same Worker from R2. R2
+keys include the package ID, so a new version never overwrites media that a
+published package points to.
 
 ## 5. Intervention and quality
 
-### 5.1 Automatic checks per gate
+### 5.1 Automatic checks
 
-| Gate | Check | On failure |
+| Point | Check | On failure |
 | :-- | :-- | :-- |
-| A select | `first_rating` is green; `confidence` >= 4; source is on the allow list | Skip the item. Scout tries the next one. |
-| B script | `validate.py` schema; FK grade per age within target; every claim has `in_source = true` and a quote; `tone` in the allowed list | Retry once with the failure reasons added to the prompt. Second failure goes to the human queue. |
-| Producer | every page has a scene; audio length within 10% of text length; timing words match the text | Retry the failing pages only. |
-| Playmate-gen | quiz answers appear in the script; no new facts | Retry once, then human queue. |
-| C package | all inputs `approved` or `passed`; every R2 key exists | Block publish. |
+| Gate A | `first_rating` is green; `confidence` >= 4; source on the allow list | Auto rule skips the item. A reviewer can still pick it. |
+| After storyteller | `validate.py` schema; FK grade per age within target; every claim has `in_source = true` and a quote; `tone` in the allowed list | Retry once with the failure reasons in the prompt. Then stop at Gate B with `status = failed` and the reasons shown. |
+| After producer | every page has a scene; audio length within 10% of the text estimate; timing words match the text | Step retry (platform). Then Gate C shows the failure. |
+| After playmate-gen | quiz answers appear in the script; no new facts | Retry once, then Gate C shows the failure. |
+| Packager | every input artifact is approved or passed; every R2 key exists | Packager step fails; nothing is published. |
 
-Every artifact records `model`, `prompt_version`, `cost_usd`, and `checks`.
-This makes a quality drop traceable to one prompt or model change.
+Every artifact records `model`, `prompt_version`, `cost_usd`, and `checks`,
+so a quality drop can be traced to one prompt or model change.
 
 ### 5.2 Human actions
 
-A reviewer page (a Worker route behind Cloudflare Access) lists artifacts that
-wait for a person. Four actions:
+The reviewer page is a Worker route behind Cloudflare Access. It lists stories
+whose Workflow waits at a gate and sends the event.
 
-| Action | Effect |
-| :-- | :-- |
-| approve | `status = approved`. Send the next message. |
-| reject + notes | `status = rejected`. The notes go into the next prompt when the stage re-runs. |
-| edit | Save the edited payload as version N+1, `author = human`, `status = approved`. |
-| regenerate from stage X | Make a new version of X. Mark every downstream artifact built from the old version `stale`. Re-run downstream from the new version. |
+| Action | Where | Effect |
+| :-- | :-- | :-- |
+| approve | B, C | Mark the artifact or package approved. The Workflow continues. |
+| reject + notes | B | The Workflow loops: a new storyteller round with the notes in the prompt. |
+| edit | B | The page saves the edit as a new artifact version (`author = human`) and sends its ID. The Workflow continues from that version. |
+| regenerate from stage + notes | C | The Workflow loops back to that stage. Every later stage runs again on the new inputs. |
+
+Because one instance runs the steps of one story in order, an old step can not
+finish after a newer round has started. A published package is never changed:
+a regeneration after publish makes a new package version, and publish moves
+the pointer.
 
 ### 5.3 Coupling between Storyteller and Producer
 
 They share the schema only. Producer reads an approved script artifact by ID.
-A new voice or a new scene style re-runs Producer alone; the script stays.
-Producer and Playmate-gen read the same script in parallel and never wait for
-each other. Packager waits for both.
+A new voice or scene style is "regenerate from producer-scenes" or
+"regenerate from producer-voice"; the script stays.
 
 ## 6. Where each stage runs
 
 | Stage | Runtime | Notes |
 | :-- | :-- | :-- |
-| Scout | Worker, cron + queue | RSS fetch, one model call per item through AI Gateway. |
-| Storyteller | Worker, queue consumer | Model calls through AI Gateway. Waiting on a model does not count as CPU. |
-| Producer: scenes | Worker, queue consumer | SVG is built in code from `slot`, `tone`, `setting`. The reader shows SVG directly. |
+| Scout | Worker cron handler | RSS fetch; one model call per item through AI Gateway. |
+| Storyteller | Workflow step | Model calls through AI Gateway. Waiting on a model is not CPU time. |
+| Producer: scenes | Workflow step | SVG built in code from `slot`, `tone`, `setting`. The reader shows SVG directly. |
 | Producer: feed PNG | Browser Run | Only the 6 carousel cards need a raster image. |
-| Producer: voice | Worker, queue consumer | TTS and forced alignment through AI Gateway. MP3 and timings to R2. |
-| Playmate-gen | Worker, queue consumer | Quiz and word card from the approved script. |
-| Packager | Worker, queue consumer | No model call. Builds the manifest and checks R2 keys. |
-| Reader + API + reviewer page | Worker with Static Assets | Reviewer routes behind Cloudflare Access. |
+| Producer: voice | Workflow step | TTS and forced alignment through AI Gateway. MP3 and timings to R2. |
+| Playmate-gen | Workflow step | Quiz and word card from the approved script. |
+| Packager | Workflow step | No model call. Builds the manifest and checks R2 keys. |
+| Reader, API, reviewer page | Worker with Static Assets | Reviewer routes behind Cloudflare Access. |
 
 The vertical reel was dropped on 2026-11-08 (`producer/README.md`), so no
 stage needs ffmpeg or Containers.
 
-The current prototypes are Python. Moving them to Workers is a port, not a
-copy: Python Workers run on Pyodide, and Playwright, Pillow, and ffmpeg do not
-run there. The plan is TypeScript Workers; each owner ports the logic of their
-own stage.
+The prototypes are Python. Moving them to Workers is a port: Python Workers
+run on Pyodide, and Playwright, Pillow, and ffmpeg do not run there. The plan
+is TypeScript; each owner ports the logic of their own stage module.
 
 ## 7. Workers Free vs Workers Paid
 
-Verified in the Cloudflare limits pages on 2026-11-08.
+Checked in the Cloudflare docs on 2026-11-08.
 
 | Limit | Free | Paid |
 | :-- | :-- | :-- |
-| CPU per cron run | 10 ms | 15 min (interval of 1 h or more) |
-| CPU per queue message | 10 ms | 30 s default, up to 5 min |
-| Wall time per cron run or queue batch | 15 min | 15 min |
+| CPU per cron invocation | 10 ms | 15 min (interval of 1 h or more) |
+| CPU per Workflow step invocation | 10 ms | 30 s default, up to 5 min (`limits.cpu_ms`) |
+| Wall time per Workflow step | unlimited (I/O wait) | unlimited (I/O wait) |
+| Steps per Workflow | 1,024 | 10,000 default |
+| Concurrent running instances | 100 | 50,000 (waiting instances do not count) |
+| Finished instance state kept | 3 days | 7 days default, up to 30 days |
 | External subrequests per invocation | 50 | 10,000 default |
-| Queue message retention | 24 h, fixed | 4 days default, up to 14 days |
 | Browser Run | 10 min per day | 10 h per month included |
 | D1 row size | 2 MB | 2 MB |
 
-Waiting for a model response is I/O and does not count as CPU. The Free
-limits break on the CPU work (RSS parsing, SVG building, JSON checks) and on
-the subrequest count, not on model time.
+Waiting for a model is I/O, not CPU. Free breaks on CPU work (RSS parsing, SVG
+building, JSON checks) and on the subrequest count.
 
 ## 8. Deployment
 
@@ -209,27 +229,44 @@ GitHub Actions deploys on every push to `main`:
 
 1. `npm ci`, typecheck, tests.
 2. `wrangler d1 migrations apply DB --remote`.
-3. `wrangler deploy`.
+3. `wrangler deploy` (Worker, Workflow, cron, Static Assets).
 
 Repository secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. Model
 provider keys are Worker secrets (`wrangler secret put`), not GitHub secrets.
 
-The API token is an account-owned custom token, scoped to one account:
+The API token is an account-owned custom token, scoped to one account.
+Permissions by deploy operation:
 
-| Permission | Level | Needed for |
+| Operation | Permission | Status |
 | :-- | :-- | :-- |
-| Account > Workers Scripts | Edit | `wrangler deploy` (bindings to D1, R2, Queues need no extra permission to deploy) |
-| Account > D1 | Edit | `wrangler d1 migrations apply --remote` |
-| Account > Queues | Edit | creating queues and attaching consumers |
-| Account > Workers R2 Storage | Edit | creating buckets from CI (drop it if buckets are made by hand) |
-| Account > Account Settings | Read | Wrangler account lookup |
-| Zone > Workers Routes | Edit | only if the Worker uses a custom domain |
+| `wrangler deploy` with D1, R2, Workflow bindings | Account > Workers Scripts: Edit | Verified: binding to a resource needs no extra permission to deploy. |
+| `wrangler d1 migrations apply --remote` | Account > D1: Edit | Verified. |
+| Create R2 buckets from CI | Account > Workers R2 Storage: Edit | Drop it if buckets are created by hand. |
+| Add, change, or remove a Route or Custom Domain | Zone > Workers Routes: Edit, on that zone | Verified. Not needed for `workers.dev`. |
+| Account lookup by Wrangler | Account > Account Settings: Read | Unverified. Add it only if a deploy fails without it. |
 
 ## 9. Open decisions
 
 | # | Question | Who |
 | :-- | :-- | :-- |
-| O1 | Ratify UUID v7. `story.schema.json` `story_id` pattern `^[a-z0-9_]+$` rejects the hyphens of a UUID. Producer keys input by date today. | all owners |
+| O1 | Ratify UUID v7. **Blocks deployment:** `story.schema.json` `story_id` pattern `^[a-z0-9_]+$` rejects a UUID, and Producer keys its input by date. Change the pattern and the consumers in one step. | all owners |
 | O2 | Gate A: human pick every day, or auto pick with a human override? | Scout, Integration |
-| O3 | One Worker with five stage modules, or one Worker per stage? One Worker is simpler to deploy; per-stage Workers match folder ownership. | Integration |
-| O4 | Who reviews at Gate B and Gate C, and how fast? This sets the publish deadline. | team |
+| O3 | Who reviews at Gate B and Gate C, and how fast? This sets the publish deadline and the gate timeout. | team |
+| O4 | What happens at gate timeout: retire the story, or notify and wait again? | Integration |
+
+## 10. Review record (Codex, 2026-11-08)
+
+| # | Finding on revision 1 | Result |
+| :-- | :-- | :-- |
+| 1 | Unique insert on retry strands a half-done stage | Fixed: Workflow step retry plus `generation_id` (3.1). |
+| 2 | Packager fan-in had no coordinator | Fixed: Producer and Playmate-gen run in order (section 2). |
+| 3 | D1 commit and queue send can split | Fixed: no queues; the Workflow is the dispatcher. |
+| 4 | `UNIQUE (stage, input_hash)` forbids regeneration | Fixed: uniqueness on `generation_id`; `input_hash` is provenance. |
+| 5 | Stale marking races with running jobs | Fixed: one instance runs one story in order (5.2). |
+| 6 | Rejecting Workflows used a false limit | Accepted. Verified in the docs: `waitForEvent` timeout is configurable; retention applies to finished instances. |
+| 7 | Queue CPU is per invocation, not per message | Moot: no queues. Section 7 now says per invocation. |
+| 8 | Dropped messages after retries | Moot: no queues. |
+| 9 | UUID v7 breaks the current contract | Accepted: O1 now blocks deployment. |
+| 10 | Routes permission is not only for Custom Domains | Fixed in section 8. |
+| 11 | Account Settings Read is unverified | Marked unverified in section 8. |
+| 12 | Too much orchestration before the handoffs are proven | Accepted: one Worker, one Workflow. |

@@ -97,8 +97,8 @@ not yet ratified, is in
 | Daily start (Scout only) | Cron Triggers |
 | Feed card images | Browser Run |
 | Reviewer page | Cloudflare Access |
-| Stage-to-stage hand-off | Queues (signal) and D1 (state of record) |
-| Story packages and stage outputs | D1 |
+| Stage order, retries, review gates | Workflows (one instance per story) |
+| Stage outputs and story packages | D1 |
 | Audio and images | R2 |
 | Model calls, cost and token logs | AI Gateway |
 
