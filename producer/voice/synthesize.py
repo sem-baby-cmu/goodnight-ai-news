@@ -109,6 +109,25 @@ def align(audio, ext, text):
             for w in r.words]
 
 
+# Words a reader says differently from how they are spelled. Acronyms are the
+# risk: a program called PRAISE is a word, but all caps makes most engines
+# spell it out, and CMU is meant to be spelled out. Applied to the audio only.
+# The written text on the page is never changed.
+SAY_AS = {
+    "PRAISE": "Praise",
+    "CMU": "C M U",
+    "AI": "A I",
+    "Russinovich": "Russinovitch",
+}
+
+
+def spoken(text):
+    import re
+    for k, v in SAY_AS.items():
+        text = re.sub(rf"\b{re.escape(k)}\b", v, text)
+    return text
+
+
 PROVIDERS = {"openai": say_openai, "elevenlabs": say_elevenlabs, "gemini": say_gemini}
 
 
@@ -119,30 +138,31 @@ def main():
     ap.add_argument("--align", action="store_true",
                     help="For providers with no timings of their own, get them "
                          "by forced alignment. Needs ELEVENLABS_API_KEY.")
-    ap.add_argument("--per-page", action="store_true",
-                    help="One file per page instead of one file for the story")
+    ap.add_argument("--one-file", action="store_true",
+                    help="One clip for the whole story. The default is one clip "
+                         "per page, which is what the reader plays.")
     a = ap.parse_args()
 
     date, script, pages, outdir = _story.load(a)
     OUT = outdir / "voice"
     OUT.mkdir(parents=True, exist_ok=True)
 
-    chunks = ([(p["page"], p["text"]) for p in pages] if a.per_page
-              else [(0, "  ".join(p["text"] for p in pages))])
+    chunks = ([(0, "  ".join(p["text"] for p in pages))] if a.one_file
+              else [(p["page"], p["text"]) for p in pages])
 
     log = []
     for prov in a.providers.split(","):
         fn, voice = PROVIDERS[prov], VOICES[prov]
         for pg, text in chunks:
-            tag = f"p{pg:02d}" if pg else "full"
-            name = f"{a.age}_{tag}_{prov}"
+            # Must match package/build_reader.py's audio() lookup.
+            name = f"{a.age}-{pg:02d}-{prov}" if pg else f"{a.age}-full-{prov}"
             row = {"provider": prov, "voice": voice, "age": a.age,
                    "page": pg, "words": len(text.split())}
             try:
-                audio, ext, times, secs = fn(text, voice)
+                audio, ext, times, secs = fn(spoken(text), voice)
                 row["timings_from"] = "tts" if times else None
                 if times is None and a.align:
-                    times = align(audio, ext, text)
+                    times = align(audio, ext, spoken(text))
                     row["timings_from"] = "forced alignment"
                 (OUT / f"{name}.{ext}").write_bytes(audio)
                 row.update(file=f"{name}.{ext}", seconds=round(secs, 1),
