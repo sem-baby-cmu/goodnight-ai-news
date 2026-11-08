@@ -4,14 +4,24 @@ Runs one script through several TTS providers, saves the audio, and records
 which providers return word-level timestamps (needed for word highlighting).
 Also writes a blind scoring sheet for the team.
 
-Needs any of: OPENAI_API_KEY, ELEVENLABS_API_KEY, GEMINI_API_KEY
+This cannot run in Claude's sandbox: the gateway refuses api.elevenlabs.io,
+api.openai.com and generativelanguage.googleapis.com. Run it on your own
+machine.
+
     pip install openai elevenlabs google-genai
-    python voice/synthesize.py --script input/pip_helper_school.json --age 5to7
+    export ELEVENLABS_API_KEY=...        # and/or OPENAI_API_KEY, GEMINI_API_KEY
+    python voice/synthesize.py --date 2026-11-07
+
+P4 note: only ElevenLabs returns timing from its own TTS call. For the other
+providers, --align sends their audio plus the known text to the ElevenLabs
+forced alignment endpoint, which returns word timings for audio it did not
+generate. So P4 does not depend on a provider shipping timestamps.
 """
-import argparse, json, os, pathlib, time
+import argparse, json, os, pathlib, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-OUT = ROOT / "results" / "voice"
+sys.path.insert(0, str(ROOT / "package"))
+import _story  # noqa: E402
 
 # One warm, slow, storytelling voice per provider.
 VOICES = {
@@ -82,20 +92,39 @@ def word_times(chars, starts, ends):
     return words
 
 
+def align(audio, ext, text):
+    """Word timings for audio we did not generate.
+
+    Forced alignment takes the audio and the text we already know and returns
+    when each word is spoken. It is how OpenAI and Gemini clips can still drive
+    word highlighting.
+    """
+    import io
+    from elevenlabs.client import ElevenLabs
+    c = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
+    f = io.BytesIO(audio)
+    f.name = f"clip.{ext}"
+    r = c.forced_alignment.create(file=f, text=text)
+    return [{"word": w.text, "start": round(w.start, 3), "end": round(w.end, 3)}
+            for w in r.words]
+
+
 PROVIDERS = {"openai": say_openai, "elevenlabs": say_elevenlabs, "gemini": say_gemini}
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--script", required=True)
-    ap.add_argument("--age", default="5to7", choices=["5to7", "8to10"])
+    _story.add_args(ap)
     ap.add_argument("--providers", default="openai,elevenlabs,gemini")
+    ap.add_argument("--align", action="store_true",
+                    help="For providers with no timings of their own, get them "
+                         "by forced alignment. Needs ELEVENLABS_API_KEY.")
     ap.add_argument("--per-page", action="store_true",
                     help="One file per page instead of one file for the story")
     a = ap.parse_args()
 
-    script = json.loads((ROOT / a.script).read_text())
-    pages = script[f"script_{a.age}"]
+    date, script, pages, outdir = _story.load(a)
+    OUT = outdir / "voice"
     OUT.mkdir(parents=True, exist_ok=True)
 
     chunks = ([(p["page"], p["text"]) for p in pages] if a.per_page
@@ -111,6 +140,10 @@ def main():
                    "page": pg, "words": len(text.split())}
             try:
                 audio, ext, times, secs = fn(text, voice)
+                row["timings_from"] = "tts" if times else None
+                if times is None and a.align:
+                    times = align(audio, ext, text)
+                    row["timings_from"] = "forced alignment"
                 (OUT / f"{name}.{ext}").write_bytes(audio)
                 row.update(file=f"{name}.{ext}", seconds=round(secs, 1),
                            bytes=len(audio), word_timestamps=times is not None, ok=True)
@@ -123,14 +156,15 @@ def main():
                 row.update(ok=False, error=str(e)[:300])
                 print(f"FAIL {name}  {e}")
             log.append(row)
-            (ROOT / "results" / "voice_log.json").write_text(json.dumps(log, indent=2))
+            (outdir / "voice_log.json").write_text(json.dumps(log, indent=2))
 
-    scoring_sheet(log)
-    print("\nLog: results/voice_log.json")
-    print("Team scoring: results/voice_scoring.html  (P3 needs one provider at 4.0+)")
+    scoring_sheet(log, outdir)
+    print(f"\nLog: results/{date}/voice_log.json")
+    print(f"Team scoring: results/{date}/voice_scoring.html  "
+          f"(P3 needs one provider at 4.0+)")
 
 
-def scoring_sheet(log):
+def scoring_sheet(log, outdir):
     """Blind-ish scoring page. Players are shuffled so the label is not the first thing seen."""
     rows = [r for r in log if r.get("ok")]
     h = ["<!doctype html><meta charset=utf-8><title>Voice scoring</title>",
@@ -151,9 +185,9 @@ def scoring_sheet(log):
                 h.append(f'<label><input type=radio name="c{i}_{crit}" value={n}> {n}</label>')
             h.append("</div>")
         h.append(f'<p style="opacity:.4;font-size:12px">{r["provider"]} / {r["voice"]} / '
-                 f'word timestamps: {"yes" if r.get("word_timestamps") else "no"}</p>')
+                 f'word timings: {r.get("timings_from") or "none"}</p>')
         h.append("</fieldset>")
-    (ROOT / "results" / "voice_scoring.html").write_text("\n".join(h))
+    (outdir / "voice_scoring.html").write_text("\n".join(h))
 
 
 if __name__ == "__main__":

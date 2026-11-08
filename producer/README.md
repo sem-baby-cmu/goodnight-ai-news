@@ -12,6 +12,27 @@ Turns a Storyteller script into a finished bedtime story: one illustration per
 page with a consistent character, warm narration with word-level timestamps,
 and a packaged story file.
 
+## Voice test (P3, P4) runs on your machine, not here
+
+Claude's sandbox cannot reach any text to speech API. The gateway refuses
+`api.elevenlabs.io`, `api.openai.com` and `generativelanguage.googleapis.com`,
+so this one step has to run somewhere with normal network access.
+
+```bash
+pip install openai elevenlabs google-genai
+export ELEVENLABS_API_KEY=...          # add OPENAI_API_KEY / GEMINI_API_KEY to compare
+python voice/synthesize.py --date 2026-11-07 --align
+```
+
+Writes `results/<date>/voice/`, a log of cost and timing per provider, and
+`voice_scoring.html` for the team to score P3.
+
+**On P4.** Only ElevenLabs returns word timings from the TTS call itself.
+`--align` sends the other providers' audio plus the text we already have to the
+ElevenLabs forced alignment endpoint, which returns timings for audio it did
+not generate. So word highlighting is not limited to one provider, and P4 does
+not depend on a provider shipping timestamps.
+
 ## Layout
 
 - `input/<date>.json` — one day's script, both age versions
