@@ -13,9 +13,9 @@ LOOP = 2.0
 Stage is 1600x900 (same as the prototype). The reel crops to 9:16.
 """
 
-LOOP = 2.0
-
 # From the prototype: fractal noise displacement plus a grain overlay.
+from pip import pip as _pip, LOOP  # noqa: E402
+
 PAINT_FILTER = """
 <filter id="paint" x="-8%" y="-8%" width="116%" height="116%">
   <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="3" result="w"/>
@@ -26,6 +26,15 @@ PAINT_FILTER = """
       values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -.9 .62" result="ga"/>
   <feComposite in="ga" in2="d" operator="in" result="gi"/>
   <feMerge><feMergeNode in="d"/><feMergeNode in="gi"/></feMerge>
+</filter>
+<filter id="ink">
+  <feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="2" result="w"/>
+  <feDisplacementMap in="SourceGraphic" in2="w" scale="2"/>
+</filter>
+<filter id="fuzz" x="-30%" y="-30%" width="160%" height="160%">
+  <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="7"/>
+  <feGaussianBlur stdDeviation=".6"/>
 </filter>"""
 
 # One gradient per tone. Same structure as the prototype's #bsky.
@@ -98,40 +107,14 @@ def ground(tone, y=640):
             f'fill="{GROUND.get(tone, GROUND["calm"])}"/></g>')
 
 
-def pip(x=800, y=640, scale=1.0, mood="calm"):
-    """Pip the robot owl, drawn in the prototype's flat style.
+def pip(x=800, y=640, scale=1.0, mood="calm", pose="stand"):
+    """Pip, drawn by the one component in scene/pip.py.
 
-    Blue body, cream chest, glowing yellow eyes, one antenna.
-    Breathing and blinking are built in; the antenna tilt carries mood.
+    This file used to carry a second, simpler drawing of him. Two drawings of
+    one character is exactly the failure P2 is meant to catch, so this is now a
+    wrapper. Change Pip in scene/pip.py and every format follows.
     """
-    tilt = {"calm": 0, "curious": -14, "excited": 10, "warm": -6, "quiet": 4}.get(mood, 0)
-    glow = {"quiet": ".55", "calm": ".8", "warm": ".92", "curious": "1", "excited": "1"}.get(mood, ".8")
-    return f"""<g transform="translate({x},{y}) scale({scale})">
-  <g filter="url(#paint)">
-    <animateTransform attributeName="transform" type="translate"
-      values="0,0; 0,-9; 0,0" dur="{LOOP}s" repeatCount="indefinite" additive="sum"/>
-    <ellipse cx="0" cy="-8" rx="92" ry="18" fill="#000" opacity=".22"/>
-    <path d="M-86 -36 C-86 -168 86 -168 86 -36 C86 -8 50 -4 0 -4 C-50 -4 -86 -8 -86 -36Z"
-          fill="#6C8BEF"/>
-    <path d="M-86 -64 C-104 -96 -100 -126 -86 -122 Z" fill="#5A79DD"/>
-    <path d="M86 -64 C104 -96 100 -126 86 -122 Z" fill="#5A79DD"/>
-    <ellipse cx="0" cy="-44" rx="50" ry="40" fill="#FFF8E6"/>
-    <g>
-      <circle cx="-34" cy="-108" r="27" fill="#FFD23F" opacity="{glow}"/>
-      <circle cx="34" cy="-108" r="27" fill="#FFD23F" opacity="{glow}"/>
-      <animate attributeName="opacity" values="1;1;.05;1;1"
-               dur="{LOOP}s" keyTimes="0;.86;.91;.96;1" repeatCount="indefinite"/>
-    </g>
-    <polygon points="-15,-92 0,-74 15,-92" fill="#F7A23B"/>
-    <g transform="rotate({tilt} 0 -160)">
-      <line x1="0" y1="-160" x2="0" y2="-196" stroke="#6C8BEF" stroke-width="9"
-            stroke-linecap="round"/>
-      <circle cx="0" cy="-204" r="11" fill="#FFD23F">
-        <animate attributeName="r" values="11;13.5;11" dur="{LOOP}s" repeatCount="indefinite"/>
-      </circle>
-    </g>
-  </g>
-</g>"""
+    return _pip(x, y, scale * 1.18, mood, pose)
 
 
 def scene(tone, mood=None, with_skyline=True, with_moon=True, pip_scale=1.0):

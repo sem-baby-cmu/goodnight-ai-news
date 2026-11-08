@@ -1,195 +1,226 @@
 """Pip, as one posable component.
 
-The head (eyes, beak, antenna) and the body shell are drawn by the same code on
-every page. What changes per pose is the wing shapes, the body transform, where
-the eyes look, and any prop. That is enough for a reader to see a different
-action while the character stays recognisably the same bird.
+The design is taken from the Goodnight, AI prototype: a single soft blue body
+with no neck, two round eyes set a little unevenly, a drawn smile, pink blush,
+orange ear dots, and a thin cream antenna with a crescent moon on top. Arms and
+legs are strokes, not shapes, which is what makes posing cheap.
 
-An earlier version only rotated one wing path by a few degrees. On a phone that
-reads as "no change at all", so each pose now has its own wing geometry.
+Geometry is kept in the prototype's own coordinates (body from y 54 to 238,
+feet at 276, centre at x 134) so the drawing can be checked against the
+original. The outer transform moves that frame so the caller's (x, y) is the
+ground under Pip's feet.
+
+Every pose returns the same character. Nothing here is generated or sampled, so
+Pip cannot drift between pages, between stories, or between formats.
 """
 
-LOOP = 2.0
-BODY, DARK = "#4A6FE8", "#3454BA"
-CREAM, GLOW, BEAK, INK = "#FFF8E6", "#FFD23F", "#F7A23B", "#101A33"
+LOOP = 2.0  # seconds. One breath. Every animation in the system uses it.
 
-MOOD = {   # antenna tilt, antenna glow, eye openness
-    "calm": (0, .92, 1.0), "warm": (-8, 1.0, .94), "curious": (-20, 1.0, 1.1),
-    "quiet": (8, .66, .74), "excited": (14, 1.0, 1.14),
+BODY, DEEP = "#6C8BEF", "#4B67C9"
+EAR, EAR_LINE = "#F7A23B", "#B56A12"
+BLUSH, EYE, INK = "#F7A6C8", "#FFFDF6", "#1A1A2E"
+GLOW, CREAM, PAGE = "#FFD23F", "#FFF1C9", "#FFF6E2"
+
+# Native frame: Pip is 162 wide and 276 tall, centred on x=134, feet at y=276.
+CX, FEET = 134, 276
+
+MOUTH = {
+    # A mood has to be readable on a phone, so the mouth carries most of it.
+    "smile": f'<path d="M120 152 C124 164 144 164 150 149" stroke="{INK}" '
+             f'stroke-width="3.4" fill="none" stroke-linecap="round"/>',
+    "grin":  f'<path d="M114 148 C120 170 150 170 156 146" stroke="{INK}" '
+             f'stroke-width="3.6" fill="none" stroke-linecap="round"/>',
+    "oh":    f'<ellipse cx="135" cy="156" rx="7" ry="9.5" fill="{INK}"/>',
+    "soft":  f'<path d="M124 156 C130 161 141 161 147 155" stroke="{INK}" '
+             f'stroke-width="3.2" fill="none" stroke-linecap="round"/>',
+    "open":  f'<path d="M115 147 C123 175 149 175 157 145 Z" fill="{INK}"/>'
+             f'<path d="M126 164 C130 170 142 170 146 163 Z" fill="#E8718C"/>',
+}
+
+MOOD = {
+    # antenna tilt, eye white radius, pupil radius, blush opacity, mouth
+    "calm":    (0, 14.0, 5.8, 0.85, "smile"),
+    "warm":    (-7, 14.5, 6.2, 1.00, "grin"),
+    "curious": (-18, 16.0, 6.4, 0.80, "oh"),
+    "quiet":   (9, 10.5, 4.9, 0.55, "soft"),
+    "excited": (13, 17.0, 6.9, 1.00, "open"),
 }
 
 
-def _wing(d, flip=False):
-    s = ' transform="scale(-1,1)"' if flip else ""
-    return f'<g{s}><path d="{d}" fill="{DARK}"/></g>'
+def _arm(d, w=12):
+    return (f'<path d="{d}" stroke="{BODY}" stroke-width="{w}" fill="none" '
+            f'stroke-linecap="round"/>')
 
 
-def _P(wl, wr, tf="", eye=(0, 0), back="", front="", shut=False, anim=""):
-    return {"wl": wl, "wr": wr, "tf": tf, "eye": eye,
-            "back": back, "front": front, "shut": shut, "anim": anim}
+def _leg(d):
+    return (f'<path d="{d}" stroke="{BODY}" stroke-width="12" fill="none" '
+            f'stroke-linejoin="round" stroke-linecap="round"/>')
 
 
-def _pose(name):
-    rest = "M-104 -150 C-150 -160 -158 -92 -124 -60 C-110 -48 -102 -62 -102 -80Z"
-
-    if name == "wave":
-        # one wing stretched straight up, well past the head, and it swings
-        up = ('<g><path d="M104 -150 C150 -200 176 -268 158 -300 '
-              'C146 -320 118 -306 108 -272 L96 -176Z" fill="%s">'
-              '<animateTransform attributeName="transform" type="rotate" '
-              'values="-14 104 -150; 14 104 -150; -14 104 -150" dur="%ss" '
-              'repeatCount="indefinite"/></path></g>' % (DARK, LOOP))
-        return _P(_wing(rest), up)
-
-    if name == "point":
-        # wing extended horizontally, long and straight, clearly pointing
-        pt = (f'<path d="M100 -132 C168 -140 236 -136 268 -126 '
-              f'C282 -122 282 -104 268 -100 C236 -90 168 -86 100 -94Z" fill="{DARK}"/>'
-              f'<circle cx="286" cy="-113" r="13" fill="{GLOW}">'
-              f'<animate attributeName="r" values="11;16;11" dur="{LOOP}s" '
-              f'repeatCount="indefinite"/></circle>')
-        return _P(_wing(rest), pt, eye=(16, 0))
-
-    if name == "cheer":
-        # both wings up in a V, whole body hops
-        v = ('M104 -150 C156 -196 190 -254 174 -282 C162 -302 132 -290 '
-             '120 -258 L96 -176Z')
-        hop = (f'<animateTransform attributeName="transform" type="translate" '
-               f'values="0,0; 0,-30; 0,0" dur="{LOOP}s" repeatCount="indefinite" '
-               f'additive="sum"/>')
-        return _P(_wing(v, flip=True), _wing(v), eye=(0, -4),
-                  back=_sparkles(), anim=hop)
-
-    if name == "think":
-        # one wing bent up to the chin, head tilted, eyes glance up
-        chin = (f'<path d="M100 -140 C150 -150 168 -120 152 -96 '
-                f'C140 -78 112 -84 96 -100Z" fill="{DARK}"/>'
-                f'<path d="M150 -104 C168 -108 178 -124 170 -140" stroke="{DARK}" '
-                f'stroke-width="18" fill="none" stroke-linecap="round"/>')
-        return _P(_wing(rest), chin, ' transform="rotate(-9)"', (6, -12),
-                  back=_dots())
-
-    if name == "peek":
-        # leaning hard to one side, eyes cut to the edge of the frame
-        return _P(_wing(rest), _wing(rest, flip=True),
-                  ' transform="translate(40,0) rotate(-13)"', (-22, 2))
-
-    if name == "read":
-        # both wings forward holding a book, head down
-        hold = ('M104 -120 C148 -112 164 -78 146 -58 C132 -42 104 -54 96 -74Z')
-        book = (f'<g transform="translate(0,-48)">'
-                f'<path d="M-112 -6 L0 -30 L112 -6 L112 62 L0 40 L-112 62Z" fill="{GLOW}"/>'
-                f'<path d="M-112 -6 L0 -30 L112 -6 L112 62 L0 40 L-112 62Z" fill="none" '
-                f'stroke="{INK}" stroke-width="8" stroke-linejoin="round"/>'
-                f'<path d="M0 -30 L0 40" stroke="{INK}" stroke-width="8"/>'
-                f'<path d="M-84 12 L-24 1 M-84 32 L-24 21" stroke="{INK}" '
-                f'stroke-width="6" opacity=".4" stroke-linecap="round"/>'
-                f'<path d="M84 12 L24 1 M84 32 L24 21" stroke="{INK}" '
-                f'stroke-width="6" opacity=".4" stroke-linecap="round"/></g>')
-        return _P(_wing(hold, flip=True), _wing(hold), ' transform="rotate(7)"',
-                  (0, 14), front=book)
-
-    if name == "sleep":
-        # slumped, wings tucked low, Zzz drifting up
-        tuck = "M-100 -104 C-134 -104 -140 -62 -116 -46 C-104 -38 -98 -52 -98 -68Z"
-        z = []
-        for i, (x, y, s) in enumerate([(150, -210, 1.0), (200, -270, .76), (242, -318, .56)]):
-            z.append(f'<text x="{x}" y="{y}" font-family="Verdana,system-ui" '
-                     f'font-size="{int(66*s)}" font-weight="700" fill="{DARK}" '
-                     f'opacity=".8">z<animate attributeName="opacity" '
-                     f'values="0;.85;0" dur="{LOOP*1.5}s" begin="-{i*0.5:.1f}s" '
-                     f'repeatCount="indefinite"/></text>')
-        return _P(_wing(tuck), _wing(tuck, flip=True),
-                  ' transform="rotate(13) translate(0,16)"', back="".join(z), shut=True)
-
-    if name == "lost":
-        # wings hanging, body small and sunken, eyes narrow
-        droop = "M-100 -120 C-136 -104 -140 -48 -118 -30 C-106 -20 -98 -40 -98 -62Z"
-        q = (f'<text x="150" y="-230" font-family="Verdana,system-ui" font-size="92" '
-             f'font-weight="700" fill="{DARK}" opacity=".55">?'
-             f'<animate attributeName="opacity" values=".2;.7;.2" dur="{LOOP}s" '
-             f'repeatCount="indefinite"/></text>')
-        return _P(_wing(droop), _wing(droop, flip=True),
-                  ' transform="translate(0,20) scale(.92)"', (0, 8), back=q)
-
-    return _P(_wing(rest), _wing(rest, flip=True))
+L_DOWN = "M78 156 C60 168 52 186 56 206"
+R_DOWN = "M192 160 C210 172 214 190 210 210"
+LEGS = ("M112 232 L102 258 L110 276", "M156 232 L168 254 L160 274")
+LEGS_TUCK = ("M112 230 L98 248 L108 262", "M156 230 L170 246 L160 260")
 
 
 def _sparkles():
+    pts = [(58, 54, 11), (212, 46, 13), (40, 112, 8), (232, 108, 9)]
     out = []
-    for i, (x, y, r) in enumerate([(-230, -250, 20), (240, -230, 16), (-170, -330, 13),
-                                   (190, -340, 18)]):
+    for i, (x, y, r) in enumerate(pts):
         out.append(
-            f'<path transform="translate({x},{y})" d="M0,-{r} L{r*.3:.0f},-{r*.3:.0f} '
-            f'L{r},0 L{r*.3:.0f},{r*.3:.0f} L0,{r} L-{r*.3:.0f},{r*.3:.0f} L-{r},0 '
-            f'L-{r*.3:.0f},-{r*.3:.0f}Z" fill="{GLOW}">'
-            f'<animate attributeName="opacity" values=".25;1;.25" dur="{LOOP}s" '
-            f'begin="-{i*.35:.2f}s" repeatCount="indefinite"/></path>')
+            f'<path d="M{x} {y-r} L{x+r*.3:.0f} {y-r*.3:.0f} L{x+r} {y} '
+            f'L{x+r*.3:.0f} {y+r*.3:.0f} L{x} {y+r} L{x-r*.3:.0f} {y+r*.3:.0f} '
+            f'L{x-r} {y} L{x-r*.3:.0f} {y-r*.3:.0f} Z" fill="{GLOW}">'
+            f'<animate attributeName="opacity" values=".25;1;.25" '
+            f'dur="{LOOP}s" begin="{i*0.22:.2f}s" repeatCount="indefinite"/></path>')
     return "".join(out)
 
 
 def _dots():
     out = []
-    for i, (x, y, r) in enumerate([(176, -214, 11), (214, -256, 15), (258, -308, 21)]):
-        out.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{DARK}" opacity=".5">'
-                   f'<animate attributeName="opacity" values=".12;.7;.12" dur="{LOOP}s" '
-                   f'begin="-{i*.4:.1f}s" repeatCount="indefinite"/></circle>')
+    for i, (x, y, r) in enumerate([(216, 84, 6), (238, 58, 9), (266, 26, 13)]):
+        out.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{CREAM}" opacity=".95">'
+                   f'<animate attributeName="opacity" values=".15;.95;.15" '
+                   f'dur="{LOOP}s" begin="{i*0.3:.1f}s" repeatCount="indefinite"/>'
+                   f'</circle>')
     return "".join(out)
+
+
+def _book():
+    return (f'<g transform="rotate(-3 134 196) translate(0,-14)">'
+            f'<path d="M134 196 C118 188 96 186 80 190 L80 236 C96 232 118 234 134 242Z" '
+            f'fill="{PAGE}" stroke="{INK}" stroke-width="2.5" stroke-linejoin="round"/>'
+            f'<path d="M134 196 C150 188 172 186 188 190 L188 236 C172 232 150 234 134 242Z" '
+            f'fill="{PAGE}" stroke="{INK}" stroke-width="2.5" stroke-linejoin="round"/>'
+            f'<g stroke="{DEEP}" stroke-width="2" stroke-linecap="round" opacity=".55">'
+            f'<path d="M92 202 h30 M92 212 h30 M92 222 h24"/>'
+            f'<path d="M146 202 h30 M146 212 h30 M146 222 h24"/></g>'
+            f'<path d="M134 196 L134 242" stroke="{INK}" stroke-width="2.5"/></g>')
+
+
+def _zzz():
+    out = []
+    for i, (x, y, s) in enumerate([(210, 92, 26), (240, 56, 34), (276, 16, 44)]):
+        out.append(
+            f'<text x="{x}" y="{y}" font-family="Grandstander, Fredoka, sans-serif" '
+            f'font-size="{s}" fill="{EYE}" opacity=".85" '
+            f'style="font-variation-settings:\'wght\' 700">z'
+            f'<animate attributeName="opacity" values="0;.9;0" dur="{LOOP*1.5}s" '
+            f'begin="{i*0.45:.2f}s" repeatCount="indefinite"/></text>')
+    return "".join(out)
+
+
+def _question():
+    return (f'<text x="224" y="84" font-family="Grandstander, Fredoka, sans-serif" '
+            f'font-size="46" fill="{GLOW}" text-anchor="middle" '
+            f'style="font-variation-settings:\'wght\' 700">?'
+            f'<animateTransform attributeName="transform" type="rotate" '
+            f'values="-9 224 68; 9 224 68; -9 224 68" dur="{LOOP*1.4}s" '
+            f'repeatCount="indefinite"/></text>')
+
+
+def _P(al=L_DOWN, ar=R_DOWN, legs=LEGS, tf="", eye=(0, 0),
+       back="", front="", shut=False, anim=""):
+    return {"al": al, "ar": ar, "legs": legs, "tf": tf, "eye": eye,
+            "back": back, "front": front, "shut": shut, "anim": anim}
+
+
+def _pose(name):
+    if name == "wave":
+        return _P(ar="M192 156 C216 142 228 116 222 92",
+                  anim='<animateTransform attributeName="transform" type="rotate" '
+                       f'values="0 192 156; -16 192 156; 0 192 156" dur="{LOOP}s" '
+                       'repeatCount="indefinite" additive="sum"/>')
+    if name == "point":
+        return _P(ar="M192 162 C218 160 244 158 268 157", eye=(4, 0))
+    if name == "cheer":
+        return _P(al="M78 154 C54 140 42 114 48 90",
+                  ar="M192 158 C216 144 228 118 222 94",
+                  legs=LEGS_TUCK, back=_sparkles(),
+                  anim='<animateTransform attributeName="transform" type="translate" '
+                       f'values="0,0; 0,-16; 0,0" dur="{LOOP}s" '
+                       'repeatCount="indefinite" additive="sum"/>')
+    if name == "think":
+        return _P(ar="M194 158 C216 150 216 118 196 104", eye=(3, -4),
+                  back=_dots())
+    if name == "peek":
+        return _P(al="M78 158 C62 172 58 192 66 208",
+                  ar="M192 160 C206 174 204 192 194 204",
+                  tf=' transform="rotate(-9 134 276)"', eye=(-5, 1))
+    if name == "read":
+        return _P(al="M78 162 C66 182 82 198 102 200",
+                  ar="M192 164 C204 184 188 200 168 202",
+                  eye=(0, 4), front=_book())
+    if name == "sleep":
+        return _P(al="M78 160 C60 176 56 196 62 212",
+                  ar="M192 162 C210 178 214 198 208 212",
+                  tf=' transform="rotate(5 134 276)"', shut=True, back=_zzz())
+    if name == "lost":
+        return _P(al="M78 160 C54 170 42 184 40 200",
+                  ar="M192 162 C216 172 228 186 230 202",
+                  eye=(0, -5), back=_question())
+    return _P()
 
 
 POSES = ["stand", "wave", "point", "cheer", "think", "peek", "read", "sleep", "lost"]
 
 
 def pip(x=540, y=700, scale=1.0, mood="calm", pose="stand"):
-    tilt, glow, open_ = MOOD.get(mood, MOOD["calm"])
+    """Draw Pip. (x, y) is the ground under his feet."""
+    tilt, er, pr, blush, mouth = MOOD.get(mood, MOOD["calm"])
     P = _pose(pose)
-    wl, wr, body_tf, shut = P["wl"], P["wr"], P["tf"], P["shut"]
     ex, ey = P["eye"]
-    ry = 46 * open_
-    if shut:
-        eyes = (f'<path d="M-82 -148 q38 26 76 0" stroke="{INK}" stroke-width="11" '
-                f'fill="none" stroke-linecap="round"/>'
-                f'<path d="M6 -148 q38 26 76 0" stroke="{INK}" stroke-width="11" '
-                f'fill="none" stroke-linecap="round"/>')
+
+    if P["shut"]:
+        eyes = (f'<g stroke="{INK}" stroke-width="3.6" fill="none" stroke-linecap="round">'
+                f'<path d="M94 133 C100 142 112 142 118 132"/>'
+                f'<path d="M146 128 C152 137 164 137 170 127"/></g>')
     else:
-        eyes = (f'<ellipse cx="-44" cy="-148" rx="42" ry="{ry:.0f}" fill="{CREAM}"/>'
-                f'<ellipse cx="44" cy="-148" rx="42" ry="{ry:.0f}" fill="{CREAM}"/>'
-                f'<ellipse cx="{-44+ex}" cy="{-148+ey}" rx="26" ry="{ry*.64:.0f}" fill="{INK}"/>'
-                f'<ellipse cx="{44+ex}" cy="{-148+ey}" rx="26" ry="{ry*.64:.0f}" fill="{INK}"/>'
-                f'<circle cx="{-36+ex}" cy="{-160+ey}" r="9" fill="{CREAM}" opacity=".92"/>'
-                f'<circle cx="{52+ex}" cy="{-160+ey}" r="9" fill="{CREAM}" opacity=".92"/>'
-                f'<animateTransform attributeName="transform" type="scale" '
-                f'values="1 1;1 .08;1 1" dur="{LOOP}s" keyTimes="0;.9;.95" '
-                f'repeatCount="indefinite"/>')
+        eyes = (f'<g filter="url(#ink)">'
+                f'<circle cx="106" cy="131" r="{er}" fill="{EYE}"/>'
+                f'<circle cx="158" cy="126" r="{er}" fill="{EYE}"/></g>'
+                f'<circle cx="{106+ex}" cy="{135+ey}" r="{pr}" fill="{INK}"/>'
+                f'<circle cx="{158+ex}" cy="{130+ey}" r="{pr}" fill="{INK}"/>'
+                f'<g><animateTransform attributeName="transform" type="scale" '
+                f'values="1 1;1 .08;1 1" dur="{LOOP*2.6:.1f}s" keyTimes="0;.94;.98" '
+                f'repeatCount="indefinite"/></g>')
 
     return f"""<g transform="translate({x},{y}) scale({scale})">
- <g{body_tf}>
-  <g filter="url(#paint)">
-   <animateTransform attributeName="transform" type="translate"
-     values="0,0; 0,-9; 0,0" dur="{LOOP}s" repeatCount="indefinite" additive="sum"/>
-   {P["anim"]}
-   <ellipse cx="0" cy="14" rx="120" ry="20" fill="{INK}" opacity=".18"/>
-   {P["back"]}
-   <g transform="translate(0,0)">
-     <path d="M-44 -18 l0 26 q0 10 -14 12 l-16 2 q-8 1 -8 -6 q0 -6 8 -8 l14 -4 l0 -22z"
-           fill="{BEAK}"/>
-     <path d="M44 -18 l0 26 q0 10 14 12 l16 2 q8 1 8 -6 q0 -6 -8 -8 l-14 -4 l0 -22z"
-           fill="{BEAK}"/>
-   </g>
-   {wl}
-   <path d="M-112 -56 C-112 -236 112 -236 112 -56 C112 -14 62 -6 0 -6
-            C-62 -6 -112 -14 -112 -56Z" fill="{BODY}"/>
-   <ellipse cx="0" cy="-62" rx="66" ry="54" fill="{CREAM}"/>
-   {wr}
-   <g>{eyes}</g>
-   <polygon points="-18,-116 0,-92 18,-116" fill="{BEAK}"/>
-   {P["front"]}
-   <g transform="rotate({tilt} 0 -214)">
-     <line x1="0" y1="-198" x2="0" y2="-256" stroke="{DARK}" stroke-width="13"
-           stroke-linecap="round"/>
-     <circle cx="0" cy="-266" r="15" fill="{GLOW}" opacity="{glow}">
-       <animate attributeName="r" values="15;19;15" dur="{LOOP}s" repeatCount="indefinite"/>
-     </circle>
+ <g transform="translate({-CX},{-FEET})">
+  <g{P["tf"]}>
+   <g filter="url(#paint)">
+    <animateTransform attributeName="transform" type="translate"
+      values="0,0; 0,-7; 0,0" dur="{LOOP}s" repeatCount="indefinite" additive="sum"/>
+    {P["anim"]}
+    <ellipse cx="134" cy="278" rx="74" ry="13" fill="{INK}" opacity=".16"/>
+    {P["back"]}
+    {_leg(P["legs"][0])}{_leg(P["legs"][1])}
+    {_arm(P["al"])}{_arm(P["ar"])}
+    <path d="M74 92 C76 64 108 54 140 56 C176 58 198 72 196 104
+             C194 140 202 178 190 206 C180 232 150 240 126 238
+             C94 236 70 222 68 190 C66 158 72 122 74 92Z" fill="{BODY}"/>
+    <circle cx="72" cy="128" r="8" fill="{EAR}"/>
+    <circle cx="198" cy="122" r="7" fill="{EAR}"/>
+    <path d="M72 128 l-4 0 M198 122 l4 0" stroke="{EAR_LINE}" stroke-width="2"
+          stroke-linecap="round"/>
+    <g fill="{DEEP}" opacity=".7"><circle cx="86" cy="196" r="2.4"/>
+      <circle cx="96" cy="206" r="2.4"/><circle cx="176" cy="96" r="2.4"/>
+      <circle cx="184" cy="106" r="2.4"/></g>
+    <g transform="translate(0,-26)">
+     <circle cx="98" cy="154" r="11" fill="{BLUSH}" opacity="{blush}" filter="url(#fuzz)"/>
+     <circle cx="172" cy="150" r="11" fill="{BLUSH}" opacity="{blush}" filter="url(#fuzz)"/>
+     {eyes}
+     <g filter="url(#ink)">{MOUTH[mouth]}</g>
+    </g>
+    {P["front"]}
+    <g transform="rotate({tilt} 140 58)">
+     <path d="M140 58 C138 44 146 32 146 18" stroke="{CREAM}" stroke-width="3.5"
+           fill="none" stroke-linecap="round"/>
+     <g transform="translate(146,6)">
+      <path d="M10 -19 C-6 -14 -16 -4 -16 8 C-16 20 -6 30 10 35
+               C-3 26 -8 18 -8 8 C-8 -2 -3 -10 10 -19 Z" fill="{GLOW}"/>
+     </g>
+    </g>
    </g>
   </g>
  </g>

@@ -86,7 +86,7 @@ def cta_card(url, n, total, time="dusk", place="plain"):
 {world.clouds(time)}{world.stars(time)}{world.light(time)}
 {back}
 {stickers}
-{pip(W//2, world.GROUND_Y + 58, 1.16, "excited", "cheer")}
+{pip(W//2, world.GROUND_Y + 58, 1.62, "excited", "cheer")}
 {front}
 <rect x="0" y="0" width="{W}" height="520" fill="url(#band)"/>
 <text x="{W//2}" y="250" text-anchor="middle" font-family="{FONT}" font-size="70"
@@ -119,7 +119,7 @@ def scene(page, w=W, h=H):
 <rect width="{W}" height="{H}" fill="url(#sky)"/>
 {world.clouds(time)}{world.stars(time)}{world.light(time)}
 {back}
-{pip(W//2, world.GROUND_Y + 58, 1.16, page["tone"], pose)}
+{pip(W//2, world.GROUND_Y + 58, 1.62, page["tone"], pose)}
 {front}
 </svg>"""
 
@@ -180,7 +180,7 @@ def card(page, total, n=None):
 {world.stars(time)}
 {world.light(time)}
 {back}
-{pip(W//2, world.GROUND_Y + 58, 1.16, tone, pose)}
+{pip(W//2, world.GROUND_Y + 58, 1.62, tone, pose)}
 {front}
 <rect x="0" y="0" width="{W}" height="{band:.0f}" fill="url(#band)"/>
 

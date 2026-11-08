@@ -15,7 +15,7 @@ FONT = "Grandstander, Fredoka, Nunito, sans-serif"
 CELL, GAP, PAD = 300, 18, 56
 
 
-def _cell(x, y, label, pose, mood, scale=0.46):
+def _cell(x, y, label, pose, mood, scale=0.62):
     return f'''<g>
 <rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" rx="22" fill="#ffffff"
       stroke="#E4DCC4" stroke-width="2"/>
