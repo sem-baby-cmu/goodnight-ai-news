@@ -28,4 +28,5 @@ Pip is one SVG component today, which keeps Pip the same on every page.
 
 ## Consequences
 
-- Not measured yet: bundle size and phone performance.
+
+- Producer decides whether its scenes use the layer (issue #3).
