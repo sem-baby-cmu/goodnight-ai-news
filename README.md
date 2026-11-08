@@ -63,7 +63,7 @@ Integration owns the contract between the boxes and runs one story end to end.
 | [`producer/`](producer/README.md) | Script to scenes, narration, package | Judy Lee | Madhuri Dusad |
 | [`playmate/`](playmate/README.md) | Story to interaction and games | Madhuri Dusad | Jinyu Liu |
 | [`integration/`](integration/README.md) | Contract, data flow, end-to-end test | Jinyu Liu | Deokhwa Jeong |
-| [`app/`](app/) | Cloudflare Worker (production; health check only so far) | Jinyu Liu | Deokhwa Jeong |
+| [`app/`](app/) | Cloudflare Worker: front end and API | Jinyu Liu | Deokhwa Jeong |
 
 Each folder has its own README with its tests, results, and how to run it.
 
@@ -82,6 +82,20 @@ pip install playwright pillow && playwright install chromium
 # Playmate: open the demo
 open playmate/playmate.html
 ```
+
+The app (`app/`) needs Node.js 22 or later.
+
+```bash
+cd app
+npm ci
+npx wrangler d1 migrations apply DB --local   # create the local D1 tables
+npm run dev          # front end and API at http://localhost:5173
+npm run typecheck    # Worker types and TypeScript
+npm run build        # production build in app/dist/
+```
+
+After a change to `app/worker/db/schema.ts`, run `npm run db:generate` to
+write a new migration to `app/migrations/`.
 
 API keys go in a local `.env` file (for example `producer/.env`, copied from
 `producer/.env.example`). `.env` files are ignored by git. Never commit a key.
