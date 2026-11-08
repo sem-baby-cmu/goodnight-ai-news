@@ -31,9 +31,17 @@ def load_block(path, heading):
 
 
 def build_prompt(page, version, character, style, tone_map):
-    scene = page["scene_description"]
+    # The Storyteller schema has a written scene_description, which is what an
+    # image model needs as its prompt. Our renderer never read it, so it was
+    # dropped from the script. This path keeps working by composing the same
+    # sentence from the fields that remain.
+    scene = page.get("scene_description", "")
     if scene.startswith("PLACEHOLDER:"):
         scene = scene[len("PLACEHOLDER:"):].strip()
+    if not scene:
+        st = page.get("setting", {"time": "day", "place": "street"})
+        beat = page["slot"].replace("_", " ")
+        scene = f"Pip the little robot owl, {beat}, {st['place']} in the {st['time']}"
     parts = [f"Children's picture book illustration. {scene}."]
     if version in ("v2", "v3", "v4"):
         parts.append(f"The character: {character}")

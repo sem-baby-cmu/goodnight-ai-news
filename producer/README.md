@@ -238,9 +238,15 @@ For 2026-11-07, only two pages are genuinely at night: page 2, where the text
 says Pip reads the news at night, and page 8, the bedtime reflection. The night
 framing survives where the text asks for it and nowhere else.
 
-**Handoff note for Storyteller:** `setting` is currently a Producer placeholder,
-like `scene_description`. Only the script knows when and where a story happens,
-so it should come from Storyteller. Flagged for 5.2.
+**Handoff note for Storyteller:** `setting` is currently a Producer placeholder.
+Only the script knows when and where a story happens, so it should come from
+Storyteller. Flagged for 5.2.
+
+The schema's written `scene_description` was dropped. An image model needs a
+sentence as its prompt, but this renderer builds each scene from `slot`, `tone`
+and `setting`, so a free text sentence would only have to be translated back
+into those same three values by hand. `setting` stays a short fixed list for the
+same reason: code can act on it directly.
 
 ## The carousel is a cut, not the whole script
 
