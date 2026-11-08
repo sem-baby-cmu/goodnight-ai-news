@@ -46,7 +46,8 @@ pip install playwright pillow && playwright install chromium
 
 python package/build_carousel.py --age 5to7      # Threads / Instagram cards
 python package/build_carousel.py --age 8to10
-python package/build_book.py     --age 5to7      # phone-landscape flipbook
+python package/build_reader.py   --age 5to7      # web story, portrait first
+python package/build_book.py     --age 5to7      # landscape-only flipbook
 python package/build_reel.py     --age 5to7      # vertical video (needs ffmpeg)
 ```
 
@@ -280,3 +281,20 @@ counts toward the total, so numbering stays honest.
 
 This is also why the sentence tags came off the cards. A feed card that tries to
 teach media literacy *and* hook a reader does neither.
+
+
+## Portrait first
+
+Readers arrive from Threads holding the phone upright. `build_book.py` asked
+them to rotate, which is friction at the weakest point in the funnel, so
+`build_reader.py` is portrait first: picture on top, words below, and turning
+the phone sideways switches to a wide layout with the words over the picture.
+One stylesheet, no reload.
+
+Two bugs the browser check caught, that reading the code would not have:
+
+- A flex container drops whitespace-only text nodes, so the caption rendered as
+  `PipandtheHelperSchool.` The line now lives in its own element.
+- The scene is 4:5. Cropped into a wide frame from the centre it lost the
+  ground, and the character standing on it. The crop is now anchored to the
+  bottom (`xMidYMax`), so the horizon always survives.

@@ -106,6 +106,24 @@ def cta_card(url, n, total, time="dusk", place="plain"):
 </svg>"""
 
 
+def scene(page, w=W, h=H):
+    """The picture alone: no caption, no chrome. Used by the web reader, where
+    the text is live HTML so it can be highlighted word by word."""
+    pose = BEAT.get(page["slot"], "stand")
+    s = page.get("setting", DEFAULT_SETTING)
+    time, place = s.get("time", "night"), s.get("place", "street")
+    back, front = world.place(place, time)
+    return f"""<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg"
+     preserveAspectRatio="xMidYMax slice">
+<defs>{parts.PAINT_FILTER}{world.sky(time)}</defs>
+<rect width="{W}" height="{H}" fill="url(#sky)"/>
+{world.clouds(time)}{world.stars(time)}{world.light(time)}
+{back}
+{pip(W//2, world.GROUND_Y + 58, 1.16, page["tone"], pose)}
+{front}
+</svg>"""
+
+
 def card(page, total, n=None):
     tone = page["tone"]
     pose = BEAT.get(page["slot"], "stand")
