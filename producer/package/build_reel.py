@@ -12,6 +12,8 @@ pipeline testable before images and narration exist.
 import argparse, json, pathlib, shutil, subprocess, sys, textwrap, tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scene"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import _story  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RES = ROOT / "results"
@@ -99,9 +101,7 @@ def find(kind, age, page, provider, version=None):
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--script", required=True)
-    ap.add_argument("--age", default="5to7", choices=["5to7", "8to10"])
+    ap = _story.add_args(argparse.ArgumentParser())
     ap.add_argument("--image-provider", default="openai")
     ap.add_argument("--image-version", default="v3")
     ap.add_argument("--voice-provider", default="elevenlabs")
@@ -114,10 +114,8 @@ def main():
     if not have("ffmpeg"):
         raise SystemExit("ffmpeg not found")
 
-    script = json.loads((ROOT / a.script).read_text())
-    pages = script[f"script_{a.age}"]
+    date, script, pages, outdir = _story.load(a)
     tmp = pathlib.Path(tempfile.mkdtemp())
-    RES.mkdir(parents=True, exist_ok=True)
 
     cards, total, used_ph, used_anim, used_silence = [], 0.0, 0, 0, 0
     for p in pages:
@@ -169,7 +167,7 @@ def main():
 
     lst = tmp / "list.txt"
     lst.write_text("\n".join(f"file '{c}'" for c in clips))
-    out = RES / f"reel_{a.age}.mp4"
+    out = outdir / f"lullabyte-{date}-{a.age}.mp4"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat",
                     "-safe", "0", "-i", str(lst), "-c", "copy", str(out)], check=True)
 

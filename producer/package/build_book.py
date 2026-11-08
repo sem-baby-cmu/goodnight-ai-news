@@ -13,7 +13,9 @@ import argparse, base64, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scene"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import parts  # noqa: E402
+import _story  # noqa: E402
 
 RES = ROOT / "results"
 TAP_PAGES = {2, 5, 8}          # idea 22: one interactive moment every 2 to 3 pages
@@ -31,14 +33,11 @@ def audio_uri(age, page, provider):
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--script", required=True)
-    ap.add_argument("--age", default="5to7", choices=["5to7", "8to10"])
+    ap = _story.add_args(argparse.ArgumentParser())
     ap.add_argument("--voice-provider", default="elevenlabs")
     a = ap.parse_args()
 
-    script = json.loads((ROOT / a.script).read_text())
-    pages = script[f"script_{a.age}"]
+    date, script, pages, outdir = _story.load(a)
 
     built, with_audio = [], 0
     for p in pages:
@@ -57,7 +56,7 @@ def main():
             .replace("__TITLE__", script["title"])
             .replace("__AGE__", a.age.replace("to", "–"))
             .replace("__DATA__", json.dumps(built)))
-    out = RES / f"book_{a.age}.html"
+    out = outdir / f"book-{a.age}.html"
     out.write_text(html)
     kb = out.stat().st_size / 1024
 

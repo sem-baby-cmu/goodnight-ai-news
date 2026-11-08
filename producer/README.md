@@ -50,7 +50,9 @@ python package/build_book.py     --age 5to7      # phone-landscape flipbook
 python package/build_reel.py     --age 5to7      # vertical video (needs ffmpeg)
 ```
 
-`--date` defaults to today and reads `input/<date>.json`.
+Every builder takes the same `--date` (default today) and `--age`, reads
+`input/<date>.json`, and writes to `results/<date>/`. Verified from a fresh
+clone.
 
 Fonts: the build uses Shantell Sans. Install it once from the Google Fonts repo
 into `~/.fonts` and run `fc-cache -f`.

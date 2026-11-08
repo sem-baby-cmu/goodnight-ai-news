@@ -13,30 +13,18 @@ import argparse, datetime as dt, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scene"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import card as C          # noqa: E402
 from render import render  # noqa: E402
+import _story             # noqa: E402
 
 RES = ROOT / "results"
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--date", help="story date, YYYY-MM-DD. Default: today")
-    ap.add_argument("--script", help="override the input path")
-    ap.add_argument("--age", default="5to7", choices=["5to7", "8to10"])
-    a = ap.parse_args()
-
-    date = a.date or dt.date.today().isoformat()
-    src = pathlib.Path(a.script) if a.script else ROOT / "input" / f"{date}.json"
-    if not src.is_absolute():
-        src = ROOT / src
-    if not src.exists():
-        raise SystemExit(f"no story for {date}: {src.relative_to(ROOT)} not found")
-
-    script = json.loads(src.read_text())
-    date = script.get("date", date)
-    pages = script[f"script_{a.age}"]
-    out = RES / date / a.age
+    a = _story.add_args(argparse.ArgumentParser()).parse_args()
+    date, script, pages, outdir = _story.load(a)
+    out = outdir / a.age
 
     svgs = [C.card(p, len(pages)) for p in pages]
 
@@ -53,7 +41,7 @@ def main():
     html = (HTML.replace("__TITLE__", script["title"])
                 .replace("__DATE__", date)
                 .replace("__CARDS__", "\n".join(f"<section>{s}</section>" for s in svgs)))
-    prev = RES / date / f"{a.age}.html"
+    prev = outdir / f"{a.age}.html"
     prev.parent.mkdir(parents=True, exist_ok=True)
     prev.write_text(html)
 
