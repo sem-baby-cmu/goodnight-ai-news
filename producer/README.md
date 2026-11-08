@@ -168,30 +168,27 @@ empty; a feed card has to carry a place, not just a character.
 
 ### Fonts
 
-The container ships no handwriting face, so candidates were pulled from the
-Google Fonts repo (GitHub is reachable; `fonts.gstatic.com` is not) and compared
-on a real card rather than on a specimen line:
+Twenty-two faces were compared on a real card, not on a specimen line, because
+a face that looks good at specimen size can fall apart in a four-line caption
+over a night sky.
 
-Thirteen faces were compared on a real card, not on a specimen line:
+**Grandstander** is the headline face: rounded and playful, drawn for
+children's reading, heavy enough to hold against the sky, with normal letter
+spacing so it stays quick to read.
 
-| | reads as | on a dark card |
-| :-- | :-- | :-- |
-| **Shantell Sans** | handwritten, storybook | **chosen**: clearest of the handwritten faces |
-| Caveat Brush | brush handwriting | strokes too thin against the sky |
-| Gochi Hand | handwritten | uneven spacing slows reading |
-| Short Stack, Delius | lightly handwritten | legible but barely handwritten |
-| Itim, Mali | rounded handwriting | too light |
-| Sniglet | fat and round | storybook, but not handwritten |
-| Fredoka | rounded geometric | very legible, reads as a rounded sans |
-| Baloo 2 | | variable font did not load in Chromium |
+Runners-up and why not:
 
-Shantell Sans is drawn for legibility rather than flourish. Its bounce axis
-(BNCE) is dialled to -20 from the default so letters sit on a steadier
-baseline: a lively bounce costs reading speed at small sizes. Weight runs at
-700, informality at 30.
+| | |
+| :-- | :-- |
+| Fredoka | very close; slightly less character |
+| Sniglet | fattest and most playful, but wide tracking slows reading |
+| Shantell Sans | genuinely handwritten and legible, but austere on a cute card |
+| Bubblegum Sans, Comfortaa, Quicksand, Boogaloo | too light against the sky |
+| Caveat Brush, Gochi Hand, Itim, Mali | thin or unevenly spaced |
+| Baloo 2 | variable font never loaded in Chromium |
 
-These cards are read at arm's length, at night, by a parent holding a phone.
-Legibility wins over how handwritten a face looks.
+Install once from the Google Fonts repo into `~/.fonts`, then `fc-cache -f`.
+GitHub is reachable from the sandbox; `fonts.gstatic.com` is not.
 
 ### Why the tags came off
 

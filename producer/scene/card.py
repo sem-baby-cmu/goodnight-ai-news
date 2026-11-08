@@ -13,11 +13,11 @@ from pip import pip, LOOP, POSES  # noqa: E402
 import parts  # noqa: E402
 
 W, H = 1080, 1350
-# Shantell Sans: a handwritten face drawn for legibility rather than flourish.
-# BNCE (bounce) is dialled down from its default so letters sit on a steadier
-# baseline; a lively bounce costs reading speed at small sizes.
-FONT = "Shantell Sans, Fredoka, Comic Neue, sans-serif"
-FONT_VAR = "font-variation-settings:'wght' 700,'BNCE' -20,'INFM' 30,'SPAC' 0"
+# Grandstander: rounded and playful, drawn for children's reading. Heavy enough
+# to hold against a night sky, with normal letter spacing so it stays quick to
+# read. Fredoka is the fallback with the closest metrics.
+FONT = "Grandstander, Fredoka, Nunito, sans-serif"
+FONT_VAR = "font-variation-settings:'wght' 700"
 SHOW_TAGS = False
 GROUND_Y = 1062          # horizon
 PAPER, INK, GLOW, SOFT = "#FFF4DE", "#101A33", "#FFD23F", "#A8B0D6"
