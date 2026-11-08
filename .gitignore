@@ -1,0 +1,9 @@
+# Secrets. The voice test reads the key from producer/.env, so it must never be
+# pushed. .env.example is the tracked template.
+.env
+.env.*
+!.env.example
+
+.venv/
+venv/
+.DS_Store
