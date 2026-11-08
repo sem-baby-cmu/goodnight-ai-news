@@ -48,7 +48,7 @@ Checked against `scout/example_story.json`.
 
 Checked against `playmate/mock_input.json` (Playmate's test story) and `producer/input/2026-11-07.json` (Producer's input). The story object carries:
 
-- story_id, title, source_url, source_links, confidence, first_rating, full_text: carried over from Handoff 1
+- story_id (UUID v7), title, source_url, source_links, confidence, first_rating, full_text: carried over from Handoff 1
 - age_level (string): 5to7 or 8to10
 - script_5to7 and script_8to10 (arrays): ten pages each, in this order: cover, character, news_discovery, exploration, challenge, turning_point, resolution, reflection, real_world_facts, quiz. Each page has page, the page category, text, and a tone value. `scene_description` is required only on page 3, because Playmate's scene tap reads it there (`playmate/prompts.py:102`). Producer does not read it.
 - parent_card (object): ai_concept and question_to_ask
@@ -57,7 +57,7 @@ Checked against `playmate/mock_input.json` (Playmate's test story) and `producer
 
 ```json
 {
-  "story_id": "story_001",
+  "story_id": "01a1bab7-bc9c-7ca5-b788-a8b5f803807a",
   "title": "Pip and the Thinking Machine",
   "age_level": "5to7",
   "script_5to7": [

@@ -27,13 +27,15 @@ Read [`README.md`](README.md) first for what the project is.
 - If a file you receive fails the check, report it to its producer. Do not
   patch it yourself. A manual fix hides the defect from the end-to-end test.
 
-## 3. Identifiers (proposed, not yet ratified)
+## 3. Identifiers (decided 2026-11-08)
 
-- All system IDs are UUID version 7 (time ordered). Do not use titles or dates
-  as primary keys.
+- All system IDs are UUID version 7 (time ordered), lower case. This includes
+  `story_id`. Do not use titles or dates as IDs.
 - A date is an attribute (for example `publish_date`), not an ID.
-- Current prototypes still key files by date (`producer/input/<date>.json`).
-  Do not change that until the team ratifies the rule.
+- `integration/story.schema.json` enforces the UUID v7 format for `story_id`.
+- Some prototypes still name files by date (`producer/input/<date>.json`).
+  Each owner moves their component to UUID v7 IDs. Until then, a date in a file
+  name is only a label.
 
 ## 4. Tech stack
 

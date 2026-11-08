@@ -10,7 +10,7 @@
     "ai_word", "ai_word_definition", "review_status"
   ],
   "properties": {
-    "story_id":        {"type": "string", "pattern": "^[a-z0-9_]+$", "x-owner": "Storyteller"},
+    "story_id":        {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", "x-owner": "Storyteller", "description": "UUID v7, lower case. Never a date or a title."},
     "title":           {"type": "string", "minLength": 1, "x-owner": "Storyteller", "description": "The story title shown to the child."},
     "source_title":    {"type": "string", "x-owner": "Scout", "description": "Scout's `title` (the news headline), renamed so it does not collide with the story title."},
     "source_url":      {"type": "string", "x-owner": "Storyteller", "description": "Optional. The primary link, normally source_links[0]."},

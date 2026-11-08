@@ -1,6 +1,6 @@
 # Lullabyte production architecture (proposed)
 
-Status: **proposed 2026-11-08, revision 2**, not ratified. Owner: Integration
+Status: **revision 2, 2026-11-08.** UUID v7 (D7) and Workers Paid (D1) are decided; the rest is proposed until the team reviews it. Owner: Integration
 (Jinyu Liu). Replaces the earlier draft `integration/architecture.html`, in
 which one cron-started run did every stage in one go.
 
@@ -19,7 +19,7 @@ gives the same results with none of that code. Section 10 lists each finding.
 | D4 | **Every stage output is an artifact row in D1.** The Workflow passes artifact IDs between steps, not content. | Review, edit, and comparison work on D1 rows. Workflow state is only the cursor. D1 rows do not expire; Workflow state does (7 to 30 days on Paid). |
 | D5 | **Human gates are `step.waitForEvent`** with an explicit timeout (14 days). | A waiting instance does not count toward the concurrency limit. The reviewer page sends the event. |
 | D6 | The front end reads one **story package**: an immutable, versioned manifest in D1. Media is in R2. | The reader loads one object. A published story never changes under a reader. |
-| D7 | All IDs are **UUID v7**. Dates are attributes. Blocked on O1 (section 9). | Time-ordered and unique across stages. |
+| D7 | All IDs are **UUID v7**, `story_id` included. Dates are attributes. Decided 2026-11-08. | Time-ordered and unique across stages. |
 | D8 | No Queues and no KV in the first release. | The Workflow already gives retry and ordering. Status is a D1 column. |
 
 ## 2. Flow
@@ -249,7 +249,7 @@ Permissions by deploy operation:
 
 | # | Question | Who |
 | :-- | :-- | :-- |
-| O1 | Ratify UUID v7. **Blocks deployment:** `story.schema.json` `story_id` pattern `^[a-z0-9_]+$` rejects a UUID, and Producer keys its input by date. Change the pattern and the consumers in one step. | all owners |
+| O1 | Move each prototype to UUID v7 IDs. The schema now enforces UUID v7 for `story_id` (decided 2026-11-08). Producer still names its input by date. | each owner |
 | O2 | Gate A: human pick every day, or auto pick with a human override? | Scout, Integration |
 | O3 | Who reviews at Gate B and Gate C, and how fast? This sets the publish deadline and the gate timeout. | team |
 | O4 | What happens at gate timeout: retire the story, or notify and wait again? | Integration |
@@ -266,7 +266,7 @@ Permissions by deploy operation:
 | 6 | Rejecting Workflows used a false limit | Accepted. Verified in the docs: `waitForEvent` timeout is configurable; retention applies to finished instances. |
 | 7 | Queue CPU is per invocation, not per message | Moot: no queues. Section 7 now says per invocation. |
 | 8 | Dropped messages after retries | Moot: no queues. |
-| 9 | UUID v7 breaks the current contract | Accepted: O1 now blocks deployment. |
+| 9 | UUID v7 breaks the current contract | Fixed: the schema now enforces UUID v7; O1 tracks each component's move. |
 | 10 | Routes permission is not only for Custom Domains | Fixed in section 8. |
 | 11 | Account Settings Read is unverified | Marked unverified in section 8. |
 | 12 | Too much orchestration before the handoffs are proven | Accepted: one Worker, one Workflow. |
