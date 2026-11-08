@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "story.schema.json",
+  "title": "Lullabyte story object",
+  "description": "One story, both age versions. Written to stories/<date>/<story_id>/story.json. x-owner names the component that produces each field. Proposed 2026-11-08; ratify by the four owners.",
+  "type": "object",
+  "required": [
+    "story_id", "title", "source_links", "confidence", "first_rating",
+    "full_text", "script_5to7", "script_8to10", "parent_card", "key_facts",
+    "ai_word", "ai_word_definition", "review_status"
+  ],
+  "properties": {
+    "story_id":        {"type": "string", "pattern": "^[a-z0-9_]+$", "x-owner": "Storyteller"},
+    "title":           {"type": "string", "minLength": 1, "x-owner": "Storyteller", "description": "The story title shown to the child."},
+    "source_title":    {"type": "string", "x-owner": "Scout", "description": "Scout's `title` (the news headline), renamed so it does not collide with the story title."},
+    "source_url":      {"type": "string", "x-owner": "Storyteller", "description": "Optional. The primary link, normally source_links[0]."},
+    "source_links":    {"type": "array", "items": {"type": "string"}, "minItems": 1, "x-owner": "Scout"},
+    "confidence":      {"type": "integer", "minimum": 1, "maximum": 5, "x-owner": "Scout"},
+    "first_rating":    {"enum": ["green", "yellow", "red"], "x-owner": "Scout"},
+    "full_text":       {"type": "string", "minLength": 1, "x-owner": "Scout"},
+    "claims":          {"type": "array", "x-owner": "Scout", "items": {"type": "object", "required": ["text", "in_source", "quote"],
+                          "properties": {"text": {"type": "string"}, "in_source": {"type": "boolean"}, "quote": {"type": "string"}}}},
+    "script_5to7":     {"type": "array", "items": {"$ref": "#/$defs/page"}, "minItems": 10, "maxItems": 10, "x-owner": "Storyteller"},
+    "script_8to10":    {"type": "array", "items": {"$ref": "#/$defs/page"}, "minItems": 10, "maxItems": 10, "x-owner": "Storyteller"},
+    "fk_grade":        {"type": "object", "x-owner": "Storyteller", "properties": {"5to7": {"type": "number"}, "8to10": {"type": "number"}}},
+    "parent_card":     {"type": "object", "x-owner": "Storyteller", "required": ["ai_concept", "question_to_ask"],
+                        "properties": {
+                          "ai_concept":      {"type": "string", "minLength": 1},
+                          "background":      {"type": "string"},
+                          "question_to_ask": {"type": "string", "minLength": 1},
+                          "honest_answer":   {"type": "string"}}},
+    "key_facts":       {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3, "x-owner": "Storyteller"},
+    "hidden_elements": {"type": "array", "x-owner": "Storyteller", "items": {"type": "object", "required": ["element", "fun_fact"],
+                          "properties": {"element": {"type": "string"}, "fun_fact": {"type": "string"}}}},
+    "ai_word":                     {"type": "string", "minLength": 1, "x-owner": "Storyteller"},
+    "ai_word_definition":          {"type": "string", "minLength": 1, "x-owner": "Storyteller"},
+    "ai_word_illustration_prompt": {"type": "string", "x-owner": "Storyteller"},
+    "review_status":   {"enum": ["draft", "approved", "rejected"], "x-owner": "Reviewer", "description": "Set by a human. Producer and Playmate publish only `approved`."}
+  },
+  "$defs": {
+    "page": {
+      "type": "object",
+      "required": ["page", "slot", "tone", "text"],
+      "properties": {
+        "page":  {"type": "integer", "minimum": 1, "maximum": 10},
+        "slot":  {"enum": ["cover", "character", "news_discovery", "exploration", "challenge", "turning_point", "resolution", "reflection", "real_world_facts", "quiz"]},
+        "tone":  {"enum": ["calm", "curious", "excited", "quiet", "warm"]},
+        "text":  {"type": "string", "minLength": 1},
+        "tags":  {"type": "array", "items": {"enum": ["true", "maybe", "imagine", "explain"]}},
+        "scene_description": {"type": "string", "description": "Playmate's scene-tap reads page 3. Producer does not read it."},
+        "setting": {"type": "object", "required": ["time", "place"], "description": "Optional. Producer defaults it when absent. Storyteller should supply it.",
+                    "properties": {
+                      "time":  {"enum": ["day", "dusk", "night"]},
+                      "place": {"enum": ["street", "campus", "classroom", "office", "rooftop", "bedroom", "plain"]}}}
+      }
+    }
+  }
+}
