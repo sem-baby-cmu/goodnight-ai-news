@@ -92,3 +92,7 @@ The users are children ages 5 to 10.
 - Keep history linear. Rebase on `origin/main`; do not create merge commits.
 - Do not add AI attribution lines to commit messages or pull requests.
 - Build output is not tracked (for example `producer/results/`).
+
+## Aesthetic Judgment
+
+When doing design, creative, or artistic work — anything requiring aesthetic judgment such as UI design, visual assets, layouts, color choices, typography, animation, branding, or creative direction — read `TASTES.md` if it exists and apply its constraints to your output. Read `DESIGN.md` for the tokens and components of the front end.
