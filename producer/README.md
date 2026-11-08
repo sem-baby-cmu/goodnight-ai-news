@@ -19,10 +19,17 @@ Claude's sandbox cannot reach any text to speech API. The gateway refuses
 so this one step has to run somewhere with normal network access.
 
 ```bash
-pip install openai elevenlabs google-genai
-export ELEVENLABS_API_KEY=...          # add OPENAI_API_KEY / GEMINI_API_KEY to compare
-python voice/synthesize.py --date 2026-11-07 --align
+git clone https://github.com/sem-baby-cmu/goodnight-ai-news.git
+cd goodnight-ai-news/producer
+python3 -m venv .venv && source .venv/bin/activate
+pip install elevenlabs playwright && playwright install chromium
+
+cp .env.example .env        # then put your key in it. .env is gitignored.
+python3 test_pipeline.py --date 2026-11-07 --synthesize
 ```
+
+`.env` is read automatically, so there is nothing to export. Add
+`openai` and `google-genai` and their keys to compare all three providers.
 
 Writes `results/<date>/voice/` with one clip per page, named
 `<age>-<page>-<provider>.mp3` so the same page from each provider sits next to

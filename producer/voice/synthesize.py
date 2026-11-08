@@ -22,6 +22,22 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "package"))
 import _story  # noqa: E402
 
+
+def load_env():
+    """Read producer/.env so the key does not have to be exported by hand."""
+    f = ROOT / ".env"
+    if not f.exists():
+        return
+    for line in f.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+
+
+load_env()
+
 # One warm, slow, storytelling voice per provider.
 VOICES = {
     "openai": "shimmer",
