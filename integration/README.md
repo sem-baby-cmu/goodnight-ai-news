@@ -75,7 +75,7 @@ The page category and tone fields have two names today. Playmate's file uses `ty
 
 ### Handoff 3: Producer output
 
-Producer writes to `results/<date>/`: `story_<age>.html` (narration, word highlighting, tap interaction, parent approval), a phone flipbook, carousel cards, and a vertical reel. Playmate now tests at the story-object level of Handoff 2. Loading the built Producer package directly is the next step [FILL IN after the joint run].
+Producer writes to `results/<date>/`: `story_<age>.html` (narration, word highlighting, tap interaction, parent approval), a phone flipbook, and carousel cards. The vertical reel was dropped on 2026-11-08: social is feed cards that lead to the web story. Playmate now tests at the story-object level of Handoff 2. Loading the built Producer package directly is the next step [FILL IN after the joint run].
 
 ### Multiple datasets
 
@@ -98,7 +98,7 @@ What we test: whether these sources join into one object without manual edits. W
 |---|---|---|
 | I1 | Each owner confirms that their input and output match the data flow table. We checked the Scout example, the Playmate mock input, and the Producer daily input as real files: required fields, types, and enum values. | Scout and Playmate files match section (3). The Producer file does not match Handoff 2. See I3. [FILL IN: owner confirmations] |
 | I2 | Run one story end to end. Copy and paste between components is fine. | Not run yet. Playmate has run its P1 tests on hand-written inputs, recorded in `playmate/results.json`. [FILL IN: story used, which handoffs ran on real output, phone check, number of manual field edits] |
-| I3 | Record where one component's output does not match the next component's input. | Producer's input differs from Playmate's input in five ways: `slot` vs `type`; `tone` vs `tone_tag`; extra `tags` and `setting`; no `scene_description`; and no Scout fields, `parent_card`, or `age_level`. Producer's file was typed by hand from the team report in 5.2. Its `setting` values are Producer placeholders until Storyteller supplies them. It has no `scene_description`, by design (see Handoff 2). |
+| I3 | Record where one component's output does not match the next component's input. | Producer's input differs from Playmate's input in five ways: `slot` vs `type`; `tone` vs `tone_tag`; extra `tags` and `setting`; no `scene_description`; and no Scout fields, `parent_card`, or `age_level`. Producer's file was typed by hand from the team report in 5.2. When `setting` is absent, Producer now infers it (`producer/scene/setting.py`): time from the slot, place from one story-level "world" guessed from the words. Storyteller only needs to send that one world per story. It has no `scene_description`, by design (see Handoff 2). |
 | I4 | Record total time and cost for one story, and where a human had to step in. | [FILL IN after I2]. No component report has this data yet (see risk R2). We measure it in I2. |
 
 ## (5) Architecture diagram
@@ -168,7 +168,7 @@ Not blocking I2, but open in the document:
 ## (7) Discoveries
 
 1. Two owners read the same ten-page script with different field names, and neither noticed until we compared the files. We found it by checking real files, not by asking owners.
-2. A hand-typed input file hides handoff problems. Producer's `setting` values are placeholders, and Producer dropped `scene_description` while Playmate still reads it on page 3. The Storyteller → Producer handoff has not yet been tested on real Storyteller output.
+2. A hand-typed input file hides handoff problems. Producer infers `setting` from the words when it is absent, and the guess is only as good as its word lists, and Producer dropped `scene_description` while Playmate still reads it on page 3. The Storyteller → Producer handoff has not yet been tested on real Storyteller output.
 3. The component reports measure quality well but measure cost and time poorly. Only Storyteller has a cost estimate. Scout has none, and Producer and Playmate have none yet. A whole-chain cost needs a run, not a sum of reports.
 4. Playmate expects fields from Storyteller that Storyteller does not list as outputs (hidden_elements, ai_word). A field list per component does not show this. Only a side-by-side check of both sides does.
 5. [FILL IN after I2]
