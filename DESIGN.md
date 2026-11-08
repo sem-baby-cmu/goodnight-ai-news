@@ -1,8 +1,15 @@
 # DESIGN.md — Lullabyte front end
 
-The design system for every page that the Lullabyte Worker serves: the
-landing page, the parent pages, the reviewer page, and the story reader.
-Aesthetic rules that are not about one component are in `TASTES.md`.
+The design system for every page the Lullabyte Worker serves: the landing
+page, parent pages, the reviewer page, and the story reader.
+
+This file is the spec for the look of the product. Aesthetic rules are in
+`TASTES.md`. Product features are decided in `integration/` and the issues,
+not here.
+
+In one line: hand-painted watercolor countryside skies for everyday screens,
+a deep night-blue stage for reading, round friendly characters, soft motion.
+The product is English only.
 
 ## 1. Stack
 
@@ -11,163 +18,204 @@ Aesthetic rules that are not about one component are in `TASTES.md`.
 | Hosting | One Cloudflare Worker serves the front end (Static Assets) and the API |
 | Build | Vite with `@cloudflare/vite-plugin` |
 | UI | React 19, TanStack Router (file-based routes, single-page app) |
-| Components | shadcn with the Base UI base (`@base-ui/react`) |
-| Styling | Tailwind CSS v4; the theme is CSS variables in `app/src/styles.css` |
-| Font | Nunito (Google Fonts), one family for all text |
+| Components | shadcn with the Base UI base (`@base-ui/react`); character comes from tokens |
+| Styling | Tailwind CSS v4; tokens are CSS variables in `app/src/styles.css` |
+| Fonts | Kiwi Maru 400/500 (display); Nunito 400/600/700/800 (UI and story text) |
+| 3D | three.js, one bundled script, child screens only (section 11) |
 
-`ghibli-ui` is not used. Version 0.1.0 bundles React 18's JSX runtime, which
-reads React 18 internals, and it ships no TypeScript types. We take its look
-(warm palette, rounded forms, sticker buttons) and build it with shadcn
-components and our own tokens.
+`ghibli-ui` is not used: version 0.1.0 needs React 18 and ships no types.
 
-## 2. Two themes: Day and Night
+## 2. Color
 
-The product has two moods. Parents read the day pages. Children read the
-story at night. Each mood is one theme.
+### Palette
 
-| Theme | Used for | Source |
+| Name | Hex | Use |
 | :-- | :-- | :-- |
-| **Day** (light) | Landing page, parent pages, reviewer page | The warm storybook palette of `ghibli-ui` |
-| **Night** (dark) | Story reader, always. Other pages when the system is in dark mode. | Producer's palette (`producer/style_guide.md`) |
+| Sky | `#7EBDE6` | Skies, illustration only |
+| Meadow | `#86B562` | Hills, illustration only |
+| Forest | `#3F6E2E` | Primary action, selected state |
+| Paper | `#F7F1E3` | Page ground |
+| Ink | `#23354A` | Headings |
+| Night | `#1B2440` | Reading stage |
+| Lamp | `#F5C35B` | Badges, highlight, tap ring |
+| Roof red | `#C8553D` | Accent, sparingly. Never text, never errors |
 
-### Day tokens
+### Supporting values
 
-| Token | Value | Use |
+| Token | Hex | Use |
 | :-- | :-- | :-- |
-| `--background` | `#F7F3E8` | Paper |
-| `--foreground` | `#5C4A32` | Bark ink. Contrast on paper 7.6:1 |
-| `--card` | `#FFFCF4` | Raised paper |
-| `--primary` | `#E8C47C` | Honey. Text on it: `--foreground` |
-| `--primary-edge` | `#C9A24F` | Sticker edge under a primary button |
-| `--secondary` | `#A8C5A0` | Moss. Text on it: `#2F4A2C` |
-| `--accent` | `#E8B4B8` | Blush. Small marks only |
-| `--muted` | `#EFE8D6` | Quiet fills |
-| `--muted-foreground` | `#7A6648` | Secondary text. Contrast on paper 4.9:1 |
-| `--border` | `#E2D6BC` | Hairlines |
-| `--ring` | `#C9A24F` | Focus ring |
-| `--destructive` | `#A8443C` | Errors. Contrast on paper 5.3:1 |
+| `--card` | `#FFFDF7` | Raised paper |
+| `--border` | `#EADFC6` | Card edge, 1px |
+| `--paper-edge` | `#E3D8BF` | Edge on paper-colored shapes |
+| `--divider` | `#EFE6D2` | Lines inside a card |
+| `--text` | `#2B3A4A` | Body text |
+| `--text-2` | `#44525E` | Secondary body text |
+| `--label` | `#5B6B78` | Labels, captions |
+| `--link` | `#2E4A6E` | Links, secondary button ("Read to me") |
+| `--forest-edge` | `#2B4E20` | Hard edge under the primary button |
+| `--highlight` | `#FFE08A` | Word highlight while narrating |
+| `--moss-text` | `#2F5233` | Titles on meadow-tinted panels |
+| `--tint-sky` / `--tint-meadow` / `--tint-sand` | `#E3ECF6` / `#EEF3E4` / `#F3ECDD` | Chip and panel fills; text on them: `#2E4A6E` / `#3F6E2E` / `#6A5636` |
+| `--night-card` | `rgba(255,253,247,.08)` | Card on the night stage |
+| `--night-label` | `#C9D3E6` | Labels on night |
+| `--night-title` | `#FFE7A3` | Small titles on night |
 
-### Night tokens
+### Contrast (computed)
 
-| Token | Value | Use |
-| :-- | :-- | :-- |
-| `--background` | `#1A1A2E` | Night sky |
-| `--foreground` | `#FFF8E6` | Cream ink |
-| `--card` | `#222240` | Raised night |
-| `--primary` | `#FFD23F` | Lamp glow. Text on it: `#1A1A2E` |
-| `--primary-edge` | `#C9A21F` | Sticker edge |
-| `--secondary` | `#6C8BEF` | Pip blue. Text on it: `#121A33` |
-| `--accent` | `#F48FB1` | Pink. Small marks only |
-| `--muted` | `#2A2A48` | Quiet fills |
-| `--muted-foreground` | `#B9B3C9` | Secondary text |
-| `--border` | `#34345A` | Hairlines |
-| `--ring` | `#FFD23F` | Focus ring |
-| `--destructive` | `#F07A6E` | Errors |
+| Pair | Ratio |
+| :-- | :-- |
+| Ink on Paper | 11.1 |
+| Body `#2B3A4A` on Paper | 10.3 |
+| Label `#5B6B78` on Paper | 4.9 |
+| White on Forest | 6.0 |
+| White on `#2E4A6E` | 9.1 |
+| Paper on Night | 13.6 |
+| Ink on `#FFE08A` highlight | 9.7 |
+| Chip texts on their tints | 5.3 to 7.6 |
+| Roof red on Paper | **3.9: not for text** |
+| Sky or Meadow on Paper | 1.8 / 2.1: not for text |
 
-Check every new color pair for at least 4.5:1 contrast for text, 3:1 for
-large text and icons, in both themes.
+Every new pair needs 4.5:1 for text, 3:1 for large text and icons.
+
+### Two grounds
+
+| Ground | Used for |
+| :-- | :-- |
+| **Paper + painted sky** | Landing, home, parent and reviewer pages |
+| **Night stage** | The story reader, always |
+
+There is no automatic dark mode. Night is a place in the product (the reading
+stage), not a system setting.
 
 ## 3. Type
 
-One family: Nunito, weights 400, 600, 800.
+| Role | Font | Size / line height | Weight |
+| :-- | :-- | :-- | :-- |
+| Page title | Kiwi Maru | 40px / 1.2 | 500 |
+| Section title | Kiwi Maru | 24px / 1.3 | 500 |
+| Card title (display) | Kiwi Maru | 30px / 1.2 | 400 |
+| Story text | Nunito | 27px / 1.6 | 700 |
+| Body | Nunito | 16px / 1.6 | 400 |
+| UI text | Nunito | 15 to 18px | 600 to 800 |
+| Label | Nunito | 12px, letter spacing 2px, upper case | 800 |
+| Caption | Nunito | 13px / 1.55 | 400 |
 
-| Size | Line height | Use |
+- While narrating, the current word gets the `--highlight` fill with an 8px
+  radius and a 3px spread of the same color.
+- On phones, the page title drops to 32px.
+
+## 4. Shape
+
+| Thing | Value |
+| :-- | :-- |
+| Large card or panel | radius `22px`, 1px `--border`, padding 22px |
+| Inner card | radius `16px`, no border, padding 14px |
+| Color swatch, icon tile | radius `16px` |
+| Buttons and chips | fully round (`999px`) |
+| Shadows | None, except the primary button's hard edge `0 5px 0 var(--forest-edge)` |
+
+### Buttons
+
+| Variant | Look | Example |
 | :-- | :-- | :-- |
-| `12px` | 16px | Captions, legal text |
-| `14px` | 20px | Controls, labels, table text |
-| `16px` | 24px | Body text |
-| `32px` | 40px | Page title (one per page), weight 800 |
+| Primary | Forest fill, white text, 800, 16px, min height 52px, padding 0 20px, hard edge | "Start reading" |
+| Secondary | `#2E4A6E` fill, white text, no edge | "Read to me" |
+| Outline | white fill, 2px `#2E4A6E` border and text | "I'll read" |
 
-No other sizes. A section title is `16px` weight 800, not a bigger size.
-The story reader is the one exception: page text is set by the reader, not by
-this scale, because a child reads it from a distance.
+Press: the button squishes (scale 0.96) and the primary's edge shrinks to
+2px. No hover-only states.
 
-## 4. Shape and depth
+### Chips
 
-- Base radius `16px` for cards. Nested shapes use concentric radii:
-  inner radius = outer radius − padding.
-- Controls: radius `12px`, height at least `44px` (a child's finger).
-- Borders and dividers: `0.5px` hairline in `--border`.
-- **Sticker button.** The one signature shape. A button has a flat fill, a
-  `1px` edge in `--primary-edge`, and one hard shadow `0 3px 0` in the same
-  edge color. On press it moves down `2px` and the shadow shrinks to
-  `0 1px 0`. No blur shadows anywhere else.
-- Cards: flat `--card` fill and a hairline border. No shadow.
+13px, weight 800, padding 6px 11px, round, on a tint (`Space` on sky tint,
+`Ages 5 to 10` on meadow tint, `Parent approved` on sand tint).
+
+### Switch
+
+64 x 38px track in Forest, 30px knob in `--card`.
 
 ## 5. Motion
 
-- UI transitions: `160ms`, `cubic-bezier(0.2, 0.8, 0.2, 1)`. Only on state
-  change (hover, press, open, close).
-- Child surfaces (reader, games) use motion on purpose: Pip breathes and
-  blinks, stars drift, a tapped prop answers with a bounce. Motion tells a
-  child what is alive and what can be tapped.
-- Loops share Producer's 2.0 s period, so a page reads as one slow breath.
-  Bedtime pace: slow and soft, no flashing, no fast spins.
-- Parent pages keep motion to state changes only.
-- Rendering: SVG for Pip and the scene, animated with CSS and the Web
-  Animations API. A three.js layer behind the scene is proposed for depth
-  (parallax sky, drifting stars, soft particles). Pip stays SVG so it is the
-  same Pip on every page and in the cards. Load three.js only on child pages.
-- Respect `prefers-reduced-motion`: turn off transforms, keep opacity fades.
+| Motion | Value |
+| :-- | :-- |
+| Page turn | 0.55s, slight `rotateY`, like a pop-up book |
+| Tap response | 0.7s jelly bounce, overshoot at most 18% |
+| Tap ring on a tappable object | Lamp ring, 3px, scale 0.92 to 1.2 and fade, 1.8s, ease-out, repeats until tapped |
+| Ambient clouds | drift across in 120 to 180s; almost still at a glance |
+| Characters | float 8px up and down on a 4s loop (ease-in-out) |
+| UI state changes | 160ms, `cubic-bezier(0.2, 0.8, 0.2, 1)` |
+
+- Pip floats on the 4s loop and blinks wherever Pip appears. The float
+  replaces Producer's 2.0s breath on the site, so two loops never compete.
+- Tapping an object: it answers with the jelly bounce.
+- Reduced motion: one still frame. No drift, no float, no bursts; state
+  changes become fades.
 
 ## 6. Components
 
-Use shadcn Base UI components as they come. Give them character through the
-tokens, not by changing their structure.
+shadcn Base UI components, styled by the tokens above.
 
 | Need | Component | Note |
 | :-- | :-- | :-- |
-| Actions | `Button` | Variants: `default` (sticker, honey), `secondary` (sticker, moss), `ghost`, `link` |
-| Containers | `Card` | Hairline, no shadow |
-| Status | `Badge` | Story rating: green / yellow / red use moss / honey / `--destructive` |
-| Dialogs | `Dialog` | Parent confirmations |
-| Forms | `Input`, `Select`, `Switch`, `Label` | Reviewer page |
-| Hints | `Tooltip` | Carries explanations, so the page text stays short |
-
-New components go in `app/src/components/ui/` through the shadcn CLI
-(`npx shadcn@latest add <name>`). Product components go in
-`app/src/components/`.
+| Actions | `Button` | `default` = primary, `secondary`, `outline`, `ghost`, `link` |
+| Containers | `Card` | Section 4 radii, no shadow |
+| Tags | `Badge` | The chip style |
+| Settings | `Switch` | Section 4 |
+| Overlays | `Dialog`, `Sheet` | Parent pages only |
 
 ## 7. Layout
 
-- One reading column, max width `1040px`, side padding `16px` on phones,
-  `24px` from `768px` up.
-- Spacing scale (px): 4, 8, 12, 16, 24, 32, 48. Section gap: 48.
-- Mobile first. Parents open the site on a phone at bedtime.
+| Width | Layout |
+| :-- | :-- |
+| Phone (from 390px) | One column, side padding 16px |
+| Tablet and desktop | Content max width 1168px, side padding 56px from 1024px |
+
+Mobile first: parents open the site on a phone at bedtime.
+Spacing (px): 4, 6, 8, 10, 12, 14, 20, 22, 26, 48.
 
 ## 8. Imagery
 
+- Watercolor countryside: sky, clouds, meadow hills. Painted SVG, not photos.
 - Pip is the only character. Use Producer's SVG Pip (`producer/scene/pip.py`)
   so the site and the story match.
-- No stock photos. No photos of children.
-- Illustrations follow `producer/style_guide.md`: rounded shapes, one warm
-  light source, nothing frightening.
+- Nothing frightening. No photos of children. No stock photos.
 
 ## 9. Writing on the page
 
-- Plain English. Short sentences. Talk to the parent.
+- Plain English. Short sentences. Talk to the parent on parent pages.
 - No emoji in body text. No made-up words.
 - Every story links to its real news source. Say so on the landing page.
+- Story text rules (words per page, reading level) are in
+  `integration/storytelling.md` section 4.
 
 ## 10. Child surfaces (ages 5 to 7 first)
 
-Two audiences use the product. Parents read the landing page, the parent
-card, and the review pages. Children use the story reader and the games. Many
-5 to 7 year olds are still learning to read, so a child surface must work for
-a child who cannot read yet.
+Two audiences use the product. Parents read the landing page and the parent
+pages. Children use the story reader and the games. Many 5 to 7 year olds are
+still learning to read, so a child surface must work for a child who cannot
+read yet.
 
 | Rule | How |
 | :-- | :-- |
 | Hear first, read along second | Every page plays its narration. The word being read is highlighted. Text is never the only way to get the story. |
-| No reading to move around | Controls are pictures, not words: play, next, back, home. Each control speaks its name when pressed and held. |
-| Big, few targets | Touch targets are at least `64px` in the reader (small hands, less precise taps). At most three controls on screen at once. |
+| No reading to move around | Controls are pictures, not words: play, next, back, home. |
+| Big, few targets | Child targets at least `64px`, at least 12px apart. At most three controls on screen at once. No hover-only states. |
 | One thing per page | One picture, one or two short sentences. No scrolling inside a story page. |
-| Reader type | Page text is `28px` / `40px` line height for 5 to 7 and `22px` / `32px` for 8 to 10, weight 600, high contrast on Night tokens. These are starting values to test on a phone at arm's length. |
-| Spoken questions | A quiz question is read aloud. For 5 to 7 the answers are three pictures, not words. |
-| Safe to tap anything | A wrong tap never punishes. No timers, no losing, no red error states in the reader. |
-| No dead ends | Every screen has a big home control. Leaving the reader is one tap for a parent and needs no reading. |
+| Spoken questions | A quiz question is read aloud. For 5 to 7 the answers are pictures. |
+| Safe to tap anything | A wrong tap never punishes. No timers, no losing, no red error states. |
 | No outbound links for children | Source links, sharing, and settings live on parent pages only. |
 
-The landing page is a parent page and follows sections 3 to 9. Its one link
-into a story (when the reader exists) is a large Pip picture, so a child
-sitting with a parent can start the story without reading.
+Parent pages: touch targets at least 44px.
+
+## 11. 3D layer (three.js)
+
+A three.js layer sits behind the scene on child pages only, for depth: a
+parallax sky, drifting stars, soft particles. Parent and reviewer pages stay
+flat. Proposed for Producer in issue #3.
+
+- Pip and the scene stay SVG on top of the layer, so Pip is the same in the
+  reader, the cards, and the site.
+- Text and buttons are never inside the 3D layer.
+- No WebGL: the SVG sky shows instead.
+- Reduced motion: one still frame.
+- Pauses when off screen. Pixel ratio capped at 2.
