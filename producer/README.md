@@ -19,7 +19,7 @@ and a packaged story file.
 Nine poses and five moods, generated from `scene/pip.py` by `python3
 scene/sheet.py`. The sheet is not drawn by hand, so it cannot disagree with
 what ships: if a pose looks wrong here it is wrong on every page of every
-story, in the reader, the carousel and the reel alike.
+story, in the reader and in the feed cards alike.
 
 The design comes from the Goodnight, AI prototype, taken from its own SVG in
 its own coordinates. Arms and legs are strokes rather than shapes, which is
@@ -61,7 +61,7 @@ not depend on a provider shipping timestamps.
 - `input/<date>.json` — one day's script, both age versions
 - `scene/` — the visual system: Pip as a posable component, scene parts, card
   layout, Chromium rasteriser
-- `package/` — the four outputs: carousel cards, flipbook, reel, story package
+- `package/` — the outputs: the reader, carousel cards, flipbook
 - `images/`, `voice/` — the generative routes that were compared
 - `results/<date>/` — build output, not tracked (rebuilt in seconds)
 - `style_guide.md` — character sheet, palette, hard rules
@@ -74,7 +74,6 @@ not depend on a provider shipping timestamps.
 | P2 character consistent | nothing | **holds by construction** (one component) |
 | P3, P4 voice | an API key | script ready, not run |
 | P5, P6, P7 packaging | nothing | **run** |
-| P8 vertical reel | ffmpeg | **run**, 1080x1920, 64s |
 | P9 carousel cards | nothing | **run**, 1080x1350, 10 cards |
 
 P1 and P2 are the two tests the image-generation route makes hard. Building the
@@ -92,7 +91,6 @@ python package/build_carousel.py --age 5to7      # Threads / Instagram cards
 python package/build_carousel.py --age 8to10
 python package/build_reader.py   --age 5to7      # web story, portrait first
 python package/build_book.py     --age 5to7      # landscape-only flipbook
-python package/build_reel.py     --age 5to7      # vertical video (needs ffmpeg)
 ```
 
 Every builder takes the same `--date` (default today) and `--age`, reads
@@ -116,9 +114,8 @@ The same script, images and narration feed two targets:
 | Target | File | Why |
 | :-- | :-- | :-- |
 | In app bedtime story | `results/story_<age>.html` | narration, word highlight, tap interaction, parent approval |
-| Threads / Instagram | `results/reel_<age>.mp4` | 1080x1920 H.264 + AAC, captions burned in, under 90s |
 
-The reel is the free entry point: parents find it in a feed, the app is where
+The feed cards are the free entry point: parents find them in a feed, the web story is where
 the full bedtime experience lives. Threads and Instagram are 13+, so the
 audience there is parents, never the child.
 
@@ -132,10 +129,9 @@ the character looks identical on every page and the palette never drifts.
 sky gradient per tone, deterministic star field, moon, skyline, ground, and Pip
 with breathing, blinking and a mood-driven antenna tilt. `scene/render.py`
 rasterises with headless Chromium (cairosvg cannot do the filter), and
-`scene/frames.py` samples one animation cycle for video.
 
-Every animation shares a 2.0s period, so 24 frames at 12fps cover a full cycle
-and ffmpeg can repeat them for any page length with no visible seam.
+Every animation shares a 2.0s period, so a page with several moving parts
+reads as one breath rather than as pieces drifting out of step.
 
 This makes P1 and P2 pass by construction rather than by luck:
 

@@ -1,7 +1,7 @@
 """SVG scene parts, in the Goodnight, AI visual language.
 
-All motion shares one 2.0s period (LOOP), so 24 frames at 12fps cover a full
-cycle and can be repeated for any page length without a visible seam.
+All motion shares one 2.0s period (LOOP), so a page with several moving parts
+reads as one breath rather than as pieces drifting out of step.
 
 The prototype does not generate images. It hand-draws flat vector scenes with a
 paper-grain filter, so the character is identical on every page and the palette
@@ -10,7 +10,7 @@ assemble, page by page.
 
 LOOP = 2.0
 
-Stage is 1600x900 (same as the prototype). The reel crops to 9:16.
+Stage is 1600x900, the same as the prototype.
 """
 
 # From the prototype: fractal noise displacement plus a grain overlay.
