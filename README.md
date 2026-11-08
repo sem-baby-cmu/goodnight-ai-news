@@ -76,6 +76,7 @@ Integration owns the contract between the boxes and runs one story end to end.
 | [`DESIGN.md`](DESIGN.md) | Visual style: palette, type, buttons, motion, child surfaces for ages 5 to 7, the three.js layer | in use |
 | [`TASTES.md`](TASTES.md) | Aesthetic rules for people and agents | in use |
 | [`AGENTS.md`](AGENTS.md) | Rules for everyone who changes this repo | in use |
+| [`docs/adr/`](docs/adr/README.md) | Architecture decision records: each decision, its reasons, and the options we rejected | 14 records |
 
 Both proposed designs had a review by a second model family (Codex). Each
 document records the findings and how they were handled.

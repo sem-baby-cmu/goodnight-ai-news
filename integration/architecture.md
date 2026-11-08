@@ -204,6 +204,21 @@ The prototypes are Python. Moving them to Workers is a port: Python Workers
 run on Pyodide, and Playwright, Pillow, and ffmpeg do not run there. The plan
 is TypeScript; each owner ports the logic of their own stage module.
 
+### 6.1 Where agents run (bounded)
+
+The pipeline above is a fixed sequence of steps. It is not an agent. An
+agent (a model that picks its own next tool call) runs in two places only.
+Decision and reasons: [ADR 0013](../docs/adr/0013-bounded-agents.md).
+
+| Place | Agent task | Bounds | Output |
+| :-- | :-- | :-- | :-- |
+| Scout job | Search, fetch, and follow links to the original source; find two or more independent sources | Domain allowlist; step and cost limit per run | `news_item` rows with evidence links; reviewed at Gate A |
+| Fact check (storytelling step 1, judge) | Find a quote that is not in the article text in the primary source | Read only; advisory | found / not found, with link; a person decides at Gate B |
+
+Every tool call goes through AI Gateway and is logged. Code checks the agent
+output against the schema before it is stored. Scout's evidence links are a
+proposal to the Scout owner; the contract does not change until they agree.
+
 ## 7. Workers Free vs Workers Paid
 
 Checked in the Cloudflare docs on 2026-11-08.

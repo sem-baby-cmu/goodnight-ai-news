@@ -79,6 +79,13 @@ The users are children ages 5 to 10.
   npm --prefix app run typecheck                           # Cloudflare Worker
   ```
 
+## 6.5 Architecture decisions
+
+- Each architecture decision has a record in `docs/adr/`, with its reasons and
+  the options that were rejected.
+- Read the records before you change the design. To change a decision, write
+  a new record and mark the old one "Superseded".
+
 ## 7. Writing style
 
 - Plain English. Short sentences. One idea per sentence.
