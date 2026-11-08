@@ -76,6 +76,7 @@ The users are children ages 5 to 10.
   python3 producer/test_pipeline.py --date <YYYY-MM-DD>   # Producer
   python3 playmate/run_tests.py                            # Playmate
   python3 -I integration/validate.py <story.json>          # any handoff file
+  npm --prefix app run typecheck                           # Cloudflare Worker
   ```
 
 ## 7. Writing style

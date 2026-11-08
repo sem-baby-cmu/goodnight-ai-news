@@ -63,6 +63,7 @@ Integration owns the contract between the boxes and runs one story end to end.
 | [`producer/`](producer/README.md) | Script to scenes, narration, package | Judy Lee | Madhuri Dusad |
 | [`playmate/`](playmate/README.md) | Story to interaction and games | Madhuri Dusad | Jinyu Liu |
 | [`integration/`](integration/README.md) | Contract, data flow, end-to-end test | Jinyu Liu | Deokhwa Jeong |
+| [`app/`](app/) | Cloudflare Worker (production; health check only so far) | Jinyu Liu | Deokhwa Jeong |
 
 Each folder has its own README with its tests, results, and how to run it.
 

@@ -225,6 +225,20 @@ building, JSON checks) and on the subrequest count.
 
 ## 8. Deployment
 
+Resources (account `simon`, created 2026-11-08):
+
+| Resource | Name | Binding |
+| :-- | :-- | :-- |
+| Worker | `goodnight-ai-news` (`app/`) | — |
+| D1 | `goodnight-ai-news` | `DB` |
+| R2 | `goodnight-ai-news-media` | `MEDIA` |
+
+The Worker answers `GET /health` with the state of each binding:
+`https://goodnight-ai-news.ioenv.workers.dev/health`.
+
+Because the Worker exists now, the CI token can be scoped to this one Worker
+(Editor) plus D1 Edit. Creating another Worker needs a wider token once.
+
 GitHub Actions deploys on every push to `main`:
 
 1. `npm ci`, typecheck, tests.

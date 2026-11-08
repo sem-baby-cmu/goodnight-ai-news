@@ -1,0 +1,21 @@
+{
+  // Lullabyte production Worker. Design: integration/architecture.md.
+  // Account: simon. Deployed by GitHub Actions on push to main (to be added).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "goodnight-ai-news",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "account_id": "5ad69dedffa38d8b7ab8ab17e051e410",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "goodnight-ai-news",
+      "database_id": "6c40839d-ba02-4dd3-b41a-d99acd02dd22",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "goodnight-ai-news-media" }
+  ]
+}

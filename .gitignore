@@ -7,3 +7,6 @@
 .venv/
 venv/
 .DS_Store
+
+node_modules/
+.wrangler/
