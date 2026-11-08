@@ -24,8 +24,10 @@ export ELEVENLABS_API_KEY=...          # add OPENAI_API_KEY / GEMINI_API_KEY to 
 python voice/synthesize.py --date 2026-11-07 --align
 ```
 
-Writes `results/<date>/voice/`, a log of cost and timing per provider, and
-`voice_scoring.html` for the team to score P3.
+Writes `results/<date>/voice/` with one clip per page, named
+`<age>-<page>-<provider>.mp3` so the same page from each provider sits next to
+itself, plus a log of cost, seconds, and where each page's word timings came
+from. P3 is a listening call, not a scored form.
 
 **On P4.** Only ElevenLabs returns word timings from the TTS call itself.
 `--align` sends the other providers' audio plus the text we already have to the

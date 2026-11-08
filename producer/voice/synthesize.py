@@ -2,7 +2,6 @@
 
 Runs one script through several TTS providers, saves the audio, and records
 which providers return word-level timestamps (needed for word highlighting).
-Also writes a blind scoring sheet for the team.
 
 This cannot run in Claude's sandbox: the gateway refuses api.elevenlabs.io,
 api.openai.com and generativelanguage.googleapis.com. Run it on your own
@@ -178,36 +177,10 @@ def main():
             log.append(row)
             (outdir / "voice_log.json").write_text(json.dumps(log, indent=2))
 
-    scoring_sheet(log, outdir)
-    print(f"\nLog: results/{date}/voice_log.json")
-    print(f"Team scoring: results/{date}/voice_scoring.html  "
-          f"(P3 needs one provider at 4.0+)")
-
-
-def scoring_sheet(log, outdir):
-    """Blind-ish scoring page. Players are shuffled so the label is not the first thing seen."""
-    rows = [r for r in log if r.get("ok")]
-    h = ["<!doctype html><meta charset=utf-8><title>Voice scoring</title>",
-         "<style>body{font:15px system-ui;background:#1A1A2E;color:#FFF8E6;padding:24px;max-width:780px}",
-         "fieldset{border:1px solid #6C8BEF;border-radius:10px;margin:18px 0;padding:14px}",
-         "legend{color:#FFD23F}audio{width:100%;margin:8px 0}",
-         "label{margin-right:14px}</style>",
-         "<h1>Voice scoring</h1>",
-         "<p>Score each clip 1 to 5 on: <b>clear</b>, <b>warm</b>, "
-         "<b>story like</b>, <b>pace</b>. P3 passes if one provider averages 4.0 or above "
-         "across all 5 team members.</p>"]
-    for i, r in enumerate(rows, 1):
-        h.append(f"<fieldset><legend>Clip {i}</legend>")
-        h.append(f'<audio controls src="voice/{r["file"]}"></audio>')
-        for crit in ("clear", "warm", "story like", "pace"):
-            h.append(f"<div><b>{crit}</b> ")
-            for n in range(1, 6):
-                h.append(f'<label><input type=radio name="c{i}_{crit}" value={n}> {n}</label>')
-            h.append("</div>")
-        h.append(f'<p style="opacity:.4;font-size:12px">{r["provider"]} / {r["voice"]} / '
-                 f'word timings: {r.get("timings_from") or "none"}</p>')
-        h.append("</fieldset>")
-    (outdir / "voice_scoring.html").write_text("\n".join(h))
+    print(f"\nClips: results/{date}/voice/   named <age>-<page>-<provider>.mp3,"
+          f" so the same page from each provider sits next to itself")
+    print(f"Log:   results/{date}/voice_log.json   cost, seconds and where the"
+          f" word timings came from")
 
 
 if __name__ == "__main__":
