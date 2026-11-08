@@ -59,7 +59,7 @@ def _esc(s):
              .replace('"', "&quot;").replace("'", "’"))
 
 
-def card(page, total):
+def card(page, total, n=None):
     tone = page["tone"]
     pose = BEAT.get(page["slot"], "stand")
     s = page.get("setting", DEFAULT_SETTING)
@@ -124,5 +124,5 @@ def card(page, total):
 <text x="64" y="{H-58}" font-family="{FONT}" font-size="26"
  font-weight="700" fill="{PAPER}" opacity=".62">Lullabyte</text>
 <text x="{W-64}" y="{H-58}" text-anchor="end" font-family="{FONT}"
- font-size="26" font-weight="700" fill="{PAPER}" opacity=".62">{page["page"]} / {total}</text>
+ font-size="26" font-weight="700" fill="{PAPER}" opacity=".62">{n or page["page"]} / {total}</text>
 </svg>"""

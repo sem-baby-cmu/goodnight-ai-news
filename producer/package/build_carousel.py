@@ -22,11 +22,23 @@ RES = ROOT / "results"
 
 
 def main():
-    a = _story.add_args(argparse.ArgumentParser()).parse_args()
+    ap = _story.add_args(argparse.ArgumentParser())
+    ap.add_argument("--full", action="store_true",
+                    help="all pages, ignoring carousel_slots")
+    a = ap.parse_args()
     date, script, pages, outdir = _story.load(a)
+
+    # A feed card has to earn the next swipe, so the carousel is a cut of the
+    # script, not the whole thing: character intros and pacing beats that work
+    # in a nightly app read as filler in a feed.
+    cut = script.get("carousel_slots")
+    if cut and not a.full:
+        pages = [p for p in pages if p["slot"] in cut]
+        pages.sort(key=lambda p: cut.index(p["slot"]))
     out = outdir / a.age
 
-    svgs = [C.card(p, len(pages)) for p in pages]
+    # After a cut the page numbers must be renumbered, or a card reads "9 / 6".
+    svgs = [C.card(p, len(pages), n=i) for i, p in enumerate(pages, 1)]
 
     # Nothing may be silently dropped: every word has to reach the card.
     for p, svg in zip(pages, svgs):
@@ -34,8 +46,8 @@ def main():
             if w.replace("'", "’") not in svg:
                 print(f"  WARNING page {p['page']}: {w!r} not on card")
 
-    render([(f"lullabyte-{date}-{a.age}-{p['page']:02d}", s)
-            for p, s in zip(pages, svgs)],
+    render([(f"lullabyte-{date}-{a.age}-{i:02d}", s)
+            for i, s in enumerate(svgs, 1)],
            out, size=(C.W, C.H), at_seconds=0.6)
 
     html = (HTML.replace("__TITLE__", script["title"])

@@ -240,3 +240,25 @@ framing survives where the text asks for it and nowhere else.
 **Handoff note for Storyteller:** `setting` is currently a Producer placeholder,
 like `scene_description`. Only the script knows when and where a story happens,
 so it should come from Storyteller. Flagged for 5.2.
+
+## The carousel is a cut, not the whole script
+
+Storyteller's 10-page structure is built for the app, where a nightly story has
+a recurring cast and room to breathe. A feed is read differently: every card has
+to earn the next swipe, and a reader who meets the character before they meet
+the news swipes away.
+
+`carousel_slots` in the script names the pages the feed version uses. For
+2026-11-07 that is 6 of 10:
+
+| kept | dropped | why dropped |
+| :-- | :-- | :-- |
+| cover | character | introduces Pip, not the news |
+| news_discovery | exploration | pacing beat, no new fact |
+| challenge | reflection | bedtime register, not a feed register |
+| turning_point | quiz | an in-app feature |
+| resolution | | |
+| real_world_facts | | |
+
+`--full` builds all ten. Cards are renumbered after the cut, or page 9 of a
+six-card set reads "9 / 6".

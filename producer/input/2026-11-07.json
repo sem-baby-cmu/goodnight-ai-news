@@ -312,5 +312,13 @@
         "place": "plain"
       }
     }
+  ],
+  "carousel_slots": [
+    "cover",
+    "news_discovery",
+    "challenge",
+    "turning_point",
+    "resolution",
+    "real_world_facts"
   ]
 }
