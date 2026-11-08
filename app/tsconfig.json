@@ -1,13 +1,14 @@
 {
+  // Root config. Each part of the app has its own config:
+  // the browser code (src/), the Worker (worker/), and the build tools.
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.worker.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
   "compilerOptions": {
-    "target": "es2022",
-    "module": "es2022",
-    "moduleResolution": "bundler",
-    "lib": ["es2022"],
-    "types": [],
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true
-  },
-  "include": ["src", "worker-configuration.d.ts"]
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  }
 }

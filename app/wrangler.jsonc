@@ -1,12 +1,19 @@
 {
   // Lullabyte production Worker. Design: integration/architecture.md.
-  // Account: simon. Deployed by GitHub Actions on push to main (to be added).
+  // Account: simon. Deployed by GitHub Actions on push to main.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "goodnight-ai-news",
-  "main": "src/index.ts",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
   "account_id": "5ad69dedffa38d8b7ab8ab17e051e410",
   "observability": { "enabled": true },
+  // The front end. Vite builds it and sets the directory. The Worker runs
+  // first only for the API and the health check; any other unknown path gets
+  // index.html, so the router can handle deep links.
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/health"]
+  },
   "d1_databases": [
     {
       "binding": "DB",

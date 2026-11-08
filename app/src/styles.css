@@ -1,0 +1,211 @@
+/* Lullabyte theme. See DESIGN.md. There is no automatic dark mode:
+   Night is the reading stage, not a system setting. */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* shadcn components carry `dark:` classes. No element has `.dark`, so they
+   never apply (without this line Tailwind would follow the system setting). */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-display: "Kiwi Maru", serif;
+  --font-heading: "Kiwi Maru", serif;
+
+  /* Large cards 22px, inner cards 16px. Buttons and chips use rounded-full. */
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: var(--radius);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  --color-sky: var(--sky);
+  --color-meadow: var(--meadow);
+  --color-ink: var(--ink);
+  --color-lamp: var(--lamp);
+  --color-text-2: var(--text-2);
+  --color-label: var(--label);
+  --color-link: var(--link);
+  --color-divider: var(--divider);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-sky-foreground: var(--tint-sky-foreground);
+  --color-tint-meadow: var(--tint-meadow);
+  --color-tint-meadow-foreground: var(--tint-meadow-foreground);
+  --color-tint-sand: var(--tint-sand);
+  --color-tint-sand-foreground: var(--tint-sand-foreground);
+}
+
+:root {
+  /* Palette */
+  --sky: #7ebde6;
+  --meadow: #86b562;
+  --forest: #3f6e2e;
+  --paper: #f7f1e3;
+  --ink: #23354a;
+  --night: #1b2440;
+  --lamp: #f5c35b;
+  --roof-red: #c8553d; /* accent only: never text, never errors */
+
+  /* Supporting values */
+  --text: #2b3a4a;
+  --text-2: #44525e;
+  --label: #5b6b78;
+  --link: #2e4a6e;
+  --forest-edge: #2b4e20;
+  --paper-edge: #e3d8bf;
+  --divider: #efe6d2;
+  --highlight: #ffe08a;
+  --tint-sky: #e3ecf6;
+  --tint-sky-foreground: #2e4a6e;
+  --tint-meadow: #eef3e4;
+  --tint-meadow-foreground: #3f6e2e;
+  --tint-sand: #f3ecdd;
+  --tint-sand-foreground: #6a5636;
+
+  /* shadcn names */
+  --radius: 22px;
+  --background: var(--paper);
+  --foreground: var(--text);
+  --card: #fffdf7;
+  --card-foreground: var(--text);
+  --popover: #fffdf7;
+  --popover-foreground: var(--text);
+  --primary: var(--forest);
+  --primary-foreground: #ffffff;
+  --secondary: var(--link);
+  --secondary-foreground: #ffffff;
+  --accent: var(--tint-sky);
+  --accent-foreground: var(--link);
+  --muted: var(--tint-sand);
+  --muted-foreground: var(--label);
+  --border: #eadfc6;
+  --input: #eadfc6;
+  --ring: var(--link);
+  --destructive: #8a4b2a; /* not Roof red; the reader has no error states */
+
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-base/[1.6] text-foreground antialiased;
+  }
+}
+
+/* Smooth scroll for in-page links, only when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Painted sky (src/components/painted-sky.tsx): clouds drift across. */
+.cloud {
+  animation: cloud-drift linear infinite;
+}
+@keyframes cloud-drift {
+  from { transform: translateX(-30vw); }
+  to { transform: translateX(130vw); }
+}
+
+/* Pip (src/components/pip.tsx). Pip floats 8px on a 4s loop and blinks.
+   A tap: a 0.7s jelly bounce and one 2s wave. A Lamp ring marks Pip as
+   tappable until the first tap. */
+.pip .pip-float {
+  animation: pip-float 4s ease-in-out infinite;
+}
+.pip .pip-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pip-blink 5.2s linear infinite;
+}
+.pip-ring {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 92%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border: 3px solid var(--lamp);
+  border-radius: 999px;
+  pointer-events: none;
+  animation: pip-ring 1.8s ease-out infinite;
+}
+.pip[data-waving] svg {
+  transform-origin: 50% 95%;
+  animation: pip-jelly 0.7s ease-out 1;
+}
+.pip[data-waving] .pip-sway {
+  transform-origin: 192px 156px; /* Pip's right shoulder, as in pip.py */
+  animation: pip-wave 2s ease-in-out 160ms 1;
+}
+@keyframes pip-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pip-blink {
+  0%, 94%, 98%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.08); }
+}
+@keyframes pip-blink-fade {
+  0%, 94%, 98%, 100% { opacity: 1; }
+  96% { opacity: 0.15; }
+}
+@keyframes pip-ring {
+  from { scale: 0.92; opacity: 0.9; }
+  to { scale: 1.2; opacity: 0; }
+}
+/* Overshoot stays within 18%. */
+@keyframes pip-jelly {
+  0% { transform: scale(1, 1); }
+  18% { transform: scale(1.14, 0.86); }
+  38% { transform: scale(0.9, 1.12); }
+  58% { transform: scale(1.05, 0.96); }
+  78% { transform: scale(0.98, 1.02); }
+  100% { transform: scale(1, 1); }
+}
+@keyframes pip-wave {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-16deg); }
+}
+
+/* Reduced motion: one still frame. No drift, float, ring, or bounce. The
+   blink stays as an opacity change, and a tap still switches the pose. */
+@media (prefers-reduced-motion: reduce) {
+  .cloud,
+  .pip .pip-float,
+  .pip[data-waving] svg,
+  .pip[data-waving] .pip-sway {
+    animation: none;
+  }
+  .pip-ring {
+    display: none;
+  }
+  .pip .pip-eyes {
+    animation-name: pip-blink-fade;
+  }
+}
