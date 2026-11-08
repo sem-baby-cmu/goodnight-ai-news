@@ -149,7 +149,11 @@ PROVIDERS = {"openai": say_openai, "elevenlabs": say_elevenlabs, "gemini": say_g
 def main():
     ap = argparse.ArgumentParser()
     _story.add_args(ap)
-    ap.add_argument("--providers", default="openai,elevenlabs,gemini")
+    # One key is the useful minimum: ElevenLabs answers P3 and, through forced
+    # alignment, P4 for any provider's audio. Add others only if its voice
+    # fails the listen.
+    ap.add_argument("--providers", default="elevenlabs",
+                    help="comma separated. e.g. elevenlabs,openai,gemini")
     ap.add_argument("--align", action="store_true",
                     help="For providers with no timings of their own, get them "
                          "by forced alignment. Needs ELEVENLABS_API_KEY.")
