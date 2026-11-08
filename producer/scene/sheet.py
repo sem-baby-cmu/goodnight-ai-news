@@ -67,7 +67,10 @@ One component. {len(POSES)} poses and {len(moods)} moods, drawn as vectors.</tex
 
 if __name__ == "__main__":
     import render
-    out = pathlib.Path("results/character-sheet")
+    # docs/, not results/. results/ is gitignored build output, and this is a
+    # reference the report points at: the team should see Pip without
+    # installing a browser engine first. Regenerate with this same command.
+    out = pathlib.Path(__file__).resolve().parent.parent / "docs"
     out.mkdir(parents=True, exist_ok=True)
     svg = sheet()
     (out / "pip-sheet.svg").write_text(svg, encoding="utf-8")

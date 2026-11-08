@@ -12,6 +12,20 @@ Turns a Storyteller script into a finished bedtime story: one illustration per
 page with a consistent character, warm narration with word-level timestamps,
 and a packaged story file.
 
+## Pip is one component
+
+![Pip character sheet](docs/pip-sheet.png)
+
+Nine poses and five moods, generated from `scene/pip.py` by `python3
+scene/sheet.py`. The sheet is not drawn by hand, so it cannot disagree with
+what ships: if a pose looks wrong here it is wrong on every page of every
+story, in the reader, the carousel and the reel alike.
+
+The design comes from the Goodnight, AI prototype, taken from its own SVG in
+its own coordinates. Arms and legs are strokes rather than shapes, which is
+what makes posing cheap. Moods carry a mouth shape, because antenna angle
+alone was not readable at phone size.
+
 ## Voice test (P3, P4) runs on your machine, not here
 
 Claude's sandbox cannot reach any text to speech API. The gateway refuses
