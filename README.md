@@ -87,14 +87,16 @@ API keys go in a local `.env` file (for example `producer/.env`, copied from
 
 ## Target platform
 
-The production design runs on Cloudflare. The exact set of services and the
-stage boundaries are still under review in [`integration/`](integration/).
-The working direction:
+The production design runs on Cloudflare Workers Paid. The proposed design,
+not yet ratified, is in
+[`integration/architecture.md`](integration/architecture.md). In short:
 
 | Need | Cloudflare service |
 | :-- | :-- |
 | Code for each stage, the API, and the reader | Workers, with Static Assets for the front end |
-| Daily start | Cron Triggers |
+| Daily start (Scout only) | Cron Triggers |
+| Feed card images | Browser Run |
+| Reviewer page | Cloudflare Access |
 | Stage-to-stage hand-off | Queues (signal) and D1 (state of record) |
 | Story packages and stage outputs | D1 |
 | Audio and images | R2 |
