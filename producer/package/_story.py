@@ -4,9 +4,11 @@ Lullabyte is keyed by date: `--date` (default today) reads input/<date>.json
 and output goes to results/<date>/. `--script` stays as an escape hatch for a
 file kept somewhere else.
 """
-import argparse, datetime as dt, json, pathlib
+import argparse, datetime as dt, json, pathlib, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scene"))
+import setting as _setting  # noqa: E402
 RES = ROOT / "results"
 
 
@@ -29,6 +31,14 @@ def load(a):
                          f"{', '.join(sorted(p.stem for p in (ROOT/'input').glob('*.json'))) or 'none'}")
     script = json.loads(src.read_text())
     date = script.get("date", date)
+    pages = script[f"script_{a.age}"]
+
+    # Storyteller should send `setting`. Until it does, fill in the pages that
+    # have none, so every build target gets a complete script and none of them
+    # has to carry a default of its own.
+    for page, guess in zip(pages, _setting.infer(pages)):
+        page["setting"] = guess
+
     out = RES / date
     out.mkdir(parents=True, exist_ok=True)
-    return date, script, script[f"script_{a.age}"], out
+    return date, script, pages, out
