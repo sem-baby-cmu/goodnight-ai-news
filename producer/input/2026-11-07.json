@@ -3,7 +3,7 @@
   "story_id": "pip_helper_school",
   "title": "Pip and the Helper School",
   "source": "Storyteller round 2 (v5 prompt), transcribed from Sally's evidence screenshot in the team report 5.2",
-  "note": "scene_description is NOT from Storyteller. Sally's schema defines it, but it was not in the evidence we received. The values here are Producer placeholders so the image test can run. Replace with Storyteller output when available.",
+  "note": "scene_description is NOT from Storyteller. Sally's schema defines it, but it was not in the evidence we received. The values here are Producer placeholders so the image test can run. Replace with Storyteller output when available.  setting (time, place) is also a Producer placeholder: Storyteller should supply it per page, since only the script knows when and where the story happens.",
   "fk_grade": {
     "5to7": 1.9,
     "8to10": 3.6
@@ -17,7 +17,11 @@
       "tags": [
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: title page, Pip the little robot owl perched on a branch under a night sky"
+      "scene_description": "PLACEHOLDER: title page, Pip the little robot owl perched on a branch under a night sky",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
     },
     {
       "page": 2,
@@ -28,7 +32,11 @@
         "imagine",
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: Pip sitting with a glowing tablet, moon behind"
+      "scene_description": "PLACEHOLDER: Pip sitting with a glowing tablet, moon behind",
+      "setting": {
+        "time": "night",
+        "place": "rooftop"
+      }
     },
     {
       "page": 3,
@@ -39,7 +47,11 @@
         "true",
         "true"
       ],
-      "scene_description": "PLACEHOLDER: a school building and an office building joined by a friendly path"
+      "scene_description": "PLACEHOLDER: a school building and an office building joined by a friendly path",
+      "setting": {
+        "time": "day",
+        "place": "campus"
+      }
     },
     {
       "page": 4,
@@ -50,7 +62,11 @@
         "true",
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: Pip peeking through a lit window at people working together"
+      "scene_description": "PLACEHOLDER: Pip peeking through a lit window at people working together",
+      "setting": {
+        "time": "day",
+        "place": "classroom"
+      }
     },
     {
       "page": 5,
@@ -61,7 +77,11 @@
         "true",
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: Pip looking small beside a large confusing control panel"
+      "scene_description": "PLACEHOLDER: Pip looking small beside a large confusing control panel",
+      "setting": {
+        "time": "day",
+        "place": "office"
+      }
     },
     {
       "page": 6,
@@ -71,7 +91,11 @@
       "tags": [
         "true"
       ],
-      "scene_description": "PLACEHOLDER: a warm handshake scene, Pip watching hopefully"
+      "scene_description": "PLACEHOLDER: a warm handshake scene, Pip watching hopefully",
+      "setting": {
+        "time": "day",
+        "place": "office"
+      }
     },
     {
       "page": 7,
@@ -82,7 +106,11 @@
         "true",
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: a bright classroom, Pip clapping her wings"
+      "scene_description": "PLACEHOLDER: a bright classroom, Pip clapping her wings",
+      "setting": {
+        "time": "day",
+        "place": "classroom"
+      }
     },
     {
       "page": 8,
@@ -93,7 +121,11 @@
         "explain",
         "maybe"
       ],
-      "scene_description": "PLACEHOLDER: Pip curled up sleepy, soft stars around"
+      "scene_description": "PLACEHOLDER: Pip curled up sleepy, soft stars around",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
     },
     {
       "page": 9,
@@ -104,7 +136,11 @@
         "true",
         "true"
       ],
-      "scene_description": "PLACEHOLDER: a simple factual panel, no characters, clean background"
+      "scene_description": "PLACEHOLDER: a simple factual panel, no characters, clean background",
+      "setting": {
+        "time": "day",
+        "place": "campus"
+      }
     },
     {
       "page": 10,
@@ -114,7 +150,11 @@
       "tags": [
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: Pip holding up three glowing question marks"
+      "scene_description": "PLACEHOLDER: Pip holding up three glowing question marks",
+      "setting": {
+        "time": "dusk",
+        "place": "plain"
+      }
     }
   ],
   "script_8to10": [
@@ -126,7 +166,11 @@
       "tags": [
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: title page, Pip the robot owl under a night sky"
+      "scene_description": "PLACEHOLDER: title page, Pip the robot owl under a night sky",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
     },
     {
       "page": 2,
@@ -138,7 +182,11 @@
         "imagine",
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: Pip reading, feathers fluffed in surprise"
+      "scene_description": "PLACEHOLDER: Pip reading, feathers fluffed in surprise",
+      "setting": {
+        "time": "night",
+        "place": "rooftop"
+      }
     },
     {
       "page": 3,
@@ -150,7 +198,11 @@
         "true",
         "explain"
       ],
-      "scene_description": "PLACEHOLDER: a university and a tech office linked by a banner reading PRAISE"
+      "scene_description": "PLACEHOLDER: a university and a tech office linked by a banner reading PRAISE",
+      "setting": {
+        "time": "day",
+        "place": "campus"
+      }
     },
     {
       "page": 4,
@@ -161,7 +213,11 @@
         "true",
         "true"
       ],
-      "scene_description": "PLACEHOLDER: a young engineer at a laptop with an older coach beside them"
+      "scene_description": "PLACEHOLDER: a young engineer at a laptop with an older coach beside them",
+      "setting": {
+        "time": "day",
+        "place": "classroom"
+      }
     },
     {
       "page": 5,
@@ -173,7 +229,11 @@
         "true",
         "maybe"
       ],
-      "scene_description": "PLACEHOLDER: a lone figure facing a steep stack of unfamiliar tools"
+      "scene_description": "PLACEHOLDER: a lone figure facing a steep stack of unfamiliar tools",
+      "setting": {
+        "time": "day",
+        "place": "office"
+      }
     },
     {
       "page": 6,
@@ -186,7 +246,11 @@
         "imagine",
         "explain"
       ],
-      "scene_description": "PLACEHOLDER: a leader speaking on a small stage, Pip nodding from a perch"
+      "scene_description": "PLACEHOLDER: a leader speaking on a small stage, Pip nodding from a perch",
+      "setting": {
+        "time": "day",
+        "place": "office"
+      }
     },
     {
       "page": 7,
@@ -197,7 +261,11 @@
         "true",
         "true"
       ],
-      "scene_description": "PLACEHOLDER: a bright classroom, graduation cap on a desk"
+      "scene_description": "PLACEHOLDER: a bright classroom, graduation cap on a desk",
+      "setting": {
+        "time": "day",
+        "place": "classroom"
+      }
     },
     {
       "page": 8,
@@ -208,7 +276,11 @@
         "imagine",
         "maybe"
       ],
-      "scene_description": "PLACEHOLDER: Pip settling down to sleep, soft stars"
+      "scene_description": "PLACEHOLDER: Pip settling down to sleep, soft stars",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
     },
     {
       "page": 9,
@@ -220,7 +292,11 @@
         "true",
         "true"
       ],
-      "scene_description": "PLACEHOLDER: a simple factual panel, no characters, clean background"
+      "scene_description": "PLACEHOLDER: a simple factual panel, no characters, clean background",
+      "setting": {
+        "time": "day",
+        "place": "campus"
+      }
     },
     {
       "page": 10,
@@ -230,7 +306,11 @@
       "tags": [
         "imagine"
       ],
-      "scene_description": "PLACEHOLDER: Pip holding up three glowing question marks"
+      "scene_description": "PLACEHOLDER: Pip holding up three glowing question marks",
+      "setting": {
+        "time": "dusk",
+        "place": "plain"
+      }
     }
   ]
 }

@@ -11,6 +11,7 @@ import pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from pip import pip, LOOP, POSES  # noqa: E402
 import parts  # noqa: E402
+import world  # noqa: E402
 
 W, H = 1080, 1350
 # Grandstander: rounded and playful, drawn for children's reading. Heavy enough
@@ -19,35 +20,16 @@ W, H = 1080, 1350
 FONT = "Grandstander, Fredoka, Nunito, sans-serif"
 FONT_VAR = "font-variation-settings:'wght' 700"
 SHOW_TAGS = False
-GROUND_Y = 1062          # horizon
 PAPER, INK, GLOW, SOFT = "#FFF4DE", "#101A33", "#FFD23F", "#A8B0D6"
 
-SKIES = {
-    "warm":    ("#241C4A", "#6A3E6E", "#C9705E"),
-    "calm":    ("#141230", "#241C4A", "#3C2F63"),
-    "curious": ("#17173A", "#2E2A62", "#4F4385"),
-    "quiet":   ("#0C0A1E", "#17152C", "#231C42"),
-    "excited": ("#2A1F52", "#6A3E6E", "#E0894B"),
-}
-GROUND = {"warm": "#5A3560", "calm": "#1E1944", "curious": "#2A2458",
-          "quiet": "#13102A", "excited": "#653F60"}
-# silhouettes sit well below the sky so they read as shapes, not haze
-SIL = {"warm": "#2E1C40", "calm": "#0E0B22", "curious": "#15123A",
-       "quiet": "#08061A", "excited": "#2A1838"}
-
-# story beat -> (pose, prop set)
+# story beat -> pose. Time and place come from the script's own setting.
 BEAT = {
-    "cover":            ("wave",  "town"),
-    "character":        ("read",  "roof"),
-    "news_discovery":   ("point", "lit_towers"),
-    "exploration":      ("peek",  "window"),
-    "challenge":        ("lost",  "tools"),
-    "turning_point":    ("stand", "town"),
-    "resolution":       ("cheer", "town"),
-    "reflection":       ("sleep", "bedroom"),
-    "real_world_facts": ("point", "plain"),
-    "quiz":             ("think", "town"),
+    "cover": "wave", "character": "read", "news_discovery": "point",
+    "exploration": "peek", "challenge": "lost", "turning_point": "stand",
+    "resolution": "cheer", "reflection": "sleep", "real_world_facts": "point",
+    "quiz": "think",
 }
+DEFAULT_SETTING = {"time": "night", "place": "street"}
 
 TAG_COLOR = {"true": "#5FD6A0", "maybe": "#FFC266",
              "imagine": "#C3A6FF", "explain": "#8FC2FF"}
@@ -58,94 +40,6 @@ TAG_COLOR = {"true": "#5FD6A0", "maybe": "#FFC266",
 # structure and never appears.
 TAG_LABEL = {"true": "really happened", "maybe": "not sure yet",
              "imagine": "story part", "explain": "what it means"}
-
-
-def _sky(tone):
-    a, b, c = SKIES.get(tone, SKIES["calm"])
-    return (f'<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'
-            f'<stop offset="0" stop-color="{a}"/>'
-            f'<stop offset=".62" stop-color="{b}"/>'
-            f'<stop offset="1" stop-color="{c}"/></linearGradient>')
-
-
-def _stars(n=40, seed=11):
-    out, s = [], seed
-    for _ in range(n):
-        s = (s * 1103515245 + 12345) % 2147483648; x = 24 + s % 1032
-        s = (s * 1103515245 + 12345) % 2147483648; y = 600 + s % 420
-        s = (s * 1103515245 + 12345) % 2147483648; r = 1.8 + (s % 26) / 10
-        s = (s * 1103515245 + 12345) % 2147483648; off = (s % 20) / 10 * LOOP / 2
-        out.append(f'<circle cx="{x}" cy="{y}" r="{r:.1f}" fill="#FFF8E6" opacity=".5">'
-                   f'<animate attributeName="opacity" values=".15;.8;.15" dur="{LOOP}s" '
-                   f'begin="-{off:.2f}s" repeatCount="indefinite"/></circle>')
-    return "".join(out)
-
-
-def _moon(tone, x=906, y=726, r=74):
-    dark = SKIES.get(tone, SKIES["calm"])[0]
-    return (f'<mask id="mn"><circle cx="{x}" cy="{y}" r="{r}" fill="#fff"/>'
-            f'<circle cx="{x-r*.42:.0f}" cy="{y-r*.20:.0f}" r="{r*.88:.0f}" fill="#000"/>'
-            f'</mask><g filter="url(#paint)">'
-            f'<circle cx="{x}" cy="{y}" r="{r}" fill="{GLOW}" mask="url(#mn)"/></g>')
-
-
-def _house(x, w, h, fill, lit=()):
-    """A simple gabled house. `lit` is a tuple of (dx, dy) window positions."""
-    y = GROUND_Y - h
-    p = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="{fill}"/>',
-         f'<polygon points="{x-14},{y} {x+w//2},{y-54} {x+w+14},{y}" fill="{fill}"/>']
-    for dx, dy in lit:
-        p.append(f'<rect x="{x+dx}" y="{y+dy}" width="40" height="50" rx="7" '
-                 f'fill="{GLOW}" opacity=".66"/>')
-    return "".join(p)
-
-
-def _props(kind, tone):
-    dk = SIL.get(tone, SIL["calm"])
-    md = GROUND.get(tone, GROUND["calm"])
-    if kind == "town":
-        return (f'<g filter="url(#paint)">'
-                f'{_house(-30, 170, 210, dk)}{_house(150, 120, 148, md)}'
-                f'{_house(830, 150, 190, md)}{_house(990, 160, 240, dk)}</g>')
-    if kind == "lit_towers":
-        return (f'<g filter="url(#paint)">'
-                f'{_house(-30, 150, 170, dk)}'
-                f'{_house(700, 180, 290, md, lit=((34, 52), (104, 52), (34, 140)))}'
-                f'{_house(910, 200, 350, dk, lit=((44, 60), (120, 60), (44, 160), (120, 160)))}'
-                f'</g>')
-    if kind == "roof":
-        return (f'<g filter="url(#paint)">'
-                f'<polygon points="-40,{GROUND_Y} 540,{GROUND_Y-150} 1120,{GROUND_Y}" '
-                f'fill="{dk}"/>'
-                f'<rect x="-40" y="{GROUND_Y}" width="1160" height="60" fill="{dk}"/></g>')
-    if kind == "window":
-        return (f'<g filter="url(#paint)">'
-                f'<rect x="-20" y="{GROUND_Y-360}" width="330" height="360" rx="16" fill="{md}"/>'
-                f'<rect x="24" y="{GROUND_Y-318}" width="242" height="276" rx="10" '
-                f'fill="{GLOW}" opacity=".6"/>'
-                f'<line x1="145" y1="{GROUND_Y-318}" x2="145" y2="{GROUND_Y-42}" '
-                f'stroke="{md}" stroke-width="14"/>'
-                f'<line x1="24" y1="{GROUND_Y-180}" x2="266" y2="{GROUND_Y-180}" '
-                f'stroke="{md}" stroke-width="14"/>'
-                f'{_house(880, 200, 260, dk)}</g>')
-    if kind == "tools":
-        return (f'<g filter="url(#paint)">'
-                f'<rect x="700" y="{GROUND_Y-280}" width="400" height="280" rx="20" fill="{md}"/>'
-                f'<circle cx="790" cy="{GROUND_Y-212}" r="26" fill="#6C8BEF" opacity=".85"/>'
-                f'<circle cx="876" cy="{GROUND_Y-212}" r="26" fill="#F48FB1" opacity=".85"/>'
-                f'<circle cx="962" cy="{GROUND_Y-212}" r="26" fill="{GLOW}" opacity=".85"/>'
-                f'<rect x="760" y="{GROUND_Y-146}" width="300" height="17" rx="9" fill="{dk}"/>'
-                f'<rect x="760" y="{GROUND_Y-108}" width="210" height="17" rx="9" fill="{dk}"/>'
-                f'<rect x="760" y="{GROUND_Y-70}" width="260" height="17" rx="9" fill="{dk}"/></g>')
-    if kind == "bedroom":
-        return (f'<g filter="url(#paint)">'
-                f'<rect x="200" y="{GROUND_Y-120}" width="680" height="120" rx="26" fill="{md}"/>'
-                f'<rect x="200" y="{GROUND_Y-168}" width="220" height="54" rx="22" fill="{PAPER}"/>'
-                f'<rect x="420" y="{GROUND_Y-140}" width="460" height="40" rx="19" '
-                f'fill="#F48FB1" opacity=".75"/>'
-                f'<rect x="60" y="{GROUND_Y-260}" width="26" height="260" fill="{dk}"/>'
-                f'<circle cx="73" cy="{GROUND_Y-286}" r="42" fill="{GLOW}" opacity=".55"/></g>')
-    return ""
 
 
 def _wrap(text, per):
@@ -167,7 +61,10 @@ def _esc(s):
 
 def card(page, total):
     tone = page["tone"]
-    pose, prop = BEAT.get(page["slot"], ("stand", "town"))
+    pose = BEAT.get(page["slot"], "stand")
+    s = page.get("setting", DEFAULT_SETTING)
+    time, place = s.get("time", "night"), s.get("place", "street")
+    back, front = world.place(place, time)
     text = page["text"]
 
     # Largest size whose wrapped lines fit the caption box whole.
@@ -206,21 +103,21 @@ def card(page, total):
         cx += w + 16
 
     return f"""<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg">
-<defs>{parts.PAINT_FILTER}{_sky(tone)}
+<defs>{parts.PAINT_FILTER}{world.sky(time)}
  <linearGradient id="band" x1="0" y1="0" x2="0" y2="1">
-  <stop offset="0" stop-color="#05040E" stop-opacity=".88"/>
-  <stop offset=".72" stop-color="#05040E" stop-opacity=".66"/>
+  <stop offset="0" stop-color="#05040E" stop-opacity="{.80 if time == 'day' else .88}"/>
+  <stop offset=".72" stop-color="#05040E" stop-opacity="{.62 if time == 'day' else .66}"/>
   <stop offset="1" stop-color="#05040E" stop-opacity="0"/>
  </linearGradient></defs>
 
 <rect width="{W}" height="{H}" fill="url(#sky)"/>
-{_stars()}
-{_moon(tone)}
-{_props(prop, tone)}
+{world.clouds(time)}
+{world.stars(time)}
+{world.light(time)}
+{back}
+{pip(W//2, world.GROUND_Y + 58, 1.16, tone, pose)}
+{front}
 <rect x="0" y="0" width="{W}" height="{band:.0f}" fill="url(#band)"/>
-<g filter="url(#paint)"><rect x="0" y="{GROUND_Y}" width="{W}" height="{H-GROUND_Y}"
-  fill="{GROUND.get(tone, GROUND['calm'])}"/></g>
-{pip(W//2, GROUND_Y + 58, 1.16, tone, pose)}
 
 {head}
 {"".join(chips)}

@@ -218,3 +218,25 @@ results/2026-11-07/
 python package/build_carousel.py --age 5to7
 python package/build_carousel.py --age 8to10
 ```
+
+## Time and place come from the story
+
+The first version painted every page at night, because Lullabyte is read at
+bedtime. That conflated two different things: **when the story is read** and
+**when the story happens**. A story about a school and an office happens in
+daylight.
+
+`scene/world.py` holds three times (day, dusk, night) and seven places (street,
+campus, classroom, office, rooftop, bedroom, plain). Each page names its own:
+
+```json
+"setting": { "time": "day", "place": "classroom" }
+```
+
+For 2026-11-07, only two pages are genuinely at night: page 2, where the text
+says Pip reads the news at night, and page 8, the bedtime reflection. The night
+framing survives where the text asks for it and nowhere else.
+
+**Handoff note for Storyteller:** `setting` is currently a Producer placeholder,
+like `scene_description`. Only the script knows when and where a story happens,
+so it should come from Storyteller. Flagged for 5.2.
