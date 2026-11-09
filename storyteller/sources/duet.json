@@ -1,0 +1,10 @@
+{
+  "id": "duet",
+  "title": "Anthropic launches Claude Duet, a personal AI agent that asks before it acts",
+  "source_links": ["https://www.engadget.com/2293646/claude-duet-is-anthropics-answer-to-meta-muse-and-"],
+  "date": "2026-10-21",
+  "confidence": 4,
+  "first_rating": "green",
+  "full_text_note": "Pilot input = article summary returned by the fetch tool (full text was not available).",
+  "full_text": "Anthropic has launched Claude Duet, a personal agent in a research preview, to compete with Meta Muse and OpenAI Dots. Anthropic describes it as an agent that checks with you before it acts on your behalf. US Claude subscribers can join a waitlist. Each day, Duet generates a briefing of action items from your connected apps. It handles tasks like scheduling meetings, building dashboards, making forecasts, prototyping, and building web apps. It messages you only when something needs your attention. Duet runs on Opus 5.5 and has standalone Android and iOS apps. It runs on its own virtual machine, so it can work in the background. Access will extend to the $20/month Pro plan once the agent reaches general availability. Duet checks connected accounts every few hours. Users can set how often it messages them and about which topics. Anthropic says Duet never directly sees passwords or sign-in tokens, and it shares health or financial information only if the user explicitly asks it to. How useful Duet is depends on how much users trust Anthropic with their digital lives."
+}

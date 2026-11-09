@@ -1,0 +1,159 @@
+{
+  "story_id": "duet",
+  "age_level": "5to7",
+  "title": "Pip and the Polite Helper",
+  "source_links": [
+    "https://www.engadget.com/2293646/claude-duet-is-anthropics-answer-to-meta-muse-and-"
+  ],
+  "first_rating": "green",
+  "review_status": "draft",
+  "themes": [
+    "kindness",
+    "curiosity"
+  ],
+  "pages": [
+    {
+      "slot": "cover",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip and the Polite Helper."
+        }
+      ],
+      "scene_description": "Pip sitting next to a small glowing helper robot with a question mark bubble.",
+      "tone_tag": "warm"
+    },
+    {
+      "slot": "character",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip is a little robot owl."
+        },
+        {
+          "tag": "imagine",
+          "text": "Pip reads the news at night."
+        }
+      ],
+      "scene_description": "Pip in her nest reading a glowing newspaper.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "news_discovery",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "A company made a new AI helper."
+        },
+        {
+          "tag": "true",
+          "text": "It is called Claude Duet."
+        }
+      ],
+      "scene_description": "The newspaper shows a friendly helper robot.",
+      "tone_tag": "curious"
+    },
+    {
+      "slot": "exploration",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Each day, it makes a list of things to do."
+        }
+      ],
+      "scene_description": "The helper robot holds a tiny to-do list.",
+      "tone_tag": "curious"
+    },
+    {
+      "slot": "challenge",
+      "sentences": [
+        {
+          "tag": "maybe",
+          "text": "What if a helper does the wrong thing?"
+        }
+      ],
+      "scene_description": "Pip frowns at a mixed-up list.",
+      "tone_tag": "quiet"
+    },
+    {
+      "slot": "turning_point",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "This helper asks you first, before it acts."
+        }
+      ],
+      "scene_description": "The helper robot raises its hand politely.",
+      "tone_tag": "warm"
+    },
+    {
+      "slot": "resolution",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "It does not see your secret passwords."
+        },
+        {
+          "tag": "imagine",
+          "text": "Pip nods happily."
+        }
+      ],
+      "scene_description": "A treasure chest stays locked while the helper smiles.",
+      "tone_tag": "excited"
+    },
+    {
+      "slot": "reflection",
+      "sentences": [
+        {
+          "tag": "explain",
+          "text": "Good helpers ask first."
+        },
+        {
+          "tag": "maybe",
+          "text": "Maybe you can ask first too."
+        }
+      ],
+      "scene_description": "Pip and the helper wave goodnight.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "real_world_facts",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Anthropic made Claude Duet.",
+          "source_quote": "Anthropic has launched Claude Duet"
+        },
+        {
+          "tag": "true",
+          "text": "It checks with you before it acts.",
+          "source_quote": "checks with you before it acts on your behalf"
+        }
+      ],
+      "scene_description": "A simple page with two real facts and a little source tag.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "quiz",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Quiz time! Let's see what you remember."
+        }
+      ],
+      "scene_description": "Pip holds up three glowing cards.",
+      "tone_tag": "excited"
+    }
+  ],
+  "parent_card": {
+    "concept": "An AI agent is an AI that can do tasks for you, not just answer questions.",
+    "background": "Anthropic launched Claude Duet, an AI agent that plans tasks from your apps and checks with you before it acts.",
+    "question": "Why is it good for a helper to ask before doing something for you?",
+    "honest_answer": "Asking first keeps you in charge. Helpers can make mistakes, so checking first stops a small mistake from becoming a big one."
+  },
+  "key_facts": [
+    "Anthropic made an AI agent called Claude Duet.",
+    "Claude Duet checks with you before it acts.",
+    "Claude Duet never directly sees your passwords."
+  ]
+}

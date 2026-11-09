@@ -1,0 +1,10 @@
+{
+  "id": "praise",
+  "title": "Microsoft and CMU team up to train early career software engineers",
+  "source_links": ["https://www.cs.cmu.edu/news/2026/microsoft-cmu-praise"],
+  "date": "2026-10-15",
+  "confidence": 5,
+  "first_rating": "green",
+  "full_text_note": "Pilot input = article summary returned by the fetch tool (full text was not available). This is the S2 gap.",
+  "full_text": "Carnegie Mellon and Microsoft launched the Preceptorship for AI-accelerated Software Engineering (PRAISE) program. It gives early career Microsoft engineers online courses through CMU's School of Computer Science, plus hands-on mentorship from senior engineers at Microsoft. Jace Watson, a Microsoft software engineer working in Seattle, is taking the classes. He wanted to learn to use AI tools well, since his college education didn't cover them much. The idea came from an October 2025 visit to CMU by Mark Russinovich, a CMU alumnus and Microsoft Azure technical fellow. He noted that AI helps senior engineers more than junior ones. Russinovich said AI doesn't eliminate the need for junior engineers. This semester, participants are taking Machine Learning in Production and the first part of Preceptorship in AI-Augmented Software Engineering. In spring, participants will take DevOps: Engineering for Secure Development and Deployment and the second part of the preceptorship sequence. These can count toward a master's degree in software engineering. CMU hopes to grow the program and possibly add other industry partners."
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Storyteller output (one age level)",
+  "type": "object",
+  "required": ["story_id", "age_level", "title", "pages", "parent_card", "key_facts", "first_rating", "review_status", "source_links"],
+  "properties": {
+    "story_id": {"type": "string"},
+    "age_level": {"enum": ["5to7", "8to10"]},
+    "title": {"type": "string"},
+    "source_links": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "first_rating": {"enum": ["green", "yellow", "red"]},
+    "review_status": {"enum": ["draft", "in_review", "approved", "published"]},
+    "themes": {"type": "array", "items": {"enum": ["curiosity", "courage", "kindness", "teamwork"]}},
+    "pages": {
+      "type": "array", "minItems": 8, "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["slot", "sentences", "scene_description", "tone_tag"],
+        "properties": {
+          "slot": {"enum": ["cover", "character", "news_discovery", "exploration", "challenge", "turning_point", "resolution", "reflection", "real_world_facts", "quiz"]},
+          "sentences": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "required": ["text", "tag"],
+              "properties": {
+                "text": {"type": "string"},
+                "tag": {"enum": ["true", "maybe", "imagine", "explain"]},
+                "source_quote": {"type": "string"}
+              }
+            }
+          },
+          "scene_description": {"type": "string"},
+          "tone_tag": {"enum": ["calm", "curious", "excited", "quiet", "warm"]}
+        }
+      }
+    },
+    "parent_card": {
+      "type": "object",
+      "required": ["concept", "background", "question", "honest_answer"],
+      "properties": {
+        "concept": {"type": "string"}, "background": {"type": "string"},
+        "question": {"type": "string"}, "honest_answer": {"type": "string"}
+      }
+    },
+    "key_facts": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3}
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "story_id": "storm",
+  "age_level": "5to7",
+  "title": "Pip and the Locked Doors",
+  "source_links": [
+    "https://thehackernews.com/2026/10/china-linked-hackers-use-artex-ai.html"
+  ],
+  "first_rating": "yellow",
+  "review_status": "draft",
+  "themes": [
+    "courage",
+    "teamwork"
+  ],
+  "pages": [
+    {
+      "slot": "cover",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip and the Locked Doors."
+        }
+      ],
+      "scene_description": "Pip standing guard by a row of little lit-up houses.",
+      "tone_tag": "warm"
+    },
+    {
+      "slot": "character",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip is a little robot owl."
+        },
+        {
+          "tag": "imagine",
+          "text": "Pip reads the news at night."
+        }
+      ],
+      "scene_description": "Pip in her nest reading a glowing newspaper.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "news_discovery",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Some hackers used an AI helper to break in."
+        }
+      ],
+      "scene_description": "The newspaper shows sneaky raccoons near a computer.",
+      "tone_tag": "curious"
+    },
+    {
+      "slot": "exploration",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Their AI tried to guess passwords very fast."
+        }
+      ],
+      "scene_description": "Many doors in a row, each with a lock.",
+      "tone_tag": "curious"
+    },
+    {
+      "slot": "challenge",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "It got into a company that keeps copies of files."
+        }
+      ],
+      "scene_description": "One door is open a crack.",
+      "tone_tag": "quiet"
+    },
+    {
+      "slot": "turning_point",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Microsoft spotted the attack and told everyone."
+        }
+      ],
+      "scene_description": "A big friendly lighthouse beam shines on the doors.",
+      "tone_tag": "warm"
+    },
+    {
+      "slot": "resolution",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "The company turned off its service to stay safe."
+        },
+        {
+          "tag": "imagine",
+          "text": "Pip locks her little door tight."
+        }
+      ],
+      "scene_description": "Shops close their shutters for the night.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "reflection",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Keep your passwords secret, like a treasure."
+        }
+      ],
+      "scene_description": "Pip tucks a tiny key under her wing.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "real_world_facts",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Microsoft shared this news in October.",
+          "source_quote": "Microsoft disclosed on October 21, 2026"
+        },
+        {
+          "tag": "true",
+          "text": "Microsoft saw many tries to log in.",
+          "source_quote": "Microsoft recorded over 151,000 failed logons"
+        }
+      ],
+      "scene_description": "A simple page with two real facts and a little source tag.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "quiz",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Quiz time! Let's see what you remember."
+        }
+      ],
+      "scene_description": "Pip holds up three glowing cards.",
+      "tone_tag": "excited"
+    }
+  ],
+  "parent_card": {
+    "concept": "Bad actors can use AI too, so people and companies need good digital locks.",
+    "background": "Microsoft said a hacker group used an AI agent to guess passwords very fast and break into a backup service called ConnectWise Cloud Backup.",
+    "question": "Why do you think we keep our passwords secret?",
+    "honest_answer": "Some people try to break into computers. Strong, secret passwords and good security teams help keep our things safe."
+  },
+  "key_facts": [
+    "Microsoft said hackers used an AI agent in an attack.",
+    "The AI tried to guess passwords very fast.",
+    "ConnectWise turned off some services to stay safe."
+  ]
+}

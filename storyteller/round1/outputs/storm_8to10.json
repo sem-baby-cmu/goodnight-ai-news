@@ -1,0 +1,176 @@
+{
+  "story_id": "storm",
+  "age_level": "8to10",
+  "title": "Pip and the Locked Doors",
+  "source_links": [
+    "https://thehackernews.com/2026/10/china-linked-hackers-use-artex-ai.html"
+  ],
+  "first_rating": "yellow",
+  "review_status": "draft",
+  "themes": [
+    "courage",
+    "teamwork"
+  ],
+  "pages": [
+    {
+      "slot": "cover",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip and the Locked Doors."
+        }
+      ],
+      "scene_description": "Pip standing guard by a row of little lit-up houses.",
+      "tone_tag": "warm"
+    },
+    {
+      "slot": "character",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip is a small robot owl who reads the news every night."
+        },
+        {
+          "tag": "imagine",
+          "text": "Tonight's story is about locks, keys, and some very busy helpers."
+        }
+      ],
+      "scene_description": "Pip in her nest reading a glowing newspaper.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "news_discovery",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Microsoft said a hacker group called Storm-0940 used an AI agent in an attack."
+        },
+        {
+          "tag": "imagine",
+          "text": "A hacker is someone who breaks into computers they are not allowed to use."
+        }
+      ],
+      "scene_description": "The newspaper shows sneaky raccoons near a glowing computer.",
+      "tone_tag": "curious"
+    },
+    {
+      "slot": "exploration",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "The AI tried to guess passwords at many organizations."
+        },
+        {
+          "tag": "true",
+          "text": "On one day, it tried up to 2,900 times in a single minute."
+        }
+      ],
+      "scene_description": "Hundreds of doors in a long row, each with a lock.",
+      "tone_tag": "curious"
+    },
+    {
+      "slot": "challenge",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "The hackers got into ConnectWise Cloud Backup, a service that keeps copies of files."
+        },
+        {
+          "tag": "true",
+          "text": "From there, they could reach some of its customers."
+        }
+      ],
+      "scene_description": "One door is open a crack.",
+      "tone_tag": "quiet"
+    },
+    {
+      "slot": "turning_point",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Microsoft found out what happened and shared the news on October 21, 2026."
+        },
+        {
+          "tag": "imagine",
+          "text": "Sharing it helps other companies check their own locks."
+        }
+      ],
+      "scene_description": "A big friendly lighthouse beam shines on the doors.",
+      "tone_tag": "warm"
+    },
+    {
+      "slot": "resolution",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "ConnectWise turned off some services for a while to keep people safe."
+        },
+        {
+          "tag": "true",
+          "text": "It is turning them back on step by step."
+        }
+      ],
+      "scene_description": "Shops close their shutters while workers fix the locks.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "reflection",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Pip thinks AI is a tool, and people choose how to use it."
+        },
+        {
+          "tag": "imagine",
+          "text": "Strong, secret passwords help keep the doors locked."
+        }
+      ],
+      "scene_description": "Pip tucks a tiny key under her wing.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "real_world_facts",
+      "sentences": [
+        {
+          "tag": "true",
+          "text": "Microsoft shared the news on October 21, 2026.",
+          "source_quote": "Microsoft disclosed on October 21, 2026"
+        },
+        {
+          "tag": "true",
+          "text": "There were more than 151,000 failed tries to log in.",
+          "source_quote": "Microsoft recorded over 151,000 failed logons"
+        },
+        {
+          "tag": "true",
+          "text": "ConnectWise shut down services for a while.",
+          "source_quote": "ConnectWise temporarily shut down services"
+        }
+      ],
+      "scene_description": "A simple page with real facts and source tags.",
+      "tone_tag": "calm"
+    },
+    {
+      "slot": "quiz",
+      "sentences": [
+        {
+          "tag": "imagine",
+          "text": "Quiz time! Let's see what you remember."
+        }
+      ],
+      "scene_description": "Pip holds up three glowing cards.",
+      "tone_tag": "excited"
+    }
+  ],
+  "parent_card": {
+    "concept": "Bad actors can use AI too, so people and companies need good digital locks.",
+    "background": "Microsoft said a hacker group used an AI agent to guess passwords very fast and break into a backup service called ConnectWise Cloud Backup.",
+    "question": "Why do you think we keep our passwords secret?",
+    "honest_answer": "Some people try to break into computers. Strong, secret passwords and good security teams help keep our things safe."
+  },
+  "key_facts": [
+    "Microsoft said hackers used an AI agent in an attack.",
+    "The AI tried to guess passwords very fast.",
+    "ConnectWise turned off some services to stay safe."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "storm",
+  "title": "Hackers used agentic AI in a supply chain attack on ConnectWise",
+  "source_links": ["https://thehackernews.com/2026/10/china-linked-hackers-use-artex-ai.html"],
+  "date": "2026-10-21",
+  "confidence": 4,
+  "first_rating": "yellow",
+  "full_text_note": "Pilot input = article summary returned by the fetch tool (full text was not available). Topic involves crime, so Scout pre-rates yellow.",
+  "full_text": "Microsoft disclosed on October 21, 2026, that China state-aligned actor Storm-0940 compromised ConnectWise Cloud Backup, a supply chain attack. The group used ARTEX, an agentic AI penetration testing framework. Microsoft says the actor used ARTEX to automate scanning, password spraying, and OAuth application abuse against hundreds of organizations since September 2026. From October 10 to 14, the campaign targeted 327 accounts across eight organizations. Microsoft recorded over 151,000 failed logons, peaking at 2,900 per minute on October 11. On October 15, the AI agents gained control of several ConnectWise cloud application identities and used them to access customer environments. Wiz reported sessions lasting 24 to 30 hours and new IP addresses appearing within minutes when others were blocked. ConnectWise temporarily shut down services and is restoring them in phases over several days."
+}

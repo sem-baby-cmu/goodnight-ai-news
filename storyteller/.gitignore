@@ -1,0 +1,3 @@
+# Build output: regenerate with checks.py and build_evidence.py
+results/
+__pycache__/
