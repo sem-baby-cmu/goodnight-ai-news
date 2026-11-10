@@ -113,7 +113,7 @@ Desktop Chromium (Playwright) at phone size, 390 x 844, served from `producer/re
 
 | Check | Result |
 |---|---|
-| Layout | Picture on top, text below, page dots at the bottom. The screenshot is not tracked. |
+| Layout | Picture on top, text below, page dots at the bottom. Screenshot: `output/phone-5to7-page1.png`. |
 | Each of the 20 clips loads and plays | Yes. Duration matches ffprobe. `currentTime` moves forward. No media error. |
 | Console | Only a 404 for `favicon.ico` from the local test server |
 | Page 1 autoplay | Not tested on a real phone. The reader calls `play()` at load without a tap, and `.catch(() => {})` hides a refusal. Mobile browsers usually block that call, so page 1 may be silent. |
@@ -142,6 +142,26 @@ Not yet sent. Each one goes to its owner as an issue.
 | Producer | Page 1 narration starts with no tap, and a refused `play()` is hidden. |
 | Playmate | `playmate.html` cannot load a story file, so it cannot run on a real story. |
 | Team | The Gemini API is turned off in the Google project of the Gemini key used for this run. |
+
+## Output files
+
+`output/` keeps the built story so it can be opened without a rebuild. The audio is embedded in each HTML file.
+
+| File | What it is |
+|---|---|
+| `output/read-5to7.html`, `output/read-8to10.html` | the built readers, with audio (574 KB and 902 KB) |
+| `output/voice/<age>-<page>-gemini.mp3` | the 20 clips, 64 kbps mono |
+| `output/phone-5to7-page1.png` | the phone-size screenshot, page 1 |
+
+These clips are from a rebuild on 2026-11-10, not from the measured run.
+The first run's clips were deleted with the temporary work tree before they were saved.
+The rebuild used the same steps, model, and voice. It made new generations, so the clips differ a little:
+45.1 s and 76.6 s of audio (first run: 44.0 s and 73.5 s).
+The time, token, and cost numbers above, and `voice_log_*.json`, are from the first run.
+The rebuild cost about the same again; it is not counted in I4.
+
+`AGENTS.md` says build output is not tracked and large binary files go to R2.
+This folder is an exception, kept on purpose as I2 evidence (2.5 MB). Producer's `results/` folder stays untracked.
 
 ## How to run again
 
