@@ -19,8 +19,9 @@ Deferred: #20 review workflow and #21 review checklist (they belong to the paren
 python3 checks.py --selftest   # syllable counter check (25 known words)
 python3 checks.py              # scores every script in outputs/
 python3 build_evidence.py      # writes results/evidence.html
+python3 make_stories.py --check  # writes stories/<story_id>.json and validates them
 ```
-Python 3.9+. One extra package: `jsonschema`.
+Python 3.9+. One extra package for `checks.py`: `jsonschema`. `make_stories.py` uses the standard library only.
 `results/` is build output and is not tracked. Run the commands above to make it.
 
 ## Files
@@ -28,7 +29,11 @@ Python 3.9+. One extra package: `jsonschema`.
 |---|---|
 | `prompts/storyteller_v4.md` | Round 1 prompt: one prompt per age, fixed 10-page structure |
 | `prompts/storyteller_v5.md` | Round 2 prompt: adds the `explain` tag, no added motives, no names on 5-7 story pages |
-| `storyteller_output.schema.json` | Pilot output format |
+| `prompts/storyteller_v6.md` | Contract output: the story-level call and the field name map |
+| `storyteller_output.schema.json` | Pilot output format (one age per file). Replaced by `integration/story.schema.json` for handoff |
+| `stories/<story_id>.json` | **Handoff files.** One per story, both ages, contract format. Hand these to Producer and Playmate |
+| `story_extras.json` | Story-level content per story: `story_id`, `ai_word`, definition, illustration prompt, `hidden_elements`, page 3 scene, `setting` per page |
+| `make_stories.py` | Joins `sources/`, `outputs/`, and `story_extras.json` into `stories/`, then runs `integration/validate.py` |
 | `sources/*.json` | 3 real AI news stories in Scout's format (the stories in the Goodnight, AI demo) |
 | `round1/outputs/*.json` | Round 1 scripts (prompt v4) |
 | `outputs/*.json` | Round 2 scripts (prompt v5) |
@@ -63,14 +68,20 @@ Sheet: [hand_labeled_ratings](https://docs.google.com/spreadsheets/d/1rtfxV4exsl
 | Date | Labelers done | Agreement with Scout | Unsafe misses |
 |---|---|---|---|
 | 2026-11-07 | 1 of 2 (Sally) | 15 of 20 (75%). Stories 1-10 (full text): 60%. Stories 11-20 (summary only): 90% | 0 |
+| 2026-11-09 | 2 of 2, 6 splits settled | 16 of 20 (80%) against the final label. Full text: 70%. Summary only: 90%. Labelers first agreed on 14 of 20 (kappa 0.54) | 0 |
 
-## Known gap: handoff contract
-The pilot ran before the team contract (`integration/story.schema.json`, decided 2026-11-08).
-On 2026-11-09, all 6 scripts in `outputs/` fail
-`python3 -I integration/validate.py --owner Storyteller`:
+## Handoff contract
+Fixed on 2026-11-10 (issue #5). Before that, the 6 pilot scripts failed
+`python3 -I integration/validate.py --owner Storyteller` with 7 errors each,
+and the I2 run needed 8 manual edits to join them.
 
-- `story_id` is a short name, not a UUID v7.
-- The file holds one age level. The contract wants `script_5to7` and `script_8to10` in one file.
-- Missing fields: `ai_word`, `ai_word_definition`, `parent_card.ai_concept`, `parent_card.question_to_ask`.
+| Check, 2026-11-10 | Result |
+|---|---|
+| `validate.py --owner Storyteller stories/*.json` | 3 of 3 PASS |
+| `validate.py stories/*.json` (full contract) | 3 of 3 PASS |
+| PRAISE file vs the hand-joined I2 `story.json` | Same `text`, `tags`, `tone`, and `page` on all 20 pages. New: `ai_word`, `ai_word_definition`, `ai_word_illustration_prompt`, `hidden_elements`, `setting`, `fk_grade`, `source_url`. Page 3 `scene_description` is now concrete enough for the scene tap |
+| Every `hidden_elements[].element` appears in its page 3 scene | 3 of 3 stories |
 
-Next step: change the output to the contract format, then validate before handing files to Producer.
+- The PRAISE `story_id` (`01a1c740-9458-7143-8dcd-74b336fbc2e2`) is the one Integration minted for I2, so the run and this file name the same story.
+- `make_stories.py` only reshapes and copies. The new content is in `story_extras.json`, written from each source under `prompts/storyteller_v6.md`. Every fun fact is a fact from `full_text` or a general explanation.
+- Still open: the scripts were written in a chat session, not by a live API run (I2 risk R3).

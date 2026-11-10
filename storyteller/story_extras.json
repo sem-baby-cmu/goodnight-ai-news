@@ -1,0 +1,202 @@
+{
+  "_note": "Story-level fields that the pilot scripts did not have. Written 2026-11-10 from each source's full_text, under prompts/storyteller_v6.md. Every fun_fact is either supported by the source (kind = true) or a general explanation (kind = explain); none adds a news fact. `kind` is for review only and is not copied into the story file.",
+  "praise": {
+    "story_id": "01a1c740-9458-7143-8dcd-74b336fbc2e2",
+    "story_id_note": "The ID Integration minted for the I2 run (integration/runs/i2-2026-11-10), kept so the run and this file name the same story.",
+    "page3_scene_description": "Pip the robot owl sits on a windowsill at night, holding a glowing newspaper. The front page shows a university building and an office tower, with a big friendly handshake between them.",
+    "hidden_elements": [
+      {
+        "element": "glowing newspaper",
+        "fun_fact": "This is real news! Carnegie Mellon University and Microsoft started a program called PRAISE.",
+        "kind": "true"
+      },
+      {
+        "element": "university building",
+        "fun_fact": "New engineers in PRAISE take online classes from Carnegie Mellon's School of Computer Science.",
+        "kind": "true"
+      },
+      {
+        "element": "friendly handshake",
+        "fun_fact": "Senior engineers at Microsoft coach the new engineers, like a helpful big buddy.",
+        "kind": "true"
+      }
+    ],
+    "ai_word": "AI tool",
+    "ai_word_definition": "A computer program that helps people do a job, like writing code or finding mistakes.",
+    "ai_word_illustration_prompt": "Warm watercolor of a robot owl learning at a laptop",
+    "settings": [
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "day",
+        "place": "office"
+      },
+      {
+        "time": "day",
+        "place": "office"
+      },
+      {
+        "time": "day",
+        "place": "classroom"
+      },
+      {
+        "time": "day",
+        "place": "classroom"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "plain"
+      },
+      {
+        "time": "night",
+        "place": "plain"
+      }
+    ]
+  },
+  "duet": {
+    "page3_scene_description": "Pip the robot owl sits on a pile of books at night, reading a glowing newspaper. The front page shows a friendly helper robot on a phone screen, with a raised hand to ask a question.",
+    "hidden_elements": [
+      {
+        "element": "glowing newspaper",
+        "fun_fact": "This is real news! A company called Anthropic made an AI helper named Claude Duet.",
+        "kind": "true"
+      },
+      {
+        "element": "phone screen",
+        "fun_fact": "Claude Duet has its own apps for Android and iPhone.",
+        "kind": "true"
+      },
+      {
+        "element": "raised hand",
+        "fun_fact": "This helper checks with you before it does a task for you, just like asking \"May I?\"",
+        "kind": "true"
+      }
+    ],
+    "ai_word": "AI agent",
+    "ai_word_definition": "An AI that can do tasks for you, not just answer questions.",
+    "ai_word_illustration_prompt": "Warm watercolor friendly robot raising its hand to ask first",
+    "settings": [
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "day",
+        "place": "office"
+      },
+      {
+        "time": "day",
+        "place": "office"
+      },
+      {
+        "time": "day",
+        "place": "office"
+      },
+      {
+        "time": "dusk",
+        "place": "plain"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "plain"
+      },
+      {
+        "time": "night",
+        "place": "plain"
+      }
+    ],
+    "story_id": "01a1c764-83e7-72ba-8399-8bb5e4cdbaba"
+  },
+  "storm": {
+    "page3_scene_description": "Pip the robot owl sits in her nest at night with a glowing newspaper. The front page shows a row of little computer doors with padlocks, and a sneaky raccoon peeking at one lock.",
+    "hidden_elements": [
+      {
+        "element": "padlocks",
+        "fun_fact": "Passwords work like locks on computer doors. Long, secret passwords are harder to guess.",
+        "kind": "explain"
+      },
+      {
+        "element": "sneaky raccoon",
+        "fun_fact": "In the real news, the sneaky ones were hackers who used an AI tool to guess passwords very fast.",
+        "kind": "true"
+      },
+      {
+        "element": "glowing newspaper",
+        "fun_fact": "Microsoft found the attack and shared the news in October 2026.",
+        "kind": "true"
+      }
+    ],
+    "ai_word": "hacker",
+    "ai_word_definition": "Someone who breaks into computers they are not allowed to use.",
+    "ai_word_illustration_prompt": "Warm watercolor robot owl locking a glowing door with key",
+    "settings": [
+      {
+        "time": "night",
+        "place": "street"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "street"
+      },
+      {
+        "time": "night",
+        "place": "street"
+      },
+      {
+        "time": "dusk",
+        "place": "rooftop"
+      },
+      {
+        "time": "dusk",
+        "place": "street"
+      },
+      {
+        "time": "night",
+        "place": "bedroom"
+      },
+      {
+        "time": "night",
+        "place": "plain"
+      },
+      {
+        "time": "night",
+        "place": "plain"
+      }
+    ],
+    "story_id": "01a1c764-83e7-792a-bdd6-bb6735b65bbf"
+  }
+}
