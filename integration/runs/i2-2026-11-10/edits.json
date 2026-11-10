@@ -1,0 +1,62 @@
+[
+  {
+    "field": "source_title",
+    "kind": "rename",
+    "change": "Scout title -> source_title",
+    "values": 1
+  },
+  {
+    "field": "id, date, full_text_note (Scout)",
+    "kind": "drop",
+    "change": "not in the contract; the Scout id is not a UUID v7",
+    "values": 3
+  },
+  {
+    "field": "story_id",
+    "kind": "replace",
+    "change": "'praise' -> new UUID v7",
+    "values": 1
+  },
+  {
+    "field": "script_5to7, script_8to10",
+    "kind": "restructure",
+    "change": "two files with one age each -> one file with both scripts",
+    "values": 1
+  },
+  {
+    "field": "age_level",
+    "kind": "drop",
+    "change": "per-file age has no place in the joined file",
+    "values": 2
+  },
+  {
+    "field": "page",
+    "kind": "add",
+    "change": "page number from the position in `pages`",
+    "values": 20
+  },
+  {
+    "field": "tone",
+    "kind": "rename",
+    "change": "tone_tag -> tone",
+    "values": 20
+  },
+  {
+    "field": "text, tags",
+    "kind": "restructure",
+    "change": "sentences[{tag, text}] -> text (sentences joined by a space) + tags[]",
+    "values": 20
+  },
+  {
+    "field": "parent_card.ai_concept",
+    "kind": "rename",
+    "change": "concept -> ai_concept",
+    "values": 1
+  },
+  {
+    "field": "parent_card.question_to_ask",
+    "kind": "rename",
+    "change": "question -> question_to_ask",
+    "values": 1
+  }
+]

@@ -1,0 +1,252 @@
+{
+  "story_id": "01a1c740-9458-7143-8dcd-74b336fbc2e2",
+  "title": "Pip and the Helper School",
+  "source_title": "Microsoft and CMU team up to train early career software engineers",
+  "source_links": [
+    "https://www.cs.cmu.edu/news/2026/microsoft-cmu-praise"
+  ],
+  "confidence": 5,
+  "first_rating": "green",
+  "full_text": "Carnegie Mellon and Microsoft launched the Preceptorship for AI-accelerated Software Engineering (PRAISE) program. It gives early career Microsoft engineers online courses through CMU's School of Computer Science, plus hands-on mentorship from senior engineers at Microsoft. Jace Watson, a Microsoft software engineer working in Seattle, is taking the classes. He wanted to learn to use AI tools well, since his college education didn't cover them much. The idea came from an October 2025 visit to CMU by Mark Russinovich, a CMU alumnus and Microsoft Azure technical fellow. He noted that AI helps senior engineers more than junior ones. Russinovich said AI doesn't eliminate the need for junior engineers. This semester, participants are taking Machine Learning in Production and the first part of Preceptorship in AI-Augmented Software Engineering. In spring, participants will take DevOps: Engineering for Secure Development and Deployment and the second part of the preceptorship sequence. These can count toward a master's degree in software engineering. CMU hopes to grow the program and possibly add other industry partners.",
+  "script_5to7": [
+    {
+      "page": 1,
+      "slot": "cover",
+      "tone": "warm",
+      "text": "Pip and the Helper School.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip the robot owl on a moonlit windowsill, a glowing school sign behind."
+    },
+    {
+      "page": 2,
+      "slot": "character",
+      "tone": "calm",
+      "text": "Pip is a little robot owl. Pip reads the news at night.",
+      "tags": [
+        "imagine",
+        "imagine"
+      ],
+      "scene_description": "Pip in a cozy nest of books, reading a tiny glowing newspaper."
+    },
+    {
+      "page": 3,
+      "slot": "news_discovery",
+      "tone": "curious",
+      "text": "A school and a company made a plan. They help new workers learn to use AI tools.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "Pip's newspaper shows two buildings shaking hands."
+    },
+    {
+      "page": 4,
+      "slot": "exploration",
+      "tone": "curious",
+      "text": "New workers learn from older workers. Pip peeks in the window.",
+      "tags": [
+        "true",
+        "imagine"
+      ],
+      "scene_description": "Pip flies over a big office with friendly desks."
+    },
+    {
+      "page": 5,
+      "slot": "challenge",
+      "tone": "quiet",
+      "text": "One new worker learned little about AI in school. Pip feels lost with new tools too.",
+      "tags": [
+        "true",
+        "imagine"
+      ],
+      "scene_description": "Pip holds a strange new tool and looks puzzled."
+    },
+    {
+      "page": 6,
+      "slot": "turning_point",
+      "tone": "warm",
+      "text": "A leader said new workers are still needed.",
+      "tags": [
+        "true"
+      ],
+      "scene_description": "A kind grown-up waves at Pip from a desk."
+    },
+    {
+      "page": 7,
+      "slot": "resolution",
+      "tone": "excited",
+      "text": "Now they take classes and get a helper. Pip claps her wings.",
+      "tags": [
+        "true",
+        "imagine"
+      ],
+      "scene_description": "Pip claps her wings in a classroom full of smiles."
+    },
+    {
+      "page": 8,
+      "slot": "reflection",
+      "tone": "calm",
+      "text": "Learning is for everyone. Maybe you will learn AI tools one day too.",
+      "tags": [
+        "explain",
+        "maybe"
+      ],
+      "scene_description": "Pip settles into her nest under the stars."
+    },
+    {
+      "page": 9,
+      "slot": "real_world_facts",
+      "tone": "calm",
+      "text": "Carnegie Mellon and Microsoft made a program. New workers get help from workers who know more.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "A simple page with two real facts and a little source tag."
+    },
+    {
+      "page": 10,
+      "slot": "quiz",
+      "tone": "excited",
+      "text": "Quiz time! Let's see what you remember.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip holds up three glowing cards."
+    }
+  ],
+  "script_8to10": [
+    {
+      "page": 1,
+      "slot": "cover",
+      "tone": "warm",
+      "text": "Pip and the Helper School.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip the robot owl on a moonlit windowsill, a glowing school sign behind."
+    },
+    {
+      "page": 2,
+      "slot": "character",
+      "tone": "calm",
+      "text": "Pip is a small robot owl. She reads the news each night. Tonight, one story makes her feathers fluff up.",
+      "tags": [
+        "imagine",
+        "imagine",
+        "imagine"
+      ],
+      "scene_description": "Pip in a cozy nest of books, reading a tiny glowing newspaper."
+    },
+    {
+      "page": 3,
+      "slot": "news_discovery",
+      "tone": "curious",
+      "text": "Carnegie Mellon and Microsoft started a program called PRAISE. It helps new software engineers use AI tools well. Software engineers write the code that makes apps work.",
+      "tags": [
+        "true",
+        "true",
+        "explain"
+      ],
+      "scene_description": "Pip's newspaper shows a university and a tech company shaking hands."
+    },
+    {
+      "page": 4,
+      "slot": "exploration",
+      "tone": "curious",
+      "text": "The new engineers take classes online. They also get a coach who knows the job well.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "Pip flies over an office where a senior engineer helps a new one."
+    },
+    {
+      "page": 5,
+      "slot": "challenge",
+      "tone": "quiet",
+      "text": "Jace Watson's college did not teach him much about AI tools. A leader saw that AI helps skilled engineers more than new ones. Maybe new tools feel hard when no one shows you how.",
+      "tags": [
+        "true",
+        "true",
+        "maybe"
+      ],
+      "scene_description": "Pip holds a strange new tool and looks puzzled."
+    },
+    {
+      "page": 6,
+      "slot": "turning_point",
+      "tone": "warm",
+      "text": "Mark Russinovich is a leader at Microsoft. He said AI does not remove the need for new engineers. Pip likes that. Everyone has to start somewhere.",
+      "tags": [
+        "true",
+        "true",
+        "imagine",
+        "explain"
+      ],
+      "scene_description": "A kind grown-up at a whiteboard, with Pip listening."
+    },
+    {
+      "page": 7,
+      "slot": "resolution",
+      "tone": "excited",
+      "text": "Now the engineers learn in class and with a coach. Their classes can count toward a master's degree.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "Pip claps her wings in a classroom full of smiles."
+    },
+    {
+      "page": 8,
+      "slot": "reflection",
+      "tone": "calm",
+      "text": "Pip thinks smart tools work best with people who keep learning. Maybe one day you will learn with an AI tool and a good teacher.",
+      "tags": [
+        "imagine",
+        "maybe"
+      ],
+      "scene_description": "Pip settles into her nest under the stars."
+    },
+    {
+      "page": 9,
+      "slot": "real_world_facts",
+      "tone": "calm",
+      "text": "Carnegie Mellon and Microsoft launched PRAISE. New engineers get coaching from senior engineers at Microsoft. The idea started with a visit to CMU in October 2025.",
+      "tags": [
+        "true",
+        "true",
+        "true"
+      ],
+      "scene_description": "A simple page with real facts and source tags."
+    },
+    {
+      "page": 10,
+      "slot": "quiz",
+      "tone": "excited",
+      "text": "Quiz time! Let's see what you remember.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip holds up three glowing cards."
+    }
+  ],
+  "parent_card": {
+    "ai_concept": "AI tools help people work, but people still need to learn and grow.",
+    "background": "Carnegie Mellon and Microsoft started PRAISE, a program where new software engineers take classes and get coached by senior engineers on using AI tools well.",
+    "question_to_ask": "Who is someone who helps you learn new things?",
+    "honest_answer": "Even with smart AI tools, people learn best with teachers and helpers. A Microsoft leader said AI does not remove the need for new engineers."
+  },
+  "key_facts": [
+    "Carnegie Mellon and Microsoft started a program called PRAISE.",
+    "New engineers in PRAISE get coaching from senior engineers.",
+    "A Microsoft leader said AI does not remove the need for new engineers."
+  ],
+  "themes": [
+    "curiosity",
+    "teamwork"
+  ],
+  "review_status": "draft"
+}
