@@ -5,7 +5,10 @@ Writes results/results.json and prints a summary table.
 No third-party packages needed except jsonschema.
 """
 import json, re, glob, os
-from jsonschema import Draft202012Validator
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:  # jsonschema 3.x (e.g. Ubuntu 22.04): our schema uses only Draft 7 features
+    from jsonschema import Draft7Validator as Draft202012Validator
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SLOTS = ["cover", "character", "news_discovery", "exploration", "challenge",
