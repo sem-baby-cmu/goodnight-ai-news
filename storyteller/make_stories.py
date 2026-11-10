@@ -55,9 +55,9 @@ def page(n, p, setting, scene=None):
     return out
 
 
-def build(name, extras):
+def build(name, extras, scripts_dir=HERE / "outputs"):
     src = json.loads((HERE / "sources" / f"{name}.json").read_text())
-    scripts = {age: json.loads((HERE / "outputs" / f"{name}_{age}.json").read_text()) for age in AGES}
+    scripts = {age: json.loads((scripts_dir / f"{name}_{age}.json").read_text()) for age in AGES}
     a, b = scripts["5to7"], scripts["8to10"]
     assert a["title"] == b["title"] and a["parent_card"] == b["parent_card"] and a["key_facts"] == b["key_facts"], name
     assert len(extras["settings"]) == 10, name

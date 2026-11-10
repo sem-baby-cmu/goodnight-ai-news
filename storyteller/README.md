@@ -20,6 +20,8 @@ python3 checks.py --selftest   # syllable counter check (25 known words)
 python3 checks.py              # scores every script in outputs/
 python3 build_evidence.py      # writes results/evidence.html
 python3 make_stories.py --check  # writes stories/<story_id>.json and validates them
+python3 run_live.py              # live run through the Anthropic API (needs ANTHROPIC_API_KEY)
+python3 run_live.py --mock       # same pipeline with no API: replays outputs/
 ```
 Python 3.9+. One extra package for `checks.py`: `jsonschema`. `make_stories.py` uses the standard library only.
 `results/` is build output and is not tracked. Run the commands above to make it.
@@ -33,6 +35,7 @@ Python 3.9+. One extra package for `checks.py`: `jsonschema`. `make_stories.py` 
 | `storyteller_output.schema.json` | Pilot output format (one age per file). Replaced by `integration/story.schema.json` for handoff |
 | `stories/<story_id>.json` | **Handoff files.** One per story, both ages, contract format. Hand these to Producer and Playmate |
 | `story_extras.json` | Story-level content per story: `story_id`, `ai_word`, definition, illustration prompt, `hidden_elements`, page 3 scene, `setting` per page |
+| `run_live.py` | Live run: 3 API calls per story (2 scripts, 1 story call), then build, `checks.py`, and `validate.py`. Logs time, tokens, and cost to `live/<run_id>/run_log.json` |
 | `make_stories.py` | Joins `sources/`, `outputs/`, and `story_extras.json` into `stories/`, then runs `integration/validate.py` |
 | `sources/*.json` | 3 real AI news stories in Scout's format (the stories in the Goodnight, AI demo) |
 | `round1/outputs/*.json` | Round 1 scripts (prompt v4) |
