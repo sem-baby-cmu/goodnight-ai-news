@@ -358,3 +358,21 @@ it("synthesizeSpeech invalid base64 throws ModelOutputError", async () => {
   expect(error).toBeInstanceOf(ModelOutputError);
   expect(error).toMatchObject({ modelId: "m-tts", usage: null });
 });
+
+describe("no silent audio fixes", () => {
+  it("synthesizeSpeech rejects PCM with an odd byte count", async () => {
+    const { fetch } = stubFetch(() => speechAnswer("audio/L16;rate=24000", new Uint8Array(481)));
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(UnsupportedAudioFormatError);
+    expect(error).toMatchObject({ modelId: "m-tts", usage: null });
+  });
+
+  it("synthesizeSpeech rejects a WAV whose data chunk is larger than the file", async () => {
+    const wav = pcmToWav(new Uint8Array(4800), 24000, 1);
+    const truncated = wav.subarray(0, wav.length - 100);
+    const { fetch } = stubFetch(() => speechAnswer("audio/wav", truncated));
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(UnsupportedAudioFormatError);
+    expect(error).toMatchObject({ modelId: "m-tts", usage: null });
+  });
+});
