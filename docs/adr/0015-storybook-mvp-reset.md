@@ -2,6 +2,9 @@
 
 - Status: Accepted
 - Date: 2026-11-19
+- Revised: 2026-11-19. The Durable Workflow row now names both end states of a
+  run, as the design does since revision 2. The decision (no `waitForEvent`)
+  does not change (#34).
 - Decided by: Jinyu Liu (owner of all technical decisions for the MVP)
 - Detail: [`docs/specs/storybook-mvp/`](../specs/storybook-mvp/requirements.md)
 - Supersedes: ADR 0003, 0004, 0005, 0006, 0012, 0014
@@ -27,7 +30,7 @@ Producer character design and visual style. Build five parts:
 
 | Part | Decision |
 | :-- | :-- |
-| Durable Workflow | One Cloudflare Workflow instance per production run. Scope is the full story or one page target (scene or audio). Steps: freeze inputs, script, page scenes, layout, narration, assemble. Steps pass IDs and R2 keys only. No `waitForEvent`: a run ends at `draft_ready`. |
+| Durable Workflow | One Cloudflare Workflow instance per production run. Scope is the full story or one page target (scene or audio). Steps: freeze inputs, script, page scenes, layout, narration, assemble. Steps pass IDs and R2 keys only. No `waitForEvent`: a run ends at `draft_ready` or `needs_review`. |
 | Storybook DSL | zod schemas, independent of the renderer. A page has narration, a background, layers, animations from a closed list, and tap interactions from a closed list. Each layer has its own `instanceId`. |
 | Asset pipeline and registry | All 13 characters and their props are rows in D1, with versioned files in R2. Each character declares its renderer (`svg-rig`, `svg`, or `webp`), legal pose and expression pairs, anchor, foot line, and whether it can flip. Pip starts as a rigged SVG (parts for blink, wave, expressions). The other characters start as transparent WebP cut-outs and move to SVG one at a time. |
 | Studio | React app behind Cloudflare Access. Run progress, page editor, save as a new revision, regenerate one page target, publish. |
