@@ -84,6 +84,7 @@ export async function newCall(db: Db, runId: string, step: string, pageId = ""):
     purpose: "first",
     result: { ok: true },
     basis: {},
+    expectedHeads: {},
     model: "test-model",
     createdAt: new Date().toISOString(),
   });
