@@ -504,7 +504,7 @@ Offline Node.js scripts, run by the developer.
 | Measure | Alpha bounds, foot point (lowest opaque row, centre), face box (from the crop map) | Values for the registry manifest |
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
 | Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
-| Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows | Registry rows |
+| Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows. One (`key`, `version`) always holds the same bytes (R65): publish compares the file digests, renderer and manifest of an existing version, and any difference is an error, never a skip | Registry rows |
 
 All 13 characters get WebP cut-outs. Pip gets a rigged SVG in S1. Other
 characters move to SVG later, one at a time, as a new asset version.
@@ -518,7 +518,7 @@ All IDs are UUID version 7, lower case (ADR 0007).
 | Table | Columns | Notes |
 | :-- | :-- | :-- |
 | `asset` | `id`, `key` (unique, for example `pip`), `kind` (`character`, `prop`, `scenery`, `sfx`), `name`, `created_at` | One row per asset. |
-| `asset_version` | `id`, `asset_id`, `version`, `renderer` (`svg-rig`, `svg`, `webp`, `audio`), `manifest` (JSON), `r2_prefix`, `active`, `created_at` | Unique `(asset_id, version)`. One active version per asset. |
+| `asset_version` | `id`, `asset_id`, `version`, `renderer` (`svg-rig`, `svg`, `webp`, `audio`), `manifest` (JSON), `files` (JSON: file name to lower-case SHA-256 hex; null for a row published before R65), `r2_prefix`, `active`, `created_at` | Unique `(asset_id, version)`. One active version per asset. A version with `files` null cannot be published again; publish a new version (R65). |
 | `story` | `id`, `title`, `status` (`draft`, `published`; becomes `published` with the first release pointer update and never goes back), `heads` (JSON, starts `{ source }`), `heads_version` (integer, starts 0), `published_release_id`, `created_at` | `heads` maps `<kind>` or `<kind>:<pageId>` to a revision ID. |
 | `run` | `id`, `story_id`, `scope` (JSON), `status`, `basis` (JSON), `registry` (JSON), `workflow_instance_id`, `error` (JSON), `created_at`, `finished_at` | Status: `queued`, `running`, `draft_ready`, `needs_review`, `failed`. |
 | `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `expected_heads` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` and `expected_heads` are read at the first attempt; a retry reuses them. `expected_heads` maps each key that the step moves to its head at that moment (`null` for none; `{}` when the step moves no key) (R58). For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
