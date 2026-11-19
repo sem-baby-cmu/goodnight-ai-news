@@ -15,12 +15,12 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
 | [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
-| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 32 |
+| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 33 |
 | [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 17 |
-| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 4 | 22 |
-| [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 13 |
+| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 4 | 25 |
+| [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 14 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 21 |
-| Total | | | 23 | 160 |
+| Total | | | 23 | 165 |
 
 ## Format
 
@@ -68,7 +68,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 12 scenarios are `spec (to implement)`, 130 have an
+Current state: 30 scenarios are `spec (to implement)`, 130 have an
 automated test, and 5 are `manual · not run`.
 
 ## Coverage of the requirements
@@ -92,9 +92,11 @@ automated test, and 5 are `manual · not run`.
 | AC-8 A late result is kept as `superseded` | EDT-04.S1 |
 | AC-9 Publishing is blocked; "still fits" | PUB-02.S1 to PUB-02.S7, EDT-03.S2 |
 | AC-10 A release has a new prefix and changes no earlier release | PUB-01.S1, PUB-01.S4 |
-| AC-11 A release has copies of its asset versions | PUB-01.S3 |
-| AC-12 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2 |
-| AC-13 The Studio is behind Access; the Player is public | SYS-03.S1, SYS-03.S2 |
+| AC-11 A release has copies of its asset versions, with each backdrop | PUB-01.S3, PUB-01.S10 |
+| AC-12 Every scene names a backdrop with a variant for its sky | RUN-03.S15, RUN-03.S16, EDT-03.S23 |
+| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler | PLY-02.S4, PLY-04.S1 to PLY-04.S10 |
+| AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2 |
+| AC-15 The Studio is behind Access; the Player is public | SYS-03.S1, SYS-03.S2 |
 
 ## Coverage of the design
 

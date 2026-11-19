@@ -24,9 +24,11 @@ The design of ADR 0015 cannot give that look:
   PLY-02.S4). The approved mock has it below the stage.
 - A page turn is a tap with no defined transition.
 
-No environment stores a `scene` revision or a release yet:
-`apps/storybook/wrangler.jsonc:13` has no `database_id` ("local runs provision
-the database automatically"). A schema change now breaks no stored data.
+No deployed environment exists yet: `apps/storybook/wrangler.jsonc:13` has no
+`database_id` ("local runs provision the database automatically"), so no
+deploy can bind a remote D1. Local databases are disposable. A scene that has
+no `backdrop` (for example from a local database made before this change)
+fails validation like any other invalid scene; nothing fills it in.
 
 ## Decision
 
@@ -43,26 +45,37 @@ with this record.
 
 - `asset.kind` gets the value `backdrop`. A backdrop is a painted full-frame
   background with no characters and no text, for example `meadow`,
-  `riverbank`, `cozy-room`.
+  `riverbank`, `village-street`.
+- MVP backdrops are outdoor scenes only. The scenery assets and the `sky-*`
+  slots are outdoor objects (sun, clouds, trees, houses); an indoor backdrop
+  needs a separate decision about which of them may appear.
 - A backdrop is not a layer. `PageScene` gets a required field
   `backdrop: string` (an asset key). The model picks it from an enum built from
   the frozen registry, the same as `ref` and `templateId`.
 - `PageScene.sky` stays. It picks the variant of the backdrop: one file per
   sky palette. A backdrop lists the palettes that it has. The pair
   (`backdrop`, `sky`) must be one of them; otherwise validation fails with
-  `backdrop_sky_mismatch`. An indoor backdrop can have only `day` and
-  `night`, for example.
+  `backdrop_sky_mismatch`.
 - One backdrop file is 2400 x 1200 stage units: the 1600 x 1200 stage in the
-  middle and 400 units of bleed on each side. Layers stay on the stage. The
+  middle and 400 units of bleed on each side. Layers are drawn in a separate
+  container that clips to the stage, so no layer shows in the bleed. The
   layout checks do not change.
 - Every backdrop fits every template. The art contract (design "8. Asset
-  pipeline") keeps the character zone of all 8 templates clear of painted
-  objects. A review sheet shows the slot boxes of all templates over each
-  backdrop variant, and a person approves it before publish.
+  pipeline") keeps the floor band open across the whole stage. A review sheet
+  draws the slot envelopes of all templates (computed from the real assets)
+  over each variant. A person approves it, and publish checks the approval.
+- Scope limit: characters stand in front of the painting. A character cannot
+  sit at a painted table or stand behind a painted object. The full-frame
+  look comes from the painting around and behind the cast.
 - Scenery slots stay. A scenery layer is drawn over the backdrop.
 - The first slice needs no new art: the asset pipeline makes one backdrop,
   `meadow`, in code (sky colour and three hills as SVG), with all 4 palettes.
-  The painted backdrops follow as new assets when the Producer delivers them.
+  It is a real registry asset that a scene names, not a default. The painted
+  backdrops follow as new assets when the Producer delivers them.
+- `meadow` alone cannot prove the design. The S2 premise test of backdrop
+  choice and the device tests (4G load, frame time during a turn) need at
+  least 3 backdrops, at least 2 of them painted WebP files at full size, and
+  at least 1 with only some of the palettes.
 - A backdrop is an asset version like any other. A `scene` revision records
   it in `asset_versions`, and publish copies it into the release.
 
@@ -76,7 +89,9 @@ container wider than 4:3, the backdrop bleed fills the extra width.
 A page turn is a paper page-turn transition of 500 ms, made with transforms
 and opacity only. The narration starts in the tap handler, before the
 transition ends. Reduced motion gives a 200 ms cross-fade. The rules are in
-design "5. Scene runtime".
+design "5. Scene runtime". If the device test measures a frame time p95 above
+33 ms during the turn, the owner decides between the cross-fade for all
+devices and a lighter turn.
 
 ## Reasons
 
@@ -105,8 +120,10 @@ design "5. Scene runtime".
 
 - `packages/dsl`: `AssetKind`, the manifest union, `PageScene.backdrop`, the
   JSON schema builder, and the `backdrop_sky_mismatch` check.
-- `packages/scene-runtime`: the backdrop element with bleed, and the page-turn
-  transition in the Player.
+- `packages/scene-runtime`: the backdrop frame with bleed, a stage container
+  that clips layers, the paper colour instead of the sky colour behind an
+  unloaded backdrop, an explicit page phase for `enter` animations, and the
+  page-turn transition in the Player.
 - `tools/assets`: the code-made `meadow` backdrop, a backdrop build step, and
   the review sheet.
 - Studio: a backdrop picker in the page editor.
@@ -122,3 +139,13 @@ design "5. Scene runtime".
   decision before the first painted backdrop.
 - The list of painted backdrops for the MVP, and their palettes. Product
   content; owner decision.
+- Indoor backdrops: which scenery and slots they allow. Not in the MVP.
+- What the last page does on "next" (an end page, or back to the shelf).
+  Product behaviour; owner decision.
+- Narration audio is WAV when the provider returns raw PCM (design "1. Model
+  adapter"). About 15 s of 24 kHz 16-bit mono audio is about 700 KB, which
+  competes with the backdrop for the 2 s 4G budget. A compressed format is a
+  separate decision.
+- The root `DESIGN.md` describes the earlier Lullabyte front end (for example
+  a 0.55 s page turn). Where it disagrees with this record and the spec, the
+  spec wins; `DESIGN.md` needs its own update.

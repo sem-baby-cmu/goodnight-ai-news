@@ -210,6 +210,12 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Then the scene is validated, laid out, and saved as a human `scene` revision; its `asset_versions` records the active version of the new backdrop
 - Test: spec (to implement)
 
+### EDT-03.S24 The editor offers only the palettes of the chosen backdrop
+- Given the page editor with the backdrop `meadow` and the sky `cloudy`
+- When the operator picks a backdrop that has only `day`, `dusk`, and `night`
+- Then the sky choices are `day`, `dusk`, and `night`, and the sky becomes `day` (implementation decision, design "6. API")
+- Test: spec (to implement)
+
 ## EDT-04 A late result does not replace the operator's work
 
 As the operator, I want my edit to stay when a run finishes later, so that a

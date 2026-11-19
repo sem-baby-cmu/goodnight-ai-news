@@ -19,7 +19,7 @@ Spec: requirements US-5, "Core Features" 5 · design "4. Layout engine", "5. Sce
 ### PLY-01.S2 A page shows its layers on a scaled stage
 - Given a release page with `svg-rig`, `svg`, and `webp` layers
 - When the Player shows the page
-- Then `svg` and `svg-rig` assets are inlined, and `webp` assets are `<img>` elements; the stage is 1600 x 1200 units, scaled to the container with CSS; the backdrop variant of the page is the bottom element, 2400 x 1200 units with the stage in the middle, and its bleed fills a container wider than 4:3; one paper texture image covers the backdrop and the stage with `mix-blend-mode: multiply`, and no layer has an SVG filter
+- Then `svg` and `svg-rig` assets are inlined, and `webp` assets are `<img>` elements; the stage is 1600 x 1200 units, scaled to the container with CSS; the backdrop variant of the page is drawn in a frame of 2400 x 1200 units with the stage in the middle; the layers are in a stage container that clips them to 1600 x 1200; one paper texture image is tiled over the frame with `mix-blend-mode: multiply`, and no layer has an SVG filter
 - Test: spec (to implement)
 
 ### PLY-01.S3 Animations run on their target layers
@@ -80,16 +80,16 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime"
 ### PLY-02.S4 The narration text is below the stage
 - Given a page in the Player
 - When the device is in portrait, and then in landscape
-- Then the narration is HTML outside the stage, below it in both orientations (ADR 0016)
+- Then the narration is HTML outside the stage, below it in both orientations; the stage keeps 4:3 and is never cropped; the bleed fills the width up to 2:1 and the paper colour fills the rest; the narration font is at least 18 px (ADR 0016)
 - Test: spec (to implement)
 
 ## PLY-03 The story runs on phones and tablets
 
 As a child, I want the story to run well on a family phone or tablet, so that
-I can read it where I am. (Derived from AC-12 and the performance
+I can read it where I am. (Derived from AC-14 and the performance
 requirement.)
 
-Spec: requirements AC-12, "Non-functional Requirements" · design "Testing Strategy"
+Spec: requirements AC-14, "Non-functional Requirements" · design "Testing Strategy"
 
 ### PLY-03.S1 The Player works in Safari on iPad and iPhone
 - Given a fixture release, and WebKit with the iPad and iPhone profiles
@@ -125,7 +125,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 ### PLY-04.S1 A forward turn shows the page-turn transition
 - Given a book that was started, on page 2
 - When the child taps "next"
-- Then the page (stage, backdrop, and narration) turns about its left edge for 500 ms and shows page 3 below it; the transition changes only `transform` and `opacity`
+- Then the page sheet (backdrop frame, stage, and narration on opaque paper) turns about the left edge of the page panel for 500 ms and shows page 3 below it; the transition changes only `transform` and `opacity`
 - Test: spec (to implement)
 
 ### PLY-04.S2 A backward turn runs the other way
@@ -143,7 +143,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 ### PLY-04.S4 Loops stop when the turn starts
 - Given a page with looping animations and a next page with `enter` animations
 - When the child taps "next"
-- Then the looping animations of the old page stop when the turn starts, and the `enter` animations of the new page start when the turn ends
+- Then the looping animations and bubbles of the old page stop when the turn starts; the `enter` animations of the new page run once, when it is `current` and its assets are loaded; a layer with an `enter` `fade-in` is hidden until then
 - Test: spec (to implement)
 
 ### PLY-04.S5 A tap during a turn starts the next turn
@@ -161,5 +161,23 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 ### PLY-04.S7 A page whose images are not loaded yet still shows
 - Given a next page whose images are not loaded
 - When the child turns to it
-- Then its narration text and the paper colour show at once, and each image fades in for 200 ms when it is loaded
+- Then its narration text and the paper colour show at once (not a sky colour), and each image fades in for 200 ms when it is loaded; with reduced motion it appears without a fade
+- Test: spec (to implement)
+
+### PLY-04.S8 "Previous" during a forward turn turns back from the current page
+- Given a forward turn from page 2 to page 3 that has run for 200 ms
+- When the child taps "previous"
+- Then the turn to page 3 ends at once, a backward turn from page 3 to page 2 starts, and the narration of page 2 plays
+- Test: spec (to implement)
+
+### PLY-04.S9 Taps on layers are ignored during a turn
+- Given a turn that is running
+- When the child taps a character that has a tap interaction
+- Then no action runs
+- Test: spec (to implement)
+
+### PLY-04.S10 "Start" waits for the page data
+- Given a release whose manifest is loaded and whose page JSON files are still loading
+- When the Start gate is shown
+- Then "Start" is enabled only when every page JSON and the assets of page 1 are loaded
 - Test: spec (to implement)
