@@ -37,6 +37,43 @@ describe("registry", () => {
     expect(AssetManifestSchema.safeParse({ kind: "sfx", file: "a.mp3", durationMs: 1, poses: [] }).success).toBe(false);
   });
 
+  // A rect with no area gives layout scale Infinity and no issue (#47).
+  function withRect(field: "box" | "face", rect: { x: number; y: number; w: number; h: number }) {
+    if (owl.kind === "sfx") throw new Error("owl is a visual asset");
+    const first = { ...owl.poses[0]!, [field]: rect };
+    return { ...owl, poses: [first, ...owl.poses.slice(1)] };
+  }
+
+  function rectIssuePaths(manifest: unknown): string[] {
+    const result = AssetManifestSchema.safeParse(manifest);
+    if (result.success) return [];
+    // The union reports the issues of the visual branch inside `errors`.
+    return result.error.issues.flatMap((issue) =>
+      issue.code === "invalid_union"
+        ? issue.errors.flat().map((inner) => inner.path.join("."))
+        : [issue.path.join(".")],
+    );
+  }
+
+  it("AssetManifestSchema rejects a box or face with w = 0", () => {
+    expect(rectIssuePaths(withRect("box", { x: 0, y: 0, w: 0, h: 10 }))).toContain("poses.0.box.w");
+    expect(rectIssuePaths(withRect("face", { x: 0, y: 0, w: 0, h: 4 }))).toContain("poses.0.face.w");
+  });
+
+  it("AssetManifestSchema rejects a box or face with h = 0", () => {
+    expect(rectIssuePaths(withRect("box", { x: 0, y: 0, w: 100, h: 0 }))).toContain("poses.0.box.h");
+    expect(rectIssuePaths(withRect("face", { x: 0, y: 0, w: 4, h: 0 }))).toContain("poses.0.face.h");
+  });
+
+  it("AssetManifestSchema rejects a box or face with a negative size", () => {
+    expect(rectIssuePaths(withRect("box", { x: 0, y: 0, w: -10, h: 10 }))).toContain("poses.0.box.w");
+    expect(rectIssuePaths(withRect("face", { x: 0, y: 0, w: 4, h: -1 }))).toContain("poses.0.face.h");
+  });
+
+  it("AssetManifestSchema still accepts a small positive box and face", () => {
+    expect(AssetManifestSchema.safeParse(withRect("face", { x: 1, y: 1, w: 0.5, h: 0.5 })).success).toBe(true);
+  });
+
   it("selectPoseEntry picks the entry with pose and expression", () => {
     expect(selectPoseEntry(owl, "perch", "sleepy")?.file).toBe("perch-sleepy.webp");
   });
