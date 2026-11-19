@@ -37,6 +37,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
         out: { type: "string" },
         "no-review": { type: "boolean", default: false },
         version: { type: "string" },
+        src: { type: "string" },
       },
     });
   } catch (e) {
@@ -54,11 +55,11 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
   if (command === "svg") {
     const version = Number(values.version);
     if (!board || !Number.isInteger(version) || version < 1) {
-      error("usage: cli svg <key> --version <n> [--out <dir>]");
+      error("usage: cli svg <key> --version <n> [--src <dir>] [--out <dir>]");
       return 1;
     }
     try {
-      return await svgAsset(board, version, outDir, io.log, error);
+      return await svgAsset(board, version, values.src ?? SOURCES_DIR, outDir, io.log, error);
     } catch (e) {
       error(`svg ${board} v${version}: ${(e as Error).message}`);
       return 1;
@@ -66,7 +67,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
   }
   if (command !== "cut" && command !== "measure") {
     error("usage: cli <cut|measure> <board> | --all [--propose] [--out <dir>] [--no-review]");
-    error("       cli svg <key> --version <n> [--out <dir>]");
+    error("       cli svg <key> --version <n> [--src <dir>] [--out <dir>]");
     return 1;
   }
   if (!values.all && !board) {
@@ -114,19 +115,24 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
 // Reads assets/<key>/v<n>/, sanitises and checks every pose file, and writes the
 // sanitised text and asset.json to <out>/<key>/v<n>/. For `svg-rig` it also
 // compares the first pose with the v1 board cut-out `<out>/<key>/v1/<pose>-happy.webp`
-// (implementation decision: run `cut` for that board first) and prints `IoU=`.
-async function svgAsset(key: string, version: number, outDir: string, log: (l: string) => void, error: (l: string) => void): Promise<number> {
-  const src = join(SOURCES_DIR, key, `v${version}`);
+// (implementation decision: run `cut` for that board first), prints `IoU=`, and
+// fails below MIN_IOU. The comparison needs a v1 board cut-out, so an `svg-rig`
+// must be a character (MVP limit, PR #53 review). `--src` replaces `assets/`
+// for tests (implementation decision).
+const MIN_IOU = 0.9;
+async function svgAsset(key: string, version: number, sources: string, outDir: string, log: (l: string) => void, error: (l: string) => void): Promise<number> {
+  const src = join(sources, key, `v${version}`);
   const build = AssetBuildSchema.parse(JSON.parse(readFileSync(join(src, "asset.json"), "utf8")));
   if (build.key !== key || build.version !== version) throw new Error(`asset.json names ${build.key} v${build.version}`);
   if (build.renderer !== "svg" && build.renderer !== "svg-rig") throw new Error(`renderer ${build.renderer} is not an SVG renderer`);
   if (build.manifest.kind === "sfx") throw new Error("an sfx asset has no SVG");
+  if (build.renderer === "svg-rig" && build.kind !== "character") throw new Error(`an svg-rig must be a character (the IoU check needs a v1 board cut-out); ${key} is a ${build.kind}`);
   const dest = join(outDir, key, `v${version}`);
   const texts = new Map<string, string>();
   let failed = false;
   for (const file of new Set(build.manifest.poses.map((p) => p.file))) {
     const clean = sanitizeSvg(readFileSync(join(src, file), "utf8"));
-    const issues = checkSvg(clean, build);
+    const issues = checkSvg(clean, build, file);
     for (const i of issues) error(`${key}/v${version}/${file}: ${i.path}: ${i.code}: ${i.message}`);
     failed ||= issues.length > 0;
     texts.set(file, clean);
@@ -144,7 +150,12 @@ async function svgAsset(key: string, version: number, outDir: string, log: (l: s
     const reviewDir = join(outDir, "review");
     mkdirSync(reviewDir, { recursive: true });
     await writeCompareSheet({ svgPath, webpPath: reference, out: join(reviewDir, `${key}-v${version}-compare.png`) });
-    log(`IoU=${(await silhouetteIoU(svgPath, reference)).toFixed(4)}`);
+    const iou = await silhouetteIoU(svgPath, reference);
+    log(`IoU=${iou.toFixed(4)}`);
+    if (iou < MIN_IOU) {
+      error(`${key} v${version}: IoU ${iou.toFixed(4)} is below ${MIN_IOU.toFixed(2)}`);
+      return 1;
+    }
   }
   return 0;
 }
