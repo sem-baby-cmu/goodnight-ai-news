@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { type Issue, type Outline, type PageScene, PageSceneSchema, PageTextSchema, validateScene } from "@storybook/dsl";
 import { TEMPLATES, layoutScene } from "@storybook/layout";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { type Context, Hono, type MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
@@ -80,17 +80,25 @@ app.get("/health", (c) => c.text("ok"));
 
 // ---- Helpers ----
 
+const errorName = (err: unknown) => (err as Error | null)?.name ?? "unknown";
+
 // Writes the run row first, then the Workflow instance. If `create` throws,
-// the run is marked failed, so it is never left queued with no instance.
+// the run is marked failed, so it is never left queued with no instance. If
+// that mark also fails, the caller still answers 503 with the IDs. The log
+// holds only IDs and error names.
 async function startWorkflow(env: Env, db: Db, runId: string, storyId: string, scope: RunScope): Promise<boolean> {
   try {
     await env.STORY_RUN.create({ id: runId, params: { runId, storyId, scope } });
     return true;
   } catch (err) {
-    console.error(JSON.stringify({ event: "workflow_create_failed", runId, error: (err as Error | null)?.name ?? "unknown" }));
-    await markRunFailed(db, runId, {
-      errors: [{ runId, storyId, pageId: null, step: "create", providerStatus: null, message: "The Workflow instance could not be created." }],
-    });
+    console.error(JSON.stringify({ event: "workflow_create_failed", storyId, runId, error: errorName(err) }));
+    try {
+      await markRunFailed(db, runId, {
+        errors: [{ runId, storyId, pageId: null, step: "create", providerStatus: null, message: "The Workflow instance could not be created." }],
+      });
+    } catch (markErr) {
+      console.error(JSON.stringify({ event: "mark_run_failed_failed", storyId, runId, error: errorName(markErr) }));
+    }
     return false;
   }
 }
@@ -179,7 +187,7 @@ app.post("/api/studio/stories", body(CreateStoryRequestSchema), async (c) => {
   const ids = { storyId: newId(), sourceRevisionId: newId(), runId: newId() };
   await createStory(db, { ...ids, source: { text: limited.text, url, words: limited.words, truncated: limited.truncated } });
   if (!(await startWorkflow(c.env, db, ids.runId, ids.storyId, { kind: "full" }))) {
-    return c.json({ error: "workflow_unavailable", runId: ids.runId }, 503);
+    return c.json({ error: "workflow_unavailable", storyId: ids.storyId, runId: ids.runId }, 503);
   }
   return c.json({ storyId: ids.storyId, runId: ids.runId, words: limited.words, truncated: limited.truncated }, 202);
 });
@@ -267,8 +275,15 @@ app.get("/api/studio/runs/:id", ids, async (c) => {
     }
   }
 
-  const loaded = await loadStoryHeads(db, row.storyId);
-  const outline = loaded ? outlineOf(loaded.story.heads, loaded.revisions) : null;
+  // The pages of a full run come from the outline that this run wrote, not
+  // from the current outline head. No outline of this run: `script` only.
+  const [own] = await db
+    .select({ content: revision.content })
+    .from(revision)
+    .innerJoin(callLog, eq(callLog.callId, revision.callId))
+    .where(and(eq(callLog.runId, row.id), eq(revision.kind, "outline")))
+    .limit(1);
+  const outline = (own?.content as Outline | undefined) ?? null;
   const done = await db
     .selectDistinct({ step: callLog.step })
     .from(callLog)
@@ -347,7 +362,7 @@ app.put("/api/studio/stories/:id/pages/:pageId/text", ids, body(PutTextRequestSc
   if (!page) return notFound(c);
   const headId = page.heads[`page_text:${pageId}`] ?? null;
   if (headId !== basedOn) return headMoved(c, headId ? page.revisions.get(headId) : null);
-  const parsed = PageTextSchema.safeParse({ text });
+  const parsed = PageTextSchema.safeParse({ text: text.trim() });
   if (!parsed.success) return c.json({ error: "invalid_text", issues: zodIssues(parsed.error) }, 422);
   return save(c, db, { storyId, kind: "page_text", pageId, content: parsed.data, basis: {}, basedOn });
 });

@@ -8,7 +8,7 @@
   // The Vite plugin sets assets.directory at build time.
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/content/*", "/health"]
+    "run_worker_first": ["/api", "/api/*", "/content", "/content/*", "/health"]
   },
   // No database_id yet: local runs provision the database automatically.
   // #25 creates the remote database and writes its ID.
