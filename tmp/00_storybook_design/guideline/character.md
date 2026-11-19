@@ -1,30 +1,25 @@
-# Storybook Character Cast
+### Main character
 
-## Naming convention
+- **Pip — Robot:** a curious, kindhearted helper who learns about the world by solving everyday problems with friends
 
-Character names use simple alliteration: each character's name begins with the same letter as their character type, making the cast easy for young children to remember and recognize.
+### Core companions
 
-## Main character
+- **Cow:** dependable and caring, with a practical way of thinking
+- **Pig:** cheerful and creative, always ready to build, organize, or lend a hand
+- **Bobo — River otter:** energetic outdoor explorer who loves collecting interesting discoveries
+- **Nori — Red panda:** thoughtful and resourceful friend who notices details others may miss
 
-- **Robby Robot:** a curious, kindhearted helper who learns about the world by solving everyday problems with his friends.
+### Supporting characters
 
-## Core companions
+- **Dog:** playful and loyal companion who brings energy to group adventures
+- **Cat:** observant and independent thinker with a quietly curious nature
+- **Rabbit:** gentle planner who enjoys drawing, writing, and sharing ideas
+- **Lumi — Moth:** soft-spoken book lover who guides friends through nighttime stories and discoveries
 
-- **Coco Cow:** dependable and caring, with a calm and practical way of thinking.
-- **Penny Pig:** cheerful and creative, always ready to build, organize, or lend a hand.
-- **Oliver Otter:** an energetic outdoor explorer who loves water and collecting interesting discoveries.
-- **Rumi Red Panda:** a thoughtful and resourceful friend who notices details others may miss.
+### Special-purpose characters
 
-## Supporting characters
+- **Kiki — Tree frog:** inventive problem-solver who introduces experiments and useful gadgets
+- **Toma — Tortoise gardener:** patient mentor who shares knowledge about plants, seasons, and nature
+- **Puck — Mole baker:** warm and humorous neighborhood helper who teaches through food and everyday routines
+- **Sola — Sparrow mail carrier:** lively messenger who brings news, questions, and new adventures to the group
 
-- **Danny Dog:** a playful and loyal companion who brings energy to group adventures.
-- **Connie Cat:** an observant and independent thinker with a quietly curious nature.
-- **Rosie Rabbit:** a gentle planner who enjoys drawing, writing, and sharing ideas.
-- **Mary Moth:** a soft-spoken book lover who guides friends through nighttime stories and discoveries.
-
-## Special-purpose characters
-
-- **Finn Frog:** an inventive problem-solver who introduces experiments and useful gadgets.
-- **Tommy Tortoise:** a patient gardener and mentor who shares knowledge about plants, seasons, and nature.
-- **Milo Mole:** a warm and humorous neighborhood baker who teaches through food and everyday routines.
-- **Sunny Sparrow:** a lively mail carrier who brings news, questions, and new adventures to the group.
