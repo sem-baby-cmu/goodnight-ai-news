@@ -385,3 +385,52 @@ it("synthesizeSpeech without voice uses the configured voice", async () => {
     generationConfig: { speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } } },
   });
 });
+
+describe("response bodies over 16 MB", () => {
+  const LIMIT = 16 * 1024 * 1024;
+  const pad = "x".repeat(17 * 1024 * 1024);
+  const wav = pcmToWav(new Uint8Array(480), 24000, 1);
+  // Valid answers, padded past the limit, with no Content-Length.
+  const bigChat = () => new Response(JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }], pad }), { status: 200 });
+  const bigSpeech = () =>
+    new Response(
+      JSON.stringify({
+        candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/wav", data: btoa(String.fromCharCode(...wav)) } }] } }],
+        pad,
+      }),
+      { status: 200 },
+    );
+  // Small valid answers that declare a Content-Length of 17 MB.
+  const declared = (res: Response) => {
+    const headers = new Headers(res.headers);
+    headers.set("Content-Length", String(17 * 1024 * 1024));
+    return new Response(res.body, { status: 200, headers });
+  };
+
+  const expectTooLarge = (error: unknown) => {
+    expect(error).toBeInstanceOf(ModelOutputError);
+    expect((error as Error).message).not.toContain("xxxx");
+    expect((error as Error).message).not.toContain("ok");
+  };
+
+  it("generateJson rejects a body over 16 MB with no Content-Length", async () => {
+    expect(pad.length).toBeGreaterThan(LIMIT);
+    const { fetch } = stubFetch(() => bigChat());
+    expectTooLarge(await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest)));
+  });
+
+  it("generateJson rejects a Content-Length over 16 MB before it reads the body", async () => {
+    const { fetch } = stubFetch(() => declared(chatAnswer('{"ok":true}')));
+    expectTooLarge(await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest)));
+  });
+
+  it("synthesizeSpeech rejects a body over 16 MB with no Content-Length", async () => {
+    const { fetch } = stubFetch(() => bigSpeech());
+    expectTooLarge(await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest)));
+  });
+
+  it("synthesizeSpeech rejects a Content-Length over 16 MB before it reads the body", async () => {
+    const { fetch } = stubFetch(() => declared(speechAnswer("audio/wav", wav)));
+    expectTooLarge(await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest)));
+  });
+});
