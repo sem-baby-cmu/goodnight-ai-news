@@ -43,8 +43,12 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
   // Template.
   const template = ctx.templates.find((t) => t.id === scene.templateId);
   if (!template) add("templateId", "unknown_template", `Template "${scene.templateId}" is not in the template list.`);
-  // A pose that some slot lists is reserved for slots that list it (R35).
+  // A pose that some slot lists is reserved for slots that list it, and a
+  // slot with `poses` holds only those poses (R35). Checked only when the
+  // pose is present and the slot exists (R54).
   const reserved = new Set(ctx.templates.flatMap((t) => t.slots.flatMap((s) => s.poses ?? [])));
+  type Slot = LayoutTemplate["slots"][number];
+  const slotRejects = (slot: Slot, pose: string) => (slot.poses ? !slot.poses.includes(pose) : reserved.has(pose));
 
   // Layers, by index.
   const layerById = new Map<string, Layer>();
@@ -74,7 +78,7 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
     if (slot && slot.accepts !== layer.kind) {
       add(`${p}.slot`, "slot_kind_mismatch", `Slot "${slot.id}" accepts a ${slot.accepts}, not a ${layer.kind}.`);
     }
-    if (slot && layer.pose !== undefined && (slot.poses ? !slot.poses.includes(layer.pose) : reserved.has(layer.pose))) {
+    if (slot && layer.pose !== undefined && slotRejects(slot, layer.pose)) {
       add(`${p}.pose`, "slot_pose_mismatch", `Pose "${layer.pose}" is not allowed in slot "${slot.id}".`);
     }
 
@@ -178,8 +182,15 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
       } else if (a.action === "set_pose") {
         if (!hasPose(a.pose)) {
           add(`${q}.pose`, "unknown_pose", `Pose "${a.pose}" is not a pose of asset "${layer.ref}".`);
-        } else if (hasExpression(layer.expression) && !isLegal(m, a.pose, layer.expression)) {
-          add(q, "illegal_pair", `Pose "${a.pose}" with expression "${layer.expression}" is not legal for "${layer.ref}".`);
+        } else {
+          if (hasExpression(layer.expression) && !isLegal(m, a.pose, layer.expression)) {
+            add(q, "illegal_pair", `Pose "${a.pose}" with expression "${layer.expression}" is not legal for "${layer.ref}".`);
+          }
+          // The new pose follows the slot rule of the target layer (R51).
+          const slot = template?.slots.find((sl) => sl.id === layer.slot);
+          if (slot && slotRejects(slot, a.pose)) {
+            add(`${q}.pose`, "slot_pose_mismatch", `Pose "${a.pose}" is not allowed in slot "${slot.id}".`);
+          }
         }
       }
     });
