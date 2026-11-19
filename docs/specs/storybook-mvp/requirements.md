@@ -74,8 +74,18 @@ child can look at, listen to, and touch.
       drop a layer or swap a character on its own.
 - [ ] A change to the narration of page 3 followed by "regenerate audio" makes a
       new audio revision for page 3 only. All other revisions stay the same.
-- [ ] A retried workflow step does not create a second revision or a second
-      model call for the same call ID.
+- [ ] Each model call ID stores at most one result. A retried step reuses a
+      stored result and does not call the model again. The model is called a
+      second time only if the step stopped after the model answered and before
+      the result was stored.
+- [ ] A step that stopped after it wrote a revision and before it moved the
+      head completes the head move when it is retried.
+- [ ] A result that was generated from a page text that the operator has
+      since changed does not replace the operator's work. It is kept as
+      `superseded`.
+- [ ] Publishing is blocked unless every page has a page text, a scene, and an
+      audio, none of them is `needs_review`, and none is stale. The operator
+      can mark a stale scene as "still fits", which makes it current.
 - [ ] Publishing writes a release under a new R2 prefix and changes no earlier
       release. The Player of release 1 shows the same content after release 2
       is published.
@@ -95,9 +105,9 @@ child can look at, listen to, and touch.
   TTS: Gemini 3.8 Flash TTS.
 - **Workflow limits.** A step returns IDs or R2 keys only. A non-stream step
   result is at most 1 MiB (Cloudflare Workflows limits, checked 2026-11-19).
-- **Idempotency.** Every model call has a call ID. A revision is written once
-  per call ID. A heads pointer moves only if its current value is the expected
-  one.
+- **Idempotency.** Every model call has a call ID that includes its purpose
+  (first try or repair). A stored result is never requested again. A head
+  moves only by compare-and-set against the revision the step was based on.
 - **Performance.** On a mid-range phone, the frame time p95 on an animated page
   is 33 ms or less. A page's assets load in 2 s or less on a 4G connection.
 - **Assets.** SVG is the target format for characters and props. A transparent

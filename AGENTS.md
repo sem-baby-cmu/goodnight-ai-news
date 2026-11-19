@@ -38,8 +38,9 @@ Read [`README.md`](README.md) first for what the project is.
   swap a character to make it pass.
 - **Revisions never change.** Every stage output is a new revision row. Move a
   head only by compare-and-set.
-- **Retries are safe.** Every model call has a call ID. Write at most one
-  revision per call ID. Workflow steps return IDs and R2 keys only.
+- **Retries are safe.** Every model call has a call ID. Store its result once
+  in `call_log` and never request a stored result again. Workflow steps return
+  IDs and R2 keys only.
 - **Releases never change.** A release has its own R2 prefix with copies of
   the assets it uses.
 - **No generated code runs in the browser.** The renderer runs only the

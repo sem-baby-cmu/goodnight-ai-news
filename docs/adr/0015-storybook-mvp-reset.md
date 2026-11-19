@@ -42,12 +42,15 @@ Rules that hold from the first version:
 - **Failure goes to a person.** After one repair, a page that still fails is
   marked `needs_review` with its error and candidate. The run never drops a
   layer or swaps a character on its own.
-- **Immutable revisions.** Each stage output is a new revision row. A `heads`
-  table points at the current revision per story, kind, and page. A pointer
-  moves only if it still holds the expected value. A revision is written once
-  per model call ID, so a retried step does not repeat work.
-- **Staleness by hash.** A page audio is stale when its input hash differs from
-  the hash of the current narration. There is no general dependency graph.
+- **Immutable revisions.** Each stage output is a new, append-only revision
+  row. The story row holds a `heads` map of current revisions and a
+  `heads_version`. The map changes only by compare-and-set. Each model call ID
+  stores its result once in `call_log`, so a retried step does not call the
+  model again for a stored result. (Changed in design revision 2 after the
+  cross-family design review.)
+- **Staleness by basis.** Each revision records the revision IDs it was made
+  from. A revision is stale when one of them is no longer the current head.
+  There is no general dependency graph.
 - **Immutable releases.** Publish takes one snapshot of the heads, writes a new
   R2 prefix with the manifest, page JSON, audio, and copies of the asset
   versions in use, and then updates the release pointer.
