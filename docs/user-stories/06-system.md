@@ -143,28 +143,28 @@ Spec: requirements "Non-functional Requirements" · design "1. Model adapter", "
 - Given the Worker configuration
 - When the adapter makes a call
 - Then the model ID comes from an environment variable and is not in code; production and development differ only in configuration
-- Test: spec (to implement)
+- Test: @storybook/models · src/client.test.ts
 
 ### SYS-05.S2 The adapter returns JSON that is not validated
 - Given a `generateJson` call
 - When the adapter returns
 - Then the value is unvalidated JSON, and the caller validates it with zod
-- Test: spec (to implement)
+- Test: @storybook/models · src/client.test.ts
 
 ### SYS-05.S3 Speech comes back in a format that the browser plays
 - Given a `synthesizeSpeech` call where the provider returns raw PCM
 - When the adapter returns
 - Then the adapter adds a WAV header, and the result is audio that the browser can play
-- Test: spec (to implement)
+- Test: @storybook/models · src/client.test.ts
 
 ### SYS-05.S4 Speech in development goes to Google AI Studio directly
 - Given the development configuration
 - When the adapter makes a `synthesizeSpeech` call
 - Then the request goes to `https://generativelanguage.googleapis.com/v1beta`, and not through OpenRouter
-- Test: spec (to implement)
+- Test: @storybook/models · src/client.test.ts
 
 ### SYS-05.S5 Speech on Cloudflare goes through AI Gateway
 - Given the Cloudflare configuration
 - When the adapter makes a `synthesizeSpeech` call
 - Then the request goes to `https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio/v1beta`, and not through OpenRouter
-- Test: spec (to implement)
+- Test: @storybook/models · src/client.test.ts
