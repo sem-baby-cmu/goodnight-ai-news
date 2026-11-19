@@ -12,12 +12,14 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "jsdom": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {
     "@storybook/dsl": "workspace:*",
     "sharp": "catalog:",
+    "svgo": "catalog:",
     "tsx": "catalog:",
     "zod": "catalog:"
   }
