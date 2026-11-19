@@ -26,7 +26,7 @@ Spec: requirements US-7, "Core Features" 3 · design "2. StoryRun Workflow", "8.
 - Given an asset whose active version is the new one
 - When a new run starts
 - Then its `freeze` step records the new version as the active registry version
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### REG-01.S4 An old release keeps the old version
 - Given a release that was published before the new version
@@ -44,7 +44,7 @@ Spec: requirements US-7, "Core Features" 3 · design "2. StoryRun Workflow", "8.
 - Given a draft whose scenes were made with version `n` of an asset, and version `n + 1` is now active
 - When the operator starts a page run for the scene of one page
 - Then its `freeze` step records version `n + 1`, and the new scene is made with it; the other scenes of the draft do not change; the draft can hold scenes made with both versions
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## REG-02 Asset files are cut out, measured, and safe
 

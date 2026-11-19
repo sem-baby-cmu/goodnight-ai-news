@@ -17,19 +17,19 @@ Spec: requirements AC-6, AC-7, "Non-functional Requirements" · design "2. Story
 - Given a step that stopped after the `call_log` insert
 - When the platform retries the step
 - Then the model is called one time in total; the revision exists one time, and the head exists one time
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-01.S2 A retry completes a missed head move
 - Given a step that stopped after the revision insert and before the head move
 - When the platform retries the step
 - Then the step finds the stored result, inserts no new revision, and moves the head; the head points at the revision
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-01.S3 Only one window repeats a model call
 - Given a step that stopped after the model answered and before the result was stored
 - When the platform retries the step
 - Then the model is called a second time; no other stop point causes a second call
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-01.S4 Each call has its own ID and one result
 - Given a step that calls the model
@@ -41,19 +41,19 @@ Spec: requirements AC-6, AC-7, "Non-functional Requirements" · design "2. Story
 - Given a model call that returns a binary
 - When the step stores the result
 - Then the binary goes to R2 at `calls/<callId>.<ext>` first, and then the `call_log` row is inserted with the R2 key
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-01.S6 New IDs are assigned before the result is stored
 - Given a step that needs new IDs, for example `pageId`
 - When the step stores the result and is retried later
 - Then code assigns the IDs before the `call_log` insert, and the retry sees the same IDs
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-01.S7 A step returns IDs and keys only
 - Given any workflow step
 - When the step returns
 - Then the result holds only IDs and R2 keys, and a non-stream result is at most 1 MiB
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## SYS-02 Revisions never change, and a head moves only by compare-and-set
 
@@ -123,13 +123,13 @@ Spec: requirements "Non-functional Requirements" · design "Error Handling"
 - Given an error in a run
 - When the error is recorded
 - Then the record has `runId`, `storyId`, `pageId`, `step`, and the provider status
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-04.S3 Logs do not hold a full text
 - Given a run that reads a news text and gets model outputs
 - When the run writes logs
 - Then the logs do not contain the full news text or a full model output
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## SYS-05 One model adapter, set by configuration
 

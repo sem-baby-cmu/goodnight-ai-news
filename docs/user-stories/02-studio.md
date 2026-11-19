@@ -51,7 +51,7 @@ Spec: requirements US-2, AC-5 · design "3. Calls, revisions, and heads", "6. AP
 - Given a draft where the operator changed the text of page 3
 - When the operator starts a page run with scope `{ kind: "page", pageId: <page 3>, target: "audio" }`
 - Then the run does `freeze`, `audio:<page 3>`, and `finish`; only the audio of page 3 gets a new revision, with the current page text as its basis; all other revisions and heads stay the same
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### EDT-02.S4 A page text that fails validation is refused
 - Given a page whose `page_text` head has not moved since the operator loaded it, and an edited text that fails `PageText` validation, for example a text of 4 sentences or of more than 40 words
@@ -209,4 +209,4 @@ Spec: requirements AC-8 · design "3. Calls, revisions, and heads", "Error Handl
 - Given a full run that started `scene:<page 3>` with the basis `page_text:<page 3> = T1`, and an operator who then saved the new text `T2`
 - When `scene:<page 3>` commits
 - Then the scene revision is kept with `status = superseded`; the head does not move; the Studio shows page 3 as missing a current scene, and the operator can regenerate it
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
