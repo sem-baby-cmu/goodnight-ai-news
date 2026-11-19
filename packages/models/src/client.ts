@@ -51,7 +51,7 @@ async function providerText(res: Response): Promise<string | undefined> {
   return text || undefined;
 }
 
-type Request = { url: string; init: RequestInit; secrets: string[] };
+type Request = { url: string; init: RequestInit; secrets: string[]; modelId: string };
 
 function errorName(error: unknown): string {
   return error instanceof Error ? error.name : "unknown error";
@@ -67,6 +67,7 @@ async function readJson(res: Response, modelId: string): Promise<unknown> {
     throw new ModelHttpError(`Model response body could not be read (${errorName(error)})`, {
       status: 0,
       retryable: true,
+      modelId,
     });
   }
   try {
@@ -77,7 +78,7 @@ async function readJson(res: Response, modelId: string): Promise<unknown> {
 }
 
 // One request. Classifies failures; never retries and never deduplicates.
-async function send(doFetch: typeof fetch, { url, init, secrets }: Request): Promise<Response> {
+async function send(doFetch: typeof fetch, { url, init, secrets, modelId }: Request): Promise<Response> {
   let res: Response;
   try {
     res = await doFetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
@@ -85,6 +86,7 @@ async function send(doFetch: typeof fetch, { url, init, secrets }: Request): Pro
     throw new ModelHttpError(`Model request failed before an answer (${errorName(error)})`, {
       status: 0,
       retryable: true,
+      modelId,
     });
   }
   if (!res.ok) {
@@ -92,6 +94,7 @@ async function send(doFetch: typeof fetch, { url, init, secrets }: Request): Pro
     throw new ModelHttpError(`Model request failed with HTTP ${res.status}`, {
       status: res.status,
       retryable: res.status === 429 || res.status >= 500,
+      modelId,
       ...(text === undefined ? {} : { providerMessage: redact(text, secrets) }),
     });
   }
@@ -116,6 +119,7 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
       const res = await send(doFetch, {
         url: `${config.baseUrl}/chat/completions`,
         secrets,
+        modelId: configuredId,
         init: {
           method: "POST",
           headers,
@@ -152,7 +156,7 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
 
     async synthesizeSpeech(req) {
       const { url, init } = buildSpeechRequest(config, req);
-      const res = await send(doFetch, { url, init, secrets });
+      const res = await send(doFetch, { url, init, secrets, modelId: config.models.tts });
       try {
         return decodeSpeechResponse(await readJson(res, config.models.tts));
       } catch (error) {

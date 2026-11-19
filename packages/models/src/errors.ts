@@ -5,16 +5,22 @@ import type { Usage } from "./client";
 // Network failures and timeouts have `status: 0`. `message` never holds
 // provider text; `providerMessage` holds at most 300 characters of it, with
 // every configured key replaced by "[redacted]".
+// `modelId` is the configured model ID of the request.
 export class ModelHttpError extends Error {
   status: number;
   retryable: boolean;
+  modelId: string;
   providerMessage?: string;
 
-  constructor(message: string, info: { status: number; retryable: boolean; providerMessage?: string }) {
+  constructor(
+    message: string,
+    info: { status: number; retryable: boolean; modelId: string; providerMessage?: string },
+  ) {
     super(message);
     this.name = "ModelHttpError";
     this.status = info.status;
     this.retryable = info.retryable;
+    this.modelId = info.modelId;
     if (info.providerMessage !== undefined) this.providerMessage = info.providerMessage;
   }
 }
