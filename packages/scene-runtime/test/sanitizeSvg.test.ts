@@ -70,6 +70,21 @@ describe("sanitizeSvg", () => {
     expect((root.querySelector(".local-use") as Element).getAttribute("href")).toBe("#g--abc");
   });
 
+  it("removes style elements and keeps a local url(#) in a style attribute", () => {
+    const text = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <style>@import url("https://evil.test/x.css"); body { display: none }</style>
+      <g><style>rect { fill: red }</style><rect class="keep" width="10" height="10"/></g>
+      <circle class="local-style" r="1" style="fill: url(#g)"/>
+      <linearGradient id="g"/>
+    </svg>`;
+    const svg = sanitizeSvg(text, "abc");
+    expect(svg).not.toBeNull();
+    const root = svg as SVGSVGElement;
+    expect(allElements(root).filter((el) => el.localName === "style")).toHaveLength(0);
+    expect(root.querySelector(".keep")).not.toBeNull();
+    expect(root.querySelector(".local-style")?.getAttribute("style")).toContain("url(#g--abc)");
+  });
+
   it("scopes ids and rewrites url(#) and href(#)", () => {
     const text = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="${XLINK}" viewBox="0 0 100 100">
       <defs>
