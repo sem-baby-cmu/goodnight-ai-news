@@ -132,20 +132,81 @@ devices and a lighter turn.
 - The 4G load budget of a page now includes one backdrop file. A file
   budget is set in design "8. Asset pipeline" and checked by the device test.
 
-## Open questions
+## Decisions (2026-11-19)
 
-- Where the source paintings live: `assets/backdrops/` in git, like the Pip
-  SVG, or R2, as `AGENTS.md` section 2 says for large binary files. Owner
-  decision before the first painted backdrop.
-- The list of painted backdrops for the MVP, and their palettes. Product
-  content; owner decision.
-- Indoor backdrops: which scenery and slots they allow. Not in the MVP.
-- What the last page does on "next" (an end page, or back to the shelf).
-  Product behaviour; owner decision.
-- Narration audio is WAV when the provider returns raw PCM (design "1. Model
-  adapter"). About 15 s of 24 kHz 16-bit mono audio is about 700 KB, which
-  competes with the backdrop for the 2 s 4G budget. A compressed format is a
-  separate decision.
-- The root `DESIGN.md` describes the earlier Lullabyte front end (for example
-  a 0.55 s page turn). Where it disagrees with this record and the spec, the
-  spec wins; `DESIGN.md` needs its own update.
+The owner accepted the agent recommendations for the questions that are not
+UI (D and E), and delegated the UI and design questions (A to C) to a Fable
+5.2 design pass. The look that follows is in the root `DESIGN.md`.
+
+**A. Backdrops for the MVP.** Three backdrops; the Producer paints 6
+variants.
+
+| Key | Made by | Palettes | Description for the model |
+| :-- | :-- | :-- | :-- |
+| `meadow` | Code (SVG) | `day`, `cloudy`, `dusk`, `night` | "an open meadow with soft hills" |
+| `riverbank` | Painted (WebP) | `day`, `dusk`, `night` | "a grassy bank by a wide, slow river" |
+| `village-square` | Painted (WebP) | `day`, `dusk`, `night` | "an open village square with small houses far behind" |
+
+- Reason: the smallest list that meets the S2 rule (3 backdrops, 2 painted,
+  1 with only some palettes). It gives one open place, one nature place, and
+  one built place.
+- No painted `cloudy`: each sample story has night pages, and with no indoor
+  backdrop they are outdoor night pages, so `night` and `dusk` come first.
+  A page that needs `cloudy` uses `meadow`.
+- A painted sky is clear: no sun, moon, stars, or outlined clouds. Those are
+  scenery layers in the `sky-*` slots and would show twice.
+- The sky of a painted variant uses the sky colour of its palette.
+- A new backdrop joins the list only on evidence (S2 results or operator
+  notes that show stories that cannot be placed).
+
+**B. "Next" on the last page** turns to an end page. The Player makes it; it
+is not part of a release (no page JSON, no audio). Its picture is the
+backdrop of the last page in its sky, without layers. It shows "The end", a
+"Read again" button, and "previous".
+
+| Event | Result |
+| :-- | :-- |
+| "Next" on the last page | The narration stops; no new `src`. The usual turn (500 ms, or the 200 ms cross-fade) shows the end page. No "next" and no progress pill on the end page |
+| "Previous" on the end page or during the turn to it | The turn back to the last page; its `src` is set and `play()` is called in the tap handler |
+| "Read again" | The `src` of page 1 is set and `play()` is called in the tap handler. Page 1 replaces the end page with a 200 ms cross-fade. The Start gate is not shown again |
+
+- A "Home" button (to the shelf) is added to the end page only when the
+  shelf exists. Until then no screen has a Home control, because it would
+  have no target.
+- Reason: a book needs an end a child can see; a jump away looks like a
+  fault, and the child who wants the story again does not have to find it.
+
+**C. Other UI choices** are in `DESIGN.md`: one typeface (Baloo 2, bundled),
+one light theme, hard edges as the only shadow, a two-ring focus ring, a
+narration panel of one height for every page of a book, 44 px Studio
+targets, and a sky picker that shows only the palettes of the chosen
+backdrop. Cut-outs keep their own colours in every sky (no night filter).
+
+**D. Source paintings live in R2**, as `AGENTS.md` section 2 says for large
+binary files. Git holds only the list of their SHA-256 digests, which the
+approval record also uses. The asset pipeline downloads them to a cache that
+git does not track.
+
+**E. Narration audio is compressed.** The target format is MP3, mono. A spike
+measures the encoding cost in the Worker against the current Workers limits
+page and checks playback in Safari on iPad and iPhone before the audio step
+changes. If the spike fails, the owner picks another format. Until then the
+WAV rule of design "1. Model adapter" holds.
+
+**F. `DESIGN.md`** is rewritten for the approved boards (issue #61). Where
+it and this record or the spec disagree, the spec wins.
+
+## Still open
+
+- The shelf: the spec has no route and no public list of releases. The
+  approved boards show one; it needs a spec change before any Home control.
+- The "resting" state: the spec does not say what the Player shows when a
+  release does not exist or does not load.
+- A minimum hit area for a tappable layer (`DESIGN.md` asks for 64 x 64 px).
+- A night tint for cut-outs on a night backdrop; the boards show one, the
+  spec has none, and a filter is not allowed during the page turn.
+- A moon asset: the scenery boards have none.
+- Indoor backdrops: 36 of the 60 page settings of the sample stories (3
+  stories, 2 age scripts each) are indoor (`bedroom`, `office`,
+  `classroom`; counted 2026-11-19 from `setting.place`). Not in the MVP;
+  S2 records how often a news story cannot be told outdoors.
