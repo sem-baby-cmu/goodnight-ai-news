@@ -1,4 +1,7 @@
-// The root component. The Player and Studio routes replace this placeholder.
+import { RouterProvider } from "@tanstack/react-router";
+import { router } from "@/router";
+
+// The root component: the app router with the Player and Studio routes.
 export function App() {
-  return <p>Storybook MVP</p>;
+  return <RouterProvider router={router} />;
 }
