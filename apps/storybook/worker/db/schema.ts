@@ -58,6 +58,9 @@ export const assetVersion = sqliteTable(
     version: integer("version").notNull(),
     renderer: text("renderer", { enum: RENDERERS }).notNull(),
     manifest: text("manifest", { mode: "json" }).$type<AssetManifest>().notNull(),
+    // File name -> lower-case SHA-256 hex of every file in `r2Prefix` (R65).
+    // Null for a row published before R65; publish then refuses that version.
+    files: text("files", { mode: "json" }).$type<Record<string, string>>(),
     // `assets/<key>/v<version>/`, with a trailing slash.
     r2Prefix: text("r2_prefix").notNull(),
     active: integer("active", { mode: "boolean" }).notNull().default(false),

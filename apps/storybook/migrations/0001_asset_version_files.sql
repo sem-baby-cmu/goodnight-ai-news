@@ -1,0 +1,1 @@
+ALTER TABLE `asset_version` ADD `files` text;
