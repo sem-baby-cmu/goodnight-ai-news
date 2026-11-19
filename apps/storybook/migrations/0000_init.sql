@@ -30,6 +30,7 @@ CREATE TABLE `call_log` (
 	`result` text,
 	`r2_key` text,
 	`basis` text NOT NULL,
+	`expected_heads` text NOT NULL,
 	`model` text NOT NULL,
 	`usage` text,
 	`created_at` text NOT NULL,

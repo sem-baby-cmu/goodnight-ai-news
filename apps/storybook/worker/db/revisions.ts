@@ -45,7 +45,8 @@ export async function insertRevisions(db: Db, rows: NewRevision[]): Promise<stri
 }
 
 // An operator's edit: a new human revision, then a head move that expects the
-// head to still be `basedOn`.
+// head to still be `basedOn`. The revision ID is new, so "moved" from
+// `commitHead` means this call's update moved the head to it (R58).
 export async function saveHumanRevision(
   db: Db,
   input: {
