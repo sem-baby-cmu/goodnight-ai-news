@@ -11,8 +11,14 @@ implementer does not record numbers here.
 
 ## Method
 
-1. Build: `pnpm --filter @storybook/app run spike:build`. Serve:
-   `pnpm --filter @storybook/app exec vite preview --host 0.0.0.0 --port 4173`.
+0. Once per machine, for the smoke test only: install the WebKit browser with
+   `pnpm --filter @storybook/app exec playwright install webkit`. Smoke check
+   (WebKit, iPhone 13 profile; a smoke check, not a device result):
+   `pnpm --filter @storybook/app run smoke:spike`.
+1. Build: `pnpm --filter @storybook/app run spike:build`. It writes to
+   `apps/storybook/dist-spike/`, never to `dist/`. Serve:
+   `pnpm --filter @storybook/app run spike:preview`. It serves `dist-spike/` on
+   `0.0.0.0:4173`. Do not deploy after a spike build: run a normal build first.
 2. The phone and the tablet are on the same Wi-Fi as the laptop. Open
    `http://<laptop LAN IP>:4173/spike/<n>?probe=1`.
 3. Before each run: close other tabs, turn Low Power Mode or Battery Saver

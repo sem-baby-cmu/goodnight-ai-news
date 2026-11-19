@@ -8,12 +8,22 @@ export function percentile(sorted: number[], p: number): number {
   return sorted[index] as number;
 }
 
-export type FrameSummary = { n: number; p50: number; p95: number; p99: number; max: number; over33: number };
+// With no frames, `n` is 0 and the statistics are `null`. A run that ends with
+// no frames is not a measurement, and the overlay says so.
+export type FrameSummary = {
+  n: number;
+  p50: number | null;
+  p95: number | null;
+  p99: number | null;
+  max: number | null;
+  over33: number;
+};
 
 // A frame is over when its interval is more than 33.4 ms.
 export const OVER_MS = 33.4;
 
 export function summarize(deltas: number[]): FrameSummary {
+  if (deltas.length === 0) return { n: 0, p50: null, p95: null, p99: null, max: null, over33: 0 };
   const sorted = [...deltas].sort((a, b) => a - b);
   return {
     n: sorted.length,
@@ -40,6 +50,9 @@ export type ProbeResult = FrameSummary & {
   ua: string;
   dpr: number;
   screen: string;
+  // True when the page was hidden at any time during the run (a tab switch or
+  // a locked screen). The browser slows or stops frames then, so the run is invalid.
+  hidden: boolean;
 };
 
 // Waits `warmupMs`, then records the interval between consecutive animation
@@ -49,6 +62,11 @@ export function runProbe(opts: { warmupMs: number; windowMs: number }): Promise<
     const start = performance.now();
     const deltas: number[] = [];
     let previous: number | undefined;
+    let hidden = document.visibilityState === "hidden";
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") hidden = true;
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     const tick = (now: number) => {
       const elapsed = now - start;
       if (elapsed >= opts.warmupMs) {
@@ -59,12 +77,14 @@ export function runProbe(opts: { warmupMs: number; windowMs: number }): Promise<
         requestAnimationFrame(tick);
         return;
       }
+      document.removeEventListener("visibilitychange", onVisibility);
       resolve({
         ...summarize(deltas),
         assetLoadMs: assetLoadMs(),
         ua: navigator.userAgent,
         dpr: window.devicePixelRatio,
         screen: `${window.screen.width}x${window.screen.height}`,
+        hidden,
       });
     };
     requestAnimationFrame(tick);

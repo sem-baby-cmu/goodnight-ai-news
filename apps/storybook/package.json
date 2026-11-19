@@ -9,7 +9,9 @@
     "types": "wrangler types",
     "typecheck": "wrangler types --check && tsc -b",
     "test": "vitest run --project worker && vitest run --project ui",
-    "spike:build": "tsx scripts/make-texture.ts && VITE_SPIKE=1 vite build && tsx scripts/copy-spike-assets.ts"
+    "spike:build": "tsx scripts/make-texture.ts && VITE_SPIKE=1 vite build && tsx scripts/copy-spike-assets.ts",
+    "spike:preview": "tsx scripts/spike-preview.ts",
+    "smoke:spike": "pnpm run spike:build && playwright test --config smoke/playwright.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -35,6 +37,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "catalog:",
     "@cloudflare/vitest-plugin": "catalog:",
+    "@playwright/test": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@testing-library/dom": "catalog:",
     "@testing-library/react": "catalog:",

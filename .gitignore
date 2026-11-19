@@ -15,6 +15,11 @@ node_modules/
 .wrangler/
 
 dist/
+# The S1 spike build (apps/storybook, `spike:build`). Never ships.
+dist-spike/
+# Playwright output of the S1 smoke test (apps/storybook/smoke).
+test-results/
+playwright-report/
 
 # Asset pipeline build output (AGENTS.md section 9).
 tools/assets/out/
