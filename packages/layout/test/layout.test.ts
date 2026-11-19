@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { LayoutTemplate } from "@storybook/dsl";
 import { layoutScene, SHRINK_STEP, TEMPLATES } from "../src/index";
 import { codes, type LayerSpec, registryOf, sceneOf, type TestAsset } from "./helpers";
 
@@ -97,6 +98,46 @@ describe("layoutScene", () => {
     expect(codes(result.issues)).toEqual(["layout.overlap"]);
     expect(result.issues[0]?.path).toBe("layers.0");
     expect(result.issues[0]?.message).toMatch(/^pos-1 and pos-2 overlap \d+\.\d% \(limit 15%\)$/);
+  });
+
+  it("a prop that covers a face is shrunk, because it is one of the layers involved", () => {
+    // `sq100` has its face at x 750..850, y 500..530 (foot 800, 600; fixed size).
+    // The prop (foot 860, 545, z 2) covers (50s - 10) / 100 of the face: 40% at
+    // scale 1, 30% at 0.8, where it passes (equal to the limit).
+    const sq100: TestAsset = {
+      kind: "character",
+      entry: { box: { x: 0, y: 0, w: 100, h: 100 }, foot: { x: 50, y: 100 }, face: { x: 0, y: 0, w: 100, h: 30 } },
+    };
+    const template: LayoutTemplate = {
+      id: "front-prop",
+      stage: { width: 1600, height: 1200 },
+      slots: [
+        { id: "hero", accepts: "character", footX: 800, footY: 600, height: 100, minScale: 1, z: 1 },
+        { id: "front", accepts: "prop", footX: 860, footY: 545, height: 100, minScale: 0.7, z: 2 },
+      ],
+    };
+    const scene = sceneOf("front-prop", [
+      { ref: "sq100", kind: "character", slot: "hero" },
+      { ref: "pp100", kind: "prop", slot: "front" },
+    ]);
+    const result = layoutScene(scene, { registry: registryOf({ sq100, pp100 }), templates: [template] });
+    expect(result.issues).toEqual([]);
+    expect(scales(result)).toEqual([1, 0.8]);
+  });
+
+  it("a layer with a manual at takes part in every check, also when its slot is taken (R59)", () => {
+    // Layer 1 has a manual `at` on the same box as pos-1, one z higher.
+    const scene = sceneOf("line-up", [
+      { ref: "sq500", kind: "character", slot: "pos-1" },
+      { ref: "sq500", kind: "character", slot: "pos-1", at: { x: 250, y: 1080, scale: 0.96, z: 51 } },
+    ]);
+    const result = layoutScene(scene, ctx);
+    expect(codes(result.issues)).toEqual(["layout.slot-taken", "layout.face-covered", "layout.overlap"]);
+    expect(result.issues.map((i) => i.path)).toEqual(["layers.1", "layers.0", "layers.0"]);
+    expect(result.issues[2]?.message).toMatch(/^pos-1 and pos-1 overlap /);
+    // The manual `at` is kept; layer 0 is shrunk to its floor.
+    expect(result.scene.layers[1]?.at).toEqual({ x: 250, y: 1080, scale: 0.96, z: 51 });
+    expect(scales(result)).toEqual([0.768, 0.96]);
   });
 
   describe("placement errors are issues, not exceptions", () => {

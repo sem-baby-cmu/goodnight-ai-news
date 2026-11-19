@@ -9,16 +9,22 @@ const sq100: TestAsset = {
 };
 const pp100: TestAsset = { kind: "prop", entry: { box: { x: 0, y: 0, w: 100, h: 100 }, foot: { x: 50, y: 100 } } };
 
-const registry = registryOf({ sq100, pp100 });
+// Test-only: a face at the bottom of the box, for the bottom edge of face-outside.
+const sqlow: TestAsset = {
+  kind: "character",
+  entry: { box: { x: 0, y: 0, w: 100, h: 100 }, foot: { x: 50, y: 100 }, face: { x: 0, y: 70, w: 100, h: 30 } },
+};
 
-type Placed = { ref: "sq100" | "pp100"; x: number; y: number; z: number };
+const registry = registryOf({ sq100, pp100, sqlow });
+
+type Placed = { ref: "sq100" | "pp100" | "sqlow"; x: number; y: number; z: number };
 
 // One slot per layer, at the layer's foot point. Scale is 1 and no shrink happens.
 function run(placed: Placed[]) {
   const template = testTemplate(
     placed.map((p, i) => ({
       id: `s${i}`,
-      accepts: p.ref === "sq100" ? "character" : "prop",
+      accepts: p.ref === "pp100" ? "prop" : "character",
       footX: p.x,
       footY: p.y,
       z: p.z,
@@ -26,7 +32,7 @@ function run(placed: Placed[]) {
   );
   const specs: LayerSpec[] = placed.map((p, i) => ({
     ref: p.ref,
-    kind: p.ref === "sq100" ? "character" : "prop",
+    kind: p.ref === "pp100" ? "prop" : "character",
     slot: `s${i}`,
   }));
   return layoutScene(sceneOf("test", specs), { registry, templates: [template] });
@@ -37,15 +43,15 @@ describe("checks", () => {
     expect(CHECK_LIMITS).toEqual({ faceCovered: 0.3, overlap: 0.15, bounds: 0.1 });
   });
 
-  it("face-outside: face on the top edge passes", () => {
+  it("RUN-04.S2 face visible: a face on the stage edge passes, one unit outside fails, 30% covered passes, 33% fails", () => {
+    // Face outside: top, right, and bottom edge. On the edge passes; one unit outside fails.
     expect(run([{ ref: "sq100", x: 800, y: 100, z: 1 }]).issues).toEqual([]);
-  });
-
-  it("face-outside: one unit above fails", () => {
     expect(codes(run([{ ref: "sq100", x: 800, y: 99, z: 1 }]).issues)).toEqual(["layout.face-outside"]);
-  });
-
-  it("RUN-04.S2 face-covered: 30% passes, 33% fails", () => {
+    expect(run([{ ref: "sq100", x: 1550, y: 600, z: 1 }]).issues).toEqual([]);
+    expect(codes(run([{ ref: "sq100", x: 1551, y: 600, z: 1 }]).issues)).toEqual(["layout.face-outside"]);
+    expect(run([{ ref: "sqlow", x: 800, y: 1200, z: 1 }]).issues).toEqual([]);
+    expect(codes(run([{ ref: "sqlow", x: 800, y: 1201, z: 1 }]).issues)).toEqual(["layout.face-outside"]);
+    // Face covered by a layer with a higher z.
     const pass = run([
       { ref: "sq100", x: 800, y: 600, z: 1 },
       { ref: "pp100", x: 800, y: 509, z: 2 },
