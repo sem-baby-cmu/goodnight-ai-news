@@ -1,9 +1,9 @@
 {
-  // Build tools: vite.config.ts and vitest.config.ts.
+  // Build tools: vite.config.ts, vitest.config.ts and scripts/.
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vitest.config.ts"]
+  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "src/spike/assets.ts"]
 }
