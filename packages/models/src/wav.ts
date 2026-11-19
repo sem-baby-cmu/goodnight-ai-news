@@ -56,8 +56,10 @@ export function wavInfo(wav: Uint8Array): { rate: number; channels: number; data
         bits: view.getUint16(body + 14, true),
       };
     } else if (id === "data") {
-      // A streamed WAV may give a size larger than the file; count what is there.
-      dataBytes = Math.min(size, wav.length - body);
+      if (size > wav.length - body) {
+        throw new UnsupportedAudioFormatError("WAV data chunk is larger than the file", noContext);
+      }
+      dataBytes = size;
       break;
     }
     offset = body + size + (size % 2); // chunks are padded to an even size
