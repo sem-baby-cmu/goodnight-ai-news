@@ -245,12 +245,15 @@ takes its basis from the heads at the moment it starts generating (for the
 first steps of a run, from the revisions written earlier in the same run).
 The basis is read once, at the first attempt, and stored in `call_log.basis`.
 A retry that finds a stored result reuses that basis. It does not read the
-heads again.
+heads again. A `repair` call uses the basis stored with the `first` call of
+the same step.
 
 **Step pattern.**
 
 1. Read `call_log` by `callId`. If a row exists, use its stored result and
-   its stored basis, and skip to step 4.
+   its stored basis, and skip to step 4. If the stored result is
+   `{ providerError }`, skip to step 5 and write the `needs_review` revision
+   with that error. Do not validate, and do not call the model again.
 2. Call the model.
 3. Store the result. A binary goes to R2 at `calls/<callId>.<ext>` first.
    Then insert the `call_log` row with the result (JSON, or the R2 key) and
@@ -279,6 +282,7 @@ loop at most 5 times:
     if heads[key] == newRevisionId, or heads[key] > newRevisionId (UUID v7 order)
       -> skip this key
     else heads[key] = newRevisionId
+  if no key is left -> done ("moved"), write nothing
   UPDATE story SET heads = ?, heads_version = heads_version + 1
     WHERE id = ? AND heads_version = ?
   if 1 row changed -> done
@@ -296,7 +300,10 @@ The first write therefore has a row to update.
 
 **Operator edits** use the same loop. The request carries `basedOn` (the
 revision the operator edited). If the head has moved since, the API returns
-409 with the current revision.
+409 with the current revision. If the loop marks the edit `superseded`
+because a basis entry moved (for example, the page text changed between the
+read and the write), the API returns 409 `head_moved` with the current
+revision.
 
 **Example: an edit during a full run.** The full run starts `scene:p3` with
 basis `page_text:p3 = T1`. The operator saves new text `T2`. When `scene:p3`
@@ -427,9 +434,9 @@ Studio routes are behind Cloudflare Access.
 | `GET /api/studio/stories/:id` | Heads with content, page states (`ok`, `stale`, `missing`, `needs_review`), and releases. |
 | `GET /api/studio/runs/:id` | Run status and step progress. |
 | `PUT /api/studio/stories/:id/pages/:pageId/text` | Body `{ text, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the text is not validated. Then validated as `PageText` (1 to 3 sentences, at most 40 words). 422 with the error list if it fails validation; nothing is saved. Otherwise saved as a new human `page_text` revision (owner decision Q15). |
-| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the scene is not validated. Then validated (the same checks as a model output: enum rules, zod rules, layout checks), laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. The enums and checks use the active registry versions at the time of the request, and the revision records them in `asset_versions` (owner decision Q3). A layer without `instanceId` is new, and the API assigns its `instanceId` (owner decision Q14). A layer `instanceId` that the current head does not have is accepted if it is a lower-case UUID v7 and unique within the scene. The API does not compare layer IDs with the head, because `basedOn` already pins the head that was edited. A malformed or repeated `instanceId` gives 422 with the error list. An animation or tap in the same request cannot name a new layer: 422 `unknown_target`. The Studio saves a new layer first. |
-| `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Body `{ basedOn }`. Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. Checks in this order, and saves nothing when one fails: 409 if the `scene` head moved since `basedOn`; 409 if the current scene head has `status = needs_review`; then the copied scene is validated again against the active registry versions at the time of the request, and 422 `invalid_scene` with the error list if it fails. The new revision records those versions in `asset_versions` (owner decision Q3). |
-| `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. It also takes `{ scope: { kind: "full" } }`, but only when the newest run of the story is a failed full run; otherwise 409 `full_run_not_allowed`. |
+| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the scene is not validated. Then validated (the same checks as a model output: enum rules, zod rules, layout checks), laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. The enums and checks use the active registry versions at the time of the request, and the revision records them in `asset_versions` (owner decision Q3). A layer without `instanceId` is new, and the API assigns its `instanceId` (owner decision Q14). Every `instanceId` in the request must be the ID of a layer in the `basedOn` scene revision; otherwise 422 `unknown_instance`. When `basedOn` is null, no layer may carry an `instanceId`. An animation or tap in the same request cannot name a new layer: 422 `unknown_target`. The Studio saves a new layer first. If the compare-and-set loop marks the edit `superseded` ("3. Calls, revisions, and heads"), 409 `head_moved` with the current revision. |
+| `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Body `{ basedOn, textBasedOn }`. `textBasedOn` is the `page_text` revision that the operator saw. Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. Checks in this order, and saves nothing when one fails: 409 if the `scene` head moved since `basedOn`; 409 `head_moved` if the `page_text` head is not `textBasedOn`; 409 if the current scene head has `status = needs_review`; then the copied scene is validated again, and 422 `invalid_scene` with the error list if it fails. The validation runs the same checks as `PUT .../scene` (enum rules, zod rules, layout checks) with the active registry versions at the time of the request; a manual `at` is not shrunk. The new revision records those versions in `asset_versions` (owner decision Q3). |
+| `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. It also takes `{ scope: { kind: "full" } }`, but only when the story has no `outline` head (the `script` step never succeeded) and no run of the story is `queued` or `running`; otherwise 409 `full_run_not_allowed`. The check and the run insert are one statement (`INSERT ... SELECT ... WHERE NOT EXISTS (...)`). A failed page step is fixed with a page run. |
 | `POST /api/studio/stories/:id/releases` | Publishes the current heads. 409 with a list of blocking pages and reasons. |
 | `GET /api/studio/registry` | Active assets, sounds, and templates. |
 | `GET /api/studio/files/*` | Serves registry assets and draft audio from R2 to the Studio. Only keys under `assets/` and `calls/`. A key that does not start with `assets/` or `calls/`, or that has a `..` segment, gives 404 `{ error: "not_found" }`, the same as a missing object. |
@@ -502,7 +509,7 @@ All IDs are UUID version 7, lower case (ADR 0007).
 | `story` | `id`, `title`, `status` (`draft`, `published`; becomes `published` with the first release pointer update and never goes back), `heads` (JSON, starts `{ source }`), `heads_version` (integer, starts 0), `published_release_id`, `created_at` | `heads` maps `<kind>` or `<kind>:<pageId>` to a revision ID. |
 | `run` | `id`, `story_id`, `scope` (JSON), `status`, `basis` (JSON), `registry` (JSON), `workflow_instance_id`, `error` (JSON), `created_at`, `finished_at` | Status: `queued`, `running`, `draft_ready`, `needs_review`, `failed`. |
 | `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` is read at the first attempt; a retry reuses it. For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
-| `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique `(call_id, kind, page_id)` where `call_id` is not null. Order by `id` (UUID v7 is time-ordered). `asset_versions` maps each asset key that a `scene` revision uses to its version (Q3). |
+| `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique index on `(call_id, kind, page_id)`, with no `WHERE`. SQLite treats every NULL as distinct, so human revisions (`call_id` null) never conflict. Order by `id` (UUID v7 is time-ordered). `asset_versions` maps each asset key that a `scene` revision uses to its version (Q3). |
 | `release` | `id`, `story_id`, `number`, `manifest_key`, `snapshot` (JSON of revision IDs), `created_at` | Unique `(story_id, number)`. |
 
 ### Asset manifest (`asset_version.manifest`)
@@ -663,11 +670,12 @@ type ReleasePage = {
 | Operator's page text fails `PageText` validation | API | 422 with the error list. Nothing is saved. |
 | "Still fits" on a `needs_review` scene | API | 409. Nothing is copied. |
 | "Still fits" copy fails validation against the active registry | API | 422 `invalid_scene` with the error list. Nothing is saved. |
-| Full run requested when the newest run is not a failed full run | API | 409 `full_run_not_allowed`. No run starts. |
-| Head moved since the operator loaded it | API | 409 with the current revision. |
+| Full run requested when the story has an `outline` head, or a run of the story is `queued` or `running` | API | 409 `full_run_not_allowed`. No run starts. |
+| Head moved since the operator loaded it | API | 409 with the current revision. For "still fits", a `page_text` head that is not `textBasedOn` gives 409 `head_moved`. An operator edit that the compare-and-set loop marks `superseded` (a basis entry moved between the read and the write) gives 409 `head_moved` with the current revision. |
+| Operator's scene carries an `instanceId` that is not a layer of the `basedOn` scene revision | API | 422 `unknown_instance`. Nothing is saved. |
 | Compare-and-set loop exhausted (5 tries) | step | Step throws; the platform retries the step. |
 | Publish blocked | API | 409 with the list of pages and reasons. |
-| Run fails | Workflow | `run.status = failed` with the error. The Studio shows it and can start a new run with the same scope. |
+| Run fails | Workflow | `run.status = failed` with the error. The Studio shows it. A run whose `script` step failed restarts as a full run; a run whose page step failed restarts that page with a page run. |
 
 Every error record has `runId`, `storyId`, `pageId`, `step`, and the provider
 status. Logs do not contain the full news text or model output.
@@ -777,8 +785,8 @@ Cross-family review of revision 5 (the owner's answers to Q11 to Q13, #38),
 
 Revision 6 (#32), 2026-11-19: the owner decisions on Q3, Q7, Q14, and Q15,
 the planner list of spec corrections (rows 1 to 15), and the planner
-decisions R37, R48, R41, and Access JWT, all on #32. Cross-family review:
-pending. The planner runs it before the merge.
+decisions R37, R48, R41, and Access JWT, all on #32. The cross-family review
+of this revision is recorded below the table.
 
 | Source on #32 | Change | Section |
 | :-- | :-- | :-- |
@@ -792,11 +800,14 @@ pending. The planner runs it before the merge.
 | Row 8 | Provider 4xx in a page step: `call_log.result` and `revision.error` hold `{ providerError: { status, message } }`; the `needs_review` revision is the head | "Error Handling", "D1 tables" |
 | Row 9 | Slot `poses` in both directions, `slot_pose_mismatch`, slot `bust` in `solo-center` | "4. Layout engine", "Storybook DSL" |
 | Row 10 | `GET /api/studio/files/*`; other keys and `..` give 404 `not_found` | "6. API" |
-| Row 11, R37 | "Still fits" body `{ basedOn }`; order 409, 409, 422 `invalid_scene` | "6. API", "Error Handling" |
+| Row 11, R37 | "Still fits" body `{ basedOn, textBasedOn }`; order 409, 409 `head_moved`, 409, 422 `invalid_scene` | "6. API", "Error Handling" |
 | Row 12 | Release row and pointer in one batch; the pointer moves only to a higher number | "7. Publish" |
 | Row 13 | Content route needs a `release` row; `Range` gives 206 | "6. API" |
-| Row 14, Q14, R41 | The API assigns new layer IDs; an unknown layer ID is accepted when it is a unique lower-case UUID v7, else 422; 422 `unknown_target`; manual `scale` greater than 0, may be below `minScale` | "4. Layout engine", "6. API", "Error Handling" |
+| Row 14, Q14, R41 | The API assigns new layer IDs; an `instanceId` not in the `basedOn` scene gives 422 `unknown_instance`; 422 `unknown_target`; manual `scale` greater than 0, may be below `minScale` | "4. Layout engine", "6. API", "Error Handling" |
 | Row 15, Q7 | TTS goes to Google AI Studio directly in development, and through AI Gateway (`google-ai-studio`) on Cloudflare | "Architecture", "Deployment", "1. Model adapter"; also ADR 0015 and `requirements.md` |
 | Q15 | `PUT .../text`: 409 first, then `PageText` validation, 422 | "6. API", "Error Handling" |
-| R48 | Full run only after a failed full run; else 409 `full_run_not_allowed` | "6. API", "Error Handling" |
+| R48 | Full run only when the story has no `outline` head and no run is `queued` or `running`; else 409 `full_run_not_allowed` | "6. API", "Error Handling" |
 | Access JWT | The Worker does not check `Cf-Access-Jwt-Assertion`; `workers.dev` and preview URLs off | "Deployment" |
+
+Cross-family review of revision 6 (Codex, Gemini), 2026-11-19: 11 findings,
+all applied.

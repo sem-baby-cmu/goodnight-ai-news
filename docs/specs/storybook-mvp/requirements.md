@@ -68,7 +68,10 @@ child can look at, listen to, and touch.
       character layer, at least one animation, and at least one tap
       interaction.
 - [ ] Every layer in a draft references a character, pose, expression, or prop
-      that exists in the registry version that the run froze at its start.
+      that exists in the registry. A layer in an AI draft uses the registry
+      version that the run froze at its start. A layer in an operator's edit
+      or a "still fits" copy uses the active version at the time of the
+      request (Q3).
 - [ ] When a page scene fails validation after one repair, the run keeps the
       error and the candidate, and marks the page `needs_review`. It does not
       drop a layer or swap a character on its own.

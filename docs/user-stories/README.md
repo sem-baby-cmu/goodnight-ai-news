@@ -13,13 +13,13 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
-| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 51 |
-| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 29 |
+| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 52 |
+| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 30 |
 | [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 16 |
 | [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 3 | 15 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 11 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 21 |
-| Total | | | 22 | 143 |
+| Total | | | 22 | 145 |
 
 ## Format
 
@@ -67,7 +67,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 138 scenarios are `spec (to implement)`, and 5 are
+Current state: 140 scenarios are `spec (to implement)`, and 5 are
 `manual · not run`. No scenario passes.
 
 ## Coverage of the requirements
@@ -83,7 +83,7 @@ Current state: 138 scenarios are `spec (to implement)`, and 5 are
 | US-7 Replace a character asset with a new version | REG-01 |
 | AC-1 200 to 2,000 words give 6 to 8 pages | RUN-01.S1, RUN-01.S2, RUN-01.S9, RUN-01.S10 |
 | AC-2 Each page has text, audio, a character, an animation, a tap | RUN-01.S3, RUN-03.S13 |
-| AC-3 Every layer references the frozen registry | RUN-03.S1, RUN-03.S2, RUN-03.S3 |
+| AC-3 Every layer references the registry: the frozen version for an AI draft, the active version for an operator's edit | RUN-03.S1, RUN-03.S2, RUN-03.S3, EDT-03.S16, EDT-03.S19 |
 | AC-4 `needs_review`, not a silent change | RUN-05.S2, RUN-03.S14 |
 | AC-5 "Regenerate audio" changes page 3 only | EDT-02.S3 |
 | AC-6 One stored result for each call ID | SYS-01.S1, SYS-01.S3, SYS-01.S4 |
@@ -127,12 +127,13 @@ Error rows (`design.md`, "Error Handling"):
 | Provider 4xx other than 429, in `script` | RUN-05.S8 |
 | TTS fails after retries | RUN-05.S6, RUN-01.S12, PUB-02.S1 |
 | Basis changed before commit | EDT-04.S1 |
-| Operator's scene fails validation | EDT-03.S7, EDT-03.S8, EDT-03.S9, EDT-03.S15, EDT-03.S20 |
+| Operator's scene fails validation | EDT-03.S7, EDT-03.S8, EDT-03.S9, EDT-03.S15 |
+| Operator's scene carries an `instanceId` that is not a layer of the `basedOn` scene revision | EDT-03.S20, EDT-03.S21 |
 | Operator's scene names a new layer in an animation or tap | EDT-03.S13 |
 | Operator's page text fails `PageText` validation | EDT-02.S4 |
 | "Still fits" on a `needs_review` scene | EDT-03.S11 |
 | "Still fits" copy fails validation against the active registry | EDT-03.S17 |
-| Full run requested when the newest run is not a failed full run | RUN-05.S10 |
+| Full run requested when the story has an `outline` head, or a run of the story is `queued` or `running` | RUN-05.S10, RUN-05.S11 |
 | Head moved since the operator loaded it | EDT-02.S2, EDT-02.S5, EDT-03.S4, EDT-03.S10, EDT-03.S18 |
 | Compare-and-set loop exhausted (5 tries) | SYS-02.S3 |
 | Publish blocked | PUB-02.S7 |
@@ -165,7 +166,7 @@ four:
 | :-- | :-- |
 | Q3 | REG-01.S6, EDT-03.S16, EDT-03.S19, PUB-01.S9 |
 | Q7 | SYS-05.S4, SYS-05.S5 |
-| Q14 | EDT-03.S12, EDT-03.S13, EDT-03.S14, EDT-03.S15, EDT-03.S20 |
+| Q14 | EDT-03.S12, EDT-03.S13, EDT-03.S14, EDT-03.S15, EDT-03.S20, EDT-03.S21 |
 | Q15 | EDT-02.S4, EDT-02.S5 |
 
 A question number is not used again.
