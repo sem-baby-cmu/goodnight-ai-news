@@ -1,5 +1,6 @@
 import { createRootRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { playerRoutes } from "./player/routes";
+import { spikeRoutes } from "./spike/routes";
 import { studioRoutes } from "./studio/routes";
 
 // Code-based routes in one tree. Only this file imports the route files of
@@ -14,7 +15,7 @@ function RootLayout() {
 export const rootRoute = createRootRoute({ component: RootLayout });
 
 export const router = createRouter({
-  routeTree: rootRoute.addChildren([...playerRoutes, ...studioRoutes]),
+  routeTree: rootRoute.addChildren([...playerRoutes, ...studioRoutes, ...spikeRoutes]),
 });
 
 declare module "@tanstack/react-router" {
