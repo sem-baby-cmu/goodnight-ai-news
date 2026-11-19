@@ -21,6 +21,8 @@ export type FakeOptions = {
   failOn?: (args: string[], index: number) => boolean;
   // Accept the `d1 execute --file` call but do not run the file.
   ignoreFile?: boolean;
+  // Runs just before the `d1 execute --file` call: another publish run.
+  beforeFile?: (db: DatabaseSync) => void;
 };
 
 export function fakeWrangler(opts: FakeOptions = {}) {
@@ -37,10 +39,16 @@ export function fakeWrangler(opts: FakeOptions = {}) {
     if (args[0] === "d1" && args[1] === "execute") {
       const file = args.indexOf("--file");
       if (file >= 0) {
+        opts.beforeFile?.(db);
         if (!opts.ignoreFile) db.exec(readFileSync(args[file + 1]!, "utf8"));
         return "[]";
       }
       const sql = args[args.indexOf("--command") + 1]!;
+      // `--json` marks the registry query; any other command is a write.
+      if (!args.includes("--json")) {
+        db.exec(sql);
+        return "[]";
+      }
       return JSON.stringify([{ results: db.prepare(sql).all(), success: true, meta: {} }]);
     }
     throw new Error(`unexpected wrangler call: ${args.join(" ")}`);
@@ -50,3 +58,4 @@ export function fakeWrangler(opts: FakeOptions = {}) {
 
 export const isPut = (args: string[]) => args[0] === "r2" && args[2] === "put";
 export const isFile = (args: string[]) => args[0] === "d1" && args.includes("--file");
+export const isWriteCommand = (args: string[]) => args[0] === "d1" && args.includes("--command") && !args.includes("--json");
