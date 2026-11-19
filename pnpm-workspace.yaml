@@ -45,7 +45,7 @@ catalog:
   uuid: ^14.0.3
   # Exact: #21 relies on byte-identical WebP output for one sharp version.
   sharp: 0.35.5
-  svgo: ^4.1.0
+  svgo: 4.1.0
 
 # Written by pnpm: these versions are newer than minimumReleaseAge.
 minimumReleaseAgeExclude:
