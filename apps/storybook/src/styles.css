@@ -1,0 +1,124 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* No element has the class `dark`, so `dark:` classes never apply.
+   DESIGN.md section 2: there is no automatic dark mode. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-display: "Kiwi Maru", serif;
+  --font-heading: "Kiwi Maru", serif;
+  --radius-lg: 16px;
+  --radius-xl: var(--radius);
+
+  /* shadcn names */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+
+  /* DESIGN.md names */
+  --color-sky: var(--sky);
+  --color-meadow: var(--meadow);
+  --color-forest: var(--forest);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-night: var(--night);
+  --color-lamp: var(--lamp);
+  --color-text-2: var(--text-2);
+  --color-label: var(--label);
+  --color-link: var(--link);
+  --color-divider: var(--divider);
+  --color-highlight: var(--highlight);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-sky-foreground: var(--tint-sky-foreground);
+  --color-tint-meadow: var(--tint-meadow);
+  --color-tint-meadow-foreground: var(--tint-meadow-foreground);
+  --color-tint-sand: var(--tint-sand);
+  --color-tint-sand-foreground: var(--tint-sand-foreground);
+}
+
+/* Values from DESIGN.md section 2. */
+:root {
+  /* Palette */
+  --sky: #7ebde6;
+  --meadow: #86b562;
+  --forest: #3f6e2e;
+  --paper: #f7f1e3;
+  --ink: #23354a;
+  --night: #1b2440;
+  --lamp: #f5c35b;
+  --roof-red: #c8553d;
+
+  /* Supporting values */
+  --card: #fffdf7;
+  --border: #eadfc6;
+  --paper-edge: #e3d8bf;
+  --divider: #efe6d2;
+  --text: #2b3a4a;
+  --text-2: #44525e;
+  --label: #5b6b78;
+  --link: #2e4a6e;
+  --forest-edge: #2b4e20;
+  --highlight: #ffe08a;
+  --moss-text: #2f5233;
+  --tint-sky: #e3ecf6;
+  --tint-meadow: #eef3e4;
+  --tint-sand: #f3ecdd;
+  --tint-sky-foreground: #2e4a6e;
+  --tint-meadow-foreground: #3f6e2e;
+  --tint-sand-foreground: #6a5636;
+  --night-card: rgba(255,253,247,.08);
+  --night-label: #c9d3e6;
+  --night-title: #ffe7a3;
+
+  /* shadcn names. DESIGN.md has no error colour, and Roof red is never used
+     for errors, so --destructive is Ink (implementation decision). */
+  --radius: 22px;
+  --background: var(--paper);
+  --foreground: var(--text);
+  --card-foreground: var(--text);
+  --popover: var(--card);
+  --popover-foreground: var(--text);
+  --primary: var(--forest);
+  --primary-foreground: #ffffff;
+  --secondary: var(--link);
+  --secondary-foreground: #ffffff;
+  --accent: var(--tint-sky);
+  --accent-foreground: var(--link);
+  --muted: var(--tint-sand);
+  --muted-foreground: var(--label);
+  --input: var(--border);
+  --ring: var(--link);
+  --destructive: var(--ink);
+
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
