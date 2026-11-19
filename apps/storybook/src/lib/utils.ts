@@ -1,7 +1,3 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-// Joins class names and lets a later Tailwind class win over an earlier one.
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// One class-name helper for the app and for shadcn components. The shadcn
+// registry imports `cn` from the `cn` package (implementation decision R50).
+export { cn } from "cn";
