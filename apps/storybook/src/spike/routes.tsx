@@ -12,7 +12,10 @@ export const spikeRoutes =
         createRoute({
           getParentRoute: () => rootRoute,
           path: "/spike/$n",
-          validateSearch: (search: Record<string, unknown>) => ({ probe: search.probe === 1 || search.probe === "1" }),
+          // The router writes `probe` back as `true`, so accept that form as well as `1`.
+          validateSearch: (search: Record<string, unknown>) => ({
+            probe: search.probe === true || search.probe === 1 || search.probe === "1",
+          }),
           component: lazyRouteComponent(() => import("./SpikeRoute")),
         }),
       ]
