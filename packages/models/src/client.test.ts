@@ -376,3 +376,12 @@ describe("no silent audio fixes", () => {
     expect(error).toMatchObject({ modelId: "m-tts", usage: null });
   });
 });
+
+it("synthesizeSpeech without voice uses the configured voice", async () => {
+  const puckConfig = loadModelConfig({ ...baseEnv, TTS_VOICE: "Puck" });
+  const { fetch, calls } = stubFetch(() => speechAnswer("audio/L16;rate=24000", new Uint8Array(480)));
+  await createModelClient(puckConfig, { fetch }).synthesizeSpeech({ text: "Good night." });
+  expect(calls[0]?.body).toMatchObject({
+    generationConfig: { speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } } },
+  });
+});
