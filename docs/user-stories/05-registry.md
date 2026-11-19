@@ -84,3 +84,15 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 - When the registry is read
 - Then it holds a small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised, as `sfx` assets
 - Test: @storybook/assets-tools · tools/assets/test/sfx.test.ts
+
+### REG-02.S6 The code-made backdrop has all four palettes
+- Given the asset pipeline
+- When the code backdrop step runs
+- Then the registry holds the backdrop `meadow`, renderer `svg`, with one variant for each of `day`, `cloudy`, `dusk`, and `night`, each 2400 x 1200 units
+- Test: spec (to implement)
+
+### REG-02.S7 A painted backdrop is scaled, compressed, and reviewed
+- Given a painting for each variant of a backdrop
+- When the painted backdrop step runs
+- Then each variant is a WebP of 2400 x 1200 px and at most 250 KB, and a review sheet shows the slot boxes of all templates over each variant; publish needs the review to be approved
+- Test: spec (to implement)

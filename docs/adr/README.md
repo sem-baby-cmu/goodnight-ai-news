@@ -19,6 +19,7 @@ One file per decision. Format and rules: [ADR 0001](0001-record-architecture-dec
 | [0013](0013-bounded-agents.md) | Fixed steps in the main pipeline; bounded agents in two places | Accepted |
 | [0014](0014-three-js-background-only.md) | three.js for the background only; Pip stays SVG | Superseded by [0015](0015-storybook-mvp-reset.md) |
 | [0015](0015-storybook-mvp-reset.md) | Reset to a TypeScript storybook compiler MVP on Cloudflare | Accepted |
+| [0016](0016-backdrops-page-turn.md) | Painted backdrops, narration below the stage, page-turn transition | Accepted |
 
 "Proposed" means the Integration owner accepts it and the team has not agreed
 yet. To add a decision, copy the sections of an existing ADR: Status, Context,

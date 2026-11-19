@@ -19,7 +19,7 @@ Spec: requirements US-5, "Core Features" 5 · design "4. Layout engine", "5. Sce
 ### PLY-01.S2 A page shows its layers on a scaled stage
 - Given a release page with `svg-rig`, `svg`, and `webp` layers
 - When the Player shows the page
-- Then `svg` and `svg-rig` assets are inlined, and `webp` assets are `<img>` elements; the stage is 1600 x 1200 units, scaled to the container with CSS; one paper texture image covers the whole stage with `mix-blend-mode: multiply`, and no layer has an SVG filter
+- Then `svg` and `svg-rig` assets are inlined, and `webp` assets are `<img>` elements; the stage is 1600 x 1200 units, scaled to the container with CSS; the backdrop variant of the page is the bottom element, 2400 x 1200 units with the stage in the middle, and its bleed fills a container wider than 4:3; one paper texture image covers the backdrop and the stage with `mix-blend-mode: multiply`, and no layer has an SVG filter
 - Test: spec (to implement)
 
 ### PLY-01.S3 Animations run on their target layers
@@ -77,10 +77,10 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime"
 - Then the sound plays on a second shared audio element, which is unlocked in the same way
 - Test: spec (to implement)
 
-### PLY-02.S4 The narration text is outside the stage
+### PLY-02.S4 The narration text is below the stage
 - Given a page in the Player
 - When the device is in portrait, and then in landscape
-- Then the narration is HTML outside the stage: below it in portrait, beside it in landscape
+- Then the narration is HTML outside the stage, below it in both orientations (ADR 0016)
 - Test: spec (to implement)
 
 ## PLY-03 The story runs on phones and tablets
@@ -114,3 +114,52 @@ Spec: requirements AC-12, "Non-functional Requirements" · design "Testing Strat
 - When the page loads
 - Then its assets load in 2 s or less
 - Test: manual · not run
+
+## PLY-04 A page turns like a page of a book
+
+As a child, I want the page to turn like paper when I go on, so that the
+story feels like a real book. (Owner decision 2026-11-19, ADR 0016.)
+
+Spec: requirements "Core Features" 5 · design "5. Scene runtime"
+
+### PLY-04.S1 A forward turn shows the page-turn transition
+- Given a book that was started, on page 2
+- When the child taps "next"
+- Then the page (stage, backdrop, and narration) turns about its left edge for 500 ms and shows page 3 below it; the transition changes only `transform` and `opacity`
+- Test: spec (to implement)
+
+### PLY-04.S2 A backward turn runs the other way
+- Given a book that was started, on page 3
+- When the child taps "previous"
+- Then page 2 turns back over page 3 for 500 ms
+- Test: spec (to implement)
+
+### PLY-04.S3 The narration does not wait for the turn
+- Given a book that was started
+- When the child taps "next"
+- Then the tap handler sets the `src` of the new page and calls `play()` before the transition ends
+- Test: spec (to implement)
+
+### PLY-04.S4 Loops stop when the turn starts
+- Given a page with looping animations and a next page with `enter` animations
+- When the child taps "next"
+- Then the looping animations of the old page stop when the turn starts, and the `enter` animations of the new page start when the turn ends
+- Test: spec (to implement)
+
+### PLY-04.S5 A tap during a turn starts the next turn
+- Given a forward turn from page 2 to page 3 that has run for 200 ms
+- When the child taps "next" again
+- Then the turn to page 3 ends at once, the turn to page 4 starts, and the narration of page 4 plays
+- Test: spec (to implement)
+
+### PLY-04.S6 Reduced motion gives a cross-fade
+- Given a device with `prefers-reduced-motion` set
+- When the child taps "next"
+- Then the new page cross-fades in for 200 ms, with no rotation
+- Test: spec (to implement)
+
+### PLY-04.S7 A page whose images are not loaded yet still shows
+- Given a next page whose images are not loaded
+- When the child turns to it
+- Then its narration text and the paper colour show at once, and each image fades in for 200 ms when it is loaded
+- Test: spec (to implement)
