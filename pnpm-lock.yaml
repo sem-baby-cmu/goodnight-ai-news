@@ -188,6 +188,9 @@ catalogs:
     '@fontsource/nunito':
       specifier: ^5.3.0
       version: 5.3.0
+    '@hono/zod-validator':
+      specifier: ^0.9.1
+      version: 0.9.1
     '@tailwindcss/vite':
       specifier: ^4.3.5
       version: 4.3.5
@@ -285,6 +288,9 @@ importers:
       '@fontsource/nunito':
         specifier: 'catalog:'
         version: 5.3.0
+      '@hono/zod-validator':
+        specifier: 'catalog:'
+        version: 0.9.1(hono@4.13.19)(zod@4.6.7)
       '@storybook/dsl':
         specifier: workspace:*
         version: link:../../packages/dsl
@@ -324,6 +330,9 @@ importers:
       uuid:
         specifier: 'catalog:'
         version: 14.0.3
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 'catalog:'
@@ -1213,6 +1222,12 @@ packages:
 
   '@fontsource/nunito@5.3.0':
     resolution: {integrity: sha512-vw9TaTQJ/zpEpKrsODuPmOvaVjXgdda6B+xXA4YqjrdeJ62MLgVoDerdRXFQHyBnSCt2yQ2nHKCHPP/Pv7Xq4Q==}
+
+  '@hono/zod-validator@0.9.1':
+    resolution: {integrity: sha512-iiv6w0qrIc0arfvCtUqBWsvl4fXjzaTcQcCJTTtCnkawF9HHGE+KjEl0ox3gQJ6rKZEgE3mLExlQCF72M+mNuw==}
+    peerDependencies:
+      hono: '>=4.11.2'
+      zod: ^3.25.0 || ^4.0.0
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3912,6 +3927,11 @@ snapshots:
   '@fontsource/kiwi-maru@5.3.1': {}
 
   '@fontsource/nunito@5.3.0': {}
+
+  '@hono/zod-validator@0.9.1(hono@4.13.19)(zod@4.6.7)':
+    dependencies:
+      hono: 4.13.19
+      zod: 4.6.7
 
   '@img/colour@1.1.0': {}
 

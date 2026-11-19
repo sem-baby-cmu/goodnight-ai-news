@@ -1,10 +1,6 @@
-import { Hono } from "hono";
+import { app } from "./api/app";
 
 export { StoryRunWorkflow } from "./workflow/story-run";
 
-const app = new Hono<{ Bindings: Env }>();
-
-// Deploy checks this route (ADR 0011).
-app.get("/health", (c) => c.text("ok"));
-
-export default app;
+// The Studio API, the content route, and GET /health live in `api/app.ts`.
+export default { fetch: app.fetch };
