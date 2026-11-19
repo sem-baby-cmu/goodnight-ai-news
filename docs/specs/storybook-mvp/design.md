@@ -280,16 +280,21 @@ The requirements accept this.
 ```
 loop at most 5 times:
   read story.heads, story.heads_version
-  for each basis entry: if heads[key] != basis[key] -> mark revision superseded, stop
   for each target key:
     if heads[key] == newRevisionId, or heads[key] > newRevisionId (UUID v7 order)
       -> skip this key
     else heads[key] = newRevisionId
   if no key is left -> done ("moved"), write nothing
+  for each basis entry: if heads[key] != basis[key]
+    -> mark the revisions of the keys that are left superseded, stop
   UPDATE story SET heads = ?, heads_version = heads_version + 1
     WHERE id = ? AND heads_version = ?
   if 1 row changed -> done
 ```
+
+The skip comes before the basis check, so a retry after a successful move
+never marks the current head superseded; only a failed move is superseded
+(implementation decision R56, #16).
 
 Each target key is checked on its own. A key whose head is already the new
 revision, or a newer revision (a greater UUID v7), is skipped. A retried step
