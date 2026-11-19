@@ -18,8 +18,9 @@ type Props = {
   onSvg(instanceId: string, svg: SVGSVGElement | null): void;
   // The WebP image loaded (ready) or is about to change (not ready).
   onReady(instanceId: string, ready: boolean): void;
-  // The asset failed. `shownPose` is the pose still on screen, if any.
-  onAssetFailed(instanceId: string, url: string, reason: string, shownPose: string | undefined): void;
+  // The asset failed. `shown` is the state of the asset still on screen, if
+  // any (a failed swap); undefined on a failed first load.
+  onAssetFailed(instanceId: string, url: string, reason: string, shown: LayerState | undefined): void;
 };
 
 const ORIGIN: CSSProperties = { transformOrigin: "0 0", pointerEvents: "none" };
@@ -54,9 +55,28 @@ export function LayerView(props: Props) {
   // (and its foot) until the new file is ready, and keeps it if the new file
   // fails.
   const [svg, setSvg] = useState<{ node: SVGSVGElement; entry: PoseEntry } | null>(null);
-  const shownPose = useRef<string | undefined>(undefined);
-  shownPose.current = svg?.entry.id;
+  // The layer state of the asset on screen (set when a file is shown), and
+  // the current state. A failed swap goes back to the state on screen. On
+  // svg-rig the expression is not part of the file, so it stays current.
+  const shownState = useRef<LayerState | undefined>(undefined);
+  const stateNow = useRef(state);
+  stateNow.current = state;
+  const shownNow = (): LayerState | undefined =>
+    shownState.current && renderer === "svg-rig"
+      ? { ...shownState.current, expression: stateNow.current.expression }
+      : shownState.current;
+  // WebP: the last URL that loaded, and the URL that failed.
+  const [loadedImage, setLoadedImage] = useState<string | null>(null);
   const [failedImage, setFailedImage] = useState<string | null>(null);
+  // svg-rig expressions without a group in the file, warned once each.
+  const missingWarned = useRef(new Set<string>());
+  const showExpression = (node: SVGSVGElement) => {
+    const expression = stateNow.current.expression;
+    if (applyExpression(node, renderer, expression) || expression === undefined) return;
+    if (missingWarned.current.has(expression)) return;
+    missingWarned.current.add(expression);
+    console.warn(`scene-runtime: layer ${instanceId} has no group for expression "${expression}"; left as authored`);
+  };
 
   useLayoutEffect(() => {
     register(instanceId, { root: rootRef.current!, loop: loopRef.current!, once: onceRef.current! });
@@ -73,18 +93,23 @@ export function LayerView(props: Props) {
     let live = true;
     const url = assets.url(ref, entry.file);
     const fail = (reason: string) => {
-      if (live) onAssetFailed(instanceId, url, reason, shownPose.current);
+      if (live) onAssetFailed(instanceId, url, reason, shownNow());
     };
+    const loading = { pose: state.pose, expression: state.expression };
     assets.svgText(ref, entry.file).then((text) => {
       if (!live) return;
       const node = sanitizeSvg(text, idSuffix);
-      if (node) setSvg({ node, entry });
-      else fail("is not a valid SVG");
+      if (!node) {
+        fail("is not a valid SVG");
+        return;
+      }
+      shownState.current = loading;
+      setSvg({ node, entry });
     }, () => fail("could not be loaded"));
     return () => {
       live = false;
     };
-    // `entry` and `svg` are read for the file only, so they are not deps.
+    // `entry`, `state` and `svg` are read for the file only, so they are not deps.
   }, [inline, ref, file, instanceId, assets, idSuffix, onAssetFailed]);
 
   // Insert the sanitised node with appendChild (invariant 5).
@@ -95,7 +120,7 @@ export function LayerView(props: Props) {
     // R63: an inline svg clips at its viewBox; a wave can reach past it.
     if (renderer === "svg-rig") node.style.overflow = "visible";
     host.appendChild(node);
-    applyExpression(node, renderer, state.expression);
+    showExpression(node);
     onSvg(instanceId, node);
     return () => {
       onSvg(instanceId, null);
@@ -106,7 +131,8 @@ export function LayerView(props: Props) {
 
   // svg-rig expression changes after insertion.
   useLayoutEffect(() => {
-    if (svg) applyExpression(svg.node, renderer, state.expression);
+    if (svg) showExpression(svg.node);
+    // showExpression reads the current state through a ref.
   }, [svg, renderer, state.expression]);
 
   // A new WebP file is not ready until it loads.
@@ -162,10 +188,16 @@ export function LayerView(props: Props) {
                 alt=""
                 draggable={false}
                 style={{ display: "block", maxWidth: "none", width: "auto", height: "auto" }}
-                onLoad={() => onReady(instanceId, true)}
+                onLoad={() => {
+                  shownState.current = { pose: state.pose, expression: state.expression };
+                  setLoadedImage(imageUrl);
+                  onReady(instanceId, true);
+                }}
                 onError={() => {
+                  // A failed swap goes back to the image on screen; a failed
+                  // first load leaves the layer empty.
                   setFailedImage(imageUrl);
-                  onAssetFailed(instanceId, imageUrl, "could not be loaded", undefined);
+                  onAssetFailed(instanceId, imageUrl, "could not be loaded", loadedImage ? shownNow() : undefined);
                 }}
               />
             ) : null}
@@ -179,13 +211,15 @@ export function LayerView(props: Props) {
 // svg-rig expression (R64): every expr-* element gets an explicit inline
 // value, "inline" for the chosen expression and "none" for the others.
 // Clearing it would leave an authored display="none" attribute in force.
-// Without an expression, the SVG stays as authored.
-function applyExpression(node: SVGSVGElement, renderer: ResolvedAsset["renderer"], expression: string | undefined): void {
-  if (renderer !== "svg-rig" || expression === undefined) return;
+// Without an expression, or when the file has no group for it, the SVG stays
+// as it is (never all groups hidden). Returns false in that second case.
+function applyExpression(node: SVGSVGElement, renderer: ResolvedAsset["renderer"], expression: string | undefined): boolean {
+  if (renderer !== "svg-rig" || expression === undefined) return true;
   const show = `expr-${expression}`;
-  for (const el of Array.from(node.querySelectorAll<SVGElement>("[class]"))) {
-    const classes = Array.from(el.classList);
-    if (!classes.some((c) => c.startsWith("expr-"))) continue;
-    el.style.display = classes.includes(show) ? "inline" : "none";
-  }
+  const groups = Array.from(node.querySelectorAll<SVGElement>("[class]")).filter((el) =>
+    Array.from(el.classList).some((c) => c.startsWith("expr-")),
+  );
+  if (!groups.some((el) => el.classList.contains(show))) return false;
+  for (const el of groups) el.style.display = el.classList.contains(show) ? "inline" : "none";
+  return true;
 }
