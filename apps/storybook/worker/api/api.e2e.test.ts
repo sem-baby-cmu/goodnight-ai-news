@@ -193,7 +193,7 @@ describe("Studio API end to end", () => {
   // Amendment R61: a page run is refused while a run of the story is queued
   // or running. The full run is held at `before_model_call` on page 1 while
   // the page run request is made.
-  it("a page run is refused with run_active while a full run is running", { timeout: 30_000 }, async () => {
+  it("RUN-05.S12 a page run is refused with run_active while a full run is running", { timeout: 30_000 }, async () => {
     await useStub();
     let held: { status: number; body: unknown; runId: string } | undefined;
     seams.at = async (point: string, ctx: FaultContext) => {

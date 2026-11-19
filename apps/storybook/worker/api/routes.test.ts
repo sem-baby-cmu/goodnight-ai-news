@@ -11,6 +11,7 @@ import {
   commitHead,
   getDb,
   insertRevisions,
+  insertRun,
   loadActiveRegistry,
   loadStoryHeads,
   markRunFailed,
@@ -288,6 +289,89 @@ describe("Studio API routes", () => {
     expect(r!.status).toBe("failed");
     expect(r!.finishedAt).not.toBeNull();
     expect(r!.error).not.toBeNull();
+  });
+
+  it("POST stories when the workflow is down returns 503 with the story and run IDs", async () => {
+    const f = fakeEnv({ createFails: true });
+    const res = await call(f.env, "POST", "/api/studio/stories", { text: words(250) });
+    expect(res.status).toBe(503);
+    const raw = (await res.json()) as { storyId: string; runId: string };
+    expect(raw).toEqual({ error: "workflow_unavailable", storyId: raw.storyId, runId: raw.runId });
+    WorkflowUnavailableSchema.parse(raw);
+    const [r] = await db().select().from(run).where(eq(run.id, raw.runId));
+    expect(r!.storyId).toBe(raw.storyId);
+    expect(r!.status).toBe("failed");
+  });
+
+  it("POST runs when the workflow is down returns 503 with the run ID and marks the run failed", async () => {
+    const f = fakeEnv({ createFails: true });
+    const ids = await newStory(db());
+    await markRunFailed(db(), ids.runId, { errors: [] });
+    const res = await call(f.env, "POST", `/api/studio/stories/${ids.storyId}/runs`, { scope: { kind: "full" } });
+    expect(res.status).toBe(503);
+    const raw = (await res.json()) as { runId: string };
+    expect(raw).toEqual({ error: "workflow_unavailable", runId: raw.runId });
+    WorkflowUnavailableSchema.parse(raw);
+    const [r] = await db().select().from(run).where(eq(run.id, raw.runId));
+    expect(r).toMatchObject({ storyId: ids.storyId, status: "failed" });
+    expect(r!.finishedAt).not.toBeNull();
+  });
+
+  it("PUT text with an empty text and an old basedOn returns 409 head_moved", async () => {
+    const d = await draftStory();
+    const p1 = d.pageIds[0]!;
+    const old = await textHeadId(d.storyId, p1);
+    const newHead = await saveText(d.storyId, p1, "Page 1. Someone else changed this.");
+    const before = await revisionCount(d.storyId);
+    const res = await call(fakeEnv().env, "PUT", textPath(d.storyId, p1), { text: "", basedOn: old });
+    expect(res.status).toBe(409);
+    const body = HeadMovedSchema.parse(await res.json());
+    expect(body.current!.id).toBe(newHead);
+    expect(await revisionCount(d.storyId)).toBe(before);
+  });
+
+  it("PUT text of 40 words and about 440 characters is saved", async () => {
+    const d = await draftStory();
+    const p1 = d.pageIds[0]!;
+    // One sentence of 40 words: valid PageText (1 to 40 words, 1 to 3 sentences).
+    const text = `${Array.from({ length: 40 }, (_, i) => `storyword${String(i).padStart(2, "0")}`).join(" ")}.`;
+    expect(text.split(/\s+/)).toHaveLength(40);
+    expect(text.length).toBeGreaterThan(400);
+    const res = await call(fakeEnv().env, "PUT", textPath(d.storyId, p1), { text, basedOn: await textHeadId(d.storyId, p1) });
+    expect(res.status).toBe(200);
+    const body = RevisionResponseSchema.parse(await res.json());
+    expect(body.revision.content).toEqual({ text });
+    expect(await textHeadId(d.storyId, p1)).toBe(body.revision.id);
+  });
+
+  it("GET runs lists only script for a full run that wrote no outline, even after a later run wrote one", async () => {
+    const ids = await newStory(db());
+    await markRunFailed(db(), ids.runId, {
+      errors: [{ runId: ids.runId, storyId: ids.storyId, pageId: null, step: "script", providerStatus: null, message: "The script is invalid after one repair." }],
+    });
+    const run2 = newId();
+    await insertRun(db(), { runId: run2, storyId: ids.storyId, scope: { kind: "full" } });
+    const scriptCall = await newCall(db(), run2, "script");
+    const outlineId = newId();
+    const pageId = newId();
+    await insertRevisions(db(), [
+      {
+        id: outlineId,
+        storyId: ids.storyId,
+        kind: "outline",
+        content: { title: "T", ageBand: "5-7", cast: ["test-bear"], pages: [{ pageId, beat: "B." }] },
+        basis: { source: ids.sourceRevisionId },
+        origin: "ai",
+        callId: scriptCall,
+        status: "ok",
+      },
+    ]);
+    await commitHead(db(), { storyId: ids.storyId, moves: { outline: outlineId }, basis: {}, expected: { outline: null } });
+
+    const res = await call(fakeEnv().env, "GET", `/api/studio/runs/${ids.runId}`);
+    expect(res.status).toBe(200);
+    const body = RunResponseSchema.parse(await res.json());
+    expect(body.steps).toEqual([{ step: "script", state: "failed" }]);
   });
 
   it("EDT-02.S2 PUT text with a stale basedOn returns 409 with the current revision", async () => {
@@ -1197,7 +1281,7 @@ describe("save routes when the head compare-and-set is exhausted", () => {
     vi.resetModules();
   });
 
-  it("a save that exhausts the head compare-and-set returns 503 busy", async () => {
+  it("EDT-03.S22 a save that exhausts the head compare-and-set returns 503 busy and keeps the revision", async () => {
     const d = await draftStory();
     const p1 = d.pageIds[0]!;
     const scene = await sceneHead(d.storyId, p1);
@@ -1229,5 +1313,60 @@ describe("save routes when the head compare-and-set is exhausted", () => {
     const after = await readStory(d.storyId);
     expect(after.heads[`page_text:${p1}`]).toBe(textId);
     expect(after.heads[`scene:${p1}`]).toBe(scene.id);
+    // Each save stored its human revision before the head move gave up.
+    const kept = (await db().select().from(revision).where(eq(revision.storyId, d.storyId))).filter(
+      (r) => r.pageId === p1 && r.origin === "human",
+    );
+    expect(kept.map((r) => r.kind).sort()).toEqual(["page_text", "scene", "scene"]);
+    expect(kept.every((r) => r.status === "ok")).toBe(true);
+    expect(kept.find((r) => r.kind === "page_text")!.content).toEqual({ text: "Page 1. The bear says hi." });
+  });
+});
+
+// `markRunFailed` throws after `STORY_RUN.create` failed: the routes still
+// answer 503 with the IDs (review finding, item 3). Stubbed on a fresh module
+// graph, as in the R58 test.
+describe("routes when the workflow is down and markRunFailed throws", () => {
+  afterEach(() => {
+    vi.doUnmock("../db/stories");
+    vi.resetModules();
+  });
+
+  it("POST stories and POST runs return 503 with the IDs when markRunFailed throws", async () => {
+    const ids = await newStory(db());
+    await markRunFailed(db(), ids.runId, { errors: [] });
+    vi.resetModules();
+    vi.doMock("../db/stories", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("../db/stories")>();
+      return {
+        ...actual,
+        markRunFailed: vi.fn(async () => {
+          throw new TypeError("d1 down");
+        }),
+      };
+    });
+    const fresh = (await import("./app")).app;
+    const e = fakeEnv({ createFails: true }).env;
+    const logs = vi.spyOn(console, "error").mockImplementation(() => {});
+    const send = (path: string, body: unknown) =>
+      Promise.resolve(fresh.request(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }, e));
+
+    const text = words(250, "secret");
+    const created = await send("/api/studio/stories", { text });
+    expect(created.status).toBe(503);
+    const createdBody = (await created.json()) as { storyId: string; runId: string };
+    expect(createdBody).toEqual({ error: "workflow_unavailable", storyId: createdBody.storyId, runId: createdBody.runId });
+    expect(createdBody.storyId).toMatch(UUID7);
+    expect(createdBody.runId).toMatch(UUID7);
+
+    const started = await send(`/api/studio/stories/${ids.storyId}/runs`, { scope: { kind: "full" } });
+    expect(started.status).toBe(503);
+    const startedBody = (await started.json()) as { runId: string };
+    expect(startedBody).toEqual({ error: "workflow_unavailable", runId: startedBody.runId });
+    expect(startedBody.runId).toMatch(UUID7);
+
+    const logged = logs.mock.calls.map((c) => c.map(String).join(" ")).join("\n");
+    expect(logged).not.toContain("secret0");
+    expect(logged).not.toContain("d1 down");
   });
 });
