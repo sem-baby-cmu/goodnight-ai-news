@@ -235,31 +235,31 @@ Spec: design "4. Layout engine", "Error Handling"
 - Given a valid scene and a layout template
 - When the layout engine runs
 - Then for each layer it takes the slot, reads the foot point and height of the asset from the registry, and computes `x`, `y`, `scale`, and `z`
-- Test: spec (to implement)
+- Test: @storybook/layout · packages/layout/test/layout.test.ts
 
 ### RUN-04.S2 A hidden face fails the face check
 - Given a placed scene where a character's face box is outside the stage, or more than 30% covered by a layer with a higher `z`
 - When the engine checks the scene
 - Then the "Face visible" check fails
-- Test: spec (to implement)
+- Test: @storybook/layout · packages/layout/test/checks.test.ts
 
 ### RUN-04.S3 Two characters that overlap too much fail the overlap check
 - Given a placed scene where two character boxes overlap by more than 15% of the smaller box
 - When the engine checks the scene
 - Then the "Overlap" check fails
-- Test: spec (to implement)
+- Test: @storybook/layout · packages/layout/test/checks.test.ts
 
 ### RUN-04.S4 A layer too far outside the stage fails the bounds check
 - Given a placed scene where a box goes outside the stage by more than 10%
 - When the engine checks the scene
 - Then the "Bounds" check fails
-- Test: spec (to implement)
+- Test: @storybook/layout · packages/layout/test/checks.test.ts
 
 ### RUN-04.S5 The engine shrinks layers before it reports a failure
 - Given a placed scene that fails a check
 - When the engine shrinks the layers involved step by step, down to the `minScale` of each slot, and checks again
 - Then the scene passes if the checks pass at a scale that is not below `minScale`
-- Test: spec (to implement)
+- Test: @storybook/layout · packages/layout/test/layout.test.ts
 
 ### RUN-04.S6 A layout that still fails counts as a validation failure
 - Given a placed scene that still fails a check with every layer involved at its `minScale`
