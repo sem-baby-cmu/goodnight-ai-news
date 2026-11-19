@@ -8,7 +8,7 @@
     "preview": "vite build && vite preview",
     "types": "wrangler types",
     "typecheck": "wrangler types --check && tsc -b",
-    "test": "vitest run"
+    "test": "vitest run --project worker && vitest run --project ui"
   },
   "dependencies": {
     "hono": "catalog:",
