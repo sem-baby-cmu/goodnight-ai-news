@@ -71,7 +71,7 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 - Given a hand-cleaned SVG source in `assets/<key>/v<n>/`
 - When the SVG step runs
 - Then the output has no scripts and no event attributes
-- Test: spec (to implement)
+- Test: @storybook/assets-tools · tools/assets/test/svg.test.ts
 
 ### REG-02.S4 A character moves from WebP to SVG as a new version
 - Given a character whose active version has the renderer `webp`
