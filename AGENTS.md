@@ -15,6 +15,13 @@ Read [`README.md`](README.md) first for what the project is.
   asset pipeline reads as its source.
 - [`app/`](app/) is the earlier Worker that is live today. Do not change it
   unless a task says so. It is replaced when the MVP Worker goes live.
+- Order of authority: ADR 0015 and the spec, then tests, then code. If two of
+  them disagree, that is a defect. Decide which side is wrong and correct that
+  side. Do not settle the conflict in code.
+- This file is the only rules file for all agents. Do not add copies such as
+  `CLAUDE.md` or `GEMINI.md`.
+- GitHub issues are the only task list. Do not keep a local task file such as
+  `tasks.md`.
 
 ## 2. Tech stack
 
@@ -78,7 +85,13 @@ The users are children ages 5 to 10.
 
 - Every acceptance criterion in the spec maps to a test (see the design
   document, "Testing Strategy").
-- Numbers over adjectives. Record cost, time, sizes, and frame times.
+- Expected values in a test come from the spec text. They do not come from
+  what the code does today.
+- Do not change an expected value to make a test pass. If the spec is wrong,
+  correct the spec and record the reason.
+- A criterion passes only when its test exists and passes.
+- Numbers over adjectives. Record cost, time, sizes, and frame times. Say how
+  and when you measured each number.
 - A failed test is a finding. Record it; do not hide it.
 
 ## 7. Architecture decisions
@@ -87,6 +100,13 @@ The users are children ages 5 to 10.
   the options that were rejected.
 - Read the records before you change the design. To change a decision, write
   a new record and mark the old one "Superseded".
+- Do not invent behaviour that the spec does not define. Product behaviour is
+  a decision for the owner. For an implementation detail, choose, label it
+  "implementation decision", and record it in the pull request or an ADR.
+- A decision request gives four things: the background with sources
+  (`file:line`, spec section, data), the real problem, the result of each
+  option, and a recommendation with its reason.
+- A recommendation from an agent is not a decision.
 
 ## 8. Writing style
 
@@ -102,6 +122,32 @@ The users are children ages 5 to 10.
 - Keep history linear. Rebase on `origin/main`; do not create merge commits.
 - Do not add AI attribution lines to commit messages or pull requests.
 - Build output is not tracked (for example built WebP assets, `dist/`).
+- Make changes in a separate worktree. Keep the main checkout as a read-only
+  baseline. Commit only your own changes.
+- After a push, confirm it with `git ls-remote`. After a `gh` write, confirm
+  it with `gh ... view`.
+
+## 10. Scope and trade-offs
+
+- Ask first if the problem is real. Prefer the solution that covers most
+  cases with little complexity. Leave the other cases to a person.
+- Build the narrowest end-to-end path first, then widen it. The rules in
+  sections 3 and 5 apply from the first slice.
+- A rare case can stay manual, but it must not fail silently. Keep the data
+  and show the case to a person: an error message, a log line, or a
+  `needs_review` record.
+- "Rare" needs evidence: a measured frequency or a fact from the owner.
+- A trade-off changes the order of the work. It does not remove a capability
+  that the spec defines. Do not remove a mechanism on an assumption.
+
+## 11. Review and verification
+
+- A change to the design or the architecture gets a review from two models
+  that are not in the author's model family. Merge the findings as a union.
+  If only one reviewer reports a finding, check it against the source.
+- Do not trust a self-reported result ("tests pass", "file written",
+  "pushed") from a sub-agent or a command. Confirm it through a second
+  channel.
 
 ## Aesthetic Judgment
 
