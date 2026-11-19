@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7eeca0e2-c033-416c-9546-cb40d5cfa514",
+  "id": "ea60e798-fac1-4b14-b07f-1917aaa4ec43",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "asset": {
@@ -210,6 +210,13 @@
         },
         "basis": {
           "name": "basis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expected_heads": {
+          "name": "expected_heads",
           "type": "text",
           "primaryKey": false,
           "notNull": true,

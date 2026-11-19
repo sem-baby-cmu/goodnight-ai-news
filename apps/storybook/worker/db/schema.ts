@@ -11,6 +11,9 @@ export type RevisionStatus = "ok" | "needs_review" | "superseded";
 export type HeadKey = "source" | "outline" | `page_text:${string}` | `scene:${string}` | `audio:${string}`;
 // Head key -> revision ID.
 export type Heads = Partial<Record<HeadKey, string>>;
+// Head key -> the head that a step or an edit expects before it moves the
+// key; null means "no head yet" (implementation decision R58).
+export type ExpectedHeads = Partial<Record<HeadKey, string | null>>;
 export type RunScope = { kind: "full" } | { kind: "page"; pageId: string; target: "scene" | "audio" };
 export type RunStatus = "queued" | "running" | "draft_ready" | "needs_review" | "failed";
 export type SourceContent = { text: string; url: string | null; words: number; truncated: boolean };
@@ -115,6 +118,8 @@ export const callLog = sqliteTable(
     r2Key: text("r2_key"),
     // Read at the first attempt; a retry reuses it.
     basis: text("basis", { mode: "json" }).$type<Heads>().notNull(),
+    // The heads of the target keys when the basis was read; a retry reuses it.
+    expectedHeads: text("expected_heads", { mode: "json" }).$type<ExpectedHeads>().notNull(),
     model: text("model").notNull(),
     usage: text("usage", { mode: "json" }).$type<unknown>(),
     createdAt: createdAt(),
