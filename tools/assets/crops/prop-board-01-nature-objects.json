@@ -1,0 +1,252 @@
+{
+  "board": "prop-board-01-nature-objects.png",
+  "background": [
+    246,
+    242,
+    232
+  ],
+  "tolerance": 10,
+  "assets": {
+    "tree": {
+      "kind": "scenery",
+      "name": "Tree",
+      "version": 1,
+      "flippable": true
+    },
+    "bush": {
+      "kind": "scenery",
+      "name": "Bush",
+      "version": 1,
+      "flippable": true
+    },
+    "grass": {
+      "kind": "scenery",
+      "name": "Grass",
+      "version": 1,
+      "flippable": true
+    },
+    "flowers": {
+      "kind": "scenery",
+      "name": "Flowers",
+      "version": 1,
+      "flippable": true
+    },
+    "rocks": {
+      "kind": "scenery",
+      "name": "Rocks",
+      "version": 1,
+      "flippable": true
+    },
+    "log": {
+      "kind": "scenery",
+      "name": "Log",
+      "version": 1,
+      "flippable": true
+    },
+    "mushrooms": {
+      "kind": "scenery",
+      "name": "Mushrooms",
+      "version": 1,
+      "flippable": true
+    },
+    "pond": {
+      "kind": "scenery",
+      "name": "Pond",
+      "version": 1,
+      "flippable": true
+    },
+    "clouds": {
+      "kind": "scenery",
+      "name": "Clouds",
+      "version": 1,
+      "flippable": true
+    },
+    "sun": {
+      "kind": "scenery",
+      "name": "Sun",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "tree",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 91,
+        "y": 18,
+        "w": 347,
+        "h": 411
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bush",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 543,
+        "y": 126,
+        "w": 369,
+        "h": 245
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "grass",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1030,
+        "y": 127,
+        "w": 287,
+        "h": 244
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "flowers",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 36,
+        "y": 420,
+        "w": 314,
+        "h": 264
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 205,
+          "y": 550
+        },
+        {
+          "x": 163,
+          "y": 551
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rocks",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 374,
+        "y": 445,
+        "w": 359,
+        "h": 240
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "log",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 748,
+        "y": 430,
+        "w": 405,
+        "h": 256
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "mushrooms",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1179,
+        "y": 429,
+        "w": 325,
+        "h": 250
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pond",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 66,
+        "y": 790,
+        "w": 382,
+        "h": 170
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "clouds",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 542,
+        "y": 718,
+        "w": 448,
+        "h": 272
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sun",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1102,
+        "y": 694,
+        "w": 326,
+        "h": 316
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    }
+  ]
+}

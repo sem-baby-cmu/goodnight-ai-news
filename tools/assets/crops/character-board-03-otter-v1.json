@@ -1,0 +1,473 @@
+{
+  "board": "character-board-03-otter-v1.png",
+  "background": [
+    253,
+    251,
+    249
+  ],
+  "tolerance": 10,
+  "assets": {
+    "bobo": {
+      "kind": "character",
+      "name": "Bobo",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "bobo",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 55,
+        "y": 51,
+        "w": 249,
+        "h": 395
+      },
+      "face": {
+        "x": 98,
+        "y": 89,
+        "w": 163,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 229,
+          "y": 110
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 352,
+        "y": 51,
+        "w": 246,
+        "h": 396
+      },
+      "face": {
+        "x": 395,
+        "y": 89,
+        "w": 161,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 464,
+          "y": 113
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 615,
+        "y": 54,
+        "w": 225,
+        "h": 393
+      },
+      "face": {
+        "x": 654,
+        "y": 92,
+        "w": 146,
+        "h": 151
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 780,
+          "y": 105
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 905,
+        "y": 51,
+        "w": 230,
+        "h": 395
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 23,
+        "y": 501,
+        "w": 199,
+        "h": 200
+      },
+      "face": {
+        "x": 49,
+        "y": 518,
+        "w": 146,
+        "h": 120
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 156,
+          "y": 555
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 224,
+        "y": 501,
+        "w": 195,
+        "h": 200
+      },
+      "face": {
+        "x": 250,
+        "y": 518,
+        "w": 143,
+        "h": 120
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 417,
+        "y": 500,
+        "w": 195,
+        "h": 201
+      },
+      "face": {
+        "x": 443,
+        "y": 517,
+        "w": 143,
+        "h": 120
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 608,
+        "y": 500,
+        "w": 194,
+        "h": 201
+      },
+      "face": {
+        "x": 634,
+        "y": 517,
+        "w": 142,
+        "h": 120
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 740,
+          "y": 552
+        },
+        {
+          "x": 680,
+          "y": 557
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 797,
+        "y": 500,
+        "w": 193,
+        "h": 202
+      },
+      "face": {
+        "x": 823,
+        "y": 517,
+        "w": 142,
+        "h": 121
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 988,
+        "y": 500,
+        "w": 197,
+        "h": 202
+      },
+      "face": {
+        "x": 1014,
+        "y": 517,
+        "w": 145,
+        "h": 121
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1113,
+          "y": 546
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 28,
+        "y": 750,
+        "w": 265,
+        "h": 386
+      },
+      "face": {
+        "x": 73,
+        "y": 788,
+        "w": 174,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 155,
+          "y": 811
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 320,
+        "y": 757,
+        "w": 276,
+        "h": 376
+      },
+      "face": {
+        "x": 367,
+        "y": 794,
+        "w": 182,
+        "h": 144
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 471,
+          "y": 811
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 605,
+        "y": 817,
+        "w": 263,
+        "h": 329
+      },
+      "face": {
+        "x": 650,
+        "y": 850,
+        "w": 173,
+        "h": 125
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 718,
+          "y": 878
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 897,
+        "y": 742,
+        "w": 232,
+        "h": 392
+      },
+      "face": {
+        "x": 937,
+        "y": 780,
+        "w": 151,
+        "h": 150
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bobo",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 736,
+        "y": 1196,
+        "w": 81,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "bobo",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 806,
+        "y": 1197,
+        "w": 80,
+        "h": 80
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "bobo",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 874,
+        "y": 1197,
+        "w": 80,
+        "h": 79
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "bobo",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 943,
+        "y": 1197,
+        "w": 80,
+        "h": 80
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "bobo",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1010,
+        "y": 1196,
+        "w": 80,
+        "h": 80
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "bobo",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1077,
+        "y": 1196,
+        "w": 81,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

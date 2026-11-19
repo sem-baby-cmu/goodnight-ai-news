@@ -1,0 +1,217 @@
+{
+  "board": "prop-board-03-robot-story-objects.png",
+  "background": [
+    248,
+    241,
+    228
+  ],
+  "tolerance": 10,
+  "assets": {
+    "toolbox": {
+      "kind": "prop",
+      "name": "Toolbox",
+      "version": 1,
+      "flippable": true
+    },
+    "gears": {
+      "kind": "prop",
+      "name": "Gears",
+      "version": 1,
+      "flippable": true
+    },
+    "screws": {
+      "kind": "prop",
+      "name": "Screws",
+      "version": 1,
+      "flippable": true
+    },
+    "battery": {
+      "kind": "prop",
+      "name": "Battery",
+      "version": 1,
+      "flippable": true
+    },
+    "light-bulb": {
+      "kind": "prop",
+      "name": "Light bulb",
+      "version": 1,
+      "flippable": true
+    },
+    "robot-parts": {
+      "kind": "prop",
+      "name": "Robot parts",
+      "version": 1,
+      "flippable": true
+    },
+    "wagon": {
+      "kind": "prop",
+      "name": "Wagon",
+      "version": 1,
+      "flippable": true
+    },
+    "machine": {
+      "kind": "prop",
+      "name": "Machine",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "toolbox",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 31,
+        "y": 136,
+        "w": 356,
+        "h": 312
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 253,
+          "y": 187
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "gears",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 406,
+        "y": 110,
+        "w": 351,
+        "h": 360
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 507,
+          "y": 311
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "screws",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 781,
+        "y": 134,
+        "w": 335,
+        "h": 314
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "battery",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1221,
+        "y": 122,
+        "w": 224,
+        "h": 333
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "light-bulb",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 35,
+        "y": 556,
+        "w": 259,
+        "h": 378
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "robot-parts",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 308,
+        "y": 595,
+        "w": 385,
+        "h": 317
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "wagon",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 724,
+        "y": 556,
+        "w": 402,
+        "h": 374
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 1034,
+          "y": 612
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "machine",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1121,
+        "y": 544,
+        "w": 404,
+        "h": 391
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 1417,
+          "y": 661
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    }
+  ]
+}

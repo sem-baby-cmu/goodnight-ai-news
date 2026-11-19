@@ -1,0 +1,508 @@
+{
+  "board": "character-board-07-rabbit-v1.png",
+  "background": [
+    254,
+    250,
+    245
+  ],
+  "tolerance": 10,
+  "assets": {
+    "rabbit": {
+      "kind": "character",
+      "name": "Rabbit",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "rabbit",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 123,
+        "y": 12,
+        "w": 188,
+        "h": 445
+      },
+      "face": {
+        "x": 157,
+        "y": 54,
+        "w": 120,
+        "h": 172
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 183,
+          "y": 157
+        },
+        {
+          "x": 244,
+          "y": 157
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 386,
+        "y": 7,
+        "w": 187,
+        "h": 455
+      },
+      "face": {
+        "x": 420,
+        "y": 50,
+        "w": 120,
+        "h": 176
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 475,
+          "y": 153
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 639,
+        "y": 9,
+        "w": 172,
+        "h": 450
+      },
+      "face": {
+        "x": 670,
+        "y": 52,
+        "w": 109,
+        "h": 174
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 756,
+          "y": 153
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 880,
+        "y": 12,
+        "w": 187,
+        "h": 446
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 31,
+        "y": 497,
+        "w": 177,
+        "h": 275
+      },
+      "face": {
+        "x": 55,
+        "y": 518,
+        "w": 129,
+        "h": 168
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 93,
+          "y": 633
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 224,
+        "y": 498,
+        "w": 174,
+        "h": 274
+      },
+      "face": {
+        "x": 248,
+        "y": 519,
+        "w": 126,
+        "h": 168
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 415,
+        "y": 498,
+        "w": 176,
+        "h": 274
+      },
+      "face": {
+        "x": 439,
+        "y": 519,
+        "w": 128,
+        "h": 168
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 474,
+          "y": 642
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 605,
+        "y": 498,
+        "w": 175,
+        "h": 274
+      },
+      "face": {
+        "x": 629,
+        "y": 519,
+        "w": 127,
+        "h": 168
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 721,
+          "y": 637
+        },
+        {
+          "x": 662,
+          "y": 638
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 798,
+        "y": 498,
+        "w": 174,
+        "h": 274
+      },
+      "face": {
+        "x": 822,
+        "y": 519,
+        "w": 126,
+        "h": 168
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 856,
+          "y": 646
+        },
+        {
+          "x": 911,
+          "y": 646
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 986,
+        "y": 497,
+        "w": 178,
+        "h": 275
+      },
+      "face": {
+        "x": 1010,
+        "y": 518,
+        "w": 130,
+        "h": 168
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1101,
+          "y": 630
+        },
+        {
+          "x": 1047,
+          "y": 638
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 67,
+        "y": 801,
+        "w": 208,
+        "h": 426
+      },
+      "face": {
+        "x": 104,
+        "y": 842,
+        "w": 134,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 168,
+          "y": 935
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 323,
+        "y": 804,
+        "w": 249,
+        "h": 418
+      },
+      "face": {
+        "x": 366,
+        "y": 844,
+        "w": 163,
+        "h": 161
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 475,
+          "y": 932
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 637,
+        "y": 856,
+        "w": 199,
+        "h": 371
+      },
+      "face": {
+        "x": 672,
+        "y": 892,
+        "w": 128,
+        "h": 142
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 764,
+          "y": 990
+        },
+        {
+          "x": 707,
+          "y": 992
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 909,
+        "y": 796,
+        "w": 182,
+        "h": 425
+      },
+      "face": {
+        "x": 942,
+        "y": 837,
+        "w": 116,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1027,
+          "y": 933
+        },
+        {
+          "x": 972,
+          "y": 936
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "rabbit",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 774,
+        "y": 1234,
+        "w": 70,
+        "h": 70
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "rabbit",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 839,
+        "y": 1234,
+        "w": 71,
+        "h": 70
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "rabbit",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 904,
+        "y": 1234,
+        "w": 71,
+        "h": 70
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "rabbit",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 970,
+        "y": 1234,
+        "w": 71,
+        "h": 70
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "rabbit",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1035,
+        "y": 1234,
+        "w": 71,
+        "h": 70
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "rabbit",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1100,
+        "y": 1234,
+        "w": 71,
+        "h": 70
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}
