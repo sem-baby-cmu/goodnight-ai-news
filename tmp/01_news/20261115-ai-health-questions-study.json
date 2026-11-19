@@ -1,0 +1,35 @@
+{
+  "id": "ai-health-questions-study",
+  "title": "Can AI Answer Our Health Questions Safely?",
+  "source_links": [
+    "https://www.theverge.com/tech/1033355/apples-new-study-looks-to-improve-the-effectiveness-of-ai-health-tools",
+    "https://techcrunch.com/2026/11/15/apple-launches-new-app-to-study-how-people-use-ai-for-health/",
+    "https://www.apple.com/newsroom/2026/11/apple-launches-research-study-to-explore-the-use-of-ai-for-health/",
+    "https://abcnews.com/US/apple-launches-ai-health-chatbot-part-research-study/story?id=138164909"
+  ],
+  "date": "2026-11-15",
+  "confidence": 4,
+  "first_rating": "green",
+  "ai_relevance": "direct",
+  "key_terms": [
+    {
+      "term": "conversational AI",
+      "category": "artificial intelligence",
+      "child_friendly_definition": "An AI system that responds to questions using everyday written or spoken language.",
+      "source_context": "Study participants can ask an AI health-related questions through an app."
+    },
+    {
+      "term": "clinical validation",
+      "category": "health AI evaluation",
+      "child_friendly_definition": "Careful research that checks whether a health tool is accurate, useful, and safe for its intended purpose.",
+      "source_context": "The study is beginning, so evidence about how safely and effectively the AI works is not yet available."
+    },
+    {
+      "term": "health data privacy",
+      "category": "AI safety",
+      "child_friendly_definition": "Protecting personal information about a person's body, health, and medical care.",
+      "source_context": "People should understand what health information an AI app collects, who can see it, and how it is protected."
+    }
+  ],
+  "full_text": "Many people ask AI questions about their bodies and health. They might ask why they feel tired, how to sleep better, or what a medical word means. AI can quickly find and explain information, but it can also misunderstand a question or give an answer that is incomplete or wrong.\n\nApple has launched a research study to learn how people use conversational AI for health questions. Adults who choose to join can use a special study app to ask health-related questions. Researchers will examine whether the answers are useful, understandable, and supported by trusted medical information. The goal is to learn how health AI tools could be made safer and more helpful.\n\nThis announcement does not mean that researchers have already proved the AI is accurate or safe enough to act as a doctor. The study has only begun, so its final results are not yet available. Information about the study comes from Apple's announcement and reporting by several news organizations. Any claims about how well the system works will need to be evaluated after researchers publish evidence from the study.\n\nFor a young child, the most important lesson is simple: AI can help explain information, but it cannot examine a person, understand every part of a situation, or replace a trusted adult and a healthcare professional. If a child feels sick, hurt, scared, or unusually tired, the child should tell a parent, caregiver, teacher, nurse, or doctor rather than trying to solve the problem alone with AI.\n\nThe study also raises questions about privacy. Health information can be very personal, so people should understand what information an app collects, who may see it, how it will be protected, and whether sharing it is optional. Children should never enter private health information into an AI tool without help from a trusted adult.\n\nAI may eventually become a useful assistant for explaining health information, but people must remain responsible for important health decisions. The safest rule for children is: ask AI for general information only with an adult's help, and ask a qualified healthcare professional when someone may be sick or injured."
+}

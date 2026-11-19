@@ -1,0 +1,35 @@
+{
+  "id": "mini-intestines-drug-testing",
+  "title": "Scientists Are Growing Tiny Intestines to Test Medicine",
+  "source_links": [
+    "https://techcrunch.com/2026/10/14/intero-biosystems-wants-drugmakers-to-test-on-mini-human-intestines-not-animals/",
+    "https://www.sbir.gov/awards/218630",
+    "https://news.engin.umich.edu/2026/04/accelerating-pharmaceutical-advances-with-organoid-technology/",
+    "https://innovationpartnerships.umich.edu/company/intero-biosystems/"
+  ],
+  "date": "2026-10-14",
+  "confidence": 4,
+  "first_rating": "green",
+  "ai_relevance": "not_central",
+  "key_terms": [
+    {
+      "term": "organoid",
+      "category": "biotechnology",
+      "child_friendly_definition": "A tiny group of living cells grown in a laboratory to copy some features of a real organ.",
+      "source_context": "Researchers grew intestine-like organoids to study how human tissue may respond to medicine."
+    },
+    {
+      "term": "stem cell",
+      "category": "biology",
+      "child_friendly_definition": "A cell that can make more cells and can sometimes develop into different kinds of body cells.",
+      "source_context": "Stem cells can be guided to grow into the kinds of cells found in intestinal tissue."
+    },
+    {
+      "term": "preclinical testing",
+      "category": "medicine",
+      "child_friendly_definition": "Safety and effectiveness checks done before a possible treatment is tested in people.",
+      "source_context": "Organoids may help researchers investigate medicines during early testing."
+    }
+  ],
+  "full_text": "Before a new medicine can be given to people, scientists need to learn whether it is likely to work and whether it could cause harm. Traditional laboratory tests may use flat layers of cells or animals, but neither method perfectly represents what happens inside a human body.\n\nIntero Biosystems is developing human intestinal organoids. An organoid is a tiny three-dimensional structure grown from stem cells. It is not a complete organ and cannot think, eat, or live independently. However, it can contain several types of cells arranged in ways that imitate some features of a real intestine.\n\nThe company’s organoids include an inner lining, muscle, blood-vessel-like structures, and nerve cells. Researchers hope these models can show how intestinal tissue responds to a drug or chemical before a treatment reaches human trials. The technology was developed from University of Michigan research, and a U.S. government small-business research record confirms funding for work to validate the system for drug testing.\n\nOrganoids may eventually help scientists reduce some animal experiments and identify unsafe or ineffective drug candidates earlier. They may also allow researchers to study diseases or compare how tissue from different people responds to treatment.\n\nThere are limits. A tiny intestinal model does not include an entire immune system, brain, liver, or all the other organs that interact inside a person. Scientists must still test whether results from the laboratory accurately predict what happens in patients. The technology may supplement several stages of research rather than replace every animal or human study.\n\nThis story shows how scientists build simplified models to investigate complicated living systems. A model can be extremely useful as long as researchers remain clear about what it represents and what it leaves out."
+}

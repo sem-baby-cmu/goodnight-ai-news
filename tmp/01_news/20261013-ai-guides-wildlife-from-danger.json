@@ -1,0 +1,34 @@
+{
+  "id": "ai-guides-wildlife-from-danger",
+  "title": "Can AI Help Animals Stay Away From Roads and Trains?",
+  "source_links": [
+    "https://techcrunch.com/2026/10/13/flox-intelligence-is-building-ai-to-keep-wildlife-away-from-trains-airports-and-roads/",
+    "https://www.alstom.com/press-releases-news/2026/5/alstom-and-flox-intelligence-revolutionise-rail-safety-launch-ground-breaking-trials-ai-system-protect-wildlife-railways-and-enhance-passenger-safety",
+    "https://www.transport.nsw.gov.au/system/files/media/documents/2025/Using-technology-to-reduce-wildlife-vehicle-collisions-Directions-Report.pdf"
+  ],
+  "date": "2026-10-13",
+  "confidence": 3,
+  "first_rating": "yellow",
+  "ai_relevance": "direct",
+  "key_terms": [
+    {
+      "term": "computer vision",
+      "category": "artificial intelligence",
+      "child_friendly_definition": "Technology that helps a computer find and understand things in pictures or video.",
+      "source_context": "Cameras and AI systems can be used to notice animals near roads or railway tracks."
+    },
+    {
+      "term": "object detection",
+      "category": "computer vision",
+      "child_friendly_definition": "A computer task that finds an object in an image and identifies what kind of object it may be.",
+      "source_context": "The system must distinguish an animal from the background before it can respond."
+    },
+    {
+      "term": "edge AI",
+      "category": "AI systems",
+      "child_friendly_definition": "AI that runs close to where data is collected, such as inside a roadside camera, instead of sending everything far away first.",
+      "source_context": "Local processing can help a wildlife warning system react quickly."
+    }
+  ],
+  "full_text": "Wild animals do not understand road signs or train schedules. A moose may walk onto a railway, a deer may cross a highway, or a bird may enter an airport. These encounters can injure animals, damage vehicles, and put people in danger.\n\nFlox Intelligence is developing devices that use cameras, sensors, and artificial intelligence to recognize animals near transportation routes. When the system detects an animal, it can play a selected sound intended to guide the animal away from danger. Different species may respond to different signals, so the system attempts to choose a suitable response rather than playing the same alarm every time.\n\nThe company says its devices have been deployed at airfields, roads, railways, parks, and other locations. Train manufacturer Alstom also reported trials of the technology on railway infrastructure. Separate transportation research shows that animal-detection systems and carefully chosen warning sounds can sometimes change wildlife behavior, although results vary by animal, landscape, weather, and traffic conditions.\n\nThere are important questions still to answer. Animals may become accustomed to a repeated sound and stop responding. A camera may miss an animal hidden by vegetation or darkness. A signal that works for one species may frighten or confuse another. Researchers also need long-term evidence showing that the system actually reduces collisions, not merely that animals move during a demonstration.\n\nFor those reasons, this story is rated yellow rather than green. The technology and trials are real, but the strongest claims about long-term success still come from the companies involved.\n\nThe educational idea is powerful: technology can sometimes help people coexist with nature, but a clever invention must be tested in the real world before we know whether it truly protects animals."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "synthid-checks-ai-media",
+  "title": "Can a Digital Watermark Tell Us Which Pictures Were Made by AI?",
+  "source_links": [
+    "https://techcrunch.com/2026/10/07/googles-new-synthid-website-can-identify-ai-generated-media/",
+    "https://blog.google/innovation-and-ai/models-and-research/google-deepmind/synth-id-ai-content/",
+    "https://arstechnica.com/ai/2026/10/google-rolls-out-improved-synthid-ai-content-detector-now-available-globally/",
+    "https://fullfact.org/toolkit/google-synthid-detector-flagging-apparently-real-images/"
+  ],
+  "date": "2026-10-07",
+  "confidence": 5,
+  "first_rating": "green",
+  "ai_relevance": "direct",
+  "key_terms": [
+    {
+      "term": "AI-generated media",
+      "category": "AI literacy",
+      "child_friendly_definition": "Pictures, audio, or video made or changed by an artificial intelligence system.",
+      "source_context": "The story asks how people can recognize media produced by AI tools."
+    },
+    {
+      "term": "digital watermark",
+      "category": "content provenance",
+      "child_friendly_definition": "A hidden pattern placed inside a digital file that can act like a label showing where it came from.",
+      "source_context": "SynthID places a watermark in some AI-generated images, audio, and video."
+    },
+    {
+      "term": "detector",
+      "category": "AI verification",
+      "child_friendly_definition": "A tool that searches for a particular signal or pattern and reports whether it finds one.",
+      "source_context": "The SynthID detector checks an uploaded file for a supported watermark."
+    }
+  ],
+  "full_text": "Pictures, songs, and videos made by artificial intelligence can look and sound very convincing. Sometimes it is difficult to tell whether a photograph shows a real event or whether a computer created it. That can be a problem when people share media without explaining where it came from.\n\nGoogle opened a public website that checks media for SynthID, a type of invisible digital watermark. A watermark is like a tiny hidden label placed inside a file. People normally cannot see or hear it, but a detector can look for its pattern. Google and some other technology companies add SynthID watermarks to media produced by certain AI tools.\n\nThe new detector can examine an uploaded image, video, or audio file and report whether it finds a supported watermark. Google confirmed how the system works, and independent technology publications reported the launch. The tool can help journalists, teachers, and other users investigate where a piece of media may have come from.\n\nHowever, the detector is not a perfect truth machine. It does not recognize every AI system, and a file without a detected watermark may still have been created or edited by AI. The fact-checking organization Full Fact also found cases in which the detector gave uncertain or misleading signals for apparently genuine images. Google adjusted the tool after receiving those findings.\n\nThis means that a watermark should be treated as one clue. People should also ask who first shared the media, search for earlier versions, check whether reliable news organizations show the same event, and look for information from people who were actually there.\n\nThe most important lesson for children is that seeing is not always believing. Technology can help us investigate a picture, but careful thinking and multiple sources are still necessary before deciding that something is real."
+}

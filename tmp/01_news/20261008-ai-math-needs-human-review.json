@@ -1,0 +1,35 @@
+{
+  "id": "ai-math-needs-human-review",
+  "title": "AI Wrote Hundreds of Math Answers. Who Checks Them?",
+  "source_links": [
+    "https://techcrunch.com/2026/10/08/openais-math-solutions-arent-meeting-the-fields-standards-yet/",
+    "https://www.nytimes.com/2026/10/06/science/openai-math-problems.html",
+    "https://bpb-us-w2.wpmucdn.com/campuspress.yale.edu/dist/9/5192/files/2026/10/LSU_colloqium_1007.pdf",
+    "https://www.lemonde.fr/en/science/article/2026/10/12/openai-s-latest-blow-to-mathematicians-they-have-annihilated-my-field-of-research_6758515_10.html"
+  ],
+  "date": "2026-10-08",
+  "confidence": 4,
+  "first_rating": "green",
+  "ai_relevance": "direct",
+  "key_terms": [
+    {
+      "term": "AI model",
+      "category": "artificial intelligence",
+      "child_friendly_definition": "A computer system trained on many examples so it can recognize patterns or produce answers.",
+      "source_context": "AI models were asked to work on a large collection of mathematics problems."
+    },
+    {
+      "term": "conjecture",
+      "category": "mathematics",
+      "child_friendly_definition": "A mathematical idea that seems true but still needs a convincing proof.",
+      "source_context": "Some AI-generated answers concerned questions for which a claimed result must be checked carefully."
+    },
+    {
+      "term": "formal verification",
+      "category": "AI evaluation",
+      "child_friendly_definition": "Checking a claim with exact logical rules so that every step must fit together correctly.",
+      "source_context": "Formal methods can help test mathematical work more rigorously than a quick reading."
+    }
+  ],
+  "full_text": "Mathematicians do more than calculate numbers. They ask difficult questions, invent new ideas, and write proofs that explain why an answer must be true. A proof is a careful chain of reasoning in which every step must follow from definitions and earlier results.\n\nOpenAI released a large collection of mathematical manuscripts generated with help from an internal AI model. The papers claimed progress on hundreds of open problems. Some of the work also included formal computer code designed to let proof-checking software examine the logical steps.\n\nThe release attracted attention because checking hundreds of long and technical manuscripts requires a great deal of expert time. Mathematicians told several news organizations that making a proposed solution public is only the beginning. Researchers still need to read it, understand the main idea, compare it with earlier studies, verify its assumptions, and decide whether the result is truly new.\n\nA computer proof checker can be very useful, but it checks only what has been translated into its formal language. If a definition is entered incorrectly, if the formal statement is different from the original question, or if important background is missing, a successful computer check may not settle the whole scientific claim.\n\nThis does not mean that AI has no place in mathematics. It may help researchers search for patterns, explore possible arguments, translate proofs into formal code, or test many ideas quickly. But speed creates a new responsibility: someone must still understand and verify what the machine produced.\n\nThe lesson for children is the same one teachers use in class. Writing down an answer is not enough. A trustworthy solution should show its reasoning clearly enough that another person can check it."
+}
