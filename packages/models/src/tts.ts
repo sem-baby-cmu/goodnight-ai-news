@@ -91,6 +91,9 @@ export function decodeSpeechResponse(json: unknown): { bytes: Uint8Array; conten
     if (rate === undefined || channels === undefined) {
       throw new UnsupportedAudioFormatError(`PCM audio without a valid rate or channel count: ${mimeType}`, noContext);
     }
+    if (raw.length % 2 !== 0) {
+      throw new UnsupportedAudioFormatError("16-bit PCM audio has an odd byte count", noContext);
+    }
     const bytes = pcmToWav(raw, rate, channels);
     return { bytes, contentType: "audio/wav", durationMs: wavDurationMs(wavInfo(bytes)) };
   }
