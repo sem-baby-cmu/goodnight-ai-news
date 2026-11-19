@@ -19,7 +19,7 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 ### RUN-01.S2 A full run gives a draft of 6 to 8 pages
 - Given a full run on an empty database, with model outputs that pass validation
 - When the run ends
-- Then the story has 6 to 8 pages; every page has a current `page_text`, `scene`, and `audio` head
+- Then the story has 6 to 8 pages; every page has a current `page_text`, `scene`, and `audio` head; the run ends at `draft_ready`
 - Test: spec (to implement)
 
 ### RUN-01.S3 Each draft page can be seen, heard, and touched
@@ -58,6 +58,24 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Then it checks that every page has current text, scene, and audio, and sets the run status; the run ends at `draft_ready` or `needs_review` and does not wait for a person
 - Test: spec (to implement)
 
+### RUN-01.S9 A short pasted text is refused
+- Given a pasted news text of fewer than 200 words
+- When the operator sends `POST /api/studio/stories` with `{ text }`
+- Then the API returns 422 and starts no run
+- Test: spec (to implement)
+
+### RUN-01.S10 A long pasted text is cut
+- Given a pasted news text of more than 2,000 words
+- When the operator sends `POST /api/studio/stories` with `{ text }`
+- Then the text is cut at 2,000 words, and the Studio shows a note
+- Test: spec (to implement)
+
+### RUN-01.S11 A missing or `needs_review` head gives a `needs_review` run
+- Given a run whose page steps are complete, and one page has no `page_text`, `scene`, or `audio` head, or has one of these heads with `status = needs_review`
+- When the `finish` step runs
+- Then the run ends at `needs_review`; when no page has such a head, the run ends at `draft_ready`
+- Test: spec (to implement)
+
 ## RUN-02 Start a full run from a URL
 
 As the operator, I want to give one URL instead of a pasted text, so that I
@@ -74,7 +92,7 @@ Spec: requirements "Scope" · design "6. API" (URL input), "Error Handling", "Te
 ### RUN-02.S2 Only `http` and `https` are fetched
 - Given a URL, or a redirect target, with a scheme that is not `http` or `https`
 - When the API handles the request
-- Then the API does not fetch that URL (the response status is open question Q6)
+- Then the API does not fetch that URL; it returns 422, and the Studio asks for pasted text
 - Test: spec (to implement)
 
 ### RUN-02.S3 A chain of 4 redirects is refused
@@ -187,6 +205,18 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Then code assigns each `instanceId` and rewrites `target` and `on.tap` to those values; no `instanceId` comes from the model
 - Test: spec (to implement)
 
+### RUN-03.S13 A page without a character, an animation, or a tap fails validation
+- Given a scene output with no character layer, no animation, or no tap interaction
+- When it is validated
+- Then validation fails, and the repair rule applies (RUN-05)
+- Test: spec (to implement)
+
+### RUN-03.S14 An animation parameter outside its bounds fails validation
+- Given a scene output with an animation parameter outside the bounds of its primitive, for example `float` with a period of 8 s
+- When it is validated
+- Then validation fails, and the repair rule applies (RUN-05); code does not clamp the parameter to the bounds
+- Test: spec (to implement)
+
 ## RUN-04 Code places the layers
 
 As the system, I want code to compute and check every position, so that
@@ -247,7 +277,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "Error Handling"
 ### RUN-05.S2 A scene that still fails is kept as `needs_review`
 - Given a scene output that fails validation, and a repair output that also fails
 - When the `scene:<pageId>` step ends
-- Then the candidate is saved with `status = needs_review` and its errors; no layer is dropped and no character is swapped; there is no second repair
+- Then the candidate is saved with `status = needs_review` and its errors; no layer is dropped and no character is swapped; there is no second repair; the run ends at `needs_review`
 - Test: spec (to implement)
 
 ### RUN-05.S3 A script that still fails makes the run fail
@@ -278,6 +308,12 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "Error Handling"
 - Given a run that failed
 - When the operator opens it in the Studio
 - Then `run.status` is `failed` with the error; the Studio shows the error and can start a new run with the same scope
+- Test: spec (to implement)
+
+### RUN-05.S8 A provider 4xx in the script step makes the run fail
+- Given a `script` step where the provider answers a 4xx that is not 429
+- When the step handles the answer
+- Then the error is non-retryable, and the run fails with the provider message
 - Test: spec (to implement)
 
 ## RUN-06 The scene approach holds on real news

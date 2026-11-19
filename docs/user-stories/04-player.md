@@ -8,7 +8,7 @@ spec decides the expected behaviour.
 As a child, I want the characters to move and react when I tap them, so that
 the story feels alive.
 
-Spec: requirements US-5, "Core Features" 5 · design "5. Scene runtime"
+Spec: requirements US-5, "Core Features" 5 · design "4. Layout engine", "5. Scene runtime"
 
 ### PLY-01.S1 The Player reads one release
 - Given a published release
@@ -44,6 +44,12 @@ Spec: requirements US-5, "Core Features" 5 · design "5. Scene runtime"
 - Given a device with `prefers-reduced-motion` set
 - When the Player shows a page with looping animations
 - Then the looping animations are off
+- Test: spec (to implement)
+
+### PLY-01.S7 A bubble text is shown over the stage
+- Given a tap interaction with a `show_bubble` action
+- When the child taps its layer
+- Then the text of the bubble is an HTML element over the stage; it is not part of the stage image
 - Test: spec (to implement)
 
 ## PLY-02 Each page is read aloud
