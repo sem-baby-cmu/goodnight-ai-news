@@ -68,7 +68,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 30 scenarios are `spec (to implement)`, 130 have an
+Current state: 33 scenarios are `spec (to implement)`, 130 have an
 automated test, and 5 are `manual · not run`.
 
 ## Coverage of the requirements
@@ -94,7 +94,7 @@ automated test, and 5 are `manual · not run`.
 | AC-10 A release has a new prefix and changes no earlier release | PUB-01.S1, PUB-01.S4 |
 | AC-11 A release has copies of its asset versions, with each backdrop | PUB-01.S3, PUB-01.S10 |
 | AC-12 Every scene names a backdrop with a variant for its sky | RUN-03.S15, RUN-03.S16, EDT-03.S23 |
-| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler | PLY-02.S4, PLY-04.S1 to PLY-04.S10 |
+| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S13 |
 | AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2 |
 | AC-15 The Studio is behind Access; the Player is public | SYS-03.S1, SYS-03.S2 |
 

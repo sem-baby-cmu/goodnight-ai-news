@@ -165,7 +165,9 @@ synthesizeSpeech(req: {
 - `generateJson` returns unvalidated JSON. Callers validate with zod.
 - `synthesizeSpeech` returns audio the browser can play. If the provider
   returns raw PCM, the adapter adds a WAV header. TB0 (#25) records the audio
-  content type that the gateway returns.
+  content type that the gateway returns. Narration is to be compressed (MP3,
+  mono) after a spike on Worker encoding cost and Safari playback (ADR 0016,
+  decision E); until then this WAV rule holds.
 - The adapter does not deduplicate. Deduplication is the job of `call_log`
   (section 3).
 
@@ -449,6 +451,15 @@ Q14).
   - A tap on "next" or "previous" during a turn ends that turn at once and
     starts a turn from the page that is now current.
   - With `prefers-reduced-motion`, the turn is a 200 ms cross-fade.
+- **End page** (ADR 0016, decision B). "Next" on the last page stops the
+  narration, sets no new `src`, and turns to an end page that the Player
+  makes: the backdrop of the last page in its sky, no layers, "The end", a
+  "Read again" button, and "previous". It has no "next", no progress pill,
+  and no audio. "Previous" turns back to the last page and plays its
+  narration in the tap handler. "Read again" sets the `src` of page 1, calls
+  `play()` in the tap handler, and shows page 1 with a 200 ms cross-fade;
+  the Start gate is not shown again. A Home control is added only when the
+  shelf exists.
 - **Page phases.** `SceneView` takes a `phase` prop: `incoming`, `current`,
   or `outgoing`. `enter` animations run once, when the page is `current` and
   all its assets are loaded. A layer with an `enter` `fade-in` is hidden
@@ -561,7 +572,7 @@ Offline Node.js scripts, run by the developer.
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
 | Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
 | Code backdrop | The backdrop `meadow` drawn in code: sky colour and three hills, one SVG per sky palette (all 4) | `backdrop` asset, renderer `svg` |
-| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP within the file budget | `backdrop` asset, renderer `webp` |
+| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP within the file budget. The source paintings live in R2; git holds only their SHA-256 list, and the pipeline downloads them to an untracked cache (ADR 0016, decision D) | `backdrop` asset, renderer `webp` |
 | Backdrop review | A sheet per backdrop variant with the slot envelopes of all templates drawn over it. A slot envelope is the union of the boxes of every active asset of the slot's kind, placed in that slot at scale 1, with and without flip | `tools/assets/out/review/` |
 | Backdrop approval | A person approves the sheets. The approval is a tracked file `tools/assets/reviews/<key>-v<n>.json` with the SHA-256 of every variant file and of the template list. Publish refuses a backdrop version without an approval whose digests match | Approval record |
 | Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows. One (`key`, `version`) always holds the same bytes (R65): publish compares the file digests, renderer and manifest of an existing version, and any difference is an error, never a skip | Registry rows |
@@ -582,9 +593,16 @@ part:
 - The review sheet (slot envelopes) is the check; the numbers above are the
   brief for the painter.
 - No painted text, no characters, no animals that look like a cast member.
+- The sky is clear: no sun, moon, stars, or outlined clouds (they are
+  scenery layers in the `sky-*` slots). It uses the sky colour of its
+  palette.
 - Each variant has the same layout; only the light and colour change.
 - The style follows the Producer illustration guideline (painted paper,
   hand-cut shapes).
+
+The MVP backdrops (ADR 0016, decision A): `meadow` (code; `day`, `cloudy`,
+`dusk`, `night`), `riverbank` and `village-square` (painted; `day`, `dusk`,
+`night`).
 
 The file budget starts at 250 KB per variant. It is set from a compression
 test on 2 or 3 real paintings before the first painted backdrop is
@@ -943,9 +961,9 @@ confirmed.
 | 12 | Publish of backdrop variants undefined | Gemini | Whole version copied; Player loads one variant |
 | 13 | Turn edge, opaque sheet, taps and sounds during a turn, "previous" during a turn | Gemini | Rules in "5. Scene runtime" |
 | 14 | Studio picker behaviour for a missing palette | Gemini | Implementation decision in "6. API" |
-| 15 | WAV narration size against the 4G budget | Gemini | Open question in ADR 0016 |
-| 16 | Root `DESIGN.md` disagrees (0.55 s turn) | Gemini | Open question in ADR 0016; the spec wins |
+| 15 | WAV narration size against the 4G budget | Gemini | ADR 0016 decision E: MP3 after a spike |
+| 16 | Root `DESIGN.md` disagrees (0.55 s turn) | Gemini | `DESIGN.md` rewritten (#61); the spec wins |
 | 17 | "No environment stores data" was stated too strongly | Codex | Reworded: no deployed environment; a scene without `backdrop` fails validation |
 | 18 | AC numbers and the pending count in the user-story README | Codex | Corrected |
 
-Kept open: the end of the book on the last page (owner decision).
+The end of the book is ADR 0016 decision B ("5. Scene runtime", "End page").

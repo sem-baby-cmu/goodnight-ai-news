@@ -181,3 +181,21 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 - When the Start gate is shown
 - Then "Start" is enabled only when every page JSON and the assets of page 1 are loaded
 - Test: spec (to implement)
+
+### PLY-04.S11 "Next" on the last page turns to the end page
+- Given a book that was started, on its last page, with its narration playing
+- When the child taps "next"
+- Then the narration stops, no new `src` is set, and the page turns to an end page with the backdrop of the last page in its sky, no layers, "The end", "Read again", and "previous"; the end page has no "next", no progress pill, and no Home control while the shelf does not exist
+- Test: spec (to implement)
+
+### PLY-04.S12 "Read again" starts page 1 without the Start gate
+- Given the end page
+- When the child taps "Read again"
+- Then the tap handler sets the `src` of page 1 and calls `play()`, page 1 replaces the end page with a 200 ms cross-fade, and the Start gate is not shown
+- Test: spec (to implement)
+
+### PLY-04.S13 "Previous" on the end page returns to the last page
+- Given the end page, or the turn to it that has run for 200 ms
+- When the child taps "previous"
+- Then the page turns back to the last page, and the tap handler sets its `src` and calls `play()`
+- Test: spec (to implement)

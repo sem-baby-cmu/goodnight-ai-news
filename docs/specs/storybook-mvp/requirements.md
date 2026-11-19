@@ -44,8 +44,8 @@ child can look at, listen to, and touch.
    and expression, props, animations, and taps. The operator can regenerate one page scene or
    one page audio. The operator publishes a draft.
 5. **Player.** Reads one immutable release. Shows pages with animation, plays
-   narration, and responds to taps. The narration is below the picture, and a
-   page turns like paper (ADR 0016).
+   narration, and responds to taps. The narration is below the picture, a
+   page turns like paper, and the last page turns to an end page (ADR 0016).
 
 ## User Stories
 
@@ -102,7 +102,8 @@ child can look at, listen to, and touch.
 - [ ] In the Player, the narration is below the stage in portrait and in
       landscape, and a page turn shows a page-turn transition (a cross-fade
       with reduced motion). The narration of the new page starts in the tap
-      handler.
+      handler. "Next" on the last page turns to an end page with "Read
+      again".
 - [ ] The Player works in current Safari on iPad and iPhone, and in current
       Chrome on Android.
 - [ ] `/studio` and the Studio API are behind Cloudflare Access. The Player is
