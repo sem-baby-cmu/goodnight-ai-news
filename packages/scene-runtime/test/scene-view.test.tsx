@@ -5,7 +5,7 @@ import { sanitizeSvg } from "../src/sanitizeSvg";
 import { SceneView } from "../src/SceneView";
 import { SKY_COLORS } from "../src/sky";
 import type { SceneViewProps } from "../src/types";
-import { type Animation, type Interaction, SVG_TEXT, id, layer, makeResolver, page } from "./fixtures";
+import { ASSETS, type Animation, type Interaction, SVG_TEXT, id, layer, makeResolver, page } from "./fixtures";
 import { type AnimateCall, animateCalls, setReducedMotion } from "./setup";
 
 // Expected values come from #14 "Implementation refinement" (invariants and
@@ -346,13 +346,44 @@ describe("SceneView", () => {
       ),
     });
     await settle();
-    expect(exprDisplay(1, "happy")).toEqual([""]);
+    expect(exprDisplay(1, "happy")).toEqual(["inline"]);
     expect(exprDisplay(1, "sad")).toEqual(["none"]);
     fireEvent.click(assetOf(1));
     await settle();
-    expect(exprDisplay(1, "sad")).toEqual([""]);
+    expect(exprDisplay(1, "sad")).toEqual(["inline"]);
     expect(exprDisplay(1, "happy")).toEqual(["none"]);
     expect(partOf(1, "part-eyes").style.display).not.toBe("none");
+  });
+
+  // R64: a presentation attribute display="none" stays in force when the
+  // inline value is cleared, so every expr-* group gets an explicit inline
+  // value. jsdom does not apply presentation attributes; assert the inline
+  // values instead.
+  it("R64 every expr-* group gets an explicit inline display, inline for the chosen and none for the others", async () => {
+    const authored = ASSETS.rigattr?.files["stand.svg"] ?? "";
+    expect(authored).toContain('<g class="expr-sad" display="none">');
+    show({
+      page: page(
+        [layer(1, "rigattr", { pose: "stand", expression: "sad" })],
+        [],
+        [tap(1, { action: "set_expression", target: id(1), expression: "happy" })],
+      ),
+    });
+    await settle();
+    expect(exprDisplay(1, "sad")).toEqual(["inline"]);
+    expect(exprDisplay(1, "happy")).toEqual(["none"]);
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(exprDisplay(1, "happy")).toEqual(["inline"]);
+    expect(exprDisplay(1, "sad")).toEqual(["none"]);
+  });
+
+  it("R64 without an expression the expr-* groups stay as authored", async () => {
+    show({ page: page([layer(1, "rigattr", { pose: "stand" })]) });
+    await settle();
+    expect(exprDisplay(1, "happy")).toEqual([""]);
+    expect(exprDisplay(1, "sad")).toEqual([""]);
+    expect(layerEl(1).querySelector(".expr-sad")?.getAttribute("display")).toBe("none");
   });
 
   it("set_expression on webp swaps the img src to the selected entry file", () => {
@@ -383,7 +414,7 @@ describe("SceneView", () => {
     await settle();
     fireEvent.click(assetOf(1));
     await settle();
-    expect(exprDisplay(1, "happy")).toEqual([""]);
+    expect(exprDisplay(1, "happy")).toEqual(["inline"]);
     expect(exprDisplay(1, "sad")).toEqual(["none"]);
     expect(warnedAbout(id(1))).toBe(true);
 
@@ -415,7 +446,7 @@ describe("SceneView", () => {
     await settle();
 
     // svg-rig: only expr-sad shows; the other parts stay.
-    expect(exprDisplay(1, "sad")).toEqual([""]);
+    expect(exprDisplay(1, "sad")).toEqual(["inline"]);
     expect(exprDisplay(1, "happy")).toEqual(["none"]);
     for (const name of ["part-eyes", "part-arm-right", "part-body"]) {
       expect(partOf(1, name), name).not.toBeNull();
@@ -471,7 +502,7 @@ describe("SceneView", () => {
     fireEvent.click(assetOf(1));
     await settle();
     expect(layerEl(1).querySelector(".pose-stand")).not.toBeNull();
-    expect(exprDisplay(1, "sad")).toEqual([""]);
+    expect(exprDisplay(1, "sad")).toEqual(["inline"]);
     expect(exprDisplay(1, "happy")).toEqual(["none"]);
     expect(warnedAbout(id(1))).toBe(false);
   });

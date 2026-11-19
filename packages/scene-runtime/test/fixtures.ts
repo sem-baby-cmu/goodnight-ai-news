@@ -74,6 +74,17 @@ export const ASSETS: Record<string, FakeAsset> = {
     ],
     { "stand.svg": rig("stand"), "sit.svg": rig("sit") },
   ),
+  // R64: svg-rig like Pip's file, where the non-default expression group is
+  // hidden by the presentation attribute display="none".
+  rigattr: character(
+    "svg-rig",
+    [{ id: "stand", file: "stand.svg", foot, box }],
+    [
+      { pose: "stand", expression: "happy" },
+      { pose: "stand", expression: "sad" },
+    ],
+    { "stand.svg": rig("stand").replace('<g class="expr-sad">', '<g class="expr-sad" display="none">') },
+  ),
   // svg-rig without part-eyes and part-arm-right.
   noparts: character(
     "svg-rig",
