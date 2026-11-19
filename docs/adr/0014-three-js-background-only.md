@@ -1,6 +1,6 @@
 # ADR 0014: three.js for the background layer only; Pip stays SVG
 
-- Status: Accepted for `app/`; proposed to Producer (issue [#3](https://github.com/sem-baby-cmu/goodnight-ai-news/issues/3))
+- Status: Superseded by [ADR 0015](0015-storybook-mvp-reset.md)
 - Date: 2026-11-08
 - Decided by: Jinyu Liu (Integration)
 - Detail: [`DESIGN.md`](../../DESIGN.md) section 11

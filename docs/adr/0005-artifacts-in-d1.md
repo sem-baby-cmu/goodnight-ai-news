@@ -1,6 +1,6 @@
 # ADR 0005: Every stage output is a versioned artifact row in D1
 
-- Status: Proposed (Integration accepts; team review pending)
+- Status: Superseded by [ADR 0015](0015-storybook-mvp-reset.md)
 - Date: 2026-11-08
 - Decided by: Jinyu Liu (Integration)
 - Detail: [`integration/architecture.md`](../../integration/architecture.md) D4, sections 3 and 5

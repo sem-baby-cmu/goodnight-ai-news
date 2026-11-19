@@ -3,54 +3,57 @@
 Rules for AI coding agents and people who work in this repository.
 Read [`README.md`](README.md) first for what the project is.
 
-## 1. Ownership
+## 1. Baseline
 
-- Each top-level folder is one component with one owner (see the table in
-  `README.md`). Change only the folder you were asked to work in.
-- To change another component, open an issue or a pull request for its owner.
-  Do not edit their files directly.
-- `integration/` owns the contract between components. A field change in the
-  contract is announced to the team before it lands.
+- The current design is [ADR 0015](docs/adr/0015-storybook-mvp-reset.md) and
+  the spec in [`docs/specs/storybook-mvp/`](docs/specs/storybook-mvp/).
+  When older documents disagree, these win.
+- Jinyu Liu (`passos`) owns all technical decisions and does the MVP work.
+- [`modules/`](modules/) holds earlier prototypes and design material. It is
+  history: do not change it, and do not import from it. The one exception is
+  the Producer boards in `modules/material/00_storybook_design/`, which the
+  asset pipeline reads as its source.
+- [`app/`](app/) is the earlier Worker that is live today. Do not change it
+  unless a task says so. It is replaced when the MVP Worker goes live.
 
-## 2. Handoff contract
+## 2. Tech stack
 
-- Components exchange data as JSON files. They never read each other's
-  internal state or call each other's code.
-- The contract is `integration/story.schema.json`. Each field has one producer
-  (`x-owner`).
-- Before you hand a file to the next component, check it:
-
-  ```bash
-  python3 -I integration/validate.py --owner <Scout|Storyteller|Producer|Playmate> <file>
-  ```
-
-- If a file you receive fails the check, report it to its producer. Do not
-  patch it yourself. A manual fix hides the defect from the end-to-end test.
-
-## 3. Identifiers (decided 2026-11-08)
-
-- All system IDs are UUID version 7 (time ordered), lower case. This includes
-  `story_id`. Do not use titles or dates as IDs.
-- A date is an attribute (for example `publish_date`), not an ID.
-- `integration/story.schema.json` enforces the UUID v7 format for `story_id`.
-- Some prototypes still name files by date (`producer/input/<date>.json`).
-  Each owner moves their component to UUID v7 IDs. Until then, a date in a file
-  name is only a label.
-
-## 4. Tech stack
-
-- **Now:** Python 3.9+ prototypes. Prefer the standard library. Add a
-  dependency only when the prototype needs it, and list it in the component
-  README.
-- **Target:** Cloudflare. TypeScript Workers configured with `wrangler.jsonc`.
-  Plan: Workers Paid. Services: Workers, Static Assets, Cron Triggers, Workflows,
-  D1, R2, AI Gateway, Access. Design:
-  `integration/architecture.md` (proposed).
+- TypeScript only, strict mode. Node.js 22 or later, pnpm workspaces, Vitest.
+- Cloudflare Workers Paid. Configuration in `wrangler.jsonc`. Services:
+  Workers, Static Assets, Workflows, D1, R2, AI Gateway, Access.
+- Front end: React 19 and Vite (ADR 0009). API: Hono. Database: D1 with
+  Drizzle (ADR 0010).
 - Before you design for a Cloudflare service, read its current limits page.
-  Check both Workers Free and Workers Paid limits (CPU time, subrequests,
-  retention). Do not rely on remembered numbers.
-- Large binary files (audio, images) go to R2. D1 rows hold JSON and R2 keys.
-  A D1 row is limited to 2 MB.
+  Do not rely on remembered numbers.
+- Large binary files (audio, images, SVG assets) go to R2. D1 rows hold JSON
+  and R2 keys. A D1 row is limited to 2 MB.
+
+## 3. Design rules (from ADR 0015)
+
+- **Models choose, code places.** A model picks from closed lists: layout
+  templates, registry asset keys, poses, expressions, animation and tap
+  primitives. Code computes positions and checks them.
+- **No silent fixes.** If a model output fails validation after one repair,
+  keep it with its errors and mark it `needs_review`. Never drop a layer or
+  swap a character to make it pass.
+- **Revisions never change.** Every stage output is a new revision row. Move a
+  head only by compare-and-set.
+- **Retries are safe.** Every model call has a call ID. Write at most one
+  revision per call ID. Workflow steps return IDs and R2 keys only.
+- **Releases never change.** A release has its own R2 prefix with copies of
+  the assets it uses.
+- **No generated code runs in the browser.** The renderer runs only the
+  primitives in `packages/scene-runtime`. SVG assets are sanitised (no
+  scripts, no event attributes) before upload.
+- **Model IDs are configuration.** Read them from environment variables, not
+  from code.
+
+## 4. Identifiers
+
+- All system IDs are UUID version 7, lower case (ADR 0007).
+- Asset keys (for example `pip`) are readable names, unique per asset. They
+  are not system IDs.
+- A date is an attribute, not an ID.
 
 ## 5. Safety and privacy
 
@@ -58,48 +61,51 @@ The users are children ages 5 to 10.
 
 - Store no child personal data on a server: no name, birthday, photo, or
   voice. Progress stays in the browser.
-- A child's question to "Ask the AI" goes through a model gateway with logging
-  turned off, and carries no child ID.
-- Only a story with an approved review status is shown to a child.
-- Keys and tokens live in `.env` files, which git ignores. Never commit them,
+- Only a published release is shown to a child.
+- Keys and tokens live in `.env` files and Worker secrets. Never commit them,
   print them in logs, or paste them into issues.
+- Logs do not contain full news texts or full model outputs.
 
 ## 6. Tests and evidence
 
-- Each component README has a test table (for example S1-S5, P1-P9). When you
-  run a test, record the result and the date in that table.
-- Numbers over adjectives. Record cost, time, and counts.
-- A failed test is a finding. Record it; do not hide it.
-- Run the component's checks before you commit:
+- Run before you commit (once the workspace exists):
 
   ```bash
-  python3 producer/test_pipeline.py --date <YYYY-MM-DD>   # Producer
-  python3 playmate/run_tests.py                            # Playmate
-  python3 -I integration/validate.py <story.json>          # any handoff file
-  npm --prefix app run typecheck                           # Cloudflare Worker
+  pnpm -r typecheck
+  pnpm -r test
   ```
 
-## 6.5 Architecture decisions
+- Every acceptance criterion in the spec maps to a test (see the design
+  document, "Testing Strategy").
+- Numbers over adjectives. Record cost, time, sizes, and frame times.
+- A failed test is a finding. Record it; do not hide it.
+
+## 7. Architecture decisions
 
 - Each architecture decision has a record in `docs/adr/`, with its reasons and
   the options that were rejected.
 - Read the records before you change the design. To change a decision, write
   a new record and mark the old one "Superseded".
 
-## 7. Writing style
+## 8. Writing style
 
+- All repository text, issues, and pull requests are in English.
 - Plain English. Short sentences. One idea per sentence.
 - Use tables for comparisons and test results.
-- Name files and fields in backticks: `scene_description`, `producer/README.md`.
+- Name files and fields in backticks: `scene`, `packages/dsl`.
 
-## 8. Git
+## 9. Git
 
-- One topic per commit. Start the subject with the component:
-  `Producer: make the voice test runnable`.
+- One topic per commit. Start the subject with the area:
+  `Docs: ...`, `DSL: ...`, `Runtime: ...`, `Workflow: ...`, `Assets: ...`.
 - Keep history linear. Rebase on `origin/main`; do not create merge commits.
 - Do not add AI attribution lines to commit messages or pull requests.
-- Build output is not tracked (for example `producer/results/`).
+- Build output is not tracked (for example built WebP assets, `dist/`).
 
 ## Aesthetic Judgment
 
-When doing design, creative, or artistic work — anything requiring aesthetic judgment such as UI design, visual assets, layouts, color choices, typography, animation, branding, or creative direction — read `TASTES.md` if it exists and apply its constraints to your output. Read `DESIGN.md` for the tokens and components of the front end.
+When doing design, creative, or artistic work — anything requiring aesthetic
+judgment such as UI design, visual assets, layouts, color choices, typography,
+animation, branding, or creative direction — read `TASTES.md` if it exists and
+apply its constraints to your output. Read `DESIGN.md` for the tokens and
+components of the front end.

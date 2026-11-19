@@ -1,6 +1,6 @@
 # ADR 0004: One Cloudflare Workflow instance per story
 
-- Status: Proposed (Integration accepts; team review pending)
+- Status: Superseded by [ADR 0015](0015-storybook-mvp-reset.md)
 - Date: 2026-11-08
 - Decided by: Jinyu Liu (Integration), after a Codex review
 - Detail: [`integration/architecture.md`](../../integration/architecture.md) D3, D5, D8, sections 2 and 10

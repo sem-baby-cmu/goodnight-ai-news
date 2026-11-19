@@ -1,6 +1,6 @@
 # ADR 0003: Cron starts Scout only; Scout output is a buffer in D1
 
-- Status: Proposed (Integration accepts; team review pending)
+- Status: Superseded by [ADR 0015](0015-storybook-mvp-reset.md)
 - Date: 2026-11-08
 - Decided by: Jinyu Liu (Integration)
 - Detail: [`integration/architecture.md`](../../integration/architecture.md) D2, section 2

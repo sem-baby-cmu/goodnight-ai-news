@@ -1,6 +1,6 @@
 # ADR 0012: In news to story, a model chooses from closed lists; code draws and checks
 
-- Status: Proposed (waits for Storyteller, Producer, and Playmate owners, issue [#2](https://github.com/sem-baby-cmu/goodnight-ai-news/issues/2))
+- Status: Superseded by [ADR 0015](0015-storybook-mvp-reset.md)
 - Date: 2026-11-08
 - Decided by: Jinyu Liu (Integration), after a Codex review
 - Detail: [`integration/storytelling.md`](../../integration/storytelling.md)
