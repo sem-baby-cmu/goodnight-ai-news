@@ -153,7 +153,7 @@ generateJson(req: {
 
 synthesizeSpeech(req: {
   text: string;
-  voice: string;
+  voice?: string;         // default: `tts.voice`
 }): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number }>;
 ```
 
