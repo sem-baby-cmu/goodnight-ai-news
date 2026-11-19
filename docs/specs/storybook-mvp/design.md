@@ -249,7 +249,9 @@ first steps of a run, from the revisions written earlier in the same run).
 The basis is read once, at the first attempt, and stored in `call_log.basis`.
 A retry that finds a stored result reuses that basis. It does not read the
 heads again. A `repair` call uses the basis stored with the `first` call of
-the same step.
+the same step. At the same moment, the step reads the current head of each
+key that it will move, and stores this map in `call_log.expected_heads`
+(`null` for a key with no head). A retry reuses it in the same way.
 
 **Step pattern.**
 
@@ -259,8 +261,8 @@ the same step.
    with that error. Do not validate, and do not call the model again.
 2. Call the model.
 3. Store the result. A binary goes to R2 at `calls/<callId>.<ext>` first.
-   Then insert the `call_log` row with the result (JSON, or the R2 key) and
-   the basis. Code assigns any new IDs (for example `pageId`) before this
+   Then insert the `call_log` row with the result (JSON, or the R2 key), the
+   basis, and the expected heads. Code assigns any new IDs (for example `pageId`) before this
    insert, so a retry sees the same IDs.
 4. Validate and lay out. This is deterministic code with no model call.
 5. Insert the revision(s) with
@@ -278,36 +280,37 @@ The requirements accept this.
 **Compare-and-set loop.**
 
 ```
+input: moves (key -> newRevisionId), basis, expected (key -> revisionId | null)
 loop at most 5 times:
   read story.heads, story.heads_version
-  for each target key:
-    if heads[key] == newRevisionId, or heads[key] > newRevisionId (UUID v7 order)
-      -> skip this key
-    else heads[key] = newRevisionId
-  if no key is left -> done ("moved"), write nothing
-  for each basis entry: if heads[key] != basis[key]
-    -> mark the revisions of the keys that are left superseded, stop
-  UPDATE story SET heads = ?, heads_version = heads_version + 1
+  pending = the keys where heads[key] != moves[key]
+  if pending is empty -> done ("moved"), write nothing
+  if a basis entry has heads[key] != basis[key],
+     or a pending key has (heads[key] or null) != expected[key]
+    -> mark the revisions of the pending keys superseded, stop ("superseded")
+  UPDATE story SET heads = <heads with the pending keys moved>,
+                   heads_version = heads_version + 1
     WHERE id = ? AND heads_version = ?
-  if 1 row changed -> done
+  if 1 row changed -> done ("moved")
 ```
 
-The skip comes before the basis check, so a retry after a successful move
-never marks the current head superseded; only a failed move is superseded
-(implementation decision R56, #16).
-
-Each target key is checked on its own. A key whose head is already the new
-revision, or a newer revision (a greater UUID v7), is skipped. A retried step
-therefore never overwrites newer work. When every target key is skipped,
-nothing is written and `heads_version` does not change. The result is still
-"moved".
+Each target key is checked on its own, by exact equality only. A key whose
+head is already the new revision is done, so a retry after a successful move
+writes nothing and returns "moved" before the basis check (implementation
+decision R56, #16). A key whose head is not the head that the step or edit
+expected was moved by other work, so the new revision is superseded and never
+overwrites it. No code compares revision IDs for age, because UUID v7 order
+is not creation order across isolates (implementation decision R58, #16).
+When every target key is done, nothing is written and `heads_version` does
+not change.
 
 The API creates the story row with `heads = { source: <source revision ID> }`
 and `heads_version = 0`, in one batch with the source revision and the run.
 The first write therefore has a row to update.
 
-**Operator edits** use the same loop. The request carries `basedOn` (the
-revision the operator edited). If the head has moved since, the API returns
+**Operator edits** use the same loop, with `expected = { <key>: basedOn }`.
+The request carries `basedOn` (the revision the operator edited). The edit
+is "moved" only when its own new revision is the head after the loop. If the head has moved since, the API returns
 409 with the current revision. If the loop marks the edit `superseded`
 because a basis entry moved (for example, the page text changed between the
 read and the write), the API returns 409 `head_moved` with the current
@@ -516,7 +519,7 @@ All IDs are UUID version 7, lower case (ADR 0007).
 | `asset_version` | `id`, `asset_id`, `version`, `renderer` (`svg-rig`, `svg`, `webp`, `audio`), `manifest` (JSON), `r2_prefix`, `active`, `created_at` | Unique `(asset_id, version)`. One active version per asset. |
 | `story` | `id`, `title`, `status` (`draft`, `published`; becomes `published` with the first release pointer update and never goes back), `heads` (JSON, starts `{ source }`), `heads_version` (integer, starts 0), `published_release_id`, `created_at` | `heads` maps `<kind>` or `<kind>:<pageId>` to a revision ID. |
 | `run` | `id`, `story_id`, `scope` (JSON), `status`, `basis` (JSON), `registry` (JSON), `workflow_instance_id`, `error` (JSON), `created_at`, `finished_at` | Status: `queued`, `running`, `draft_ready`, `needs_review`, `failed`. |
-| `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` is read at the first attempt; a retry reuses it. For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
+| `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `expected_heads` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` and `expected_heads` are read at the first attempt; a retry reuses them. `expected_heads` maps each key that the step moves to its head at that moment (`null` for none; `{}` when the step moves no key) (R58). For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
 | `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique index on `(call_id, kind, page_id)`, with no `WHERE`. SQLite treats every NULL as distinct, so human revisions (`call_id` null) never conflict. Order by `id` (UUID v7 is time-ordered). `asset_versions` maps each asset key that a `scene` revision uses to its version (Q3). |
 | `release` | `id`, `story_id`, `number`, `manifest_key`, `snapshot` (JSON of revision IDs), `created_at` | Unique `(story_id, number)`. |
 
