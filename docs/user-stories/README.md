@@ -13,13 +13,13 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
-| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 48 |
+| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 49 |
 | [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 13 |
 | [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 15 |
 | [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 3 | 15 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 11 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 19 |
-| Total | | | 22 | 121 |
+| Total | | | 22 | 122 |
 
 ## Format
 
@@ -67,7 +67,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 116 scenarios are `spec (to implement)`, and 5 are
+Current state: 117 scenarios are `spec (to implement)`, and 5 are
 `manual · not run`. No scenario passes.
 
 ## Coverage of the requirements
@@ -125,7 +125,7 @@ Error rows (`design.md`, "Error Handling"):
 | Provider 429 or 5xx | RUN-05.S4 |
 | Provider 4xx other than 429, in `scene:*` or `audio:*` | RUN-05.S5 |
 | Provider 4xx other than 429, in `script` | RUN-05.S8 |
-| TTS fails after retries | RUN-05.S6, PUB-02.S1 |
+| TTS fails after retries | RUN-05.S6, RUN-01.S12, PUB-02.S1 |
 | Basis changed before commit | EDT-04.S1 |
 | Head moved since the operator loaded it | EDT-02.S2, EDT-03.S4 |
 | Compare-and-set loop exhausted (5 tries) | SYS-02.S3 |
@@ -153,9 +153,8 @@ gives an expected result for them. Each one needs a decision from the owner
 | Q2 | What does `PUT /api/studio/stories/:id/pages/:pageId/scene` return when an operator's scene fails validation, for example with no tap or with a parameter outside its bounds? | The owner decided the rule for model output (Q2, Q5). "6. API" says only that the operator's scene is "Validated, laid out". It gives no response for a failure. | RUN-03.S13 and RUN-03.S14 cover model output only. EDT-03 has no scenario for an invalid operator scene. |
 | Q3 | Which registry version does an operator's scene edit, or "still fits", use? How does a scene revision record the versions that it was made with, so that publish knows which version to copy? | The owner decided that one draft can hold several versions of an asset, and that a release copies each version that it uses (Q3). The `revision` table has no column for registry versions, and a human revision has no `call_id` that leads to a run. `GET /api/studio/registry` returns only active versions. Issue #32 proposes `revision.asset_versions`. | REG-01.S6 covers a page run only. PUB-01.S3 says that the release copies every version in use, but no scenario says how the version is found. |
 | Q7 | Does OpenRouter pass Gemini TTS audio through, and in which format? | ADR 0015, "Consequences" (open); checked in TB0. | SYS-05.S3 covers only the raw PCM case. |
-| Q10 | In a page run, the rule of Q9 and the row "TTS fails after retries" disagree. Which one is right? | A page run for audio after a text change keeps the old audio head, which is now stale and has `status = ok`. If TTS then fails, the Q9 rule ("Otherwise it sets `draft_ready`", "2. StoryRun Workflow") gives `draft_ready`. The row "TTS fails after retries" in "Error Handling" says "No audio head. The run ends `needs_review`." The `finish` row also says "current text, scene, and audio", and "Staleness" defines a stale head. Publish blocks a stale head in either case. | RUN-01.S11 covers a missing head and a `needs_review` head only. RUN-05.S6 covers a full run only. |
 
-The owner closed Q1, Q4, Q5, Q6, Q8, and Q9 on 2026-11-19 (#34), and
+The owner closed Q1, Q4, Q5, Q6, Q8, Q9, and Q10 on 2026-11-19 (#34), and
 narrowed Q2 and Q3 to the rows above. A question number is not used again.
 
 ## Changes

@@ -191,8 +191,8 @@ Steps for a full run:
 - The workflow does not wait for a person. A run ends at `draft_ready` or
   `needs_review`.
 - `finish` sets `needs_review` when a page has no `page_text`, `scene`, or
-  `audio` head, or when one of these heads has `status = needs_review`.
-  Otherwise it sets `draft_ready`.
+  `audio` head, when one of these heads has `status = needs_review`, or when
+  one of these heads is stale ("Staleness"). Otherwise it sets `draft_ready`.
 
 ```plantuml
 @startuml
@@ -598,7 +598,7 @@ type ReleasePage = {
 | Provider 429 or 5xx | any model step | Step throws; the platform retries (3 tries, exponential back-off). The stored-result check prevents a second call for a stored result. |
 | Provider 4xx other than 429 | `scene:*`, `audio:*` | Non-retryable error. The page goes to `needs_review` with the provider message. |
 | Provider 4xx other than 429 | `script` | Non-retryable error. The run fails with the provider message. |
-| TTS fails after retries | `audio:*` | No audio head. The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
+| TTS fails after retries | `audio:*` | No new audio head (an old head in a page run is stale). The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
 | Basis changed before commit | any step | The revision is kept as `superseded`. The head does not move. |
 | Head moved since the operator loaded it | API | 409 with the current revision. |
 | Compare-and-set loop exhausted (5 tries) | step | Step throws; the platform retries the step. |
@@ -685,6 +685,6 @@ A finding from one seat was checked against the document first.
 | :-- | :-- | :-- | :-- |
 | 1 | The repair rule was written for every validation, so it also covered an operator's scene edit | Gemini | Limited to model output; the operator case stays open (Q2) |
 | 2 | Publish cannot know which version of an asset a scene used | Gemini | Kept open (Q3) |
-| 3 | In a page run, the Q9 rule and the row "TTS fails after retries" disagree | both | Kept open for the owner (Q10) |
-| 4 | ADR 0015 says "a run ends at `draft_ready`" | both | Not changed here. The design has named two end states since revision 2 |
+| 3 | In a page run, the Q9 rule and the row "TTS fails after retries" disagree | both | Owner decision (Q10): a stale head also gives `needs_review` |
+| 4 | ADR 0015 says "a run ends at `draft_ready`" | both | Owner decision: ADR 0015 corrected in place with a dated note |
 | 5 | Two scenarios stated a run status that their `Given` and `When` do not give | both | Scenarios corrected |

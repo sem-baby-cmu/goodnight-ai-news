@@ -76,6 +76,12 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Then the run ends at `needs_review`
 - Test: spec (to implement)
 
+### RUN-01.S12 A stale head gives a `needs_review` run
+- Given a page run for the audio of a page whose text changed, so that its old `audio` head is stale, and TTS fails after the retries
+- When the `finish` step runs
+- Then the run ends at `needs_review`
+- Test: spec (to implement)
+
 ## RUN-02 Start a full run from a URL
 
 As the operator, I want to give one URL instead of a pasted text, so that I
