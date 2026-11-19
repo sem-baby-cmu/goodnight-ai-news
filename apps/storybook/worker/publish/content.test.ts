@@ -2,7 +2,8 @@ import { env } from "cloudflare:workers";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { newId } from "../db/ids";
-import { handleContent } from "./content";
+import { handleContent, releasePath } from "./content";
+import { serveR2Object } from "./serve";
 import { publishStory } from "./publish";
 import { seedPublishableStory } from "./test/fixtures";
 
@@ -69,4 +70,39 @@ describe("content route", () => {
       expect(res.headers.get("cache-control") ?? "", path).not.toContain("immutable");
     }
   });
+
+  it("releasePath rejects dot, dot-dot, backslash, and an empty rest", () => {
+    const id = newId();
+    const base = `/content/releases/${id}/`;
+    expect(releasePath(`${base}pages/a.json`, id)).toBe("pages/a.json");
+    for (const rest of [".", "..", "pages/../x.json", "./x.json", "pages/.", "a\\b", "%2e%2e/x", "%5Cx", ""]) {
+      expect(releasePath(base + rest, id), rest).toBeNull();
+    }
+    expect(releasePath(`/content/releases/${newId()}/x.json`, id)).toBeNull();
+  });
+
+  it("serveR2Object answers 416 for a range outside the object", async () => {
+    const key = `test/range/${newId()}.bin`;
+    await env.BUCKET.put(key, new Uint8Array(100));
+    const res = await serveR2Object(env.BUCKET, key, new Request("http://x/", { headers: { Range: "bytes=500-600" } }), "public, max-age=31536000, immutable");
+    expect(res.status).toBe(416);
+    expect(res.headers.get("content-range")).toBe("bytes */100");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("serveR2Object answers 416 for a range on an empty object", async () => {
+    const key = `test/range/${newId()}.bin`;
+    await env.BUCKET.put(key, new Uint8Array(0));
+    const res = await serveR2Object(env.BUCKET, key, new Request("http://x/", { headers: { Range: "bytes=0-9" } }), "public, max-age=31536000, immutable");
+    expect(res.status).toBe(416);
+    expect(res.headers.get("content-range")).toBe("bytes */0");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("serveR2Object rethrows an error that is not a range error", async () => {
+    const failing = { get: async () => { throw new Error("internal error"); }, head: async () => null } as unknown as R2Bucket;
+    const request = new Request("http://x/", { headers: { Range: "bytes=0-9" } });
+    await expect(serveR2Object(failing, "k", request, "public, max-age=31536000, immutable")).rejects.toThrow("internal error");
+  });
 });
+
