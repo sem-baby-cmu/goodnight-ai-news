@@ -1,10 +1,10 @@
-import { mkdtempSync, readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { type AssetBuild, AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
-import { SOURCES_DIR } from "../src/paths";
+import { REPO_ROOT, SOURCES_DIR } from "../src/paths";
 import { checkSvg, MAX_SVG_BYTES, sanitizeSvg } from "../src/svg";
 
 const PIP_SVG = join(SOURCES_DIR, "pip/v2/pip.svg");
@@ -16,7 +16,9 @@ const PARTS = ["part-leg-left", "part-leg-right", "part-arm-left", "part-arm-rig
 const EXPRESSIONS = ["happy", "sad", "angry", "surprised", "worried"];
 
 // A minimal valid rig. `edit` changes one part of it for a fixture.
-function rig(edit: { part?: (cls: string) => string | null; extra?: string; expr?: (e: string) => string } = {}): string {
+function rig(
+  edit: { part?: (cls: string) => string | null; extra?: string; expr?: (e: string) => string; root?: string; viewBox?: string; pre?: string } = {},
+): string {
   const group = (cls: string) => {
     const custom = edit.part?.(cls);
     if (custom !== undefined && custom !== null) return custom;
@@ -28,7 +30,8 @@ function rig(edit: { part?: (cls: string) => string | null; extra?: string; expr
   ).join("");
   const body = PARTS.filter((p) => !["part-head", "part-antenna", "part-face", "part-eyes"].includes(p)).map(group).join("");
   const head = group("part-head").replace(/<\/g>$/, `${group("part-antenna")}${group("part-face")}${group("part-eyes")}${exprs}</g>`);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${body}${head}${edit.extra ?? ""}</svg>`;
+  const root = `xmlns="http://www.w3.org/2000/svg" viewBox="${edit.viewBox ?? "0 0 232 416"}"${edit.root ?? ""}`;
+  return `${edit.pre ?? ""}<svg ${root}>${body}${head}${edit.extra ?? ""}</svg>`;
 }
 const codes = (text: string) => checkSvg(text, pipBuild()).map((i) => i.code);
 
@@ -71,7 +74,7 @@ describe("sanitizeSvg", () => {
 
   it("sanitizeSvg keeps class, data-pivot, display=none and viewBox", () => {
     const clean = sanitizeSvg(rig());
-    expect(clean).toContain('viewBox="0 0 100 100"');
+    expect(clean).toContain('viewBox="0 0 232 416"');
     expect(clean).toContain('class="part-arm-right"');
     expect(clean).toContain('data-pivot="10 10"');
     expect(clean.match(/display="none"/g)).toHaveLength(4);
@@ -166,5 +169,131 @@ describe("svg sub-command", () => {
     const errors: string[] = [];
     expect(await main(["svg", "nope", "--version", "2", "--out", out], { log: () => {}, error: (l) => errors.push(l) })).toBe(1);
     expect(errors.join(" ")).toMatch(/nope/);
+  });
+});
+
+// Review fix list for PR #53, item 1: each vector is inserted into a valid rig,
+// so an issue can only come from the vector itself.
+const R = '<rect x="0" y="0" width="5" height="5" fill="#02a093"/>';
+const XLINK = ' xmlns:xlink="http://www.w3.org/1999/xlink"';
+const VECTORS: Array<[name: string, input: string, danger: RegExp]> = [
+  ["onload on svg", rig({ root: ' onload="alert(1)"' }), /onload/i],
+  ["ONLOAD on svg", rig({ root: ' ONLOAD="alert(1)"' }), /onload/i],
+  ["OnLoad on g", rig({ extra: `<g OnLoad="alert(1)">${R}</g>` }), /onload/i],
+  ["a xlink:href javascript:", rig({ root: XLINK, extra: `<a xlink:href="javascript:alert(1)">${R}</a>` }), /javascript/i],
+  ["a href java&#x09;script:", rig({ extra: `<a href=" java&#x09;script:alert(1)">${R}</a>` }), /java\s*script|&#x09;|alert/i],
+  ["set to javascript:", rig({ extra: `<a><set attributeName="href" to="javascript:alert(1)"/>${R}</a>` }), /javascript|<set/i],
+  ["animate values javascript:", rig({ extra: `<a><animate attributeName="xlink:href" values="javascript:alert(1)"/>${R}</a>` }), /javascript|<animate/i],
+  ["style @import", rig({ extra: "<style>@import url(http://x/a.css)</style>" }), /@import|http:\/\/x/i],
+  ["style attribute url(http:)", rig({ extra: '<rect x="0" y="0" width="5" height="5" style="fill:url(http://x/#a)"/>' }), /http:\/\/x/i],
+  ["use href http:", rig({ extra: '<use href="http://x/a.svg#b"/>' }), /http:\/\/x|<use/i],
+  ["use xlink:href data:", rig({ root: XLINK, extra: '<use xlink:href="data:image/svg+xml,%3Csvg/%3E"/>' }), /data:|<use/i],
+  ["foreignObject", rig({ extra: '<foreignObject width="5" height="5"><div xmlns="http://www.w3.org/1999/xhtml">x</div></foreignObject>' }), /foreignObject|<div/i],
+  ["image href", rig({ extra: '<image href="http://x/a.png" width="5" height="5"/>' }), /<image|http:\/\/x/i],
+  ["feImage href", rig({ extra: '<filter><feImage href="http://x/a.png"/></filter>' }), /feImage|http:\/\/x/i],
+  ["xml:base", rig({ root: ' xml:base="http://x/"' }), /xml:base|http:\/\/x/i],
+  ["CDATA script in a g", rig({ extra: `<g><![CDATA[<script>alert(1)</script>]]>${R}</g>` }), /script|alert|CDATA/i],
+  ["DOCTYPE entity", rig({ pre: '<!DOCTYPE svg [<!ENTITY x "<script>alert(1)</script>">]>', extra: "<g>&x;</g>" }), /script|alert/i],
+  ["html:script", rig({ extra: '<html:script xmlns:html="http://www.w3.org/1999/xhtml">alert(1)</html:script>' }), /script|alert/i],
+];
+
+describe("security vectors (PR #53 review)", () => {
+  it("a clean rig has no issues, so an issue below comes from the vector", () => {
+    expect(codes(sanitizeSvg(rig()))).toEqual([]);
+  });
+
+  for (const [name, input, danger] of VECTORS) {
+    it(`sanitizeSvg then checkSvg never passes ${name}`, () => {
+      const out = sanitizeSvg(input);
+      const issues = checkSvg(out, pipBuild());
+      expect(danger.test(out) && issues.length === 0, `${name}: ${out}`).toBe(false);
+      expect(sanitizeSvg(out)).toBe(out);
+    });
+  }
+
+  it("sanitizeSvg removes CDATA, animation elements and xml:base", () => {
+    const out = sanitizeSvg(rig({ root: ' xml:base="http://x/"', extra: `<g><![CDATA[x]]><set attributeName="fill" to="red"/><animate attributeName="x" values="1;2"/>${R}</g>` }));
+    expect(out).not.toMatch(/CDATA|<set|<animate|xml:base/);
+  });
+});
+
+describe("checkSvg (PR #53 review)", () => {
+  it("checkSvg returns svg_parse for malformed XML instead of throwing", () => {
+    expect(codes("<svg><g></svg")).toEqual(["svg_parse"]);
+  });
+
+  it("checkSvg reports a text node outside <title>", () => {
+    expect(codes(rig({ extra: "<g>hello</g>" }))).toContain("svg_text");
+  });
+
+  it("checkSvg requires viewBox 0 0 W H equal to the pose box", () => {
+    expect(codes(rig({ viewBox: "0 0 100 100" }))).toContain("svg_viewbox");
+    expect(codes(rig({ viewBox: "1 0 232 416" }))).toContain("svg_viewbox");
+    expect(codes(rig({ viewBox: "0 0 232" }))).toContain("svg_viewbox");
+  });
+
+  it("checkSvg reports undeclared, duplicate and zero visible expression groups", () => {
+    expect(codes(rig({ extra: '<g class="expr-sleepy" display="none"/>' }))).toContain("svg_expression_undeclared");
+    expect(codes(rig({ extra: '<g class="expr-sad" display="none"/>' }))).toContain("svg_expression_duplicate");
+    expect(codes(rig({ expr: (e) => `<g class="expr-${e}" display="none"><path d="M0 0L1 1"/></g>` }))).toContain("svg_expression_visible");
+  });
+
+  it("checkSvg reports a legal pair with an undeclared pose or expression", () => {
+    const build = pipBuild();
+    if (build.manifest.kind === "sfx") throw new Error("pip is not an sfx");
+    build.manifest.legal.push({ pose: "walk", expression: "happy" }, { pose: "front", expression: "sleepy" });
+    const issues = checkSvg(sanitizeSvg(rig()), build).filter((i) => i.code === "svg_legal");
+    expect(issues).toHaveLength(2);
+  });
+
+  it("checkSvg accepts data-pivot only as two space-separated plain numbers", () => {
+    const pivot = (v: string) => codes(rig({ part: (c) => (c === "part-eyes" ? `<g class="part-eyes" data-pivot="${v}"><rect x="0" y="0" width="1" height="1"/></g>` : null) }));
+    for (const ok of ["10 10", "-3.5 0.25", "119.5 141"]) expect(pivot(ok), ok).not.toContain("svg_pivot");
+    for (const bad of ["10,10", "10, 10", "1e2 3", "10  10", " 10 10", "10 10 ", "10", "NaN 1", "Infinity 1"]) expect(pivot(bad), bad).toContain("svg_pivot");
+  });
+
+  it("svgo is pinned to an exact version in the catalog", () => {
+    expect(readFileSync(join(REPO_ROOT, "pnpm-workspace.yaml"), "utf8")).toMatch(/^ {2}svgo: \d+\.\d+\.\d+$/m);
+  });
+});
+
+describe("svg sub-command failures (PR #53 review)", () => {
+  const quiet = { log: () => {} };
+  const copy = (edit: (svg: string, json: Record<string, unknown>) => void) => {
+    const src = mkdtempSync(join(tmpdir(), "assets-src-"));
+    cpSync(join(SOURCES_DIR, "pip"), join(src, "pip"), { recursive: true });
+    const svgFile = join(src, "pip/v2/pip.svg");
+    const jsonFile = join(src, "pip/v2/asset.json");
+    const json = JSON.parse(readFileSync(jsonFile, "utf8"));
+    edit(readFileSync(svgFile, "utf8"), json);
+    writeFileSync(jsonFile, JSON.stringify(json));
+    return { src, svgFile };
+  };
+
+  it("svg exits 1 when IoU is below 0.90", async () => {
+    const out = mkdtempSync(join(tmpdir(), "assets-out-"));
+    expect(await main(["cut", "character-board-00-robot", "--out", out, "--no-review"], quiet)).toBe(0);
+    const { src, svgFile } = copy(() => {});
+    // Shrink the body and the head shell: the silhouette loses a large area.
+    const svg = readFileSync(svgFile, "utf8")
+      .replace(/<path d="M80 205H155[^"]*"/, '<path d="M110 240h10v10h-10Z"')
+      .replace('<rect x="32" y="68" width="172" height="144" rx="48" fill="#02a093"/>', '<rect x="100" y="100" width="10" height="10" fill="#02a093"/>');
+    writeFileSync(svgFile, svg);
+    const lines: string[] = [];
+    const errors: string[] = [];
+    expect(await main(["svg", "pip", "--version", "2", "--src", src, "--out", out], { log: (l) => lines.push(l), error: (l) => errors.push(l) })).toBe(1);
+    expect(lines.some((l) => /^IoU=0\.[0-8]/.test(l))).toBe(true);
+    expect(errors.join(" ")).toMatch(/IoU .* below 0\.90/);
+  }, 120_000);
+
+  it("svg exits 1 for an svg-rig that is not a character", async () => {
+    const { src } = copy((_svg, json) => {
+      json.kind = "prop";
+      (json.manifest as Record<string, unknown>).kind = "prop";
+    });
+    const errors: string[] = [];
+    const out = mkdtempSync(join(tmpdir(), "assets-out-"));
+    expect(await main(["svg", "pip", "--version", "2", "--src", src, "--out", out], { log: () => {}, error: (l) => errors.push(l) })).toBe(1);
+    expect(errors.join(" ")).toMatch(/svg-rig.*character/);
   });
 });
