@@ -59,13 +59,13 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 - Given a Producer board and its tracked crop map
 - When the cut-out step runs
 - Then each named pose and expression becomes a transparent WebP: the background is flood filled from the box edges, the image is trimmed, and the edge has a 2 px feather
-- Test: spec (to implement)
+- Test: @storybook/assets-tools · tools/assets/test/image.test.ts
 
 ### REG-02.S2 The manifest holds measured values
 - Given a cut-out asset
 - When the measure step runs
 - Then the manifest values come from the image and the crop map: the alpha bounds, the foot point (lowest opaque row, centre), and the face box (from the crop map)
-- Test: spec (to implement)
+- Test: @storybook/assets-tools · tools/assets/test/image.test.ts
 
 ### REG-02.S3 An SVG is sanitised before upload
 - Given a hand-cleaned SVG source in `assets/<key>/v<n>/`
