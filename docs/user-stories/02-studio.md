@@ -186,6 +186,12 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Then the new human revision records version `n + 1` for that asset in `asset_versions`
 - Test: spec (to implement)
 
+### EDT-03.S20 A malformed layer ID in an edited scene is refused
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer whose `instanceId` is not a lower-case UUID v7
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API returns 422 with the error list; no revision is saved, and the `scene` head does not move
+- Test: spec (to implement)
+
 ## EDT-04 A late result does not replace the operator's work
 
 As the operator, I want my edit to stay when a run finishes later, so that a

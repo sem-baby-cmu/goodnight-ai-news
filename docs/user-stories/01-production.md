@@ -301,7 +301,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 ### RUN-05.S5 Another provider 4xx is not retried
 - Given a model step for a page where the provider answers a 4xx that is not 429
 - When the step handles the answer
-- Then the error is non-retryable; the step stores the provider error once in `call_log` and writes a `needs_review` revision with `content = null` and `error = { providerStatus, message }`, and that revision becomes the head; a replay of the step does not call the model again
+- Then the error is non-retryable; the step stores the provider error once in `call_log` as `result = { providerError: { status, message } }` and writes a `needs_review` revision with `content = null` and `error = { providerError: { status, message } }`, with `message` cut to 300 characters, and that revision becomes the head; a replay of the step does not call the model again
 - Test: spec (to implement)
 
 ### RUN-05.S6 A failed narration leaves the page without audio
