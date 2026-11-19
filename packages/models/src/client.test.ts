@@ -307,3 +307,45 @@ describe("body read after a 2xx", () => {
     expect(error).toMatchObject({ modelId: "m-tts" });
   });
 });
+
+describe("2xx bodies that are not answers", () => {
+  it("generateJson 2xx body that is null or not an object throws ModelOutputError", async () => {
+    for (const body of [null, [1, 2], "text", 3]) {
+      const { fetch } = stubFetch(() => json(body));
+      const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
+      expect(error, JSON.stringify(body)).toBeInstanceOf(ModelOutputError);
+      expect(error).toMatchObject({ modelId: "m-scene" });
+    }
+  });
+
+  it("generateJson 2xx error body without choices is a ModelHttpError", async () => {
+    const cases = [
+      { error: { code: 429, message: "slow" }, status: 429, retryable: true },
+      { error: { code: 400, message: "bad" }, status: 400, retryable: false },
+      { error: { code: 503 }, status: 503, retryable: true },
+      { error: { message: "no code" }, status: 502, retryable: true },
+      { error: { code: 200, message: "odd code" }, status: 502, retryable: true },
+      { error: { code: "429" }, status: 502, retryable: true },
+    ];
+    for (const { error: providerError, status, retryable } of cases) {
+      const { fetch } = stubFetch(() => json({ error: providerError }));
+      const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
+      expect(error, JSON.stringify(providerError)).toBeInstanceOf(ModelHttpError);
+      expect(error).toMatchObject({ status, retryable, modelId: "m-scene" });
+    }
+  });
+
+  it("synthesizeSpeech 2xx error body without candidates is a ModelHttpError", async () => {
+    const { fetch } = stubFetch(() => json({ error: { code: 503, message: "overloaded" } }));
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(ModelHttpError);
+    expect(error).toMatchObject({ status: 503, retryable: true, modelId: "m-tts" });
+  });
+
+  it("synthesizeSpeech 2xx body that is null throws ModelOutputError", async () => {
+    const { fetch } = stubFetch(() => json(null));
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(ModelOutputError);
+    expect(error).toMatchObject({ modelId: "m-tts" });
+  });
+});
