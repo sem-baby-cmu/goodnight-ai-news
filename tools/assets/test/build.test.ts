@@ -12,7 +12,7 @@ let out = "";
 beforeAll(async () => {
   out = mkdtempSync(join(tmpdir(), "assets-build-"));
   const quiet = { log: () => {} };
-  expect(await main(["cut", "--all", "--out", out], quiet)).toBe(0);
+  expect(await main(["cut", "--all", "--out", out, "--no-review"], quiet)).toBe(0);
   expect(await main(["measure", "--all", "--out", out], quiet)).toBe(0);
 }, 600_000);
 
