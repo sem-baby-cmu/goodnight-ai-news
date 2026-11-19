@@ -14,6 +14,7 @@
     "@base-ui/react": "catalog:",
     "@fontsource/kiwi-maru": "catalog:",
     "@fontsource/nunito": "catalog:",
+    "@hono/zod-validator": "catalog:",
     "@storybook/dsl": "workspace:*",
     "@storybook/layout": "workspace:*",
     "@storybook/models": "workspace:*",
@@ -26,7 +27,8 @@
     "react-dom": "catalog:",
     "shadcn": "catalog:",
     "tw-animate-css": "catalog:",
-    "uuid": "catalog:"
+    "uuid": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "catalog:",
