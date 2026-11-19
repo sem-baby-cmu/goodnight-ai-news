@@ -1,0 +1,487 @@
+{
+  "board": "character-board-01-cow-v1.png",
+  "background": [
+    253,
+    250,
+    243
+  ],
+  "tolerance": 10,
+  "assets": {
+    "cow": {
+      "kind": "character",
+      "name": "Cow",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "cow",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 44,
+        "y": 28,
+        "w": 295,
+        "h": 410
+      },
+      "face": {
+        "x": 94,
+        "y": 68,
+        "w": 195,
+        "h": 158
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 236,
+          "y": 105
+        },
+        {
+          "x": 167,
+          "y": 106
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 362,
+        "y": 27,
+        "w": 262,
+        "h": 411
+      },
+      "face": {
+        "x": 407,
+        "y": 67,
+        "w": 172,
+        "h": 158
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 503,
+          "y": 104
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 644,
+        "y": 27,
+        "w": 212,
+        "h": 411
+      },
+      "face": {
+        "x": 681,
+        "y": 67,
+        "w": 137,
+        "h": 158
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 792,
+          "y": 103
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 885,
+        "y": 33,
+        "w": 286,
+        "h": 405
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 4,
+        "y": 494,
+        "w": 213,
+        "h": 209
+      },
+      "face": {
+        "x": 32,
+        "y": 512,
+        "w": 158,
+        "h": 125
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 204,
+        "y": 500,
+        "w": 200,
+        "h": 203
+      },
+      "face": {
+        "x": 230,
+        "y": 517,
+        "w": 147,
+        "h": 122
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 345,
+          "y": 570
+        },
+        {
+          "x": 308,
+          "y": 574
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 395,
+        "y": 497,
+        "w": 207,
+        "h": 207
+      },
+      "face": {
+        "x": 422,
+        "y": 515,
+        "w": 153,
+        "h": 124
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 590,
+        "y": 495,
+        "w": 205,
+        "h": 209
+      },
+      "face": {
+        "x": 617,
+        "y": 513,
+        "w": 151,
+        "h": 125
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 690,
+          "y": 563
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 784,
+        "y": 497,
+        "w": 206,
+        "h": 207
+      },
+      "face": {
+        "x": 811,
+        "y": 515,
+        "w": 152,
+        "h": 124
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 884,
+          "y": 567
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 979,
+        "y": 495,
+        "w": 210,
+        "h": 210
+      },
+      "face": {
+        "x": 1006,
+        "y": 513,
+        "w": 155,
+        "h": 126
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1070,
+          "y": 566
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 24,
+        "y": 749,
+        "w": 264,
+        "h": 389
+      },
+      "face": {
+        "x": 69,
+        "y": 787,
+        "w": 174,
+        "h": 149
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 162,
+          "y": 825
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 315,
+        "y": 753,
+        "w": 280,
+        "h": 366
+      },
+      "face": {
+        "x": 363,
+        "y": 789,
+        "w": 185,
+        "h": 140
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 478,
+          "y": 825
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 618,
+        "y": 807,
+        "w": 261,
+        "h": 314
+      },
+      "face": {
+        "x": 663,
+        "y": 839,
+        "w": 172,
+        "h": 119
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 735,
+          "y": 881
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 902,
+        "y": 745,
+        "w": 253,
+        "h": 385
+      },
+      "face": {
+        "x": 946,
+        "y": 783,
+        "w": 166,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1014,
+          "y": 818
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cow",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 714,
+        "y": 1187,
+        "w": 77,
+        "h": 78
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "cow",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 789,
+        "y": 1187,
+        "w": 78,
+        "h": 78
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "cow",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 864,
+        "y": 1186,
+        "w": 79,
+        "h": 79
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "cow",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 940,
+        "y": 1186,
+        "w": 78,
+        "h": 79
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "cow",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1015,
+        "y": 1186,
+        "w": 78,
+        "h": 79
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "cow",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1089,
+        "y": 1186,
+        "w": 80,
+        "h": 79
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

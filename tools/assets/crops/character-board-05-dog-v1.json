@@ -1,0 +1,491 @@
+{
+  "board": "character-board-05-dog-v1.png",
+  "background": [
+    253,
+    250,
+    246
+  ],
+  "tolerance": 10,
+  "assets": {
+    "dog": {
+      "kind": "character",
+      "name": "Dog",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "dog",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 22,
+        "y": 106,
+        "w": 281,
+        "h": 393
+      },
+      "face": {
+        "x": 70,
+        "y": 144,
+        "w": 186,
+        "h": 151
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 143,
+          "y": 175
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 310,
+        "y": 105,
+        "w": 251,
+        "h": 395
+      },
+      "face": {
+        "x": 353,
+        "y": 143,
+        "w": 165,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 500,
+          "y": 164
+        },
+        {
+          "x": 443,
+          "y": 170
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 578,
+        "y": 105,
+        "w": 202,
+        "h": 395
+      },
+      "face": {
+        "x": 614,
+        "y": 143,
+        "w": 130,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 721,
+          "y": 166
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 796,
+        "y": 105,
+        "w": 270,
+        "h": 394
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 0,
+        "y": 573,
+        "w": 202,
+        "h": 196
+      },
+      "face": {
+        "x": 27,
+        "y": 590,
+        "w": 149,
+        "h": 117
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 181,
+        "y": 574,
+        "w": 199,
+        "h": 195
+      },
+      "face": {
+        "x": 207,
+        "y": 591,
+        "w": 146,
+        "h": 116
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 361,
+        "y": 574,
+        "w": 191,
+        "h": 196
+      },
+      "face": {
+        "x": 387,
+        "y": 591,
+        "w": 140,
+        "h": 117
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 445,
+          "y": 642
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 529,
+        "y": 574,
+        "w": 192,
+        "h": 195
+      },
+      "face": {
+        "x": 555,
+        "y": 591,
+        "w": 141,
+        "h": 116
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 615,
+          "y": 631
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 702,
+        "y": 575,
+        "w": 194,
+        "h": 194
+      },
+      "face": {
+        "x": 728,
+        "y": 592,
+        "w": 142,
+        "h": 116
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 788,
+          "y": 642
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 877,
+        "y": 572,
+        "w": 204,
+        "h": 196
+      },
+      "face": {
+        "x": 904,
+        "y": 589,
+        "w": 150,
+        "h": 117
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 965,
+          "y": 631
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 23,
+        "y": 851,
+        "w": 247,
+        "h": 388
+      },
+      "face": {
+        "x": 66,
+        "y": 889,
+        "w": 162,
+        "h": 149
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 208,
+          "y": 908
+        },
+        {
+          "x": 146,
+          "y": 920
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 277,
+        "y": 853,
+        "w": 265,
+        "h": 360
+      },
+      "face": {
+        "x": 322,
+        "y": 889,
+        "w": 174,
+        "h": 138
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 428,
+          "y": 916
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 554,
+        "y": 916,
+        "w": 253,
+        "h": 313
+      },
+      "face": {
+        "x": 598,
+        "y": 948,
+        "w": 166,
+        "h": 119
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 730,
+          "y": 973
+        },
+        {
+          "x": 664,
+          "y": 983
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 799,
+        "y": 843,
+        "w": 260,
+        "h": 395
+      },
+      "face": {
+        "x": 844,
+        "y": 881,
+        "w": 171,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 914,
+          "y": 919
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "dog",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 598,
+        "y": 1298,
+        "w": 84,
+        "h": 86
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "dog",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 674,
+        "y": 1298,
+        "w": 85,
+        "h": 86
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "dog",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 750,
+        "y": 1299,
+        "w": 84,
+        "h": 85
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "dog",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 826,
+        "y": 1298,
+        "w": 84,
+        "h": 86
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "dog",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 901,
+        "y": 1299,
+        "w": 83,
+        "h": 85
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "dog",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 974,
+        "y": 1298,
+        "w": 83,
+        "h": 86
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

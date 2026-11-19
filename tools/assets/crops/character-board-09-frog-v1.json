@@ -1,0 +1,429 @@
+{
+  "board": "character-board-09-frog-v1.png",
+  "background": [
+    254,
+    250,
+    244
+  ],
+  "tolerance": 10,
+  "assets": {
+    "kiki": {
+      "kind": "character",
+      "name": "Kiki",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "kiki",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 49,
+        "y": 90,
+        "w": 225,
+        "h": 414
+      },
+      "face": {
+        "x": 88,
+        "y": 130,
+        "w": 146,
+        "h": 159
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 92,
+          "y": 295
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 318,
+        "y": 86,
+        "w": 225,
+        "h": 419
+      },
+      "face": {
+        "x": 357,
+        "y": 126,
+        "w": 146,
+        "h": 161
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 582,
+        "y": 86,
+        "w": 191,
+        "h": 418
+      },
+      "face": {
+        "x": 616,
+        "y": 126,
+        "w": 122,
+        "h": 161
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 813,
+        "y": 87,
+        "w": 221,
+        "h": 417
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 13,
+        "y": 601,
+        "w": 180,
+        "h": 179
+      },
+      "face": {
+        "x": 37,
+        "y": 617,
+        "w": 131,
+        "h": 106
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 197,
+        "y": 602,
+        "w": 178,
+        "h": 178
+      },
+      "face": {
+        "x": 221,
+        "y": 618,
+        "w": 130,
+        "h": 105
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 377,
+        "y": 602,
+        "w": 174,
+        "h": 178
+      },
+      "face": {
+        "x": 401,
+        "y": 618,
+        "w": 126,
+        "h": 105
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 552,
+        "y": 602,
+        "w": 174,
+        "h": 178
+      },
+      "face": {
+        "x": 576,
+        "y": 618,
+        "w": 126,
+        "h": 105
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 726,
+        "y": 603,
+        "w": 174,
+        "h": 177
+      },
+      "face": {
+        "x": 750,
+        "y": 619,
+        "w": 126,
+        "h": 105
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 900,
+        "y": 602,
+        "w": 173,
+        "h": 178
+      },
+      "face": {
+        "x": 924,
+        "y": 618,
+        "w": 126,
+        "h": 105
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 24,
+        "y": 869,
+        "w": 236,
+        "h": 386
+      },
+      "face": {
+        "x": 65,
+        "y": 907,
+        "w": 154,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 263,
+        "y": 872,
+        "w": 282,
+        "h": 369
+      },
+      "face": {
+        "x": 311,
+        "y": 908,
+        "w": 186,
+        "h": 141
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 572,
+        "y": 925,
+        "w": 229,
+        "h": 318
+      },
+      "face": {
+        "x": 612,
+        "y": 957,
+        "w": 149,
+        "h": 121
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 837,
+        "y": 868,
+        "w": 208,
+        "h": 387
+      },
+      "face": {
+        "x": 874,
+        "y": 906,
+        "w": 134,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "kiki",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 619,
+        "y": 1317,
+        "w": 77,
+        "h": 77
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "kiki",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 692,
+        "y": 1317,
+        "w": 77,
+        "h": 76
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "kiki",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 764,
+        "y": 1317,
+        "w": 78,
+        "h": 77
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "kiki",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 837,
+        "y": 1317,
+        "w": 77,
+        "h": 77
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "kiki",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 909,
+        "y": 1317,
+        "w": 77,
+        "h": 77
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "kiki",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 980,
+        "y": 1317,
+        "w": 78,
+        "h": 77
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

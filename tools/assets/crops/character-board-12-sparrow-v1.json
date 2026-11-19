@@ -1,0 +1,505 @@
+{
+  "board": "character-board-12-sparrow-v1.png",
+  "background": [
+    253,
+    250,
+    245
+  ],
+  "tolerance": 10,
+  "assets": {
+    "sola": {
+      "kind": "character",
+      "name": "Sola",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "sola",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 46,
+        "y": 36,
+        "w": 272,
+        "h": 422
+      },
+      "face": {
+        "x": 92,
+        "y": 76,
+        "w": 179,
+        "h": 162
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 142,
+          "y": 132
+        },
+        {
+          "x": 234,
+          "y": 132
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 352,
+        "y": 36,
+        "w": 240,
+        "h": 423
+      },
+      "face": {
+        "x": 394,
+        "y": 77,
+        "w": 157,
+        "h": 163
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 483,
+          "y": 130
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 611,
+        "y": 35,
+        "w": 256,
+        "h": 421
+      },
+      "face": {
+        "x": 655,
+        "y": 75,
+        "w": 168,
+        "h": 162
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 801,
+          "y": 131
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 891,
+        "y": 36,
+        "w": 249,
+        "h": 419
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 19,
+        "y": 510,
+        "w": 191,
+        "h": 224
+      },
+      "face": {
+        "x": 45,
+        "y": 528,
+        "w": 140,
+        "h": 135
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 92,
+          "y": 595
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 212,
+        "y": 511,
+        "w": 189,
+        "h": 223
+      },
+      "face": {
+        "x": 237,
+        "y": 529,
+        "w": 138,
+        "h": 135
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 287,
+          "y": 614
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 399,
+        "y": 510,
+        "w": 196,
+        "h": 224
+      },
+      "face": {
+        "x": 425,
+        "y": 528,
+        "w": 144,
+        "h": 135
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 472,
+          "y": 600
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 590,
+        "y": 509,
+        "w": 199,
+        "h": 225
+      },
+      "face": {
+        "x": 616,
+        "y": 527,
+        "w": 146,
+        "h": 136
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 738,
+          "y": 588
+        },
+        {
+          "x": 670,
+          "y": 592
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 784,
+        "y": 510,
+        "w": 199,
+        "h": 224
+      },
+      "face": {
+        "x": 810,
+        "y": 528,
+        "w": 146,
+        "h": 135
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 941,
+          "y": 597
+        },
+        {
+          "x": 869,
+          "y": 599
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 976,
+        "y": 510,
+        "w": 200,
+        "h": 224
+      },
+      "face": {
+        "x": 1002,
+        "y": 528,
+        "w": 147,
+        "h": 135
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1057,
+          "y": 599
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 32,
+        "y": 797,
+        "w": 256,
+        "h": 388
+      },
+      "face": {
+        "x": 76,
+        "y": 835,
+        "w": 168,
+        "h": 149
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 166,
+          "y": 884
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 314,
+        "y": 803,
+        "w": 289,
+        "h": 361
+      },
+      "face": {
+        "x": 363,
+        "y": 839,
+        "w": 191,
+        "h": 138
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 478,
+          "y": 890
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 615,
+        "y": 841,
+        "w": 265,
+        "h": 335
+      },
+      "face": {
+        "x": 660,
+        "y": 875,
+        "w": 174,
+        "h": 128
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 726,
+          "y": 932
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 923,
+        "y": 793,
+        "w": 226,
+        "h": 388
+      },
+      "face": {
+        "x": 963,
+        "y": 831,
+        "w": 147,
+        "h": 149
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1073,
+          "y": 881
+        },
+        {
+          "x": 1008,
+          "y": 884
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "sola",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 708,
+        "y": 1218,
+        "w": 83,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "sola",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 785,
+        "y": 1218,
+        "w": 80,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "sola",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 856,
+        "y": 1218,
+        "w": 81,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "sola",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 929,
+        "y": 1218,
+        "w": 82,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "sola",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1004,
+        "y": 1218,
+        "w": 82,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "sola",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1078,
+        "y": 1218,
+        "w": 81,
+        "h": 81
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

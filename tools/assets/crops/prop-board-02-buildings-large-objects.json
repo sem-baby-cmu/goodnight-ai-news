@@ -1,0 +1,219 @@
+{
+  "board": "prop-board-02-buildings-large-objects.png",
+  "background": [
+    247,
+    241,
+    226
+  ],
+  "tolerance": 10,
+  "assets": {
+    "cottage": {
+      "kind": "scenery",
+      "name": "Cottage",
+      "version": 1,
+      "flippable": true
+    },
+    "workshop": {
+      "kind": "scenery",
+      "name": "Workshop",
+      "version": 1,
+      "flippable": true
+    },
+    "barn": {
+      "kind": "scenery",
+      "name": "Barn",
+      "version": 1,
+      "flippable": true
+    },
+    "tent": {
+      "kind": "scenery",
+      "name": "Tent",
+      "version": 1,
+      "flippable": true
+    },
+    "bridge": {
+      "kind": "scenery",
+      "name": "Bridge",
+      "version": 1,
+      "flippable": true
+    },
+    "door": {
+      "kind": "scenery",
+      "name": "Door",
+      "version": 1,
+      "flippable": true
+    },
+    "window": {
+      "kind": "scenery",
+      "name": "Window",
+      "version": 1,
+      "flippable": true
+    },
+    "fence": {
+      "kind": "scenery",
+      "name": "Fence",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "cottage",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 8,
+        "y": 84,
+        "w": 415,
+        "h": 397
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "workshop",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 438,
+        "y": 62,
+        "w": 490,
+        "h": 415
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "barn",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 938,
+        "y": 103,
+        "w": 414,
+        "h": 361
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "tent",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1361,
+        "y": 142,
+        "w": 400,
+        "h": 335
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "bridge",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 49,
+        "y": 569,
+        "w": 468,
+        "h": 272
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 278,
+          "y": 641
+        },
+        {
+          "x": 156,
+          "y": 669
+        },
+        {
+          "x": 425,
+          "y": 677
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "door",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 587,
+        "y": 518,
+        "w": 256,
+        "h": 320
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "window",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 928,
+        "y": 548,
+        "w": 296,
+        "h": 274
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "fence",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1285,
+        "y": 596,
+        "w": 438,
+        "h": 243
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 1428,
+          "y": 715
+        },
+        {
+          "x": 1544,
+          "y": 715
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    }
+  ]
+}

@@ -1,0 +1,482 @@
+{
+  "board": "character-board-11-mole-v1.png",
+  "background": [
+    253,
+    251,
+    250
+  ],
+  "tolerance": 10,
+  "assets": {
+    "puck": {
+      "kind": "character",
+      "name": "Puck",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "puck",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 74,
+        "y": 23,
+        "w": 233,
+        "h": 446
+      },
+      "face": {
+        "x": 115,
+        "y": 65,
+        "w": 152,
+        "h": 172
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 235,
+          "y": 144
+        },
+        {
+          "x": 161,
+          "y": 145
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 358,
+        "y": 23,
+        "w": 223,
+        "h": 445
+      },
+      "face": {
+        "x": 397,
+        "y": 65,
+        "w": 145,
+        "h": 172
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 473,
+          "y": 145
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 631,
+        "y": 24,
+        "w": 214,
+        "h": 445
+      },
+      "face": {
+        "x": 669,
+        "y": 66,
+        "w": 139,
+        "h": 172
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 873,
+        "y": 25,
+        "w": 250,
+        "h": 443
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 18,
+        "y": 497,
+        "w": 196,
+        "h": 271
+      },
+      "face": {
+        "x": 44,
+        "y": 518,
+        "w": 144,
+        "h": 166
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 93,
+          "y": 609
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 216,
+        "y": 500,
+        "w": 188,
+        "h": 268
+      },
+      "face": {
+        "x": 241,
+        "y": 521,
+        "w": 138,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 407,
+        "y": 499,
+        "w": 190,
+        "h": 269
+      },
+      "face": {
+        "x": 432,
+        "y": 520,
+        "w": 139,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 486,
+          "y": 619
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 599,
+        "y": 499,
+        "w": 195,
+        "h": 269
+      },
+      "face": {
+        "x": 625,
+        "y": 520,
+        "w": 143,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 677,
+          "y": 610
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 796,
+        "y": 500,
+        "w": 193,
+        "h": 268
+      },
+      "face": {
+        "x": 822,
+        "y": 521,
+        "w": 142,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 989,
+        "y": 499,
+        "w": 195,
+        "h": 269
+      },
+      "face": {
+        "x": 1015,
+        "y": 520,
+        "w": 143,
+        "h": 164
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1063,
+          "y": 622
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 37,
+        "y": 793,
+        "w": 263,
+        "h": 420
+      },
+      "face": {
+        "x": 82,
+        "y": 833,
+        "w": 173,
+        "h": 162
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 168,
+          "y": 904
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 321,
+        "y": 797,
+        "w": 278,
+        "h": 413
+      },
+      "face": {
+        "x": 368,
+        "y": 837,
+        "w": 183,
+        "h": 159
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 487,
+          "y": 908
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 610,
+        "y": 841,
+        "w": 246,
+        "h": 375
+      },
+      "face": {
+        "x": 653,
+        "y": 878,
+        "w": 161,
+        "h": 144
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 724,
+          "y": 961
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 913,
+        "y": 788,
+        "w": 223,
+        "h": 419
+      },
+      "face": {
+        "x": 952,
+        "y": 828,
+        "w": 145,
+        "h": 161
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1061,
+          "y": 904
+        },
+        {
+          "x": 999,
+          "y": 909
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "puck",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 775,
+        "y": 1225,
+        "w": 74,
+        "h": 75
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "puck",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 839,
+        "y": 1225,
+        "w": 74,
+        "h": 75
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "puck",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 904,
+        "y": 1226,
+        "w": 74,
+        "h": 74
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "puck",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 969,
+        "y": 1225,
+        "w": 74,
+        "h": 75
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "puck",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1034,
+        "y": 1226,
+        "w": 74,
+        "h": 74
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "puck",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1099,
+        "y": 1225,
+        "w": 74,
+        "h": 75
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

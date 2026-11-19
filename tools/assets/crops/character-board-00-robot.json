@@ -1,0 +1,509 @@
+{
+  "board": "character-board-00-robot.png",
+  "background": [
+    252,
+    248,
+    246
+  ],
+  "tolerance": 10,
+  "assets": {
+    "pip": {
+      "kind": "character",
+      "name": "Pip",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "pip",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 37,
+        "y": 50,
+        "w": 245,
+        "h": 432
+      },
+      "face": {
+        "x": 79,
+        "y": 91,
+        "w": 160,
+        "h": 166
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 120,
+          "y": 179
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 311,
+        "y": 52,
+        "w": 224,
+        "h": 430
+      },
+      "face": {
+        "x": 350,
+        "y": 93,
+        "w": 146,
+        "h": 166
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 433,
+          "y": 180
+        },
+        {
+          "x": 487,
+          "y": 182
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 573,
+        "y": 54,
+        "w": 185,
+        "h": 428
+      },
+      "face": {
+        "x": 606,
+        "y": 95,
+        "w": 118,
+        "h": 165
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 731,
+          "y": 181
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 801,
+        "y": 54,
+        "w": 244,
+        "h": 428
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 12,
+        "y": 528,
+        "w": 195,
+        "h": 244
+      },
+      "face": {
+        "x": 38,
+        "y": 547,
+        "w": 143,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 78,
+          "y": 633
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 193,
+        "y": 530,
+        "w": 188,
+        "h": 242
+      },
+      "face": {
+        "x": 218,
+        "y": 549,
+        "w": 138,
+        "h": 147
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 257,
+          "y": 639
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 366,
+        "y": 530,
+        "w": 185,
+        "h": 242
+      },
+      "face": {
+        "x": 391,
+        "y": 549,
+        "w": 135,
+        "h": 147
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 433,
+          "y": 641
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 536,
+        "y": 530,
+        "w": 186,
+        "h": 242
+      },
+      "face": {
+        "x": 561,
+        "y": 549,
+        "w": 136,
+        "h": 147
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 605,
+          "y": 637
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 707,
+        "y": 531,
+        "w": 187,
+        "h": 241
+      },
+      "face": {
+        "x": 732,
+        "y": 550,
+        "w": 137,
+        "h": 146
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 769,
+          "y": 639
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 880,
+        "y": 530,
+        "w": 194,
+        "h": 243
+      },
+      "face": {
+        "x": 906,
+        "y": 549,
+        "w": 142,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1003,
+          "y": 630
+        },
+        {
+          "x": 951,
+          "y": 638
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 34,
+        "y": 829,
+        "w": 231,
+        "h": 424
+      },
+      "face": {
+        "x": 74,
+        "y": 870,
+        "w": 151,
+        "h": 163
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 199,
+          "y": 943
+        },
+        {
+          "x": 140,
+          "y": 948
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 277,
+        "y": 830,
+        "w": 268,
+        "h": 416
+      },
+      "face": {
+        "x": 323,
+        "y": 870,
+        "w": 176,
+        "h": 160
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 441,
+          "y": 950
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 566,
+        "y": 891,
+        "w": 242,
+        "h": 365
+      },
+      "face": {
+        "x": 608,
+        "y": 927,
+        "w": 158,
+        "h": 140
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 729,
+          "y": 1005
+        },
+        {
+          "x": 668,
+          "y": 1010
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 817,
+        "y": 831,
+        "w": 231,
+        "h": 420
+      },
+      "face": {
+        "x": 857,
+        "y": 871,
+        "w": 151,
+        "h": 162
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 902,
+          "y": 953
+        },
+        {
+          "x": 970,
+          "y": 953
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pip",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 230,
+        "y": 1307,
+        "w": 110,
+        "h": 109
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pip",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 335,
+        "y": 1308,
+        "w": 106,
+        "h": 108
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pip",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 435,
+        "y": 1307,
+        "w": 108,
+        "h": 109
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pip",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 538,
+        "y": 1307,
+        "w": 108,
+        "h": 109
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pip",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 641,
+        "y": 1307,
+        "w": 112,
+        "h": 110
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pip",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 750,
+        "y": 1311,
+        "w": 104,
+        "h": 104
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}

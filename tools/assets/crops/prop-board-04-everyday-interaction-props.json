@@ -1,0 +1,216 @@
+{
+  "board": "prop-board-04-everyday-interaction-props.png",
+  "background": [
+    247,
+    242,
+    231
+  ],
+  "tolerance": 10,
+  "assets": {
+    "ball": {
+      "kind": "prop",
+      "name": "Ball",
+      "version": 1,
+      "flippable": true
+    },
+    "book": {
+      "kind": "prop",
+      "name": "Book",
+      "version": 1,
+      "flippable": true
+    },
+    "blocks": {
+      "kind": "prop",
+      "name": "Blocks",
+      "version": 1,
+      "flippable": true
+    },
+    "backpack": {
+      "kind": "prop",
+      "name": "Backpack",
+      "version": 1,
+      "flippable": true
+    },
+    "umbrella": {
+      "kind": "prop",
+      "name": "Umbrella",
+      "version": 1,
+      "flippable": true
+    },
+    "cup": {
+      "kind": "prop",
+      "name": "Cup",
+      "version": 1,
+      "flippable": true
+    },
+    "basket": {
+      "kind": "prop",
+      "name": "Basket",
+      "version": 1,
+      "flippable": true
+    },
+    "blanket": {
+      "kind": "prop",
+      "name": "Blanket",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "ball",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 31,
+        "y": 133,
+        "w": 292,
+        "h": 304
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "book",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 357,
+        "y": 123,
+        "w": 346,
+        "h": 340
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "blocks",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 731,
+        "y": 136,
+        "w": 310,
+        "h": 307
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "backpack",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1078,
+        "y": 59,
+        "w": 431,
+        "h": 421
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 1284,
+          "y": 97
+        },
+        {
+          "x": 1408,
+          "y": 167
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "umbrella",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 56,
+        "y": 502,
+        "w": 188,
+        "h": 477
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "cup",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 269,
+        "y": 661,
+        "w": 316,
+        "h": 267
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 512,
+          "y": 755
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "basket",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 619,
+        "y": 559,
+        "w": 389,
+        "h": 400
+      },
+      "face": null,
+      "foot": null,
+      "holes": [
+        {
+          "x": 807,
+          "y": 602
+        }
+      ],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "blanket",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1018,
+        "y": 630,
+        "w": 498,
+        "h": 322
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    }
+  ]
+}

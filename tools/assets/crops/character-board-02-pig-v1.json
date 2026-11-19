@@ -1,0 +1,504 @@
+{
+  "board": "character-board-02-pig-v1.png",
+  "background": [
+    254,
+    253,
+    252
+  ],
+  "tolerance": 10,
+  "assets": {
+    "pig": {
+      "kind": "character",
+      "name": "Pig",
+      "version": 1,
+      "flippable": true
+    }
+  },
+  "figures": [
+    {
+      "key": "pig",
+      "pose": "front",
+      "expression": "happy",
+      "box": {
+        "x": 73,
+        "y": 30,
+        "w": 244,
+        "h": 397
+      },
+      "face": {
+        "x": 115,
+        "y": 68,
+        "w": 160,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 250,
+          "y": 104
+        },
+        {
+          "x": 156,
+          "y": 111
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "three-quarter",
+      "expression": "happy",
+      "box": {
+        "x": 364,
+        "y": 28,
+        "w": 230,
+        "h": 399
+      },
+      "face": {
+        "x": 404,
+        "y": 67,
+        "w": 150,
+        "h": 153
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 480,
+          "y": 102
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "side",
+      "expression": "happy",
+      "box": {
+        "x": 635,
+        "y": 27,
+        "w": 204,
+        "h": 400
+      },
+      "face": {
+        "x": 671,
+        "y": 66,
+        "w": 132,
+        "h": 154
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 779,
+          "y": 104
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "back",
+      "expression": "happy",
+      "box": {
+        "x": 880,
+        "y": 28,
+        "w": 236,
+        "h": 400
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "bust",
+      "expression": "happy",
+      "box": {
+        "x": 17,
+        "y": 481,
+        "w": 199,
+        "h": 224
+      },
+      "face": {
+        "x": 43,
+        "y": 499,
+        "w": 146,
+        "h": 135
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "bust",
+      "expression": "sad",
+      "box": {
+        "x": 213,
+        "y": 483,
+        "w": 197,
+        "h": 222
+      },
+      "face": {
+        "x": 239,
+        "y": 501,
+        "w": 145,
+        "h": 134
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 300,
+          "y": 557
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "bust",
+      "expression": "angry",
+      "box": {
+        "x": 403,
+        "y": 484,
+        "w": 196,
+        "h": 221
+      },
+      "face": {
+        "x": 429,
+        "y": 502,
+        "w": 144,
+        "h": 133
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 477,
+          "y": 556
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "bust",
+      "expression": "surprised",
+      "box": {
+        "x": 592,
+        "y": 483,
+        "w": 196,
+        "h": 222
+      },
+      "face": {
+        "x": 618,
+        "y": 501,
+        "w": 144,
+        "h": 134
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 735,
+          "y": 540
+        },
+        {
+          "x": 666,
+          "y": 544
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "bust",
+      "expression": "worried",
+      "box": {
+        "x": 785,
+        "y": 484,
+        "w": 194,
+        "h": 221
+      },
+      "face": {
+        "x": 811,
+        "y": 502,
+        "w": 142,
+        "h": 133
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 922,
+          "y": 550
+        },
+        {
+          "x": 865,
+          "y": 556
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "bust",
+      "expression": "thinking",
+      "box": {
+        "x": 972,
+        "y": 483,
+        "w": 196,
+        "h": 221
+      },
+      "face": {
+        "x": 998,
+        "y": 501,
+        "w": 144,
+        "h": 133
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1110,
+          "y": 540
+        },
+        {
+          "x": 1050,
+          "y": 554
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "walk",
+      "expression": "happy",
+      "box": {
+        "x": 33,
+        "y": 764,
+        "w": 241,
+        "h": 397
+      },
+      "face": {
+        "x": 75,
+        "y": 802,
+        "w": 158,
+        "h": 152
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 151,
+          "y": 834
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "run",
+      "expression": "happy",
+      "box": {
+        "x": 297,
+        "y": 763,
+        "w": 281,
+        "h": 387
+      },
+      "face": {
+        "x": 345,
+        "y": 801,
+        "w": 186,
+        "h": 148
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 454,
+          "y": 834
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "sit",
+      "expression": "happy",
+      "box": {
+        "x": 600,
+        "y": 820,
+        "w": 260,
+        "h": 341
+      },
+      "face": {
+        "x": 645,
+        "y": 854,
+        "w": 171,
+        "h": 130
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 700,
+          "y": 896
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "read",
+      "expression": "happy",
+      "box": {
+        "x": 892,
+        "y": 756,
+        "w": 235,
+        "h": 399
+      },
+      "face": {
+        "x": 933,
+        "y": 795,
+        "w": 153,
+        "h": 153
+      },
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [
+        {
+          "x": 1057,
+          "y": 837
+        },
+        {
+          "x": 981,
+          "y": 843
+        }
+      ],
+      "tolerance": null,
+      "ignore": false
+    },
+    {
+      "key": "pig",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 728,
+        "y": 1213,
+        "w": 83,
+        "h": 83
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pig",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 801,
+        "y": 1213,
+        "w": 81,
+        "h": 83
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pig",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 871,
+        "y": 1213,
+        "w": 81,
+        "h": 83
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pig",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 942,
+        "y": 1213,
+        "w": 80,
+        "h": 83
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pig",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1012,
+        "y": 1213,
+        "w": 81,
+        "h": 83
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    },
+    {
+      "key": "pig",
+      "pose": "default",
+      "expression": null,
+      "box": {
+        "x": 1083,
+        "y": 1213,
+        "w": 80,
+        "h": 82
+      },
+      "face": null,
+      "foot": null,
+      "holes": [],
+      "holeCandidates": [],
+      "tolerance": null,
+      "ignore": true
+    }
+  ]
+}
