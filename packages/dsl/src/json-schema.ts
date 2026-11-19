@@ -7,12 +7,17 @@ import type { LayoutTemplate } from "./template";
 
 const uniqSorted = (values: string[]) => [...new Set(values)].sort();
 
-// Every object node: no extra keys, every key required.
+// Every object node: no extra keys, every key required. Some strict
+// structured-output modes reject `oneOf` and `$schema`, so unions become
+// `anyOf` and `$schema` is dropped (R55).
 function makeStrict(node: unknown): unknown {
   if (Array.isArray(node)) return node.map(makeStrict);
   if (node === null || typeof node !== "object") return node;
   const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(node)) out[key] = makeStrict(value);
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "$schema") continue;
+    out[key === "oneOf" ? "anyOf" : key] = makeStrict(value);
+  }
   if (out.type === "object") {
     out.additionalProperties = false;
     out.required = Object.keys((out.properties as Record<string, unknown> | undefined) ?? {});
