@@ -25,6 +25,14 @@ describe("prompts", () => {
     expect(system).toMatch(/JSON/);
   });
 
+  it("scenePrompt lists a missing cast key as unknown", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny", "ghost-key"], registry, templates: TEMPLATES });
+    expect(user).toContain("- ghost-key: unknown");
+    expect(user).toMatch(/- test-bunny: poses/);
+  });
+
   it("scriptPrompt states the reader age, the page count, and the cast rule", () => {
     const registry = { assets: {} };
     const { system, user } = scriptPrompt({ sourceText: "A short news text.", registry });

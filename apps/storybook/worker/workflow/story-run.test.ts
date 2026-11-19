@@ -235,19 +235,39 @@ function propInCharacterSlot(registry: RegistrySnapshot): SceneDraft {
 
 const status = (s: number, message = `provider status ${s}`) => ({ error: Object.assign(new Error(message), { status: s }) });
 
-// Captures the `user` prompt of every scene call, by stub key order.
-function captureScenePrompts(stub: StubModel): string[] {
+// Captures the `user` prompt of every call of `model`, in call order.
+function capturePrompts(stub: StubModel, model: "script" | "scene"): string[] {
   const prompts: string[] = [];
   const client = {
     ...stub.client,
     generateJson: (req: Parameters<StubModel["client"]["generateJson"]>[0]) => {
-      if (req.model === "scene") prompts.push(req.user);
+      if (req.model === model) prompts.push(req.user);
       return stub.client.generateJson(req);
     },
   };
   seams.modelClient = () => client;
   return prompts;
 }
+const captureScenePrompts = (stub: StubModel) => capturePrompts(stub, "scene");
+
+// Turns every active asset version off; returns a function that restores them.
+async function deactivateRegistry(): Promise<() => Promise<void>> {
+  const d = db();
+  const active = await d.select({ id: assetVersion.id }).from(assetVersion).where(eq(assetVersion.active, true));
+  await d.update(assetVersion).set({ active: false });
+  return async () => {
+    for (const { id } of active) await d.update(assetVersion).set({ active: true }).where(eq(assetVersion.id, id));
+  };
+}
+
+const nameOf = async (promise: Promise<unknown>) => {
+  try {
+    await promise;
+  } catch (err) {
+    return (err as Error).name;
+  }
+  return "resolved";
+};
 
 // Runs the steps directly, without the Workflow: freeze, script, then scene and
 // audio for every page.
@@ -415,7 +435,8 @@ describe("StoryRunWorkflow", () => {
     const p2 = st.pageIds[1]!;
     const calls = await callsOf(s.ids.runId, `scene:${p2}`);
     expect(calls).toHaveLength(1);
-    expect((calls[0]!.result as { providerError: { status: number } }).providerError.status).toBe(400);
+    // Item 1: call_log.result is a tagged envelope.
+    expect(calls[0]!.result).toMatchObject({ kind: "provider_error", status: 400 });
     expect(calls[0]!.usage).toBeNull();
     const head = st.head(`scene:${p2}`)!;
     expect(head.status).toBe("needs_review");
@@ -441,14 +462,17 @@ describe("StoryRunWorkflow", () => {
   it("unparseable scene output goes to repair", async () => {
     const s = await setup(() => ({
       "scene:1": (attempt) =>
-        attempt === 1 ? { error: new ModelOutputError("Model message content is not valid JSON", { modelId: "stub", usage: null }) } : undefined,
+        attempt === 1
+          ? { error: new ModelOutputError("Model message content is not valid JSON", { modelId: "stub", usage: null, raw: "{not json" }) }
+          : undefined,
     }));
     await runWorkflow(s.ids.runId, s.ids.storyId);
     const st = await readStory(s.ids.storyId);
     const p1 = st.pageIds[0]!;
     const calls = await callsOf(s.ids.runId, `scene:${p1}`);
     expect(calls).toHaveLength(2);
-    expect(calls.find((c) => c.purpose === "first")!.result).toEqual({ unparsed: true });
+    // Items 1 and 2: the envelope keeps the raw output.
+    expect(calls.find((c) => c.purpose === "first")!.result).toEqual({ kind: "unparsed", raw: "{not json" });
     expect(s.stub.answered["scene:1"]).toBe(1);
     const head = st.head(`scene:${p1}`)!;
     expect(head.callId).toBe(calls.find((c) => c.purpose === "repair")!.callId);
@@ -689,6 +713,8 @@ describe("StoryRunWorkflow", () => {
   it("RUN-05.S4 a 429 or 5xx is retried by the platform and a stored result is not requested again", async () => {
     expect(MODEL_STEP.retries.delay).toBe("10 seconds");
     expect(MODEL_STEP.retries.backoff).toBe("exponential");
+    // Item 6: a scene step makes up to 2 calls of up to 180 s each.
+    expect(MODEL_STEP.timeout).toBe("10 minutes");
     const s = await setup(() => ({ "scene:2": (attempt) => (attempt === 1 ? status(500) : attempt === 2 ? status(429) : undefined) }));
     await runWorkflow(s.ids.runId, s.ids.storyId);
     expect(s.stub.attempts["scene:2"]).toBe(3);
@@ -895,5 +921,144 @@ describe("StoryRunWorkflow", () => {
     expect(ai[0]!.status).toBe("superseded");
     expect(st.heads[`scene:${p1}`]).toBe(human);
     expect((await readRun(s.ids.runId)).status).toBe("draft_ready");
+  });
+  // ---- Review follow-up (items 1 to 7) ----
+
+  it("a scene answer shaped like a provider error goes through the checks and the repair", async () => {
+    const s = await setup(() => ({
+      "scene:1": (attempt) => (attempt === 1 ? { value: { providerError: { status: 400, message: "fake" } } } : undefined),
+    }));
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    expect(s.stub.answered["scene:1"]).toBe(2);
+    const st = await readStory(s.ids.storyId);
+    const p1 = st.pageIds[0]!;
+    const calls = await callsOf(s.ids.runId, `scene:${p1}`);
+    expect(calls.map((c) => c.purpose).sort()).toEqual(["first", "repair"]);
+    expect(calls.find((c) => c.purpose === "first")!.result).toEqual({
+      kind: "answer",
+      value: { providerError: { status: 400, message: "fake" } },
+    });
+    expect(st.head(`scene:${p1}`)!.status).toBe("ok");
+    const r = await readRun(s.ids.runId);
+    expect(r.error!.errors).toEqual([]);
+    expect(r.status).toBe("draft_ready");
+  });
+
+  it("a script answer shaped like the unparsed marker is a schema failure", async () => {
+    const s = await setup(() => ({ script: (attempt) => (attempt === 1 ? { value: { unparsed: true } } : undefined) }));
+    const prompts = capturePrompts(s.stub, "script");
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    const calls = await callsOf(s.ids.runId, "script");
+    expect(calls.map((c) => c.purpose).sort()).toEqual(["first", "repair"]);
+    expect(calls.find((c) => c.purpose === "first")!.result).toEqual({ kind: "answer", value: { unparsed: true } });
+    expect(prompts).toHaveLength(2);
+    expect(prompts[1]).toContain('Your previous answer:\n{"unparsed":true}');
+    expect(prompts[1]).not.toContain("model_output_unparsed");
+    expect((await readRun(s.ids.runId)).status).toBe("draft_ready");
+  });
+
+  it("a TTS output error is stored as an output_error envelope and is not retried", async () => {
+    const s = await setup(() => ({
+      "audio:2": () => ({ error: new ModelOutputError("Model answer has no audio part", { modelId: "stub", usage: null }) }),
+    }));
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    expect(s.stub.attempts["audio:2"]).toBe(1);
+    const st = await readStory(s.ids.storyId);
+    const p2 = st.pageIds[1]!;
+    const calls = await callsOf(s.ids.runId, `audio:${p2}`);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.result).toEqual({ kind: "output_error", message: "Model answer has no audio part" });
+    const head = st.head(`audio:${p2}`)!;
+    expect(head.status).toBe("needs_review");
+    expect(head.error).toEqual({ providerStatus: null, message: "Model answer has no audio part" });
+    const ok = (await callsOf(s.ids.runId, `audio:${st.pageIds[0]!}`))[0]!;
+    expect(ok.result).toMatchObject({ kind: "answer", value: { contentType: "audio/wav", durationMs: 1000 } });
+  });
+
+  it("two unparsed scene answers keep the raw output of the repair call", async () => {
+    const spies = (["log", "info", "warn", "error"] as const).map((m) => vi.spyOn(console, m));
+    const raw = (n: number) => `RAW-OUTPUT-${n} {not json`;
+    const s = await setup(() => ({
+      "scene:1": (attempt) => ({
+        error: new ModelOutputError("Model message content is not valid JSON", { modelId: "stub", usage: null, raw: raw(attempt) }),
+      }),
+    }));
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    const st = await readStory(s.ids.storyId);
+    const p1 = st.pageIds[0]!;
+    const head = st.head(`scene:${p1}`)!;
+    expect(head.status).toBe("needs_review");
+    expect(head.content).toEqual({ unparsed: true, raw: raw(2) });
+    const calls = await callsOf(s.ids.runId, `scene:${p1}`);
+    expect(head.callId).toBe(calls.find((c) => c.purpose === "repair")!.callId);
+    expect(calls.find((c) => c.purpose === "first")!.result).toEqual({ kind: "unparsed", raw: raw(1) });
+    // Never log raw output (SYS-04.S3).
+    for (const arg of spies.flatMap((sp) => sp.mock.calls.flat())) {
+      expect(`${String(arg)} ${JSON.stringify(arg) ?? ""}`).not.toContain("RAW-OUTPUT-");
+    }
+  });
+
+  it("the unparsed envelope keeps at most 65,536 characters of raw output", async () => {
+    const big = "x".repeat(70_000);
+    const s = await setup(() => ({
+      "scene:1": (attempt) =>
+        attempt === 1
+          ? { error: new ModelOutputError("Model message content is not valid JSON", { modelId: "stub", usage: null, raw: big }) }
+          : undefined,
+    }));
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    const p1 = (await readStory(s.ids.storyId)).pageIds[0]!;
+    const first = (await callsOf(s.ids.runId, `scene:${p1}`)).find((c) => c.purpose === "first")!;
+    expect(first.result).toEqual({ kind: "unparsed", raw: "x".repeat(65_536), truncated: true });
+  });
+
+  it("an empty registry fails the run at freeze without retries", async () => {
+    await seedRegistry(env);
+    const restore = await deactivateRegistry();
+    try {
+      const s = await setup();
+      // NonRetryableError: the platform does not retry the step.
+      expect(await nameOf(freezeStep(env, s.ids.runId, s.ids.storyId))).toBe("NonRetryableError");
+      await runWorkflow(s.ids.runId, s.ids.storyId);
+      const r = await readRun(s.ids.runId);
+      expect(r.status).toBe("failed");
+      expect(r.error!.errors).toHaveLength(1);
+      expect(r.error!.errors[0]).toMatchObject({ step: "freeze", pageId: null });
+      expect(s.stub.attempts).toEqual({});
+    } finally {
+      await restore();
+    }
+  });
+
+  it("errors that cannot heal on retry throw NonRetryableError", async () => {
+    const s = await setup();
+    expect(await nameOf(freezeStep(env, s.ids.runId, newId()))).toBe("NonRetryableError");
+    await freezeStep(env, s.ids.runId, s.ids.storyId);
+    // No head for the basis key: a page with no page_text.
+    expect(await nameOf(sceneStep(env, s.ids.runId, s.ids.storyId, newId()))).toBe("NonRetryableError");
+    // The outline JSON schema cannot be built from a registry with no character.
+    await db().update(run).set({ registry: { assets: {} } }).where(eq(run.id, s.ids.runId));
+    expect(await nameOf(scriptStep(env, s.ids.runId, s.ids.storyId))).toBe("NonRetryableError");
+    expect(s.stub.attempts).toEqual({});
+  });
+
+  it("the script repair prompt holds no code-set pageId", async () => {
+    const s = await setup((registry) => ({
+      script: (attempt) => (attempt === 1 ? { value: { ...stubScript(registry), title: "" } } : undefined),
+    }));
+    const prompts = capturePrompts(s.stub, "script");
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    expect(prompts).toHaveLength(2);
+    expect(prompts[1]).toContain("Your previous answer:");
+    expect(prompts[1]).not.toContain("pageId");
+    expect((await readRun(s.ids.runId)).status).toBe("draft_ready");
+  });
+
+  it("finishStep writes the errors sorted by step", async () => {
+    const d = await directDraft();
+    const rec = (step: string): ErrorRecord => ({ runId: d.ids.runId, storyId: d.ids.storyId, pageId: null, step, providerStatus: null, message: step });
+    const shuffled = ["scene:b", "audio:c", "scene:a", "audio:a", "error:x"].map(rec);
+    await finishStep(env, d.ids.runId, d.ids.storyId, { failed: false, errors: shuffled });
+    expect((await readRun(d.ids.runId)).error!.errors.map((e) => e.step)).toEqual(["audio:a", "audio:c", "error:x", "scene:a", "scene:b"]);
   });
 });
