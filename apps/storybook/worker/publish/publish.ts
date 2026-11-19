@@ -1,4 +1,4 @@
-import type { Outline, PageScene } from "@storybook/dsl";
+import type { AssetManifest, Outline, PageScene } from "@storybook/dsl";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { type Db, getDb } from "../db/client";
 import { newId } from "../db/ids";
@@ -6,7 +6,7 @@ import { type PageState, assetKeysOfScene, pageStates } from "../db/staleness";
 import { loadStoryHeads } from "../db/stories";
 import { type HeadKey, type RevisionRow, asset, assetVersion, release, story } from "../db/schema";
 import { type ReleaseAsset, buildManifest, buildReleasePage } from "./build";
-import { COPY_CONCURRENCY, copyObject, copyPrefix, inPool } from "./copy";
+import { COPY_CONCURRENCY, copyObject, inPool } from "./copy";
 
 export type BlockingItem = {
   pageId: string | null;
@@ -22,12 +22,20 @@ export type PublishResult =
   | { ok: false; reason: "blocked"; blocking: BlockingItem[] }
   | { ok: false; reason: "conflict" };
 
+// Every file that a manifest names.
+function manifestFiles(m: AssetManifest): string[] {
+  return m.kind === "sfx" ? [m.file] : [...new Set(m.poses.map((p) => p.file))];
+}
+
 const LABEL = { page_text: "text", scene: "scene", audio: "audio" } as const;
 
 // What stops a publish. It never reads revision content, so a provider-error
 // head (`needs_review`, content null) blocks like any other (R26).
 export function blockingItems(outline: Outline | null, states: PageState[]): BlockingItem[] {
   if (!outline) return [{ pageId: null, page: null, target: "outline", reason: "missing", message: "missing outline" }];
+  if (outline.pages.length === 0) {
+    return [{ pageId: null, page: null, target: "outline", reason: "missing", message: "outline has no pages" }];
+  }
   return states
     .filter((s) => s.state !== "ok")
     .flatMap((s) =>
@@ -41,24 +49,27 @@ export function blockingItems(outline: Outline | null, states: PageState[]): Blo
     );
 }
 
-// The pointer moves only to a higher release number, so a late, older
-// publish cannot move it back. It sets `status = published` in the same
-// statement.
-function pointerUpdate(db: Db, storyId: string, releaseId: string, number: number) {
+// The pointer moves only to a release of the same story with a higher
+// number, so a late, older publish cannot move it back. The number comes from
+// the release row, not from the caller; without a release row of this story,
+// nothing changes. It sets `status = published` in the same statement.
+function pointerUpdate(db: Db, storyId: string, releaseId: string) {
+  const number = sql`(SELECT n.number FROM release n WHERE n.id = ${releaseId} AND n.story_id = ${storyId})`;
   return db
     .update(story)
     .set({ publishedReleaseId: releaseId, status: "published" })
     .where(
       and(
         eq(story.id, storyId),
+        sql`${number} IS NOT NULL`,
         sql`(story.published_release_id IS NULL OR (SELECT r.number FROM release r WHERE r.id = story.published_release_id) < ${number})`,
       ),
     );
 }
 
 // Returns true when the pointer moved.
-export async function movePointer(db: Db, storyId: string, releaseId: string, number: number): Promise<boolean> {
-  const result = await pointerUpdate(db, storyId, releaseId, number).run();
+export async function movePointer(db: Db, storyId: string, releaseId: string): Promise<boolean> {
+  const result = await pointerUpdate(db, storyId, releaseId).run();
   return result.meta.changes === 1;
 }
 
@@ -144,10 +155,15 @@ export async function publishStory(env: Env, storyId: string): Promise<PublishRe
   for (const [id, a] of wanted) {
     const row = byVersion.get(id);
     if (!row) throw new Error(`asset version not found: ${a.key} v${a.version}`);
-    if (!row.r2Prefix.startsWith("assets/")) throw new Error(`asset prefix outside assets/: ${row.r2Prefix}`);
+    if (!row.r2Prefix.startsWith("assets/") || !row.r2Prefix.endsWith("/")) {
+      throw new Error(`asset prefix must start with assets/ and end with /: ${row.r2Prefix}`);
+    }
     releaseAssets.set(id, { renderer: row.renderer, manifest: row.manifest, base: row.r2Prefix });
   }
-  for (const a of releaseAssets.values()) await copyPrefix(env.BUCKET, a.base, root + a.base);
+  // Only the files that each manifest names; a missing one throws before any
+  // D1 write.
+  const files = [...releaseAssets.values()].flatMap((a) => manifestFiles(a.manifest).map((file) => a.base + file));
+  await inPool([...new Set(files)], COPY_CONCURRENCY, (key) => copyObject(env.BUCKET, key, root + key));
 
   // 4. Audio.
   const audioPaths = new Map<string, string>();
@@ -185,7 +201,7 @@ export async function publishStory(env: Env, storyId: string): Promise<PublishRe
         snapshot: { heads, headsVersion },
         createdAt: new Date().toISOString(),
       }),
-      pointerUpdate(db, storyId, releaseId, number),
+      pointerUpdate(db, storyId, releaseId),
     ]);
   } catch (err) {
     if (isNumberConflict(err)) return { ok: false, reason: "conflict" };

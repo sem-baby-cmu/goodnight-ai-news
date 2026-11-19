@@ -8,7 +8,7 @@ const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 
 // The rest of the path after `/content/releases/<releaseId>/`, decoded, or
 // null when it is empty or could leave the release prefix.
-function releasePath(pathname: string, releaseId: string): string | null {
+export function releasePath(pathname: string, releaseId: string): string | null {
   const head = `/content/releases/${releaseId}/`;
   if (!pathname.startsWith(head)) return null;
   let rest: string;
