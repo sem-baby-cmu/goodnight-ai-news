@@ -39,3 +39,22 @@ it("spike route is present when VITE_SPIKE is 1, and in dev", async () => {
   expect(hasSpike(await routeTreeWith({ DEV: false, VITE_SPIKE: "1" }))).toBe(true);
   expect(hasSpike(await routeTreeWith({ DEV: true }))).toBe(true);
 });
+
+it("spike probe flag survives the router's search round trip", async () => {
+  // The router validates `?probe=1`, writes the result back to the URL as
+  // `?probe=true`, and validates again on the next read. The flag must stay on.
+  vi.resetModules();
+  vi.stubEnv("DEV", false);
+  vi.stubEnv("VITE_SPIKE", "1");
+  const { defaultParseSearch, defaultStringifySearch } = await import("@tanstack/react-router");
+  await import("@/router"); // load the router first: it imports this route file
+  const { spikeRoutes } = await import("./routes");
+  const validate = spikeRoutes[0]?.options.validateSearch as (search: Record<string, unknown>) => { probe: boolean };
+  for (const query of ["?probe=1", "?probe=true"]) {
+    const first = validate(defaultParseSearch(query));
+    const again = validate(defaultParseSearch(defaultStringifySearch(first)));
+    expect([first.probe, again.probe], query).toEqual([true, true]);
+  }
+  expect(validate(defaultParseSearch("")).probe).toBe(false);
+  expect(validate(defaultParseSearch("?probe=0")).probe).toBe(false);
+});
