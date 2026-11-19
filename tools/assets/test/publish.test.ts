@@ -10,10 +10,9 @@ import { sanitizeSvg } from "../src/svg";
 import { fakeWrangler, isFile, isPut, migratedDb } from "./fake-wrangler";
 
 const NOW = "2026-11-19T12:00:00.000Z";
-const ids = () => {
-  let n = 0;
-  return () => `0193a000-0000-7000-8000-${String(++n).padStart(12, "0")}`;
-};
+// Unique across the file, as UUID v7 IDs are.
+let idCount = 0;
+const ids = () => () => `0193a000-0000-7000-8000-${String(++idCount).padStart(12, "0")}`;
 
 const POSE = { id: "front", file: "front-happy.webp", foot: { x: 50, y: 100 }, box: { x: 0, y: 0, w: 100, h: 100 }, expression: "happy" };
 function webp(key = "pip", version = 1, files = [POSE.file]): AssetBuild {
