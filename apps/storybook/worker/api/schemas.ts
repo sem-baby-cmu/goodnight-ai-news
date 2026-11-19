@@ -19,7 +19,9 @@ export const CreateStoryRequestSchema = z.union([
   z.object({ url: z.string().url().max(2048) }).strict(),
 ]);
 
-export const PutTextRequestSchema = z.object({ text: z.string().trim().min(1).max(400), basedOn: uuid }).strict();
+// `text` is checked by `PageTextSchema` after the `basedOn` check, so an old
+// `basedOn` gives 409 whatever the text is (review of PR #52).
+export const PutTextRequestSchema = z.object({ text: z.string(), basedOn: uuid }).strict();
 
 export const PutSceneRequestSchema = z.object({ scene: z.unknown(), basedOn: uuid.nullable() }).strict();
 
@@ -76,7 +78,8 @@ export const SourceRejectedSchema = z.object({
   words: z.number().int().optional(),
 });
 
-export const WorkflowUnavailableSchema = z.object({ error: z.literal("workflow_unavailable"), runId: uuid });
+// `storyId` is set by `POST /stories`; `POST /runs` answers with `runId` only.
+export const WorkflowUnavailableSchema = z.object({ error: z.literal("workflow_unavailable"), storyId: uuid.optional(), runId: uuid });
 
 export const StoryListResponseSchema = z.object({
   stories: z.array(

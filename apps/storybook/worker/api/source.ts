@@ -39,6 +39,13 @@ function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   });
 }
 
+// Waits for a cancel, but never past the deadline: a cancel that never
+// settles ends at the timeout. A cancel error is ignored.
+async function settle(cancel: Promise<void> | undefined, signal: AbortSignal): Promise<void> {
+  if (!cancel) return;
+  await abortable(cancel.catch(() => {}), signal);
+}
+
 // Reads at most MAX_BODY_BYTES of the body.
 async function readCapped(res: Response, signal: AbortSignal): Promise<{ bytes: Uint8Array; cut: boolean }> {
   const out = new Uint8Array(MAX_BODY_BYTES);
@@ -53,11 +60,12 @@ async function readCapped(res: Response, signal: AbortSignal): Promise<{ bytes: 
       out.set(value.subarray(0, room), size);
       size += Math.min(room, value.byteLength);
       if (value.byteLength >= room && (value.byteLength > room || size === MAX_BODY_BYTES)) {
-        await reader.cancel().catch(() => {});
+        await settle(reader.cancel(), signal);
         return { bytes: out.subarray(0, size), cut: true };
       }
     }
   } catch (err) {
+    // Not awaited: the error is the answer, and a cancel may never settle.
     reader.cancel().catch(() => {});
     throw err;
   }
@@ -81,7 +89,7 @@ export async function fetchArticleText(url: string, opts?: { fetch?: typeof fetc
       const res = await abortable(doFetch(current.toString(), { redirect: "manual", signal, headers: HEADERS }), signal);
       const location = res.headers.get("location");
       if (REDIRECTS.has(res.status) && location !== null) {
-        await res.body?.cancel().catch(() => {});
+        await settle(res.body?.cancel(), signal);
         let next: URL;
         try {
           next = new URL(location, current);
@@ -95,11 +103,11 @@ export async function fetchArticleText(url: string, opts?: { fetch?: typeof fetc
         continue;
       }
       if (res.status < 200 || res.status > 299) {
-        await res.body?.cancel().catch(() => {});
+        await settle(res.body?.cancel(), signal);
         return { ok: false, reason: "fetch_failed" };
       }
       const { bytes, cut } = await readCapped(res, signal);
-      const html = new TextDecoder("utf-8").decode(bytes);
+      const html = decodeHtml(bytes, res.headers.get("content-type"));
       const text = await extractArticleText(html);
       return { ok: true, text, finalUrl: current.toString(), bytesRead: bytes.byteLength, cut };
     }
@@ -107,6 +115,27 @@ export async function fetchArticleText(url: string, opts?: { fetch?: typeof fetc
     if (isTimeout(err) || signal.aborted) return { ok: false, reason: "timeout" };
     return { ok: false, reason: "fetch_failed" };
   }
+}
+
+const charsetOf = (value: string | null | undefined) => /charset\s*=\s*["']?([^"';\s>]+)/i.exec(value ?? "")?.[1] ?? null;
+
+// The charset from the Content-Type header, else from a meta tag in the
+// first 1024 bytes, else UTF-8. An unknown label falls back to UTF-8
+// (`TextDecoder` throws RangeError on it). Decoding is never fatal.
+export function decodeHtml(bytes: Uint8Array, contentType: string | null): string {
+  let label = charsetOf(contentType);
+  if (!label) {
+    const head = new TextDecoder("latin1").decode(bytes.subarray(0, 1024));
+    const meta = /<meta\b[^>]*>/gi;
+    for (let m = meta.exec(head); m && !label; m = meta.exec(head)) label = charsetOf(m[0]);
+  }
+  let decoder: TextDecoder;
+  try {
+    decoder = new TextDecoder(label ?? "utf-8");
+  } catch {
+    decoder = new TextDecoder("utf-8");
+  }
+  return decoder.decode(bytes);
 }
 
 const NAMED: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", nbsp: " " };
