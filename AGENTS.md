@@ -149,6 +149,83 @@ The users are children ages 5 to 10.
   "pushed") from a sub-agent or a command. Confirm it through a second
   channel.
 
+## 12. Workflow
+
+Every change follows one path:
+
+```text
+spec or ADR -> issue -> refinement -> branch and worktree -> failing test
+  -> code -> pull request -> checks and review -> merge
+```
+
+### Design
+
+- Write the design by hand in `docs/specs/<topic>/` and `docs/adr/`
+  (section 7). Do not use a spec-workflow tool.
+
+### Issues
+
+- An epic is an issue with the label `epic`. Its tasks are native GitHub
+  sub-issues.
+- A task issue has three sections: `## Goal`, `## Depends on`, and `## Spec`.
+  `## Spec` links the baseline documents at a fixed commit.
+- Do not start code until the issue has a checked refinement section and the
+  label `refined`. A doc-only change and a one-line mechanical change do not
+  need one.
+- The refinement section is the contract for the implementer. Where it
+  disagrees with the issue text, it wins. It has these fixed anchors:
+
+  | Anchor | Form |
+  |---|---|
+  | Heading | Starts with `## Implementation refinement` |
+  | Baseline | First line: `> Baseline checked @ origin/main <short-sha>` |
+  | Contract anchors | `### Contract anchors`: file, symbol, current value |
+  | Executor tier | `### Executor tier`: first line `sonnet` or `opus` |
+
+- The `refine-issue`, `autopilot`, and `hybrid-mode` skills name these anchors
+  in another language. In this repository, they use the English anchors
+  above. The other parts of the section follow the `refine-issue` template,
+  in English.
+- The refinement is stale when a row in `### Contract anchors` no longer
+  agrees with `origin/main`. Refine the issue again before you start code.
+
+### Branch and pull request
+
+- One issue, one branch, one pull request. Name the branch
+  `<type>/<issue>-<slug>`, for example `feat/10-dsl-schemas`. The types are
+  `feat`, `fix`, `docs`, `chore`, and `test`.
+- For a change in behaviour, commit the failing test first, then the code.
+- The pull request title follows the subject rule in section 9. The body
+  uses the template in `.github/pull_request_template.md`. It names the issue
+  (`Refs #10`) and has five sections: `## Summary`, `## Test discipline`,
+  `## Design impact`, `## Verification` (the commands and their results), and
+  `## Not verified and open items`.
+- Do not push to `main` directly. Merge only when all checks are green
+  (`gh pr checks <n>`).
+- Merge by rebase: `gh pr merge <n> --rebase`. Do not squash. A rebase keeps
+  each topic and the failing-test commit in the history.
+- Once the workspace exists, CI runs the commands in section 6 on every pull
+  request.
+
+### Review
+
+The highest tier that applies decides the review.
+
+| Tier | Applies to | Review |
+|---|---|---|
+| R0 | Doc-only, test-only, or mechanical change | CI only |
+| R1 | Every other change | A reviewer that did not write the code |
+| R2 | Design or architecture; a rule in section 3 or 5 | Section 11 |
+
+- The R1 reviewer checks the diff against the acceptance criteria of the
+  issue.
+
+### Sessions
+
+- A session handover goes in `.claude/handovers/`. Do not commit it. It holds
+  session state only. A lasting decision goes in an ADR, the spec, or an
+  issue.
+
 ## Aesthetic Judgment
 
 When doing design, creative, or artistic work — anything requiring aesthetic
