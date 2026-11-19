@@ -41,15 +41,23 @@ describe("cutFigure", () => {
 
   it("cutFigure drops a neighbour component that touches the box edge", () => {
     // A disk in the middle and a piece of a neighbour that enters the box from the left.
-    const raw = rect(disk(blank(140, 100), 80, 50, 20, RED), 0, 40, 12, 20, INK);
+    // The piece is 48 px, below 5 % of the disk (R62).
+    const raw = rect(disk(blank(140, 100), 80, 50, 20, RED), 0, 46, 6, 8, INK);
     const lines: string[] = [];
     const cut = cutFigure(raw, PAPER, figure({ x: 0, y: 0, w: 140, h: 100 }), (line) => lines.push(line));
-    expect(cut.dropped).toEqual([{ area: 12 * 20, box: { x: 0, y: 40, w: 12, h: 20 } }]);
+    expect(cut.dropped).toEqual([{ area: 6 * 8, box: { x: 0, y: 46, w: 6, h: 8 } }]);
     expect(lines).toHaveLength(1);
-    expect(lines[0]).toMatch(/dropped .*area 240/);
+    expect(lines[0]).toMatch(/dropped .*area 48/);
     // The trimmed image holds only the disk.
     expect(cut.origin).toEqual({ x: 60, y: 30 });
     expect([cut.width, cut.height]).toEqual([41, 41]);
+  });
+
+  it("cutFigure fails when a dropped edge piece is larger than 5 % of the kept area (R62)", () => {
+    // Disk of radius 20 (1257 px) and a 12 x 20 piece (240 px, 19 %) from the left edge.
+    const raw = rect(disk(blank(140, 100), 80, 50, 20, RED), 0, 40, 12, 20, INK);
+    const fig = { ...figure({ x: 0, y: 0, w: 140, h: 100 }), index: 5 };
+    expect(() => cutFigure(raw, PAPER, fig, () => {})).toThrow(/figure 5 \(pip\/front\).*area 240.*5 %/);
   });
 
   it("cutFigure throws when a figure is empty", () => {
@@ -116,6 +124,21 @@ describe("cut and measure", () => {
     expect(trim("front-sad.webp")).toEqual({ x: 130, y: 30 });
     for (const [x, y] of [[0, 0], [40, 0], [0, 40], [40, 40]] as const) expect(alphaAt(round, x, y)).toBe(0);
     expect(alphaAt(round, 20, 20)).toBe(255);
+  });
+
+  it("cutBoard names the board and the figure when a cut fails (R62)", async () => {
+    const raw = rect(disk(blank(140, 100), 80, 50, 20, RED), 0, 40, 12, 20, INK);
+    const map: CropMap = {
+      board: "synthetic.png",
+      background: PAPER,
+      tolerance: T,
+      assets: { pip: { kind: "character", name: "Pip", version: 1, flippable: true } },
+      figures: [
+        { key: "pip", pose: "front", expression: "happy", box: { x: 0, y: 0, w: 140, h: 100 }, face: null, foot: null, holes: [], holeCandidates: [], tolerance: null, ignore: false },
+      ],
+    };
+    const out = mkdtempSync(join(tmpdir(), "assets-r62-"));
+    await expect(cutBoard(map, raw, { outDir: out, review: false, log: () => {} })).rejects.toThrow(/^synthetic: figure 0 \(pip\/front\)/);
   });
 
   it("REG-02.S2 the manifest holds measured values", () => {
