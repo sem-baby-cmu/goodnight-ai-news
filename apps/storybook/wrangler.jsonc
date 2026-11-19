@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kidsnews",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "account_id": "5ad69dedffa38d8b7ab8ab17e051e410",
+  "observability": { "enabled": true },
+  // The Vite plugin sets assets.directory at build time.
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/content/*", "/health"]
+  },
+  // No database_id yet: local runs provision the database automatically.
+  // #25 creates the remote database and writes its ID.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "storybook-mvp",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "storybook-mvp"
+    }
+  ]
+}
