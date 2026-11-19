@@ -7,11 +7,18 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run",
+    "cli": "tsx src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@storybook/dsl": "workspace:*",
+    "sharp": "catalog:",
+    "tsx": "catalog:",
+    "zod": "catalog:"
   }
 }

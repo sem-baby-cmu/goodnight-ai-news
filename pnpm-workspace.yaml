@@ -42,6 +42,8 @@ catalog:
   drizzle-orm: ^0.45.4
   drizzle-kit: ^0.31.11
   uuid: ^14.0.3
+  # Exact: #21 relies on byte-identical WebP output for one sharp version.
+  sharp: 0.35.5
 
 # Written by pnpm: these versions are newer than minimumReleaseAge.
 minimumReleaseAgeExclude:

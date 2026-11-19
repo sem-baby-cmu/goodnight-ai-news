@@ -239,6 +239,9 @@ catalogs:
     shadcn:
       specifier: ^4.23.0
       version: 4.23.0
+    sharp:
+      specifier: 0.35.5
+      version: 0.35.5
     tailwindcss:
       specifier: ^4.3.5
       version: 4.3.5
@@ -422,6 +425,19 @@ importers:
         version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   tools/assets:
+    dependencies:
+      '@storybook/dsl':
+        specifier: workspace:*
+        version: link:../../packages/dsl
+      sharp:
+        specifier: 'catalog:'
+        version: 0.35.5(@types/node@22.20.5)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.15
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -4029,12 +4045,12 @@ snapshots:
 
   '@modelcontextprotocol/core@2.4.0':
     dependencies:
-      zod: 4.6.6
+      zod: 4.6.7
 
   '@modelcontextprotocol/server@2.4.0':
     dependencies:
       '@modelcontextprotocol/core': 2.4.0
-      zod: 4.6.6
+      zod: 4.6.7
 
   '@napi-rs/wasm-runtime@1.2.6(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)':
     dependencies:
@@ -4149,7 +4165,7 @@ snapshots:
       tsconfig-paths: 4.2.0
       type-fest: 4.41.0
       undici: 7.30.1
-      zod: 4.6.6
+      zod: 4.6.7
     transitivePeerDependencies:
       - supports-color
 
@@ -5364,7 +5380,7 @@ snapshots:
       tsconfig-paths: 4.2.0
       undici: 7.30.1
       validate-npm-package-name: 7.0.2
-      zod: 4.6.6
+      zod: 4.6.7
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
