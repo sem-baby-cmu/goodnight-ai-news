@@ -46,6 +46,8 @@ catalog:
   # Exact: #21 relies on byte-identical WebP output for one sharp version.
   sharp: 0.35.5
   svgo: 4.1.0
+  # Exact: the WebKit build of the S1 smoke test (#15) is tied to this version.
+  "@playwright/test": 1.65.1
 
 # Written by pnpm: these versions are newer than minimumReleaseAge.
 minimumReleaseAgeExclude:

@@ -4,6 +4,7 @@ import { SceneView } from "@storybook/scene-runtime";
 import { useEffect, useState } from "react";
 import { SPIKE_TEXTURE_URL } from "./assets";
 import { buildSpikePage } from "./pages";
+import { ProbeOverlay } from "./ProbeOverlay";
 import { type ProbeResult, runProbe } from "./probe";
 import { loadSpikeRegistry, spikeResolver } from "./registry";
 
@@ -59,27 +60,11 @@ export function SpikePage({ n, probe }: { n: string; probe: boolean }) {
     <main data-testid="spike-page" style={{ margin: "0 auto", width: "min(100vw, calc(100vh * 4 / 3))" }}>
       {probe && (
         <div data-testid="probe-overlay" style={{ font: "12px/1.4 monospace", padding: 4 }}>
-          {result ? <ProbeOutput result={result} /> : "probe: running (22 s)"}
+          {result ? <ProbeOverlay result={result} /> : "probe: running (22 s)"}
         </div>
       )}
       {loaded && "error" in loaded && <p style={{ font: "12px/1.4 monospace" }}>{loaded.error}</p>}
       {page && <SceneView page={page} assets={spikeResolver} mode="play" textureUrl={SPIKE_TEXTURE_URL} />}
     </main>
-  );
-}
-
-function ProbeOutput({ result }: { result: ProbeResult }) {
-  const json = JSON.stringify(result);
-  const f = (v: number) => v.toFixed(1);
-  return (
-    <>
-      <span data-testid="probe-p95" data-value={result.p95}>
-        p95 {f(result.p95)} ms
-      </span>
-      {` · p50 ${f(result.p50)} · p99 ${f(result.p99)} · max ${f(result.max)} · over33 ${result.over33} · n ${result.n} · load ${result.assetLoadMs === null ? "-" : f(result.assetLoadMs)} ms · dpr ${result.dpr} · ${result.screen} `}
-      <button type="button" style={{ font: "inherit" }} onClick={() => void navigator.clipboard?.writeText(json)}>
-        Copy result
-      </button>
-    </>
   );
 }
