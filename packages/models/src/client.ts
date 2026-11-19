@@ -14,7 +14,7 @@ export interface ModelClient {
   }): Promise<{ value: unknown; usage: Usage; modelId: string }>;
   synthesizeSpeech(req: {
     text: string;
-    voice: string;
+    voice?: string; // default: config.tts.voice
   }): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number }>;
 }
 

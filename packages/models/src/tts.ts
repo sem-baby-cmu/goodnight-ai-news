@@ -8,7 +8,7 @@ const noContext = { modelId: "", usage: null };
 
 export type SpeechRequest = { url: string; init: { method: "POST"; headers: Record<string, string>; body: string } };
 
-export function buildSpeechRequest(config: ModelConfig, req: { text: string; voice: string }): SpeechRequest {
+export function buildSpeechRequest(config: ModelConfig, req: { text: string; voice?: string }): SpeechRequest {
   const headers: Record<string, string> = {
     "x-goog-api-key": config.tts.apiKey,
     "Content-Type": "application/json",
@@ -23,7 +23,7 @@ export function buildSpeechRequest(config: ModelConfig, req: { text: string; voi
         contents: [{ parts: [{ text: req.text }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: req.voice } } },
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: req.voice ?? config.tts.voice } } },
         },
       }),
     },
