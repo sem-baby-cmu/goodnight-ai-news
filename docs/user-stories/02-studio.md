@@ -26,7 +26,7 @@ Spec: requirements "Core Features" 4 · design "6. API", "Staleness"
 - Given a page whose `audio` and `scene` heads have the basis `page_text:P = T1`
 - When the `page_text` head of that page becomes `T2`
 - Then the `audio` head and the `scene` head of that page are stale, because a basis entry is not the current head
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/staleness.test.ts
 
 ## EDT-02 Change a page text and regenerate only its audio
 

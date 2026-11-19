@@ -35,7 +35,7 @@ Spec: requirements AC-6, AC-7, "Non-functional Requirements" · design "2. Story
 - Given a step that calls the model
 - When the call ID is made
 - Then `callId = sha256(runId, stepName, pageId, purpose)`, where `purpose` is `first` or `repair`; a repair has its own call ID; each call ID stores at most one result
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/ids.test.ts
 
 ### SYS-01.S5 A binary result is stored before its log row
 - Given a model call that returns a binary
@@ -67,25 +67,25 @@ Spec: requirements "Non-functional Requirements" · design "3. Calls, revisions,
 - Given a revision that exists for a `(call_id, kind, page_id)`
 - When a retry inserts that revision again with `INSERT ... ON CONFLICT (call_id, kind, page_id) DO NOTHING`
 - Then the unique key makes the insert a no-op; the existing row does not change, and the step reads the stored row and continues with it
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/revisions.test.ts
 
 ### SYS-02.S2 A head moves only when `heads_version` matches
 - Given a story with `heads_version = n`
 - When a step or an operator edit moves a head
 - Then the update sets the new `heads` and `heads_version = n + 1` only where `heads_version = n`; if no row changed, the loop reads again and tries again
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/heads.test.ts
 
 ### SYS-02.S3 A step throws after 5 failed head moves
 - Given a compare-and-set loop that changed no row in 5 tries
 - When the loop ends
 - Then the step throws, and the platform retries the step
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/heads.test.ts
 
 ### SYS-02.S4 Every system ID is a UUID version 7
 - Given a row that the system created
 - When its ID is read
 - Then the ID is a UUID version 7 in lower case
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/ids.test.ts
 
 ## SYS-03 The Studio is behind Access, and the Player is public
 

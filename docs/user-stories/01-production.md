@@ -14,7 +14,7 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Given a news text of 200 to 2,000 words
 - When the operator sends `POST /api/studio/stories` with `{ text }`
 - Then the API creates, in one batch, a story with `heads = { source: <source revision ID> }` and `heads_version = 0`, the `source` revision, and a full run; it returns 202 with `{ storyId, runId }`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/db/stories.test.ts
 
 ### RUN-01.S2 A full run gives a draft of 6 to 8 pages
 - Given a full run on an empty database, with model outputs that pass validation
