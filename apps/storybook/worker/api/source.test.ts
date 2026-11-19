@@ -90,6 +90,61 @@ describe("URL input", () => {
     expect(FETCH_TIMEOUT_MS).toBe(10_000);
   });
 
+  it("URL input: a body whose cancel never resolves still ends at the timeout", { timeout: 3000 }, async () => {
+    // Past MAX_BODY_BYTES: the reader cancels, and the cancel never settles.
+    const big = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (let i = 0; i < 3; i++) controller.enqueue(new Uint8Array(1_000_000).fill(0x61));
+      },
+      cancel: () => new Promise<void>(() => {}),
+    });
+    const fakeBig = vi.fn(async () => new Response(big, { status: 200, headers: { "content-type": "text/html" } }));
+    const t0 = Date.now();
+    expect(await fetchArticleText("https://news.test/big", { fetch: fakeBig as unknown as typeof fetch, timeoutMs: 200 })).toEqual({
+      ok: false,
+      reason: "timeout",
+    });
+    expect(Date.now() - t0).toBeLessThan(1500);
+
+    // A redirect whose body cancel never settles.
+    const hanging = () =>
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("moved"));
+        },
+        cancel: () => new Promise<void>(() => {}),
+      });
+    const fakeRedirect = vi.fn(async () => new Response(hanging(), { status: 302, headers: { location: "https://news.test/next" } }));
+    const t1 = Date.now();
+    expect(await fetchArticleText("https://news.test/a", { fetch: fakeRedirect as unknown as typeof fetch, timeoutMs: 200 })).toEqual({
+      ok: false,
+      reason: "timeout",
+    });
+    expect(Date.now() - t1).toBeLessThan(1500);
+  });
+
+  it("URL input: the charset comes from Content-Type, then meta, else UTF-8", async () => {
+    const latin1 = (text: string) => Uint8Array.from(text, (ch) => ch.charCodeAt(0));
+    const page = (head: string) => `<html><head>${head}</head><body><article><p>Un caf\u00e9 au lait.</p></article></body></html>`;
+    const fetchBytes = (bytes: Uint8Array, contentType: string) =>
+      vi.fn(async () => new Response(bytes, { status: 200, headers: { "content-type": contentType } })) as unknown as typeof fetch;
+
+    const header = await fetchArticleText("https://news.test/1", { fetch: fetchBytes(latin1(page("")), "text/html; charset=ISO-8859-1") });
+    expect(header).toMatchObject({ ok: true, text: "Un caf\u00e9 au lait." });
+
+    const meta = await fetchArticleText("https://news.test/2", { fetch: fetchBytes(latin1(page('<meta charset="iso-8859-1">')), "text/html") });
+    expect(meta).toMatchObject({ ok: true, text: "Un caf\u00e9 au lait." });
+
+    const httpEquiv = await fetchArticleText("https://news.test/3", {
+      fetch: fetchBytes(latin1(page('<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">')), "text/html"),
+    });
+    expect(httpEquiv).toMatchObject({ ok: true, text: "Un caf\u00e9 au lait." });
+
+    const utf8 = new TextEncoder().encode(page(""));
+    const unknown = await fetchArticleText("https://news.test/4", { fetch: fetchBytes(utf8, "text/html; charset=x-no-such-charset") });
+    expect(unknown).toMatchObject({ ok: true, text: "Un caf\u00e9 au lait." });
+  });
+
   it("RUN-02.S6 URL input: a short article returns 422", async () => {
     const create = vi.fn(async () => ({}));
     const e = { ...env, STORY_RUN: { create, get: env.STORY_RUN.get.bind(env.STORY_RUN) } as unknown as Env["STORY_RUN"] } as Env;
