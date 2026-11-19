@@ -1,0 +1,12 @@
+{
+  "id": "20261114-ai-maya-rediscovery",
+  "title": "AI Spotted a Maya Site, but Was It Really a New Discovery?",
+  "source_links": [
+    "https://www.theverge.com/ai-artificial-intelligence/1032125/ai-agents-maya-site-archeology-discovery",
+    "https://doi.org/10.1016/j.jasrep.2025.105288"
+  ],
+  "date": "2026-11-12",
+  "confidence": 5,
+  "first_rating": "green",
+  "full_text": "A researcher used a team of 48 AI agents to examine lidar maps of the Maya region in Mexico. Lidar is a technology that sends laser pulses toward the ground to create a three-dimensional map. Because some laser light can pass through gaps in trees, the resulting data can reveal shapes hidden beneath a forest canopy. The AI agents identified patterns that looked like plazas, raised platforms, buildings, and a pyramid-shaped mound.\n\nThe location was initially presented as a possible unmapped Maya site. The researcher contacted Mexico's National Institute of Anthropology and History and was reportedly told that the site was not listed in its official register. However, archaeologists later found that the same location had already appeared in a scientific paper published in 2025. It was visible in a map produced through earlier lidar research.\n\nThe researcher corrected the original claim and acknowledged that the AI agents had rediscovered the location rather than discovered it for the first time. An official government register may be incomplete, and a location can be missing from that database while still being documented in academic research or known to local communities.\n\nThe result does not mean that AI is useless for archaeology. The agents successfully examined a large geographic dataset and recognized potentially important structures. The failure occurred during the verification stage, when the finding was not fully compared with previous scholarship before being described as new.\n\nThis story demonstrates why scientific discovery requires more than detecting an interesting pattern. Researchers must search earlier studies, inspect maps and figures, consult specialists, consider local knowledge, and sometimes conduct fieldwork. AI can help scientists process large amounts of information, but it cannot replace subject expertise, careful verification, or peer review."
+}

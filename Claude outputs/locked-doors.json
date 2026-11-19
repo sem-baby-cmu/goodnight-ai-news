@@ -1,0 +1,347 @@
+{
+  "story_id": "01a1c764-83e7-792a-bdd6-bb6735b65bbf",
+  "title": "Pip and the Locked Doors",
+  "source_title": "Hackers used agentic AI in a supply chain attack on ConnectWise",
+  "source_url": "https://thehackernews.com/2026/10/china-linked-hackers-use-artex-ai.html",
+  "source_links": [
+    "https://thehackernews.com/2026/10/china-linked-hackers-use-artex-ai.html"
+  ],
+  "confidence": 4,
+  "first_rating": "yellow",
+  "full_text": "Microsoft disclosed on October 21, 2026, that China state-aligned actor Storm-0940 compromised ConnectWise Cloud Backup, a supply chain attack. The group used ARTEX, an agentic AI penetration testing framework. Microsoft says the actor used ARTEX to automate scanning, password spraying, and OAuth application abuse against hundreds of organizations since September 2026. From October 10 to 14, the campaign targeted 327 accounts across eight organizations. Microsoft recorded over 151,000 failed logons, peaking at 2,900 per minute on October 11. On October 15, the AI agents gained control of several ConnectWise cloud application identities and used them to access customer environments. Wiz reported sessions lasting 24 to 30 hours and new IP addresses appearing within minutes when others were blocked. ConnectWise temporarily shut down services and is restoring them in phases over several days.",
+  "script_5to7": [
+    {
+      "page": 1,
+      "slot": "cover",
+      "tone": "warm",
+      "text": "Pip and the Locked Doors.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip standing guard by a row of little lit-up houses.",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
+    },
+    {
+      "page": 2,
+      "slot": "character",
+      "tone": "calm",
+      "text": "Pip is a little robot owl. Pip reads the news at night.",
+      "tags": [
+        "imagine",
+        "imagine"
+      ],
+      "scene_description": "Pip in her nest reading a glowing newspaper.",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
+    },
+    {
+      "page": 3,
+      "slot": "news_discovery",
+      "tone": "curious",
+      "text": "Some hackers used an AI helper to break in.",
+      "tags": [
+        "true"
+      ],
+      "scene_description": "Pip the robot owl sits in her nest at night with a glowing newspaper. The front page shows a row of little computer doors with padlocks, and a sneaky raccoon peeking at one lock.",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
+    },
+    {
+      "page": 4,
+      "slot": "exploration",
+      "tone": "curious",
+      "text": "Their AI tried to guess passwords very fast.",
+      "tags": [
+        "true"
+      ],
+      "scene_description": "Many doors in a row, each with a lock.",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
+    },
+    {
+      "page": 5,
+      "slot": "challenge",
+      "tone": "quiet",
+      "text": "They got into a service that saves copies of files.",
+      "tags": [
+        "true"
+      ],
+      "scene_description": "One door is open a crack.",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
+    },
+    {
+      "page": 6,
+      "slot": "turning_point",
+      "tone": "warm",
+      "text": "A big company saw the attack. It told people about it.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "A big friendly lighthouse beam shines on the doors.",
+      "setting": {
+        "time": "dusk",
+        "place": "rooftop"
+      }
+    },
+    {
+      "page": 7,
+      "slot": "resolution",
+      "tone": "calm",
+      "text": "The service was turned off for a while. Pip locks her little door tight.",
+      "tags": [
+        "true",
+        "imagine"
+      ],
+      "scene_description": "Shops close their shutters for the night.",
+      "setting": {
+        "time": "dusk",
+        "place": "street"
+      }
+    },
+    {
+      "page": 8,
+      "slot": "reflection",
+      "tone": "calm",
+      "text": "Keep your passwords secret, like a treasure.",
+      "tags": [
+        "explain"
+      ],
+      "scene_description": "Pip tucks a tiny key under her wing.",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
+    },
+    {
+      "page": 9,
+      "slot": "real_world_facts",
+      "tone": "calm",
+      "text": "Microsoft shared this news in October. Microsoft saw many tries to log in.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "A simple page with two real facts and a little source tag.",
+      "setting": {
+        "time": "night",
+        "place": "plain"
+      }
+    },
+    {
+      "page": 10,
+      "slot": "quiz",
+      "tone": "excited",
+      "text": "Quiz time! Let's see what you remember.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip holds up three glowing cards.",
+      "setting": {
+        "time": "night",
+        "place": "plain"
+      }
+    }
+  ],
+  "script_8to10": [
+    {
+      "page": 1,
+      "slot": "cover",
+      "tone": "warm",
+      "text": "Pip and the Locked Doors.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip standing guard by a row of little lit-up houses.",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
+    },
+    {
+      "page": 2,
+      "slot": "character",
+      "tone": "calm",
+      "text": "Pip is a small robot owl who reads the news every night. Tonight's story is about locks, keys, and some very busy helpers.",
+      "tags": [
+        "imagine",
+        "imagine"
+      ],
+      "scene_description": "Pip in her nest reading a glowing newspaper.",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
+    },
+    {
+      "page": 3,
+      "slot": "news_discovery",
+      "tone": "curious",
+      "text": "Microsoft said a hacker group called Storm-0940 used an AI agent. A hacker breaks into computers they should not use.",
+      "tags": [
+        "true",
+        "explain"
+      ],
+      "scene_description": "Pip the robot owl sits in her nest at night with a glowing newspaper. The front page shows a row of little computer doors with padlocks, and a sneaky raccoon peeking at one lock.",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
+    },
+    {
+      "page": 4,
+      "slot": "exploration",
+      "tone": "curious",
+      "text": "The AI tried to guess passwords at many places. At its fastest, it tried 2,900 times a minute.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "Hundreds of doors in a long row, each with a lock.",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
+    },
+    {
+      "page": 5,
+      "slot": "challenge",
+      "tone": "quiet",
+      "text": "The hackers got into ConnectWise Cloud Backup. That service keeps copies of files. From there, they could reach some of its customers.",
+      "tags": [
+        "true",
+        "explain",
+        "true"
+      ],
+      "scene_description": "One door is open a crack.",
+      "setting": {
+        "time": "night",
+        "place": "street"
+      }
+    },
+    {
+      "page": 6,
+      "slot": "turning_point",
+      "tone": "warm",
+      "text": "Microsoft shared the news on October 21, 2026. Sharing helps other companies check their own locks.",
+      "tags": [
+        "true",
+        "explain"
+      ],
+      "scene_description": "A big friendly lighthouse beam shines on the doors.",
+      "setting": {
+        "time": "dusk",
+        "place": "rooftop"
+      }
+    },
+    {
+      "page": 7,
+      "slot": "resolution",
+      "tone": "calm",
+      "text": "ConnectWise turned off some services for a while. It is turning them back on step by step.",
+      "tags": [
+        "true",
+        "true"
+      ],
+      "scene_description": "Shops close their shutters while workers fix the locks.",
+      "setting": {
+        "time": "dusk",
+        "place": "street"
+      }
+    },
+    {
+      "page": 8,
+      "slot": "reflection",
+      "tone": "calm",
+      "text": "AI is a tool, and people choose how to use it. Strong, secret passwords help keep the doors locked.",
+      "tags": [
+        "explain",
+        "explain"
+      ],
+      "scene_description": "Pip tucks a tiny key under her wing.",
+      "setting": {
+        "time": "night",
+        "place": "bedroom"
+      }
+    },
+    {
+      "page": 9,
+      "slot": "real_world_facts",
+      "tone": "calm",
+      "text": "Microsoft shared the news on October 21, 2026. There were more than 151,000 failed tries to log in. ConnectWise shut down services for a while.",
+      "tags": [
+        "true",
+        "true",
+        "true"
+      ],
+      "scene_description": "A simple page with real facts and source tags.",
+      "setting": {
+        "time": "night",
+        "place": "plain"
+      }
+    },
+    {
+      "page": 10,
+      "slot": "quiz",
+      "tone": "excited",
+      "text": "Quiz time! Let's see what you remember.",
+      "tags": [
+        "imagine"
+      ],
+      "scene_description": "Pip holds up three glowing cards.",
+      "setting": {
+        "time": "night",
+        "place": "plain"
+      }
+    }
+  ],
+  "fk_grade": {
+    "5to7": 2.5,
+    "8to10": 3.7
+  },
+  "parent_card": {
+    "ai_concept": "Bad actors can use AI too, so people and companies need good digital locks.",
+    "background": "Microsoft said a hacker group used an AI agent to guess passwords very fast and break into a backup service called ConnectWise Cloud Backup.",
+    "question_to_ask": "Why do you think we keep our passwords secret?",
+    "honest_answer": "Some people try to break into computers. Strong, secret passwords and good security teams help keep our things safe."
+  },
+  "key_facts": [
+    "Microsoft said hackers used an AI agent in an attack.",
+    "The AI tried to guess passwords very fast.",
+    "ConnectWise turned off some services to stay safe."
+  ],
+  "hidden_elements": [
+    {
+      "element": "padlocks",
+      "fun_fact": "Passwords work like locks on computer doors. Long, secret passwords are harder to guess."
+    },
+    {
+      "element": "sneaky raccoon",
+      "fun_fact": "In the real news, the sneaky ones were hackers who used an AI tool to guess passwords very fast."
+    },
+    {
+      "element": "glowing newspaper",
+      "fun_fact": "Microsoft found the attack and shared the news in October 2026."
+    }
+  ],
+  "ai_word": "hacker",
+  "ai_word_definition": "Someone who breaks into computers they are not allowed to use.",
+  "ai_word_illustration_prompt": "Warm watercolor robot owl locking a glowing door with key",
+  "themes": [
+    "courage",
+    "teamwork"
+  ],
+  "review_status": "draft"
+}

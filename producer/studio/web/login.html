@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Lullabyte Studio</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0E0C22;
+  color:#FFF4DE;font:16px/1.5 Grandstander,Fredoka,system-ui,sans-serif}
+form{width:min(360px,90vw);background:#1A1A2E;padding:32px;border-radius:20px;
+  box-shadow:0 20px 60px #0006}
+h1{margin:0 0 4px;font-size:26px}p{margin:0 0 20px;color:#B9B3D6}
+input{width:100%;padding:12px 14px;border-radius:12px;border:2px solid #3A3560;
+  background:#0E0C22;color:inherit;font:inherit}
+input:focus{outline:none;border-color:#FFD23F}
+button{margin-top:14px;width:100%;padding:12px;border:0;border-radius:12px;
+  background:#FFD23F;color:#1A1A2E;font:inherit;font-weight:700;cursor:pointer}
+.err{color:#F7A6C8;margin:10px 0 0;display:none}
+</style></head><body>
+<form method="post" action="/login">
+  <h1>🌙 Lullabyte Studio</h1>
+  <p>For the team only. Enter the password.</p>
+  <input type="password" name="password" placeholder="Password" autofocus required>
+  <div class="err" id="err">That password is not right. Try again.</div>
+  <button type="submit">Enter</button>
+</form>
+<script>if (location.search.includes('wrong')) document.getElementById('err').style.display='block'</script>
+</body></html>

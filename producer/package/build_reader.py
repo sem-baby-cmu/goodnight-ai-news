@@ -33,10 +33,13 @@ def audio(date, age, page, provider):
 
 def main():
     ap = _story.add_args(argparse.ArgumentParser())
-    ap.add_argument("--voice-provider", default="elevenlabs")
+    ap.add_argument("--voice-provider", default="elevenlabs",
+                    help="voice file suffix, e.g. elevenlabs or elevenlabs-sarah")
+    ap.add_argument("--character", default="robot", choices=["robot", "owl"])
     ap.add_argument("--url", default="lullabyte.app/tonight")
     a = ap.parse_args()
     date, script, pages, outdir = _story.load(a)
+    C.CHARACTER = a.character
 
     built, with_audio = [], 0
     for p in pages:
@@ -50,7 +53,11 @@ def main():
     html = (TEMPLATE.replace("__TITLE__", script["title"])
                     .replace("__DATE__", date)
                     .replace("__DATA__", json.dumps(built)))
-    out = outdir / f"read-{a.age}.html"
+    # The default build keeps its old name; any other pairing gets a name of
+    # its own so the versions can sit side by side for comparison.
+    default = a.character == "robot" and a.voice_provider == "elevenlabs"
+    out = outdir / (f"read-{a.age}.html" if default
+                    else f"read-{a.age}-{a.character}-{a.voice_provider}.html")
     out.write_text(html)
     kb = out.stat().st_size / 1024
     print(f"built {out.relative_to(ROOT)}  {kb:.0f} KB")

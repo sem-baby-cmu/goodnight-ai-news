@@ -9,7 +9,18 @@ The caption sits on a darkened band so it stays readable over any sky.
 """
 import pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from pip import pip, LOOP, POSES  # noqa: E402
+from pip import LOOP, POSES  # noqa: E402
+import pip as _robot  # noqa: E402
+import owl as _owl  # noqa: E402
+
+# Which Pip draws the scenes: "robot" (pip.py) or "owl" (owl.py). Open issue
+# S2. Build targets set this from --character; both take the same arguments.
+CHARACTER = "robot"
+
+
+def pip(*args, **kw):
+    draw = _owl.owl if CHARACTER == "owl" else _robot.pip
+    return draw(*args, **kw)
 import parts  # noqa: E402
 import world  # noqa: E402
 

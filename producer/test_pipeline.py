@@ -97,13 +97,18 @@ def stage_voice(date, age, pages, outdir, provider, synthesize):
 
 
 # ---------------------------------------------------------------- stage B
-def stage_web(date, age, pages, outdir):
+def stage_web(date, age, pages, outdir, provider="elevenlabs"):
     print("\nB. web     script -> the per page reader")
-    ok, log = run(["package/build_reader.py", "--date", date, "--age", age])
+    # Build with the same voice stage A checked, or C compares one voice's
+    # timings against another voice's clips.
+    ok, log = run(["package/build_reader.py", "--date", date, "--age", age,
+                   "--voice-provider", provider])
     if not check("B", "reader builds", ok, "" if ok else log.splitlines()[-1]):
         return None
 
-    html = (outdir / f"read-{age}.html").read_text()
+    name = (f"read-{age}.html" if provider == "elevenlabs"
+            else f"read-{age}-robot-{provider}.html")
+    html = (outdir / name).read_text()
     m = re.search(r"const PAGES\s*=\s*(\[.*?\]);", html, re.S)
     if not m:
         check("B", "page data is embedded", False, "PAGES not found")
@@ -127,7 +132,7 @@ def stage_web(date, age, pages, outdir):
           bool(taps) and max(b - a for a, b in zip([0, *taps], taps)) <= 3,
           f"tap pages {taps}")
 
-    kb = (outdir / f"read-{age}.html").stat().st_size / 1024
+    kb = (outdir / name).stat().st_size / 1024
     check("B", "small enough to open on mobile data", kb < 2048, f"{kb:.0f} KB")
     return data
 
@@ -197,7 +202,7 @@ def main():
 
     print(f"{script['title']}  ({date}, ages {a.age}, {len(pages)} pages)")
     clips = stage_voice(date, a.age, pages, outdir, a.voice_provider, a.synthesize)
-    data = stage_web(date, a.age, pages, outdir)
+    data = stage_web(date, a.age, pages, outdir, a.voice_provider)
     stage_joined(data, clips, pages, outdir, a.age)
 
     n = {s: sum(1 for *_, st, _ in results if st == s) for s in (PASS, FAIL, SKIP)}

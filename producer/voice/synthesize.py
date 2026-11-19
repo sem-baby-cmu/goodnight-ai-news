@@ -41,7 +41,7 @@ load_env()
 # One warm, slow, storytelling voice per provider.
 VOICES = {
     "openai": "shimmer",
-    "elevenlabs": "Rachel",
+    "elevenlabs": "JBFqnCBsd6RMkjVDRZzb",  # George - Warm, Captivating Storyteller
     "gemini": "Aoede",
 }
 
@@ -60,7 +60,7 @@ def say_elevenlabs(text, voice):
     from elevenlabs.client import ElevenLabs
     c = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
     t0 = time.time()
-    vid = next(v.voice_id for v in c.voices.get_all().voices if v.name == voice)
+    vid = voice  # VOICES holds the voice_id; names carry descriptions, so match by id
     r = c.text_to_speech.convert_with_timestamps(
         voice_id=vid, text=text, model_id="eleven_turbo_v2_5")
     import base64
@@ -145,6 +145,14 @@ def spoken(text):
 
 PROVIDERS = {"openai": say_openai, "elevenlabs": say_elevenlabs, "gemini": say_gemini}
 
+# Extra ElevenLabs voices to compare. --voice NAME uses one and names files
+# <age>-<page>-elevenlabs-NAME.mp3, so they sit beside the default voice.
+ELEVEN_VOICES = {
+    "george": "JBFqnCBsd6RMkjVDRZzb",  # Warm, Captivating Storyteller
+    "sarah": "EXAVITQu4vr4xnSDxMaL",   # Mature, Reassuring, Confident
+    "lily": "pFZP5JQG7iQjIQuC4Bku",    # Velvety Actress
+}
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -154,6 +162,8 @@ def main():
     # fails the listen.
     ap.add_argument("--providers", default="elevenlabs",
                     help="comma separated. e.g. elevenlabs,openai,gemini")
+    ap.add_argument("--voice", choices=sorted(ELEVEN_VOICES),
+                    help="ElevenLabs voice to use; files get a -NAME suffix.")
     ap.add_argument("--align", action="store_true",
                     help="For providers with no timings of their own, get them "
                          "by forced alignment. Needs ELEVENLABS_API_KEY.")
@@ -172,9 +182,12 @@ def main():
     log = []
     for prov in a.providers.split(","):
         fn, voice = PROVIDERS[prov], VOICES[prov]
+        tag = prov
+        if a.voice and prov == "elevenlabs":
+            voice, tag = ELEVEN_VOICES[a.voice], f"{prov}-{a.voice}"
         for pg, text in chunks:
             # Must match package/build_reader.py's audio() lookup.
-            name = f"{a.age}-{pg:02d}-{prov}" if pg else f"{a.age}-full-{prov}"
+            name = f"{a.age}-{pg:02d}-{tag}" if pg else f"{a.age}-full-{tag}"
             row = {"provider": prov, "voice": voice, "age": a.age,
                    "page": pg, "words": len(text.split())}
             try:

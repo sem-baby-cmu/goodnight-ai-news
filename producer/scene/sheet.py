@@ -8,6 +8,13 @@ every page of every story.
 import pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from pip import pip, POSES, MOOD  # noqa: E402
+from owl import owl  # noqa: E402
+
+# The two answers to open issue S2. Same poses and moods, different drawing.
+CHARACTERS = {
+    "robot": (pip, "Pip", "pip-sheet"),
+    "owl": (owl, "Pip, the robot owl", "owl-sheet"),
+}
 import parts  # noqa: E402
 
 PAPER, INK, SUB = "#FFF4DE", "#101A33", "#6B7399"
@@ -15,18 +22,19 @@ FONT = "Grandstander, Fredoka, Nunito, sans-serif"
 CELL, GAP, PAD = 300, 18, 56
 
 
-def _cell(x, y, label, pose, mood, scale=0.62):
+def _cell(x, y, label, pose, mood, draw=pip, scale=0.62):
     return f'''<g>
 <rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" rx="22" fill="#ffffff"
       stroke="#E4DCC4" stroke-width="2"/>
-{pip(x + CELL // 2, y + CELL - 74, scale, mood, pose)}
+{draw(x + CELL // 2, y + CELL - 74, scale, mood, pose)}
 <text x="{x + CELL // 2}" y="{y + CELL - 20}" text-anchor="middle"
       font-family="{FONT}" font-size="21" fill="{SUB}"
       style="font-variation-settings:'wght' 600">{label}</text>
 </g>'''
 
 
-def sheet():
+def sheet(character="robot"):
+    draw, title, _ = CHARACTERS[character]
     cols = 5
     rows = -(-len(POSES) // cols)
     moods = list(MOOD)
@@ -40,10 +48,10 @@ def sheet():
     for i, p in enumerate(POSES):
         x = PAD + (i % cols) * (CELL + GAP)
         y = top + (i // cols) * (CELL + GAP)
-        out.append(_cell(x, y, p, p, "calm"))
+        out.append(_cell(x, y, p, p, "calm", draw))
     for i, m in enumerate(moods):
         x = PAD + i * (CELL + GAP)
-        out.append(_cell(x, mood_y + 58, m, "stand", m))
+        out.append(_cell(x, mood_y + 58, m, "stand", m, draw))
 
     def head(y, t, s):
         return (f'<text x="{PAD}" y="{y}" font-family="{FONT}" font-size="30" '
@@ -56,7 +64,7 @@ def sheet():
 <defs>{parts.PAINT_FILTER}</defs>
 <rect width="{w}" height="{h}" fill="{PAPER}"/>
 <text x="{PAD}" y="{PAD + 44}" font-family="{FONT}" font-size="52" fill="{INK}"
-      style="font-variation-settings:'wght' 700">Pip</text>
+      style="font-variation-settings:'wght' 700">{title}</text>
 <text x="{PAD}" y="{PAD + 80}" font-family="{FONT}" font-size="23" fill="{SUB}">
 One component. {len(POSES)} poses and {len(moods)} moods, drawn as vectors.</text>
 {head(top - 60, "Poses", "The story beat of each page picks one.")}
@@ -72,11 +80,13 @@ if __name__ == "__main__":
     # installing a browser engine first. Regenerate with this same command.
     out = pathlib.Path(__file__).resolve().parent.parent / "docs"
     out.mkdir(parents=True, exist_ok=True)
-    svg = sheet()
-    (out / "pip-sheet.svg").write_text(svg, encoding="utf-8")
+    character = sys.argv[1] if len(sys.argv) > 1 else "robot"
+    name = CHARACTERS[character][2]
+    svg = sheet(character)
+    (out / f"{name}.svg").write_text(svg, encoding="utf-8")
     import re
     w = int(re.search(r'width="(\d+)"', svg).group(1))
     h = int(re.search(r'height="(\d+)"', svg).group(1))
-    render.render([("pip-sheet", svg)], out, size=(w, h))
+    render.render([(name, svg)], out, size=(w, h))
     print(f"character sheet -> {out}  ({w}x{h})")
     print(f"  {len(POSES)} poses, {len(MOOD)} moods")
