@@ -1,19 +1,29 @@
 import { fileURLToPath, URL } from "node:url";
-import { cloudflareTest } from "@cloudflare/vitest-plugin";
+import path from "node:path";
+import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-plugin";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 // Tests only. This file is separate from vite.config.ts, so the Cloudflare
 // Vite plugin does not load in tests.
-export default defineConfig({
+export default defineConfig(async () => ({
   test: {
     projects: [
       {
         // Worker tests run inside workerd with the bindings from wrangler.jsonc.
-        plugins: [cloudflareTest({ wrangler: { configPath: "./wrangler.jsonc" } })],
+        // TEST_MIGRATIONS is a test-only binding; the setup file applies it.
+        plugins: [
+          cloudflareTest({
+            wrangler: { configPath: "./wrangler.jsonc" },
+            miniflare: {
+              bindings: { TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "migrations")) },
+            },
+          }),
+        ],
         test: {
           name: "worker",
           include: ["worker/**/*.test.ts"],
+          setupFiles: ["./worker/test/apply-migrations.ts"],
         },
       },
       {
@@ -33,4 +43,4 @@ export default defineConfig({
       },
     ],
   },
-});
+}));
