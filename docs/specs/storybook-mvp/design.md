@@ -286,7 +286,9 @@ loop at most 5 times:
 
 Each target key is checked on its own. A key whose head is already the new
 revision, or a newer revision (a greater UUID v7), is skipped. A retried step
-therefore never overwrites newer work.
+therefore never overwrites newer work. When every target key is skipped,
+nothing is written and `heads_version` does not change. The result is still
+"moved".
 
 The API creates the story row with `heads = { source: <source revision ID> }`
 and `heads_version = 0`, in one batch with the source revision and the run.
@@ -322,15 +324,20 @@ type LayoutTemplate = {
     height: number;                   // target height in stage units
     minScale: number;                 // 0.7 to 1.0; the engine may shrink to this
     z: number;
-    poses?: string[];                 // poses reserved for slots that list them
+    poses?: string[];                 // the only poses this slot accepts; reserved for slots that list them
   }>;
 };
 ```
 
-A pose that a slot lists in `poses` is reserved for the slots that list it.
-A layer with that pose in a slot that does not list it fails validation
-(`slot_pose_mismatch`). For example, a `bust` pose has its own slot: template
-`solo-center` has the slot `bust` (owner decision 2026-11-19).
+The rule holds in both directions, and each case fails validation with
+`slot_pose_mismatch`:
+
+- A pose that some slot lists in `poses` may be placed only in a slot that
+  lists it.
+- A slot with `poses` accepts only the poses that it lists.
+
+For example, a `bust` pose has its own slot: template `solo-center` has the
+slot `bust` (owner decision 2026-11-19).
 
 Placement: for each layer, take the slot, read the asset's foot point and
 height from the registry, and compute `x`, `y`, `scale`, `z`. Then check:
@@ -420,12 +427,12 @@ Studio routes are behind Cloudflare Access.
 | `GET /api/studio/stories/:id` | Heads with content, page states (`ok`, `stale`, `missing`, `needs_review`), and releases. |
 | `GET /api/studio/runs/:id` | Run status and step progress. |
 | `PUT /api/studio/stories/:id/pages/:pageId/text` | Body `{ text, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the text is not validated. Then validated as `PageText` (1 to 3 sentences, at most 40 words). 422 with the error list if it fails validation; nothing is saved. Otherwise saved as a new human `page_text` revision (owner decision Q15). |
-| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the scene is not validated. Then validated (the same checks as a model output: enum rules, zod rules, layout checks), laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. The enums and checks use the active registry versions at the time of the request, and the revision records them in `asset_versions` (owner decision Q3). A layer without `instanceId` is new, and the API assigns its `instanceId` (owner decision Q14). An animation or tap in the same request cannot name a new layer: 422 `unknown_target`. The Studio saves a new layer first. |
+| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the scene is not validated. Then validated (the same checks as a model output: enum rules, zod rules, layout checks), laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. The enums and checks use the active registry versions at the time of the request, and the revision records them in `asset_versions` (owner decision Q3). A layer without `instanceId` is new, and the API assigns its `instanceId` (owner decision Q14). A layer `instanceId` that the current head does not have is accepted if it is a lower-case UUID v7 and unique within the scene. The API does not compare layer IDs with the head, because `basedOn` already pins the head that was edited. A malformed or repeated `instanceId` gives 422 with the error list. An animation or tap in the same request cannot name a new layer: 422 `unknown_target`. The Studio saves a new layer first. |
 | `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Body `{ basedOn }`. Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. Checks in this order, and saves nothing when one fails: 409 if the `scene` head moved since `basedOn`; 409 if the current scene head has `status = needs_review`; then the copied scene is validated again against the active registry versions at the time of the request, and 422 `invalid_scene` with the error list if it fails. The new revision records those versions in `asset_versions` (owner decision Q3). |
 | `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. It also takes `{ scope: { kind: "full" } }`, but only when the newest run of the story is a failed full run; otherwise 409 `full_run_not_allowed`. |
 | `POST /api/studio/stories/:id/releases` | Publishes the current heads. 409 with a list of blocking pages and reasons. |
 | `GET /api/studio/registry` | Active assets, sounds, and templates. |
-| `GET /api/studio/files/*` | Serves registry assets and draft audio from R2 to the Studio. Only keys under `assets/` and `calls/`. |
+| `GET /api/studio/files/*` | Serves registry assets and draft audio from R2 to the Studio. Only keys under `assets/` and `calls/`. A key that does not start with `assets/` or `calls/`, or that has a `..` segment, gives 404 `{ error: "not_found" }`, the same as a missing object. |
 | `GET /content/releases/:releaseId/*` | Public. Serves `releases/<releaseId>/*` from R2 with `Cache-Control: public, max-age=31536000, immutable`, only when a `release` row with that ID exists. Answers a `Range` request with 206. |
 
 **URL input.**
@@ -459,7 +466,9 @@ Studio shows a note.
 5. Copy each audio object to `releases/<releaseId>/audio/`.
 6. Write page JSON, then the manifest last.
 7. Insert the `release` row and update `story.published_release_id` in one
-   batch. The pointer moves only to a higher release number.
+   batch. The pointer moves only to a higher release number. The same
+   statement sets `story.status = published`. The status never goes back to
+   `draft`.
 
 If a step fails, the prefix stays unreferenced. The Player never sees it.
 
@@ -490,9 +499,9 @@ All IDs are UUID version 7, lower case (ADR 0007).
 | :-- | :-- | :-- |
 | `asset` | `id`, `key` (unique, for example `pip`), `kind` (`character`, `prop`, `scenery`, `sfx`), `name`, `created_at` | One row per asset. |
 | `asset_version` | `id`, `asset_id`, `version`, `renderer` (`svg-rig`, `svg`, `webp`, `audio`), `manifest` (JSON), `r2_prefix`, `active`, `created_at` | Unique `(asset_id, version)`. One active version per asset. |
-| `story` | `id`, `title`, `status` (`draft`, `published`), `heads` (JSON, starts `{ source }`), `heads_version` (integer, starts 0), `published_release_id`, `created_at` | `heads` maps `<kind>` or `<kind>:<pageId>` to a revision ID. |
+| `story` | `id`, `title`, `status` (`draft`, `published`; becomes `published` with the first release pointer update and never goes back), `heads` (JSON, starts `{ source }`), `heads_version` (integer, starts 0), `published_release_id`, `created_at` | `heads` maps `<kind>` or `<kind>:<pageId>` to a revision ID. |
 | `run` | `id`, `story_id`, `scope` (JSON), `status`, `basis` (JSON), `registry` (JSON), `workflow_instance_id`, `error` (JSON), `created_at`, `finished_at` | Status: `queued`, `running`, `draft_ready`, `needs_review`, `failed`. |
-| `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` is read at the first attempt; a retry reuses it. |
+| `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` is read at the first attempt; a retry reuses it. For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
 | `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique `(call_id, kind, page_id)` where `call_id` is not null. Order by `id` (UUID v7 is time-ordered). `asset_versions` maps each asset key that a `scene` revision uses to its version (Q3). |
 | `release` | `id`, `story_id`, `number`, `manifest_key`, `snapshot` (JSON of revision IDs), `created_at` | Unique `(story_id, number)`. |
 
@@ -581,7 +590,8 @@ Zod validation then checks what a JSON schema cannot:
 - `flip` is set only on flippable assets;
 - every primitive and action is allowed for the target's renderer;
 - every `target` names an existing layer;
-- a pose that a slot reserves is used only in a slot that lists it
+- a pose that a slot lists in `poses` is placed only in a slot that lists
+  it, and a slot with `poses` holds only the poses that it lists
   (`slot_pose_mismatch`, "4. Layout engine");
 - every animation parameter is inside the bounds of its primitive
   ("5. Scene runtime");
@@ -644,7 +654,7 @@ type ReleasePage = {
 | Model output fails the schema or validation | `script`, `scene:*` | One repair call (`purpose = repair`) with the error list. If it still fails: for `scene`, save the candidate with `status = needs_review` and the errors; for `script`, fail the run with the errors. |
 | Layout check fails after shrinking | `scene:*` | Counts as a validation failure (same repair rule). |
 | Provider 429 or 5xx | any model step | Step throws; the platform retries (3 tries, exponential back-off). The stored-result check prevents a second call for a stored result. |
-| Provider 4xx other than 429 | `scene:*`, `audio:*` | Non-retryable error. The step stores the provider error once in `call_log`. It writes a `needs_review` revision with `content = null` and `error = { providerStatus, message }`, and that revision becomes the head. A replay never calls the model again. |
+| Provider 4xx other than 429 | `scene:*`, `audio:*` | Non-retryable error. The step stores the provider error once in `call_log`: its `result` is `{ providerError: { status, message } }`, with `message` cut to 300 characters. It writes a `needs_review` revision with `content = null` and the same object in `error`, and that revision becomes the head. A replay never calls the model again. |
 | Provider 4xx other than 429 | `script` | Non-retryable error. The run fails with the provider message. |
 | TTS fails after retries | `audio:*` | No new audio head (an old head in a page run is stale). The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
 | Basis changed before commit | any step | The revision is kept as `superseded`. The head does not move. |
@@ -776,16 +786,16 @@ pending. The planner runs it before the merge.
 | Row 2 | `INSERT ... ON CONFLICT ... DO NOTHING`, then read the stored row | "3. Calls, revisions, and heads" |
 | Row 3 | `call_log.basis`, read once at the first attempt | "3. Calls, revisions, and heads", "D1 tables" |
 | Row 4, Q3 | `revision.asset_versions`; active versions for operator edits and "still fits"; publish copies the recorded versions | "6. API", "7. Publish", "D1 tables", "Storybook DSL" |
-| Row 5 | `story.status` values | "D1 tables" |
-| Row 6 | Head compare-and-set per key; a key at the target or a newer revision is skipped | "3. Calls, revisions, and heads" |
+| Row 5 | `story.status` values; `published` is set with the pointer update and never goes back | "7. Publish", "D1 tables" |
+| Row 6 | Head compare-and-set per key; a key at the target or a newer revision is skipped; when every key is skipped, nothing is written | "3. Calls, revisions, and heads" |
 | Row 7 | `@cloudflare/vitest-plugin` | "Testing Strategy" |
-| Row 8 | Provider 4xx in a page step: stored error, `needs_review` revision as the head | "Error Handling" |
-| Row 9 | Slot `poses`, `slot_pose_mismatch`, slot `bust` in `solo-center` | "4. Layout engine", "Storybook DSL" |
-| Row 10 | `GET /api/studio/files/*` | "6. API" |
+| Row 8 | Provider 4xx in a page step: `call_log.result` and `revision.error` hold `{ providerError: { status, message } }`; the `needs_review` revision is the head | "Error Handling", "D1 tables" |
+| Row 9 | Slot `poses` in both directions, `slot_pose_mismatch`, slot `bust` in `solo-center` | "4. Layout engine", "Storybook DSL" |
+| Row 10 | `GET /api/studio/files/*`; other keys and `..` give 404 `not_found` | "6. API" |
 | Row 11, R37 | "Still fits" body `{ basedOn }`; order 409, 409, 422 `invalid_scene` | "6. API", "Error Handling" |
 | Row 12 | Release row and pointer in one batch; the pointer moves only to a higher number | "7. Publish" |
 | Row 13 | Content route needs a `release` row; `Range` gives 206 | "6. API" |
-| Row 14, Q14, R41 | The API assigns new layer IDs; 422 `unknown_target`; manual `scale` greater than 0, may be below `minScale` | "4. Layout engine", "6. API", "Error Handling" |
+| Row 14, Q14, R41 | The API assigns new layer IDs; an unknown layer ID is accepted when it is a unique lower-case UUID v7, else 422; 422 `unknown_target`; manual `scale` greater than 0, may be below `minScale` | "4. Layout engine", "6. API", "Error Handling" |
 | Row 15, Q7 | TTS goes to Google AI Studio directly in development, and through AI Gateway (`google-ai-studio`) on Cloudflare | "Architecture", "Deployment", "1. Model adapter"; also ADR 0015 and `requirements.md` |
 | Q15 | `PUT .../text`: 409 first, then `PageText` validation, 422 | "6. API", "Error Handling" |
 | R48 | Full run only after a failed full run; else 409 `full_run_not_allowed` | "6. API", "Error Handling" |
