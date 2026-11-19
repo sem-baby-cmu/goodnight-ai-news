@@ -313,7 +313,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 ### RUN-05.S7 A failed run can be started again
 - Given a run that failed
 - When the operator opens it in the Studio
-- Then `run.status` is `failed` with the error; the Studio shows the error and can start a new run with the same scope
+- Then `run.status` is `failed` with the error; the Studio shows the error; a run whose `script` step failed can restart as a full run, and a run whose page step failed can restart that page with a page run
 - Test: spec (to implement)
 
 ### RUN-05.S8 A provider 4xx in the script step makes the run fail
@@ -322,14 +322,20 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Then the error is non-retryable, and the run fails with the provider message
 - Test: spec (to implement)
 
-### RUN-05.S9 A full run can start again after a failed full run
-- Given a story whose newest run is a full run with `status = failed`
+### RUN-05.S9 A full run can start again when the script step never succeeded
+- Given a story with no `outline` head, because its `script` step failed, and no run of the story is `queued` or `running`
 - When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
 - Then the API starts a new full run
 - Test: spec (to implement)
 
-### RUN-05.S10 A full run is refused when the newest run is not a failed full run
-- Given a story whose newest run is a page run, or a full run whose status is not `failed`
+### RUN-05.S10 A full run is refused when the story has an outline
+- Given a story with an `outline` head, and no run of the story is `queued` or `running`
+- When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
+- Then the API returns 409 `full_run_not_allowed`, and no run starts
+- Test: spec (to implement)
+
+### RUN-05.S11 A full run is refused while a run is still running
+- Given a story with no `outline` head, and a run of the story with `status = queued` or `status = running`
 - When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
 - Then the API returns 409 `full_run_not_allowed`, and no run starts
 - Test: spec (to implement)

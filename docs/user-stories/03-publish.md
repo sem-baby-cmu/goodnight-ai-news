@@ -103,7 +103,7 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - Test: spec (to implement)
 
 ### PUB-02.S6 "Still fits" unblocks a stale scene
-- Given a draft whose only blocking reason is one stale scene
+- Given a draft whose only blocking reason is one stale scene, and a "still fits" copy of that scene that passed its checks
 - When the operator marks that scene "still fits" and publishes
 - Then publishing succeeds, and the scene revision in the release is the human copy
 - Test: spec (to implement)

@@ -79,8 +79,8 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S2 "Still fits" makes a stale scene current
-- Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, and whose copy passes validation against the active registry
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
+- Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, whose `page_text` head is the revision that the operator saw, and whose copy passes the checks of `PUT .../scene` against the active registry
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the current scene is copied into a new human revision whose basis is the current page text, and the scene is not stale
 - Test: spec (to implement)
 
@@ -133,8 +133,8 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S11 "Still fits" is refused for a scene that needs review
-- Given a page whose `scene` head has `status = needs_review` and has not moved since the operator loaded it
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
+- Given a page whose `scene` head has `status = needs_review` and has not moved since the operator loaded it, and whose `page_text` head is the revision that the operator saw
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the API returns 409; nothing is copied, and the `scene` head does not move
 - Test: spec (to implement)
 
@@ -169,27 +169,33 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S17 "Still fits" is refused when the copy fails against the active registry
-- Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, and whose copy fails validation against the active registry, for example because it uses a pose that the active version of its character does not have
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
+- Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, whose `page_text` head is the revision that the operator saw, and whose copy fails the checks of `PUT .../scene` against the active registry, for example because it uses a pose that the active version of its character does not have
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the API returns 422 `invalid_scene` with the error list; nothing is saved, and the `scene` head does not move
 - Test: spec (to implement)
 
 ### EDT-03.S18 An old `basedOn` for "still fits" is refused first
-- Given a page whose `scene` head has moved since the operator loaded it, and whose current scene would also fail validation against the active registry
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with the old `basedOn`
-- Then the API returns 409, not 422; nothing is copied, and the `scene` head does not move
+- Given a page whose `scene` head has moved since the operator loaded it, whose `page_text` head is also not the revision that the operator saw, and whose current scene would also fail validation against the active registry
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with the old `basedOn` and the old `textBasedOn`
+- Then the API returns the 409 for `basedOn`, not 409 `head_moved` and not 422; nothing is copied, and the `scene` head does not move
 - Test: spec (to implement)
 
 ### EDT-03.S19 A "still fits" copy records the active registry versions
-- Given a page whose stale scene has `status = ok` and was made with version `n` of an asset, version `n + 1` is now active, and the copy passes validation against the active registry
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
+- Given a page whose stale scene has `status = ok` and was made with version `n` of an asset, version `n + 1` is now active, its `scene` and `page_text` heads are the revisions that the operator saw, and the copy passes the checks of `PUT .../scene` against the active registry
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the new human revision records version `n + 1` for that asset in `asset_versions`
 - Test: spec (to implement)
 
 ### EDT-03.S20 A malformed layer ID in an edited scene is refused
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer whose `instanceId` is not a lower-case UUID v7
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
-- Then the API returns 422 with the error list; no revision is saved, and the `scene` head does not move
+- Then the API returns 422 `unknown_instance`; no revision is saved, and the `scene` head does not move
+- Test: spec (to implement)
+
+### EDT-03.S21 A layer ID that is not in the edited revision is refused
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer whose `instanceId` is a lower-case UUID v7 that is not the ID of a layer in the `basedOn` scene revision
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API returns 422 `unknown_instance`; no revision is saved, and the `scene` head does not move
 - Test: spec (to implement)
 
 ## EDT-04 A late result does not replace the operator's work
