@@ -139,9 +139,9 @@ differ only in configuration.
 interface ModelConfig {
   baseUrl: string;        // AI Gateway URL for OpenRouter, or the local proxy
   apiKey: string;         // Worker secret
-  ttsBaseUrl: string;     // Google AI Studio, or AI Gateway `google-ai-studio`
-  ttsApiKey: string;      // Worker secret
+  gatewayToken?: string;  // AI Gateway token, sent on both routes
   models: { script: string; scene: string; tts: string }; // model IDs from env
+  tts: { baseUrl: string; apiKey: string; voice: string }; // Google AI Studio, or AI Gateway `google-ai-studio`
 }
 
 generateJson(req: {
@@ -157,6 +157,9 @@ synthesizeSpeech(req: {
 }): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number }>;
 ```
 
+- `ModelConfig` follows the #17 implementation: the TTS settings and the voice
+  are under `tts`, and `gatewayToken` is optional (implementation decision
+  R52).
 - Model IDs come from environment variables. They are not in code.
 - `generateJson` returns unvalidated JSON. Callers validate with zod.
 - `synthesizeSpeech` returns audio the browser can play. If the provider
