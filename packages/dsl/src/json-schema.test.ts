@@ -54,6 +54,21 @@ describe("json-schema", () => {
     expect(objects).toBeGreaterThan(5);
   });
 
+  it("built schemas have no oneOf and no $schema", () => {
+    for (const schema of [buildSceneJsonSchema(ctx()), buildOutlineJsonSchema(registry())]) {
+      walk(schema, (n) => {
+        expect(n).not.toHaveProperty("oneOf");
+        expect(n).not.toHaveProperty("$schema");
+      });
+    }
+    // The action and primitive unions are anyOf.
+    let anyOfs = 0;
+    walk(buildSceneJsonSchema(ctx()), (n) => {
+      if (Array.isArray(n.anyOf)) anyOfs++;
+    });
+    expect(anyOfs).toBeGreaterThanOrEqual(2);
+  });
+
   it("buildOutlineJsonSchema is strict", () => {
     const schema = buildOutlineJsonSchema(registry());
     expect(JSON.stringify(schema)).not.toContain("$ref");

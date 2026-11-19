@@ -143,6 +143,7 @@ describe("validateScene", () => {
     const issues = check((s) => {
       s.templateId = "solo-center";
       s.layers = [{ ...pip(s), slot: "bust", pose: "front" }];
+      actions(s)[4] = { action: "set_pose", target: PIP_ID, pose: "bust" };
     }, c);
     expect(issues).toEqual([expect.objectContaining({ code: "slot_pose_mismatch", path: "layers.0.pose" })]);
   });
@@ -153,8 +154,51 @@ describe("validateScene", () => {
     const issues = check((s) => {
       s.templateId = "solo-center";
       s.layers = [{ ...pip(s), slot: "bust", pose: "bust" }];
+      actions(s)[4] = { action: "set_pose", target: PIP_ID, pose: "bust" };
     }, c);
     expect(issues).toEqual([]);
+  });
+
+  it("set_pose to a bust pose outside a bust slot fails", () => {
+    const c = ctx();
+    c.templates = [twoFriends(), soloCenter()];
+    const issues = check((s) => {
+      actions(s)[4] = { action: "set_pose", target: PIP_ID, pose: "bust" };
+    }, c);
+    expect(issues).toEqual([expect.objectContaining({ code: "slot_pose_mismatch", path: "interactions.0.do.4.pose" })]);
+  });
+
+  it("set_pose to a full-body pose in a bust slot fails", () => {
+    const c = ctx();
+    c.templates = [twoFriends(), soloCenter()];
+    const issues = check((s) => {
+      s.templateId = "solo-center";
+      s.layers = [{ ...pip(s), slot: "bust", pose: "bust" }];
+      actions(s)[4] = { action: "set_pose", target: PIP_ID, pose: "front" };
+    }, c);
+    expect(issues).toEqual([expect.objectContaining({ code: "slot_pose_mismatch", path: "interactions.0.do.4.pose" })]);
+  });
+
+  it("slot pose check needs a pose: a missing pose gives only missing_pose", () => {
+    const c = ctx();
+    c.templates = [twoFriends(), soloCenter()];
+    const issues = check((s) => {
+      s.templateId = "solo-center";
+      s.layers = [{ ...pip(s), slot: "bust" }];
+      delete s.layers[0]!.pose;
+      actions(s)[4] = { action: "set_pose", target: PIP_ID, pose: "bust" };
+    }, c);
+    expect(issues).toEqual([expect.objectContaining({ code: "missing_pose", path: "layers.0.pose" })]);
+  });
+
+  it("slot pose check needs a known slot: an unknown slot gives only unknown_slot", () => {
+    const c = ctx();
+    c.templates = [twoFriends(), soloCenter()];
+    const issues = check((s) => {
+      pip(s).pose = "bust";
+      pip(s).slot = "middle";
+    }, c);
+    expect(issues).toEqual([expect.objectContaining({ code: "unknown_slot", path: "layers.0.slot" })]);
   });
 
   it("pose required", () => {
@@ -209,15 +253,26 @@ describe("validateScene", () => {
     expectIssue(issues, "loop_not_allowed", "animations.0.trigger");
   });
 
-  it("RUN-03.S8 animation target must exist", () => {
-    expectIssue(check((s) => void (s.animations[0]!.target = NEW_ID)), "unknown_target", "animations.0.target");
+  it("RUN-03.S8 a target must name a layer, for an animation and for an action", () => {
+    expect(check((s) => void (s.animations[0]!.target = NEW_ID))).toEqual([
+      expect.objectContaining({ code: "unknown_target", path: "animations.0.target" }),
+    ]);
+    expect(check((s) => void (raw(actions(s)[3]).target = NEW_ID))).toEqual([
+      expect.objectContaining({ code: "unknown_target", path: "interactions.0.do.3.target" }),
+    ]);
   });
 
-  it("RUN-03.S7 blink needs svg-rig", () => {
-    const issues = check((s) => {
+  it("RUN-03.S7 blink or wave needs svg-rig, as an animation and as a play_animation action", () => {
+    const animation = check((s) => {
       s.animations[0] = { target: OWL_ID, primitive: "blink", params: { interval: 4 }, trigger: "loop" };
     });
-    expectIssue(issues, "primitive_renderer", "animations.0.primitive");
+    expect(animation).toEqual([expect.objectContaining({ code: "primitive_renderer", path: "animations.0.primitive" })]);
+    const action = check((s) => {
+      actions(s)[0] = { action: "play_animation", target: OWL_ID, primitive: "wave" };
+    });
+    expect(action).toEqual([
+      expect.objectContaining({ code: "primitive_renderer", path: "interactions.0.do.0.primitive" }),
+    ]);
   });
 
   it("blink allowed on svg-rig", () => {
@@ -243,13 +298,6 @@ describe("validateScene", () => {
     );
   });
 
-  it("play_animation follows renderer rule", () => {
-    const issues = check((s) => {
-      actions(s)[0] = { action: "play_animation", target: OWL_ID, primitive: "wave" };
-    });
-    expectIssue(issues, "primitive_renderer", "interactions.0.do.0.primitive");
-  });
-
   it("RUN-03.S9 play_sfx needs an sfx asset", () => {
     expectIssue(check((s) => void (raw(actions(s)[1]).sfx = "pip")), "unknown_sfx", "interactions.0.do.1.sfx");
     expectIssue(check((s) => void (raw(actions(s)[1]).sfx = "zzz")), "unknown_sfx", "interactions.0.do.1.sfx");
@@ -271,20 +319,20 @@ describe("validateScene", () => {
     );
   });
 
-  it("RUN-03.S11 set_expression pair must be legal", () => {
-    const issues = check((s) => {
+  it("RUN-03.S11 a tap that makes an illegal pair fails, for set_expression and for set_pose", () => {
+    // (current pose wave, new expression sad); the set_pose action is removed.
+    const setExpression = check((s) => {
       pip(s).pose = "wave";
+      actions(s).splice(4, 1);
       actions(s)[3] = { action: "set_expression", target: PIP_ID, expression: "sad" };
     });
-    expectIssue(issues, "illegal_pair", "interactions.0.do.3");
-  });
-
-  it("set_pose pair must be legal", () => {
-    const issues = check((s) => {
+    expect(setExpression).toEqual([expect.objectContaining({ code: "illegal_pair", path: "interactions.0.do.3" })]);
+    // (new pose wave, current expression sad).
+    const setPose = check((s) => {
       pip(s).expression = "sad";
       actions(s)[4] = { action: "set_pose", target: PIP_ID, pose: "wave" };
     });
-    expectIssue(issues, "illegal_pair", "interactions.0.do.4");
+    expect(setPose).toEqual([expect.objectContaining({ code: "illegal_pair", path: "interactions.0.do.4" })]);
   });
 
   it("set_pose legal pair passes", () => {
