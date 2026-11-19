@@ -77,6 +77,36 @@ async function readJson(res: Response, modelId: string): Promise<unknown> {
   }
 }
 
+function isRetryable(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
+// Reads a 2xx answer and checks its shape. A body that is not a JSON object is
+// an output error. A body with an `error` object and no `answerKey` is a
+// provider error: its `status` is `error.code` when that is 400 to 599, else 502.
+async function readAnswer(
+  res: Response,
+  { modelId, secrets, answerKey }: { modelId: string; secrets: string[]; answerKey: "choices" | "candidates" },
+): Promise<Record<string, unknown>> {
+  const body = await readJson(res, modelId);
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    throw new ModelOutputError("Model response body is not a JSON object", { modelId, usage: null });
+  }
+  const record = body as Record<string, unknown>;
+  const providerError = record.error;
+  if (typeof providerError === "object" && providerError !== null && !(answerKey in record)) {
+    const { code, message } = providerError as { code?: unknown; message?: unknown };
+    const status = typeof code === "number" && Number.isInteger(code) && code >= 400 && code <= 599 ? code : 502;
+    throw new ModelHttpError(`Model answer carried a provider error (status ${status})`, {
+      status,
+      retryable: isRetryable(status),
+      modelId,
+      ...(typeof message === "string" ? { providerMessage: redact(message, secrets) } : {}),
+    });
+  }
+  return record;
+}
+
 // One request. Classifies failures; never retries and never deduplicates.
 async function send(doFetch: typeof fetch, { url, init, secrets, modelId }: Request): Promise<Response> {
   let res: Response;
@@ -93,7 +123,7 @@ async function send(doFetch: typeof fetch, { url, init, secrets, modelId }: Requ
     const text = await providerText(res);
     throw new ModelHttpError(`Model request failed with HTTP ${res.status}`, {
       status: res.status,
-      retryable: res.status === 429 || res.status >= 500,
+      retryable: isRetryable(res.status),
       modelId,
       ...(text === undefined ? {} : { providerMessage: redact(text, secrets) }),
     });
@@ -137,7 +167,7 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
         },
       });
 
-      const body = (await readJson(res, configuredId)) as ChatBody;
+      const body = (await readAnswer(res, { modelId: configuredId, secrets, answerKey: "choices" })) as ChatBody;
       const usage: Usage = {
         inputTokens: body.usage?.prompt_tokens ?? 0,
         outputTokens: body.usage?.completion_tokens ?? 0,
@@ -158,7 +188,9 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
       const { url, init } = buildSpeechRequest(config, req);
       const res = await send(doFetch, { url, init, secrets, modelId: config.models.tts });
       try {
-        return decodeSpeechResponse(await readJson(res, config.models.tts));
+        return decodeSpeechResponse(
+          await readAnswer(res, { modelId: config.models.tts, secrets, answerKey: "candidates" }),
+        );
       } catch (error) {
         // The decoders have no response context; add the model ID here. TTS
         // reports no usage, so `usage` stays null (implementation decision R25b).
