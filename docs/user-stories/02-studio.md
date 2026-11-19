@@ -14,13 +14,13 @@ Spec: requirements "Core Features" 4 · design "6. API", "Staleness"
 - Given stories in the database
 - When the Studio sends `GET /api/studio/stories`
 - Then the response lists the stories
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-01.S2 A story view shows heads, page states, and releases
 - Given a story with a draft
 - When the Studio sends `GET /api/studio/stories/:id`
 - Then the response has the heads with their content, a state for each page (`ok`, `stale`, `missing`, or `needs_review`), and the releases
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-01.S3 A changed page text makes the audio and the scene stale
 - Given a page whose `audio` and `scene` heads have the basis `page_text:P = T1`
@@ -39,13 +39,13 @@ Spec: requirements US-2, AC-5 · design "3. Calls, revisions, and heads", "6. AP
 - Given a page whose `page_text` head is `T1`
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/text` with `{ text, basedOn: T1 }`
 - Then a new `page_text` revision with `origin = human` is saved, and the head moves to it by compare-and-set
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-02.S2 A save that is based on an old revision is refused
 - Given a page whose head has moved since the operator loaded it
 - When the operator saves with the old `basedOn`
 - Then the API returns 409 with the current revision
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-02.S3 "Regenerate audio" changes one page only
 - Given a draft where the operator changed the text of page 3
@@ -57,13 +57,13 @@ Spec: requirements US-2, AC-5 · design "3. Calls, revisions, and heads", "6. AP
 - Given a page whose `page_text` head has not moved since the operator loaded it, and an edited text that fails `PageText` validation, for example a text of 4 sentences or of more than 40 words
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/text` with `{ text, basedOn }`
 - Then the API returns 422 with the error list; no revision is saved, and the `page_text` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-02.S5 An old `basedOn` for a text is refused before validation
 - Given a page whose `page_text` head has moved since the operator loaded it, and an edited text that also fails `PageText` validation
 - When the operator saves the text with the old `basedOn`
 - Then the API returns 409 with the current revision, not 422; the text is not validated, and no revision is saved
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ## EDT-03 Regenerate or edit the scene of one page
 
@@ -76,25 +76,25 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Given a draft
 - When the operator sends `POST /api/studio/stories/:id/runs` with scope `{ kind: "page", pageId, target: "scene" }`
 - Then the run does `freeze`, `scene:<pageId>`, and `finish`, and no other page step
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/api.e2e.test.ts
 
 ### EDT-03.S2 "Still fits" makes a stale scene current
 - Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, whose `page_text` head is the revision that the operator saw, and whose copy passes the checks of `PUT .../scene` against the active registry
 - When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the current scene is copied into a new human revision whose basis is the current page text, and the scene is not stale
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S3 An edited scene is validated, laid out, and saved
 - Given a page in the editor
 - When the operator changes the layout template, a character, a pose or expression, a prop, an animation, or a tap, and sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the scene is validated, laid out, and saved as a human `scene` revision whose basis is the current page text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S4 A scene save that is based on an old revision is refused
 - Given a page whose `scene` head has moved since the operator loaded it
 - When the operator saves the scene with the old `basedOn`
 - Then the API returns 409 with the current revision
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S5 A manual position overrides the slot
 - Given a layer for which the operator set an `at` value in the Studio
@@ -112,91 +112,91 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene that fails validation, for example a scene with no tap interaction
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API returns 422 with the error list; no revision is saved, and the `scene` head does not move; no repair call is made
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S8 An edited scene with an asset that is not in the registry is refused
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a `ref` that is not an active registry asset key
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API returns 422 with the error list; no revision is saved
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S9 A layer with a manual position is not shrunk
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer with a manual `at` fails a layout check, and the check still fails after the engine shrinks the other layers involved
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the engine does not shrink that layer; the API returns 422 with the error list; no revision is saved
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S10 An old `basedOn` is refused before validation
 - Given a page whose `scene` head has moved since the operator loaded it, and an edited scene that also fails validation
 - When the operator saves the scene with the old `basedOn`
 - Then the API returns 409 with the current revision, not 422; the scene is not validated, and no revision is saved
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S11 "Still fits" is refused for a scene that needs review
 - Given a page whose `scene` head has `status = needs_review` and has not moved since the operator loaded it, and whose `page_text` head is the revision that the operator saw
 - When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the API returns 409; nothing is copied, and the `scene` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S12 The API assigns the ID of a layer that the operator adds
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene that passes validation and has one layer without `instanceId`
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API assigns the `instanceId` of that layer; the saved revision has an `instanceId` on every layer, and the ID of the new layer does not come from the Studio
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S13 An animation or tap cannot name a layer that is new in the same request
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer without `instanceId` and an animation or a tap that names that layer
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API returns 422 `unknown_target`; no revision is saved, and the `scene` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S14 A manual scale below the slot's `minScale` is kept
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer has a manual `at` with `scale` greater than 0 and below its slot's `minScale`, and the layout checks pass
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the scene is saved, and the layer keeps the manual `at` with that `scale`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S15 A manual scale that is not greater than 0 is refused
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer has a manual `at` with `scale` 0 or less
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API returns 422 with the error list; no revision is saved
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S16 An edited scene uses the active registry versions
 - Given a draft whose scenes were made with version `n` of an asset, version `n + 1` is now active, and a page in the editor whose `scene` head has not moved since the operator loaded it
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }` and a scene that uses that asset
 - Then the enums and checks use version `n + 1`, and the saved revision records version `n + 1` for that asset in `asset_versions`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S17 "Still fits" is refused when the copy fails against the active registry
 - Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, whose `page_text` head is the revision that the operator saw, and whose copy fails the checks of `PUT .../scene` against the active registry, for example because it uses a pose that the active version of its character does not have
 - When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the API returns 422 `invalid_scene` with the error list; nothing is saved, and the `scene` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S18 An old `basedOn` for "still fits" is refused first
 - Given a page whose `scene` head has moved since the operator loaded it, whose `page_text` head is also not the revision that the operator saw, and whose current scene would also fail validation against the active registry
 - When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with the old `basedOn` and the old `textBasedOn`
 - Then the API returns the 409 for `basedOn`, not 409 `head_moved` and not 422; nothing is copied, and the `scene` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S19 A "still fits" copy records the active registry versions
 - Given a page whose stale scene has `status = ok` and was made with version `n` of an asset, version `n + 1` is now active, its `scene` and `page_text` heads are the revisions that the operator saw, and the copy passes the checks of `PUT .../scene` against the active registry
 - When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn, textBasedOn }`
 - Then the new human revision records version `n + 1` for that asset in `asset_versions`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S20 A malformed layer ID in an edited scene is refused
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer whose `instanceId` is not a lower-case UUID v7
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API returns 422 `unknown_instance`; no revision is saved, and the `scene` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S21 A layer ID that is not in the edited revision is refused
 - Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer whose `instanceId` is a lower-case UUID v7 that is not the ID of a layer in the `basedOn` scene revision
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the API returns 422 `unknown_instance`; no revision is saved, and the `scene` head does not move
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ## EDT-04 A late result does not replace the operator's work
 

@@ -50,7 +50,7 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Given a run that is in progress
 - When the Studio sends `GET /api/studio/runs/:id`
 - Then the response has the run status and the step progress
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-01.S8 A run does not wait for a person
 - Given a run whose page steps are complete
@@ -62,13 +62,13 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Given a pasted news text of fewer than 200 words
 - When the operator sends `POST /api/studio/stories` with `{ text }`
 - Then the API returns 422 and starts no run
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-01.S10 A long pasted text is cut
 - Given a pasted news text of more than 2,000 words
 - When the operator sends `POST /api/studio/stories` with `{ text }`
 - Then the text is cut at 2,000 words, and the Studio shows a note
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-01.S11 A missing or `needs_review` head gives a `needs_review` run
 - Given a run whose page steps are complete, and, when `finish` reads the heads, one page has no `page_text`, `scene`, or `audio` head, or has one of these heads with `status = needs_review`
@@ -93,43 +93,43 @@ Spec: requirements "Scope" · design "6. API" (URL input), "Error Handling", "Te
 - Given an `http` or `https` page whose `<p>` elements inside `article` or `main` hold 200 to 2,000 words
 - When the operator sends `POST /api/studio/stories` with `{ url }`
 - Then the text of the story comes from those `<p>` elements; the API creates a story, a `source` revision, and a full run; it returns 202 with `{ storyId, runId }`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-02.S2 Only `http` and `https` are fetched
 - Given a URL, or a redirect target, with a scheme that is not `http` or `https`
 - When the API handles the request
 - Then the API does not fetch that URL; it returns 422, and the Studio asks for pasted text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-02.S3 A chain of 4 redirects is refused
 - Given a URL that answers with a chain of 4 redirects
 - When the API fetches it
 - Then the API follows at most 3 redirects and refuses the chain; it returns 422, and the Studio asks for pasted text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-02.S4 The fetch stops after 10 s
 - Given a URL that does not answer in 10 s
 - When the API fetches it
 - Then the fetch fails; the API returns 422, and the Studio asks for pasted text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-02.S5 The body is read up to 2 MB
 - Given a URL with a body of 3 MB
 - When the API reads the body as a stream
 - Then it stops at 2 MB and uses only the part it read
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/source.test.ts
 
 ### RUN-02.S6 A short article is refused
 - Given a URL whose extracted text has fewer than 200 words
 - When the API handles the request
 - Then it returns 422, and the Studio asks for pasted text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/source.test.ts
 
 ### RUN-02.S7 A long article is cut
 - Given a URL whose extracted text has more than 2,000 words
 - When the API handles the request
 - Then the text is cut at 2,000 words, and the Studio shows a note
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ## RUN-03 A scene uses only what the registry holds
 
@@ -314,7 +314,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Given a run that failed
 - When the operator opens it in the Studio
 - Then `run.status` is `failed` with the error; the Studio shows the error; a run whose `script` step failed can restart as a full run, and a run whose page step failed can restart that page with a page run
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-05.S8 A provider 4xx in the script step makes the run fail
 - Given a `script` step where the provider answers a 4xx that is not 429
@@ -326,19 +326,19 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Given a story with no `outline` head, because its `script` step failed, and no run of the story is `queued` or `running`
 - When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
 - Then the API starts a new full run
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-05.S10 A full run is refused when the story has an outline
 - Given a story with an `outline` head, and no run of the story is `queued` or `running`
 - When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
 - Then the API returns 409 `full_run_not_allowed`, and no run starts
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### RUN-05.S11 A full run is refused while a run is still running
 - Given a story with no `outline` head, and a run of the story with `status = queued` or `status = running`
 - When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
 - Then the API returns 409 `full_run_not_allowed`, and no run starts
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ## RUN-06 The scene approach holds on real news
 
