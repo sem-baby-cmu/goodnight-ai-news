@@ -8,7 +8,8 @@
     "preview": "vite build && vite preview",
     "types": "wrangler types",
     "typecheck": "wrangler types --check && tsc -b",
-    "test": "vitest run --project worker && vitest run --project ui",
+    "test": "vitest run --project worker && vitest run --project ui && vitest run --project model-contract",
+    "test:s2": "vitest run --config vitest.s2.config.ts",
     "spike:build": "tsx scripts/make-texture.ts && VITE_SPIKE=1 vite build && tsx scripts/copy-spike-assets.ts",
     "spike:preview": "tsx scripts/spike-preview.ts",
     "smoke:spike": "pnpm run spike:build && playwright test --config smoke/playwright.config.ts"
@@ -42,6 +43,7 @@
     "@testing-library/dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
+    "tsx": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",

@@ -1,0 +1,23 @@
+[
+  {
+    "slug": "s2-1",
+    "url": "https://patch.com/pennsylvania/doylestown/new-hope-solebury-cuts-ribbon-innovative-middle-school-steam-lab",
+    "retrievedAt": "2026-11-19T18:20:34.351Z",
+    "words": 458,
+    "sha256": "83a4b605d7293025ab13a7ada299fd65ab43b2b3e555eb095bea25d8a79d9f8a"
+  },
+  {
+    "slug": "s2-2",
+    "url": "https://phys.org/news/2026-11-largest-dataset-date-wildlife-europe.html",
+    "retrievedAt": "2026-11-19T18:18:19.327Z",
+    "words": 1023,
+    "sha256": "888eed8c4290870f039559853fdf154e1d303b5f7942b2f1daf50ce95ea69665"
+  },
+  {
+    "slug": "s2-3",
+    "url": "https://www.scientificamerican.com/article/the-ai-supertelescope-that-could-transform-the-universe/",
+    "retrievedAt": "2026-11-19T18:21:54.537Z",
+    "words": 1495,
+    "sha256": "1c22ec50de8349c9ade48488393f6f6590bf2a8f44a87ca2c8e79e6c04a8ae15"
+  }
+]
