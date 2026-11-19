@@ -40,8 +40,14 @@ export function findInlineData(json: unknown): InlineData | undefined {
   return parts.find((part) => part?.inlineData !== undefined)?.inlineData;
 }
 
+// Throws ModelOutputError (not a bare DOMException) for invalid base64.
 export function base64ToBytes(data: string): Uint8Array {
-  const text = atob(data);
+  let text: string;
+  try {
+    text = atob(data);
+  } catch {
+    throw new ModelOutputError("Speech audio data is not valid base64", noContext);
+  }
   const bytes = new Uint8Array(text.length);
   for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i);
   return bytes;
