@@ -120,6 +120,22 @@ export const ASSETS: Record<string, FakeAsset> = {
     ],
     { "owl-happy.svg": face("owl-happy"), "owl-sad.svg": face("owl-sad") },
   ),
+  // Follow-up item d: stand/sad is legal but owl-sad.svg is not in the files
+  // (its load fails); sit is legal only with happy.
+  owlx: character(
+    "svg",
+    [
+      { id: "stand", file: "owl-happy.svg", foot, box, expression: "happy" },
+      { id: "stand", file: "owl-sad.svg", foot, box, expression: "sad" },
+      { id: "sit", file: "owl-sit.svg", foot, box, expression: "happy" },
+    ],
+    [
+      { pose: "stand", expression: "happy" },
+      { pose: "stand", expression: "sad" },
+      { pose: "sit", expression: "happy" },
+    ],
+    { "owl-happy.svg": face("owl-happy"), "owl-sit.svg": face("owl-sit") },
+  ),
   // WebP character, one file per expression.
   bun: character(
     "webp",

@@ -901,4 +901,107 @@ describe("SceneView", () => {
     expect(onSfx).toHaveBeenCalledTimes(1);
     expect(onSfx).toHaveBeenCalledWith("chime");
   });
+
+  // ---- Follow-up round (item 3: warn, keep the current visible group, change nothing).
+
+  it("a SceneView re-render does not re-insert the svg or replay part animations", async () => {
+    show({
+      page: page(
+        [layer(1, "pip", { pose: "stand", expression: "happy" }), layer(2, "bun")],
+        [BLINK(1), { target: id(1), primitive: "wave", params: { count: 2 }, trigger: "enter" }],
+        [tap(2, { action: "show_bubble", target: id(2), text: "Hi" })],
+      ),
+    });
+    await settle();
+    const svg = svgOf(1);
+    expect(animateCalls).toHaveLength(2);
+    fireEvent.click(assetOf(2));
+    await settle();
+    expect(screen.queryByText("Hi")).not.toBeNull();
+    expect(animateCalls).toHaveLength(2);
+    expect(animateCalls.some((c) => c.canceled)).toBe(false);
+    expect(svg.isConnected).toBe(true);
+    expect(svgOf(1)).toBe(svg);
+  });
+
+  it("an initial expression without its group in the rig file warns once and leaves the groups as authored", async () => {
+    // rigone: stand/sad is legal, but stand.svg has only expr-happy.
+    show({ page: page([layer(1, "rigone", { pose: "stand", expression: "sad" })]) });
+    await settle();
+    expect(exprDisplay(1, "happy")).toEqual([""]);
+    expect(warn.mock.calls.filter((args) => args.map(String).join(" ").includes(id(1)))).toHaveLength(1);
+  });
+
+  it("set_expression to a missing group before the rig svg is inserted warns and never hides every group", async () => {
+    const { resolver, svgText } = makeResolver();
+    let release: (text: string) => void = () => {};
+    svgText.mockImplementationOnce(() => new Promise<string>((resolve) => (release = resolve)));
+    render(
+      <SceneView
+        page={page(
+          [layer(1, "rigone", { pose: "stand", expression: "happy" })],
+          [],
+          [tap(1, { action: "set_expression", target: id(1), expression: "sad" })],
+        )}
+        assets={resolver}
+        mode="play"
+      />,
+    );
+    await act(async () => {});
+    fireEvent.click(assetOf(1));
+    await act(async () => release(SVG_TEXT("rigone", "stand.svg")));
+    await settle();
+    expect(svgOf(1)).not.toBeNull();
+    // As authored ("") or the last legal expression ("inline"); never hidden.
+    expect(["", "inline"]).toContain(exprDisplay(1, "happy")[0]);
+    expect(warnedAbout(id(1))).toBe(true);
+  });
+
+  it("a failed plain-svg expression swap restores the pose and expression on screen", async () => {
+    // owlx: stand/sad is legal but its file does not load; sit is legal only with happy.
+    show({
+      page: page(
+        [layer(1, "owlx", { pose: "stand", expression: "happy" }), layer(2, "bun")],
+        [],
+        [
+          tap(1, { action: "set_expression", target: id(1), expression: "sad" }),
+          tap(2, { action: "set_pose", target: id(1), pose: "sit" }),
+        ],
+      ),
+    });
+    await settle();
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(layerEl(1).querySelector(".owl-happy")).not.toBeNull();
+    expect(warnedAbout(id(1))).toBe(true);
+    warn.mockClear();
+    // (sit, happy) is legal; (sit, sad) is not. The swap works only if the
+    // expression went back to happy.
+    fireEvent.click(assetOf(2));
+    await settle();
+    expect(layerEl(1).querySelector(".owl-sit")).not.toBeNull();
+    expect(warnedAbout(id(1))).toBe(false);
+  });
+
+  it("a set_expression whose new webp fails keeps the current image, warns once, and calls onAssetError", async () => {
+    const onAssetError = vi.fn();
+    show({
+      page: page(
+        [layer(1, "bun", { pose: "stand", expression: "happy" })],
+        [],
+        [tap(1, { action: "set_expression", target: id(1), expression: "sad" })],
+      ),
+      onAssetError,
+    });
+    await settle();
+    fireEvent.click(assetOf(1));
+    const swapped = assetOf(1).querySelector('img[src="https://cdn.test/bun/bun-sad.webp"]') as HTMLImageElement | null;
+    if (swapped) fireEvent.error(swapped);
+    await settle();
+    const imgs = Array.from(assetOf(1).querySelectorAll("img")).map((img) => img.getAttribute("src"));
+    expect(imgs).toEqual(["https://cdn.test/bun/bun-happy.webp"]);
+    expect(warn.mock.calls.filter((args) => args.map(String).join(" ").includes(id(1)))).toHaveLength(1);
+    expect(onAssetError).toHaveBeenCalledTimes(1);
+    expect(onAssetError).toHaveBeenCalledWith(id(1), "https://cdn.test/bun/bun-sad.webp");
+  });
 });
