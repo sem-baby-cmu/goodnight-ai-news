@@ -90,10 +90,29 @@ describe("generateJson", () => {
     const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
     expect(error).toBeInstanceOf(ModelHttpError);
     expect(error).toMatchObject({ status: 400, retryable: false });
-    const message = (error as Error).message;
-    expect(message).toContain("400");
-    expect(message).toContain("x".repeat(200));
-    expect(message).not.toContain("x".repeat(201));
+    expect((error as Error).message).toBe("Model request failed with HTTP 400");
+    expect(error).toMatchObject({ providerMessage: "x".repeat(300) });
+  });
+
+  it("generateJson 401 keeps keys and provider text out of the message", async () => {
+    const keyed = loadModelConfig({
+      ...baseEnv,
+      OPENAI_API_KEY: "sk-secret-123",
+      TTS_API_KEY: "tts-secret-456",
+      AI_GATEWAY_TOKEN: "gw-secret-789",
+    });
+    const text = `bad key sk-secret-123 tts-secret-456 gw-secret-789 ${"story text ".repeat(60)}`;
+    const { fetch } = stubFetch(() => json({ error: { message: text } }, 401));
+    const error = await rejection(createModelClient(keyed, { fetch }).generateJson(jsonRequest));
+    expect(error).toBeInstanceOf(ModelHttpError);
+    expect((error as Error).message).toBe("Model request failed with HTTP 401");
+    const provider = (error as ModelHttpError).providerMessage ?? "";
+    expect(provider.length).toBeGreaterThan(0);
+    expect(provider.length).toBeLessThanOrEqual(300);
+    expect(provider).toContain("[redacted]");
+    for (const secret of ["sk-secret-123", "tts-secret-456", "gw-secret-789"]) {
+      expect(provider).not.toContain(secret);
+    }
   });
 
   it("generateJson network failure is retryable status 0", async () => {
