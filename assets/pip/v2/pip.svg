@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 416" width="232" height="416">
   <title>Pip</title>
-  <!-- Back to front: legs, arms, body, head. Parts are selected by class. -->
+  <!-- Back to front: legs, arms, body, head. Parts are selected by class.
+       Each arm bends under the head corner, so the visible arm is one straight bar. -->
   <g class="part-leg-left" data-pivot="85.5 305">
     <line x1="85.5" y1="305" x2="85.5" y2="385" stroke="#046267" stroke-width="28" stroke-linecap="round"/>
     <path d="M43 415A34.5 39 0 0 1 112 415Z" fill="#1656c3"/>
@@ -10,11 +11,11 @@
     <path d="M120 415A36 39 0 0 1 192 415Z" fill="#1656c3"/>
   </g>
   <g class="part-arm-left" data-pivot="72 226">
-    <polyline points="72,226 52,240 33,299" fill="none" stroke="#046267" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="72,226 61,210 33,299" fill="none" stroke="#046267" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="29" cy="306" r="20" fill="#fdb302"/>
   </g>
   <g class="part-arm-right" data-pivot="163 226">
-    <polyline points="163,226 183,240 202,299" fill="none" stroke="#046267" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="163,226 174,210 202,299" fill="none" stroke="#046267" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="206" cy="306" r="20" fill="#fdb302"/>
   </g>
   <g class="part-body">
@@ -33,6 +34,8 @@
       <rect x="48" y="92" width="139" height="106" rx="28" fill="#fde1b8"/>
     </g>
     <g class="part-eyes" data-pivot="119.5 141">
+      <ellipse cx="81" cy="138.5" rx="14" ry="18.5" fill="#fdf7ef"/>
+      <ellipse cx="158" cy="138.5" rx="13" ry="18" fill="#fdf7ef"/>
       <ellipse cx="87" cy="141" rx="7" ry="11" fill="#020100"/>
       <ellipse cx="152" cy="141" rx="7" ry="11" fill="#020100"/>
     </g>
