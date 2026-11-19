@@ -313,7 +313,8 @@ height from the registry, and compute `x`, `y`, `scale`, `z`. Then check:
 
 If a check fails, the engine shrinks the layers involved step by step down to
 each slot's `minScale` and checks again. Only if that fails does the page
-count as a validation failure (repair rule, then `needs_review`).
+count as a validation failure. For a model output, the repair rule then
+applies ("Error Handling").
 
 MVP has 6 to 8 templates. An operator's manual `at` value in the Studio
 overrides the slot for that layer.
@@ -600,7 +601,7 @@ type ReleasePage = {
 | Provider 4xx other than 429 | `script` | Non-retryable error. The run fails with the provider message. |
 | TTS fails after retries | `audio:*` | No new audio head (an old head in a page run is stale). The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
 | Basis changed before commit | any step | The revision is kept as `superseded`. The head does not move. |
-| Operator's scene fails validation, or a layout check after shrinking | API | 422 with the error list. Nothing is saved. There is no repair call; the repair rule is for model output only. |
+| Operator's scene fails validation | API | 422 with the error list. Nothing is saved. There is no repair call; the repair rule is for model output only. |
 | Head moved since the operator loaded it | API | 409 with the current revision. |
 | Compare-and-set loop exhausted (5 tries) | step | Step throws; the platform retries the step. |
 | Publish blocked | API | 409 with the list of pages and reasons. |
@@ -689,3 +690,13 @@ A finding from one seat was checked against the document first.
 | 3 | In a page run, the Q9 rule and the row "TTS fails after retries" disagree | both | Owner decision (Q10): a stale head also gives `needs_review` |
 | 4 | ADR 0015 says "a run ends at `draft_ready`" | both | Owner decision: ADR 0015 corrected in place with a dated note |
 | 5 | Two scenarios stated a run status that their `Given` and `When` do not give | both | Scenarios corrected |
+
+Cross-family review of revision 4 (the owner's answer to Q2, #36),
+2026-11-19. Seat 1: Codex. Seat 2: Gemini. Findings were merged as a union.
+
+| # | Finding | Seats | Result |
+| :-- | :-- | :-- | :-- |
+| 1 | The order of 409 and 422 for an operator's scene is not defined | both | Kept open (Q12); EDT-03.S7 fixes the head as current |
+| 2 | A layout failure after shrinking went beyond the decision; shrinking a manual `at` is not defined | Gemini | Removed from the error row; kept open (Q11) |
+| 3 | "4. Layout engine" applied the repair rule to every scene | Gemini | Limited to model output |
+| 4 | "Still fits" can copy a `needs_review` scene | Gemini | Kept open (Q13) |
