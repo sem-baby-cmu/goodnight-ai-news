@@ -236,6 +236,9 @@ catalogs:
     tailwindcss:
       specifier: ^4.3.5
       version: 4.3.5
+    tsx:
+      specifier: ^4.23.15
+      version: 4.23.15
     tw-animate-css:
       specifier: ^1.4.0
       version: 1.4.0
@@ -297,13 +300,13 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 'catalog:'
-        version: 1.70.0(@types/node@22.20.5)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))(workerd@1.20261118.1)(wrangler@4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))))
+        version: 1.70.0(@types/node@22.20.5)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))(workerd@1.20261118.1)(wrangler@4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))))
       '@cloudflare/vitest-plugin':
         specifier: 'catalog:'
-        version: 1.8.5(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))
+        version: 1.8.5(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
       '@tailwindcss/vite':
         specifier: 'catalog:'
-        version: 4.3.5(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.3.5(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
       '@testing-library/dom':
         specifier: 'catalog:'
         version: 10.4.2
@@ -321,7 +324,7 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: 'catalog:'
-        version: 6.3.0(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 6.3.0(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
       jsdom:
         specifier: 'catalog:'
         version: 31.0.1
@@ -333,13 +336,13 @@ importers:
         version: 5.9.3
       vite:
         specifier: 'catalog:'
-        version: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)
+        version: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
       vitest:
         specifier: 'catalog:'
-        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
       wrangler:
         specifier: 'catalog:'
-        version: 4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))
+        version: 4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
 
   packages/dsl:
     dependencies:
@@ -352,7 +355,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/layout:
     devDependencies:
@@ -361,16 +364,22 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/models:
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.5
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.15
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/scene-runtime:
     devDependencies:
@@ -379,7 +388,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   tools/assets:
     devDependencies:
@@ -391,7 +400,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
 packages:
 
@@ -2573,6 +2582,11 @@ packages:
   tslib@2.9.1:
     resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
 
+  tsx@4.23.15:
+    resolution: {integrity: sha512-Yiex1Ovn8z2xPpOWckIiysV1SSyRMY9BkLF++q0yKiDxCqRhosKfMg3janKkiLBwZ5c/YryloKwGZcrEmtwxKw==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   tw-animate-css@1.4.0:
     resolution: {integrity: sha512-7bziOlRqH0hJx80h/3mbicLW7o8qLsH5+RaLR2t+OHM3D0JlWGODQKQ4cxbK7WlvmUxpcj6Kgu6EKqjrGFe3QQ==}
 
@@ -3055,13 +3069,13 @@ snapshots:
     optionalDependencies:
       workerd: 1.20261118.1
 
-  '@cloudflare/vite-plugin@1.70.0(@types/node@22.20.5)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))(workerd@1.20261118.1)(wrangler@4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))))':
+  '@cloudflare/vite-plugin@1.70.0(@types/node@22.20.5)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))(workerd@1.20261118.1)(wrangler@4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))))':
     dependencies:
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261118.1)
       miniflare: 5.20261116.0-beta(@types/node@22.20.5)
       unenv: 2.0.0-rc.24
-      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)
-      wrangler: 4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))
+      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+      wrangler: 4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
       ws: 8.22.0
     transitivePeerDependencies:
       - '@types/node'
@@ -3070,13 +3084,13 @@ snapshots:
       - utf-8-validate
       - workerd
 
-  '@cloudflare/vitest-plugin@1.8.5(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))':
+  '@cloudflare/vitest-plugin@1.8.5(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))':
     dependencies:
       cjs-module-lexer: 1.2.3
       esbuild: 0.28.2
       miniflare: 5.20261118.0-beta(@types/node@22.20.5)
-      vitest: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
-      wrangler: 4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))
+      vitest: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+      wrangler: 4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
       zod: 4.6.6
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -3116,14 +3130,14 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20261118.1':
     optional: true
 
-  '@cloudflare/workers-utils@0.55.0(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))':
+  '@cloudflare/workers-utils@0.55.0(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))':
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       chalk: 5.3.0
       dotenv: 16.3.1
       undici: 7.30.1
     optionalDependencies:
-      vitest: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+      vitest: 4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -3597,12 +3611,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.5
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.5
 
-  '@tailwindcss/vite@4.3.5(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))':
+  '@tailwindcss/vite@4.3.5(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))':
     dependencies:
       '@tailwindcss/node': 4.3.5
       '@tailwindcss/oxide': 4.3.5
       tailwindcss: 4.3.5
-      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)
+      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
 
   '@tanstack/history@1.162.5': {}
 
@@ -3703,10 +3717,10 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@vitejs/plugin-react@6.3.0(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))':
+  '@vitejs/plugin-react@6.3.0(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))':
     dependencies:
       '@rolldown/pluginutils': 1.1.1
-      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)
+      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
 
   '@vitest/expect@4.1.12':
     dependencies:
@@ -3717,13 +3731,13 @@ snapshots:
       chai: 6.3.0
       tinyrainbow: 3.2.0
 
-  '@vitest/mocker@4.1.12(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))':
+  '@vitest/mocker@4.1.12(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))':
     dependencies:
       '@vitest/spy': 4.1.12
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)
+      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
 
   '@vitest/pretty-format@4.1.12':
     dependencies:
@@ -4817,6 +4831,12 @@ snapshots:
 
   tslib@2.9.1: {}
 
+  tsx@4.23.15:
+    dependencies:
+      esbuild: 0.28.2
+    optionalDependencies:
+      fsevents: 2.3.3
+
   tw-animate-css@1.4.0: {}
 
   type-fest@4.41.0: {}
@@ -4853,7 +4873,7 @@ snapshots:
 
   validate-npm-package-name@7.0.2: {}
 
-  vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0):
+  vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -4865,11 +4885,12 @@ snapshots:
       esbuild: 0.28.2
       fsevents: 2.3.3
       jiti: 2.7.0
+      tsx: 4.23.15
 
-  vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)):
+  vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
     dependencies:
       '@vitest/expect': 4.1.12
-      '@vitest/mocker': 4.1.12(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))
+      '@vitest/mocker': 4.1.12(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
       '@vitest/pretty-format': 4.1.12
       '@vitest/runner': 4.1.12
       '@vitest/snapshot': 4.1.12
@@ -4886,7 +4907,7 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tinyrainbow: 3.2.0
-      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)
+      vite: 8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.20.5
@@ -4948,11 +4969,11 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261118.1
       '@cloudflare/workerd-windows-64': 1.20261118.1
 
-  wrangler@4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0))):
+  wrangler@4.165.0(@types/node@22.20.5)(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.1
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261118.1)
-      '@cloudflare/workers-utils': 0.55.0(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)))
+      '@cloudflare/workers-utils': 0.55.0(vitest@4.1.12(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
       '@cspotcode/source-map-support': 0.8.1
       '@types/yargs': 17.0.24
       cloudflare: 5.2.0

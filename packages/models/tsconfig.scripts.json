@@ -1,0 +1,8 @@
+{
+  // scripts/ runs in Node with tsx.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["scripts"]
+}
