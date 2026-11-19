@@ -1,0 +1,9 @@
+{
+  // Node scripts (scripts/) and the model contract tests (test/model-contract/).
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.scripts.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": ["scripts", "test/model-contract", "vitest.s2.config.ts"]
+}

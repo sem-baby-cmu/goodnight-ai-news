@@ -41,6 +41,15 @@ export default defineConfig(async () => ({
           include: ["src/**/*.test.tsx"],
         },
       },
+      {
+        // Model contract tests of the recorded S2 fixtures (R46). Node only,
+        // no network. s2.test.ts runs under vitest.s2.config.ts instead.
+        test: {
+          name: "model-contract",
+          environment: "node",
+          include: ["test/model-contract/fixtures.test.ts"],
+        },
+      },
     ],
   },
 }));

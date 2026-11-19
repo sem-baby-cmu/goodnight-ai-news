@@ -23,3 +23,6 @@ playwright-report/
 
 # Asset pipeline build output (AGENTS.md section 9).
 tools/assets/out/
+
+# S2 input texts: full news articles, never committed (#26)
+apps/storybook/.s2/
