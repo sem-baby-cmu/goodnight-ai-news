@@ -31,18 +31,21 @@ child can look at, listen to, and touch.
 1. **Production run.** The Studio starts a run from a news text. A durable
    workflow makes a story script, one scene per page, and narration audio for
    each page. The result is a draft.
-2. **Storybook DSL.** Each page is data: narration, background, layers
-   (characters and props), animations, and tap interactions. The DSL does not
-   depend on a renderer.
+2. **Storybook DSL.** Each page is data: narration, a backdrop (a painted
+   full-frame background from the registry) with its sky palette, layers
+   (characters and props), animations, and tap interactions (ADR 0016). The
+   DSL does not depend on a renderer.
 3. **Character registry.** All 13 Producer characters, their props, and their
    poses and expressions are rows in the database with versioned asset files.
    A character can be replaced by a new version without code changes.
+   Backdrops are registry assets in the same way.
 4. **Studio.** Shows run progress and every page. The operator can change the
-   narration, the layout template, the characters, their pose and expression,
-   props, animations, and taps. The operator can regenerate one page scene or
+   narration, the layout template, the backdrop, the characters, their pose
+   and expression, props, animations, and taps. The operator can regenerate one page scene or
    one page audio. The operator publishes a draft.
 5. **Player.** Reads one immutable release. Shows pages with animation, plays
-   narration, and responds to taps.
+   narration, and responds to taps. The narration is below the picture, and a
+   page turns like paper (ADR 0016).
 
 ## User Stories
 
@@ -92,8 +95,14 @@ child can look at, listen to, and touch.
 - [ ] Publishing writes a release under a new R2 prefix and changes no earlier
       release. The Player of release 1 shows the same content after release 2
       is published.
-- [ ] A published release contains copies of the character asset versions it
-      uses.
+- [ ] A published release contains copies of the asset versions it uses,
+      including the backdrop of each page.
+- [ ] Every page scene names a backdrop that has a variant for the page's sky
+      palette.
+- [ ] In the Player, the narration is below the stage in portrait and in
+      landscape, and a page turn shows a page-turn transition (a cross-fade
+      with reduced motion). The narration of the new page starts in the tap
+      handler.
 - [ ] The Player works in current Safari on iPad and iPhone, and in current
       Chrome on Android.
 - [ ] `/studio` and the Studio API are behind Cloudflare Access. The Player is
@@ -117,6 +126,7 @@ child can look at, listen to, and touch.
   is 33 ms or less. A page's assets load in 2 s or less on a 4G connection.
 - **Assets.** SVG is the target format for characters and props. A transparent
   WebP is allowed while an SVG version is not ready. The renderer supports
-  both.
+  both. A painted backdrop is a WebP of 2400 x 1200 px; the code-made backdrop
+  is SVG (ADR 0016).
 - **Privacy.** No child data is stored on a server.
 - **IDs.** All system IDs are UUID version 7 (ADR 0007).

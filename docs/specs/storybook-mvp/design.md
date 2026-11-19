@@ -20,14 +20,15 @@ Five parts:
 | :-- | :-- |
 | Durable Workflow | Runs the production steps with retries. One instance per run. |
 | Storybook DSL | Zod schemas for every stage output and for releases. |
-| Asset pipeline and registry | Turns the Producer boards into versioned character, prop, and scenery assets, plus a small sound set, and lists them in D1. |
+| Asset pipeline and registry | Turns the Producer boards into versioned character, prop, scenery, and backdrop assets, plus a small sound set, and lists them in D1. |
 | Studio | Starts runs, edits pages, regenerates one page target, publishes. |
 | Player | Reads one release and plays it. |
 
 Five rules hold from the first version:
 
-1. **Models choose, code places.** A model picks a layout template and puts
-   registry keys into its slots. Code computes positions and checks them.
+1. **Models choose, code places.** A model picks a layout template and a
+   backdrop, and puts registry keys into the slots. Code computes positions
+   and checks them.
    Code, not the model, creates every ID.
 2. **Failure goes to a person.** A page that still fails after one repair is
    kept with its errors and marked `needs_review`. Nothing is dropped or
@@ -324,10 +325,16 @@ missing a current scene, and the operator regenerates it.
 
 ### 4. Layout engine (`packages/layout`)
 
-Narration is HTML outside the stage: below it in portrait, beside it in
-landscape (Producer guideline). The stage image never carries text. The text
-of a `show_bubble` action is an HTML element over the stage. It is not part
-of the stage image.
+Narration is HTML outside the stage, below it in portrait and in landscape
+(owner decision 2026-11-19, ADR 0016). The stage image never carries text. The
+text of a `show_bubble` action is an HTML element over the stage. It is not
+part of the stage image.
+
+**Backdrop.** Every page has one backdrop (ADR 0016): a painted full-frame
+background from the registry, below every layer. It is not a layer and has no
+slot. Every backdrop fits every template; the art contract in "8. Asset
+pipeline" keeps the character zone clear. The layout engine places layers as
+before and does not read the backdrop.
 
 A layout template is data:
 
@@ -394,9 +401,15 @@ Q14).
 ```
 
 - The stage is 1600 × 1200 units, scaled to the container with CSS.
+- **Backdrop.** The backdrop variant (`backdrop`, `sky`) is the bottom
+  element. Its file is 2400 × 1200 units: the stage in the middle and 400
+  units of bleed on each side. In the Player, the stage keeps 4:3 and the
+  bleed fills a wider container; a narrower container crops the bleed. Layers
+  are never placed in the bleed. In edit mode, the Studio shows the stage
+  only.
 - `svg` and `svg-rig` assets are inlined. `webp` assets are `<img>` elements.
-- A paper texture image covers the whole stage with `mix-blend-mode: multiply`.
-  No per-layer SVG filters.
+- A paper texture image covers the backdrop and the stage with
+  `mix-blend-mode: multiply`. No per-layer SVG filters.
 - Animations use the Web Animations API on the layer element, or on named
   parts of an `svg-rig` asset (`part-eyes`, `part-arm-left`, ...).
 - `prefers-reduced-motion` turns looping animations off.
@@ -405,6 +418,22 @@ Q14).
   handler sets the new `src` and calls `play()` in the same handler, because
   iOS Safari blocks `play()` outside a user gesture. Sound effects use a
   second shared element, unlocked the same way.
+- **Page turn** (ADR 0016). A tap on "next" or "previous" turns the page:
+  - The page (stage, backdrop, and narration) turns like paper: a forward
+    turn rotates the old page about its left edge and shows the new page
+    below it; a backward turn runs the other way. 500 ms, `transform` and
+    `opacity` only, no filters. The frame time target applies during the
+    turn.
+  - The tap handler sets the new audio `src` and calls `play()` at once. It
+    does not wait for the turn to end.
+  - Looping animations of the old page stop when the turn starts. `enter`
+    animations of the new page start when the turn ends.
+  - A tap during a turn ends that turn at once and starts the next one.
+  - With `prefers-reduced-motion`, the turn is a 200 ms cross-fade.
+  - After a page is shown, the Player loads the assets of the next page. If
+    a page is shown before its assets are loaded, its narration text and the
+    paper colour show at once, and each image fades in (200 ms) when it is
+    loaded.
 - Edit mode adds selection boxes and drag handles. Play mode adds tap handling.
 
 Animation primitives (closed list). Validation rejects a primitive on a layer
@@ -449,7 +478,7 @@ Studio routes are behind Cloudflare Access.
 | `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Body `{ basedOn, textBasedOn }`. `textBasedOn` is the `page_text` revision that the operator saw. Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. Checks in this order, and saves nothing when one fails: 409 if the `scene` head moved since `basedOn`; 409 `head_moved` if the `page_text` head is not `textBasedOn`; 409 if the current scene head has `status = needs_review`; then the copied scene is validated again, and 422 `invalid_scene` with the error list if it fails. The validation runs the same checks as `PUT .../scene` (enum rules, zod rules, layout checks) with the active registry versions at the time of the request; a manual `at` is not shrunk. The new revision records those versions in `asset_versions` (owner decision Q3). |
 | `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. It also takes `{ scope: { kind: "full" } }`, but only when the story has no `outline` head (the `script` step never succeeded) and no run of the story is `queued` or `running`; otherwise 409 `full_run_not_allowed`. A page run is refused with 409 `run_active` and the `runId` of the active run while a run of the story is `queued` or `running` (amendment R61). The check and the run insert are one statement (`INSERT ... SELECT ... WHERE NOT EXISTS (...)`). A failed page step is fixed with a page run. |
 | `POST /api/studio/stories/:id/releases` | Publishes the current heads. 409 with a list of blocking pages and reasons. |
-| `GET /api/studio/registry` | Active assets, sounds, and templates. |
+| `GET /api/studio/registry` | Active assets (with backdrops), sounds, and templates. |
 | `GET /api/studio/files/*` | Serves registry assets and draft audio from R2 to the Studio. Only keys under `assets/` and `calls/`. A key that does not start with `assets/` or `calls/`, or that has a `..` segment, gives 404 `{ error: "not_found" }`, the same as a missing object. |
 | `GET /content/releases/:releaseId/*` | Public. Serves `releases/<releaseId>/*` from R2 with `Cache-Control: public, max-age=31536000, immutable`, only when a `release` row with that ID exists. Answers a `Range` request with 206. |
 
@@ -504,10 +533,30 @@ Offline Node.js scripts, run by the developer.
 | Measure | Alpha bounds, foot point (lowest opaque row, centre), face box (from the crop map) | Values for the registry manifest |
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
 | Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
+| Code backdrop | The backdrop `meadow` drawn in code: sky colour and three hills, one SVG per sky palette (all 4) | `backdrop` asset, renderer `svg` |
+| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP of at most 250 KB per file | `backdrop` asset, renderer `webp` |
+| Backdrop review | A sheet per backdrop variant with the slot boxes of all templates drawn over it. A person approves it before publish | `tools/assets/out/review/` |
 | Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows. One (`key`, `version`) always holds the same bytes (R65): publish compares the file digests, renderer and manifest of an existing version, and any difference is an error, never a skip | Registry rows |
 
 All 13 characters get WebP cut-outs. Pip gets a rigged SVG in S1. Other
 characters move to SVG later, one at a time, as a new asset version.
+
+**Backdrop art contract** (ADR 0016). The values come from the character
+slots of the 8 templates in `packages/layout/src/templates.ts` (foot points
+x 360 to 1240 and y 960 to 1200, heights up to 900 units). In stage units of
+the 1600 × 1200 middle part:
+
+- The floor band, x 200 to 1400 and y 940 to 1200, is open ground or floor.
+  No painted object stands in it.
+- Above the floor band, painted objects in x 200 to 1400 are far behind the
+  characters, end at y 940 or higher, and are not needed for the story.
+- No painted text, no characters, no animals that look like a cast member.
+- Each variant has the same layout; only the light and colour change.
+- The style follows the Producer illustration guideline (painted paper,
+  hand-cut shapes).
+
+The 250 KB file budget is a proposal. The device test checks it against the
+4G load target ("Testing Strategy").
 
 ## Data Models
 
@@ -517,12 +566,12 @@ All IDs are UUID version 7, lower case (ADR 0007).
 
 | Table | Columns | Notes |
 | :-- | :-- | :-- |
-| `asset` | `id`, `key` (unique, for example `pip`), `kind` (`character`, `prop`, `scenery`, `sfx`), `name`, `created_at` | One row per asset. |
+| `asset` | `id`, `key` (unique, for example `pip`), `kind` (`character`, `prop`, `scenery`, `backdrop`, `sfx`), `name`, `created_at` | One row per asset. |
 | `asset_version` | `id`, `asset_id`, `version`, `renderer` (`svg-rig`, `svg`, `webp`, `audio`), `manifest` (JSON), `files` (JSON: file name to lower-case SHA-256 hex; null for a row published before R65), `r2_prefix`, `active`, `created_at` | Unique `(asset_id, version)`. One active version per asset. A version with `files` null cannot be published again; publish a new version (R65). |
 | `story` | `id`, `title`, `status` (`draft`, `published`; becomes `published` with the first release pointer update and never goes back), `heads` (JSON, starts `{ source }`), `heads_version` (integer, starts 0), `published_release_id`, `created_at` | `heads` maps `<kind>` or `<kind>:<pageId>` to a revision ID. |
 | `run` | `id`, `story_id`, `scope` (JSON), `status`, `basis` (JSON), `registry` (JSON), `workflow_instance_id`, `error` (JSON), `created_at`, `finished_at` | Status: `queued`, `running`, `draft_ready`, `needs_review`, `failed`. |
 | `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `expected_heads` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` and `expected_heads` are read at the first attempt; a retry reuses them. `expected_heads` maps each key that the step moves to its head at that moment (`null` for none; `{}` when the step moves no key) (R58). For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
-| `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique index on `(call_id, kind, page_id)`, with no `WHERE`. SQLite treats every NULL as distinct, so human revisions (`call_id` null) never conflict. No code orders revisions by `id`: UUID v7 order is not creation order across isolates (R58). `asset_versions` maps each asset key that a `scene` revision uses to its version (Q3). |
+| `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique index on `(call_id, kind, page_id)`, with no `WHERE`. SQLite treats every NULL as distinct, so human revisions (`call_id` null) never conflict. No code orders revisions by `id`: UUID v7 order is not creation order across isolates (R58). `asset_versions` maps each asset key that a `scene` revision uses (its layers and its backdrop) to its version (Q3). |
 | `release` | `id`, `story_id`, `number`, `manifest_key`, `snapshot` (JSON of revision IDs), `created_at` | Unique `(story_id, number)`. |
 
 ### Asset manifest (`asset_version.manifest`)
@@ -536,6 +585,12 @@ type AssetManifest =
       legal: Array<{ pose: string; expression: string }>;
       flippable: boolean;
       parts?: string[];                             // svg-rig only
+    }
+  | {
+      kind: "backdrop";
+      description: string;                          // one line for the model, for example "a meadow by a small river"
+      size: { width: 2400; height: 1200 };          // stage units; the stage is the middle 1600
+      variants: Array<{ sky: PaletteId; file: string }>; // at least one; one per palette at most
     }
   | { kind: "sfx"; file: string; durationMs: number };
 ```
@@ -554,7 +609,8 @@ type PageText = { text: string };    // 1 to 3 sentences, at most 40 words
 
 type PageScene = {
   templateId: string;
-  sky: PaletteId;
+  backdrop: string;                  // asset key of a backdrop (ADR 0016)
+  sky: PaletteId;                    // picks the variant of the backdrop
   layers: Layer[];                   // scenery, props, and characters
   animations: Animation[];
   interactions: Interaction[];
@@ -595,7 +651,8 @@ code assigns `instanceId` values and rewrites `target` and `on.tap`.
 
 The JSON schema sent to the model is built at run time from the frozen
 registry and the template list. `ref`, `pose`, `expression`, `slot`, `sfx`,
-and `templateId` are enums in that schema. An operator's scene does not pass
+`backdrop`, and `templateId` are enums in that schema. The prompt gives the
+model the `description` of each backdrop and the palettes that it has. An operator's scene does not pass
 through that schema, so the API also checks the same enums in code. For an
 operator's scene, the enums use the active registry versions at the time of
 the request (owner decision Q3). A `scene` revision records the versions that
@@ -607,6 +664,8 @@ Zod validation then checks what a JSON schema cannot:
 
 - every pose and expression pair is legal for its character;
 - each layer's `kind` matches its slot's `accepts`;
+- the backdrop has a variant for the page's `sky`
+  (`backdrop_sky_mismatch`, ADR 0016);
 - `flip` is set only on flippable assets;
 - every primitive and action is allowed for the target's renderer;
 - every `target` names an existing layer;
@@ -662,7 +721,7 @@ type ReleasePage = {
   audio: string;                     // relative path
   scene: PageScene;                  // every layer has `at`
   assets: Record<string, { renderer: string; manifest: AssetManifest; base: string }>;
-  // includes the sfx assets used by the page
+  // includes the backdrop and the sfx assets used by the page
 };
 ```
 
@@ -699,12 +758,12 @@ status. Logs do not contain the full news text or model output.
 
 | Level | Tool | What it covers |
 | :-- | :-- | :-- |
-| Unit | Vitest | DSL validation (legal pairs, slot kinds, renderer rules for primitives and actions, targets, flip); JSON schema builder from a registry fixture; layout placement, the three checks, and shrinking; staleness from basis; manifest builder. |
+| Unit | Vitest | DSL validation (legal pairs, slot kinds, renderer rules for primitives and actions, targets, flip, backdrop and sky pair); JSON schema builder from a registry fixture; layout placement, the three checks, and shrinking; staleness from basis; manifest builder. |
 | Worker integration | Vitest with `@cloudflare/vitest-plugin` (the new name of `@cloudflare/vitest-pool-workers`), local D1 and R2, stub model adapter that counts calls | See the sequences below. |
 | Model contract | Recorded model outputs as fixtures | Real outputs from S2 stay as fixtures; schema changes must keep them valid or update them on purpose. |
 | Product premise (S2) | Real models, 3 real news texts | At least 90% of pages pass validation and layout with at most one repair. This is the test that a stub cannot replace. |
-| Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render; taps fire actions; reduced motion stops loops; audio starts on "Start" and continues on each page turn. |
-| Device | Manual, on a real phone and tablet | Frame time p95 on an animated page (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. Recorded in the S1 and TB3 results. |
+| Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render with their backdrop and the narration below the stage; taps fire actions; reduced motion stops loops and makes the page turn a cross-fade; audio starts on "Start" and continues on each page turn; a tap during a turn starts the next turn. |
+| Device | Manual, on a real phone and tablet | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. Recorded in the S1 and TB3 results. |
 
 Integration sequences (each asserts both the revisions and `story.heads`):
 
@@ -736,7 +795,9 @@ Acceptance criteria to tests:
 | Late result does not replace the operator's work | Integration, edit during run |
 | Page 3 text change regenerates only page 3 audio | Integration, page run |
 | Publish blocked on missing, `needs_review`, or stale | Integration, TTS failure and stale scene |
-| Releases do not change; release contains its assets | Integration, publish twice; list R2 prefix |
+| Releases do not change; release contains its assets, with the backdrop | Integration, publish twice; list R2 prefix |
+| Every scene names a backdrop that has a variant for its sky | Unit (DSL validation) and integration |
+| Narration below the stage; page-turn transition | Renderer test |
 | Safari and Chrome on phones and tablets | Renderer and device tests |
 | Assets load in 2 s on 4G | Device test |
 | Studio behind Access | Manual check after deploy: `/studio`, `/studio/x`, `/api/studio/x` all ask for login; `/read/x` does not |

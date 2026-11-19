@@ -204,6 +204,12 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Then the API returns 503 `busy`; the human revision is kept, and the head does not move
 - Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
+### EDT-03.S23 The operator changes the backdrop of a page
+- Given a page whose scene uses the backdrop `meadow`
+- When the operator saves the scene with another backdrop that has a variant for the page's `sky`
+- Then the scene is validated, laid out, and saved as a human `scene` revision; its `asset_versions` records the active version of the new backdrop
+- Test: spec (to implement)
+
 ## EDT-04 A late result does not replace the operator's work
 
 As the operator, I want my edit to stay when a run finishes later, so that a

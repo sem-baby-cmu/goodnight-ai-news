@@ -6,20 +6,21 @@ Then scenarios. A refinement, a test, and a review name a scenario by its ID.
 The stories add no behaviour. Every expected value comes from
 [`requirements.md`](../specs/storybook-mvp/requirements.md),
 [`design.md`](../specs/storybook-mvp/design.md), or
-[ADR 0015](../adr/0015-storybook-mvp-reset.md). If a story and the spec
+[ADR 0015](../adr/0015-storybook-mvp-reset.md) and
+[ADR 0016](../adr/0016-backdrops-page-turn.md). If a story and the spec
 disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 
 ## Files
 
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
-| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 52 |
-| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 30 |
-| [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 16 |
-| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 3 | 15 |
-| [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 11 |
+| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
+| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 32 |
+| [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 17 |
+| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 4 | 22 |
+| [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 13 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 21 |
-| Total | | | 22 | 145 |
+| Total | | | 23 | 160 |
 
 ## Format
 

@@ -64,6 +64,12 @@ Spec: requirements US-4, AC-10, AC-11 · design "7. Publish", "Release layout (R
 - Then the release prefix holds a copy of version `n` and of version `n + 1` under `assets/<key>/v<n>/`, and each page uses the version that its scene revision records
 - Test: spec (to implement)
 
+### PUB-01.S10 A release holds the backdrop of each page
+- Given a draft whose scenes use two backdrops
+- When the operator publishes the draft
+- Then the release prefix holds a copy of each backdrop version that a snapshot `scene` revision records, and each release page lists its backdrop in `assets`
+- Test: spec (to implement)
+
 ## PUB-02 Publishing is blocked while a page is not ready
 
 As the operator, I want publishing blocked while a page is incomplete, so
