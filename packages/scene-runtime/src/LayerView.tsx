@@ -1,5 +1,5 @@
 import { type Layer, type PoseEntry, selectPoseEntry } from "@storybook/dsl";
-import { type CSSProperties, type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, type KeyboardEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { sanitizeSvg } from "./sanitizeSvg";
 import type { AssetResolver, LayerState, ResolvedAsset } from "./types";
 
@@ -13,7 +13,13 @@ type Props = {
   tappable: boolean;
   onTap(instanceId: string): void;
   register(instanceId: string, nodes: LayerNodes | null): void;
+  // A new inlined SVG node (or null when it is removed). Inserting it makes
+  // the layer ready.
   onSvg(instanceId: string, svg: SVGSVGElement | null): void;
+  // The WebP image loaded (ready) or is about to change (not ready).
+  onReady(instanceId: string, ready: boolean): void;
+  // The asset failed. `shownPose` is the pose still on screen, if any.
+  onAssetFailed(instanceId: string, url: string, reason: string, shownPose: string | undefined): void;
 };
 
 const ORIGIN: CSSProperties = { transformOrigin: "0 0", pointerEvents: "none" };
@@ -27,18 +33,30 @@ export function entryFor(asset: ResolvedAsset, state: LayerState): PoseEntry | u
 
 // One layer in the DOM shape of invariant 2:
 // .sv-layer > .sv-loop > .sv-once > .sv-asset > img | svg
-export function LayerView({ layer, asset, state, assets, tappable, onTap, register, onSvg }: Props) {
+// SceneView keys it by instanceId and ref, so a new asset mounts a new view.
+export function LayerView(props: Props) {
+  const { layer, asset, state, assets, tappable, onTap, register, onSvg, onReady, onAssetFailed } = props;
   const { instanceId, ref, at } = layer;
+  // Ids inside the SVG are unique per mount, also across two SceneViews of
+  // one page in one document.
+  const idSuffix = `${instanceId}-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
   const rootRef = useRef<HTMLDivElement>(null);
   const loopRef = useRef<HTMLDivElement>(null);
   const onceRef = useRef<HTMLDivElement>(null);
   const assetRef = useRef<HTMLDivElement>(null);
   const entry = entryFor(asset, state);
-  const inline = asset.renderer === "svg" || asset.renderer === "svg-rig";
+  // Effects depend on the renderer string, not on the asset object: the
+  // resolver may return a new object on every render.
+  const renderer = asset.renderer;
+  const inline = renderer === "svg" || renderer === "svg-rig";
   const file = entry?.file;
   // The inserted SVG and the entry it shows. A pose swap keeps the old node
-  // (and its foot) until the new file is ready.
+  // (and its foot) until the new file is ready, and keeps it if the new file
+  // fails.
   const [svg, setSvg] = useState<{ node: SVGSVGElement; entry: PoseEntry } | null>(null);
+  const shownPose = useRef<string | undefined>(undefined);
+  shownPose.current = svg?.entry.id;
+  const [failedImage, setFailedImage] = useState<string | null>(null);
 
   useLayoutEffect(() => {
     register(instanceId, { root: rootRef.current!, loop: loopRef.current!, once: onceRef.current! });
@@ -49,28 +67,25 @@ export function LayerView({ layer, asset, state, assets, tappable, onTap, regist
     if (!entry) console.warn(`scene-runtime: layer ${instanceId} has no pose entry for "${state.pose}"; skipped`);
   }, [entry, instanceId, state.pose]);
 
+  // Load and sanitise the SVG file. The file decides the load.
   useEffect(() => {
-    if (!inline || !entry) return;
+    if (!inline || !entry || svg?.entry.file === entry.file) return;
     let live = true;
-    assets.svgText(ref, entry.file).then(
-      (text) => {
-        if (!live) return;
-        const node = sanitizeSvg(text, instanceId);
-        if (!node) {
-          console.warn(`scene-runtime: layer ${instanceId}: ${ref}/${entry.file} is not a valid SVG; skipped`);
-          return;
-        }
-        setSvg({ node, entry });
-      },
-      () => {
-        if (live) console.warn(`scene-runtime: layer ${instanceId}: ${ref}/${entry.file} could not be loaded; skipped`);
-      },
-    );
+    const url = assets.url(ref, entry.file);
+    const fail = (reason: string) => {
+      if (live) onAssetFailed(instanceId, url, reason, shownPose.current);
+    };
+    assets.svgText(ref, entry.file).then((text) => {
+      if (!live) return;
+      const node = sanitizeSvg(text, idSuffix);
+      if (node) setSvg({ node, entry });
+      else fail("is not a valid SVG");
+    }, () => fail("could not be loaded"));
     return () => {
       live = false;
     };
-    // The file decides the load; `entry` is a new object per render.
-  }, [inline, ref, file, instanceId, assets]);
+    // `entry` and `svg` are read for the file only, so they are not deps.
+  }, [inline, ref, file, instanceId, assets, idSuffix, onAssetFailed]);
 
   // Insert the sanitised node with appendChild (invariant 5).
   useLayoutEffect(() => {
@@ -78,27 +93,27 @@ export function LayerView({ layer, asset, state, assets, tappable, onTap, regist
     if (!svg || !host) return;
     const { node } = svg;
     // R63: an inline svg clips at its viewBox; a wave can reach past it.
-    if (asset.renderer === "svg-rig") node.style.overflow = "visible";
+    if (renderer === "svg-rig") node.style.overflow = "visible";
     host.appendChild(node);
+    applyExpression(node, renderer, state.expression);
     onSvg(instanceId, node);
     return () => {
       onSvg(instanceId, null);
       node.remove();
     };
-  }, [svg, asset.renderer, instanceId, onSvg]);
+    // The expression effect below follows later expression changes.
+  }, [svg, renderer, instanceId, onSvg]);
 
-  // svg-rig expression: show only expr-<expression>.
+  // svg-rig expression changes after insertion.
   useLayoutEffect(() => {
-    if (!svg || asset.renderer !== "svg-rig" || state.expression === undefined) return;
-    const show = `expr-${state.expression}`;
-    for (const el of Array.from(svg.node.querySelectorAll<SVGElement>("[class]"))) {
-      const classes = Array.from(el.classList);
-      if (!classes.some((c) => c.startsWith("expr-"))) continue;
-      // R64: always an explicit inline value. Clearing it would leave an
-      // authored display="none" attribute in force.
-      el.style.display = classes.includes(show) ? "inline" : "none";
-    }
-  }, [svg, asset.renderer, state.expression]);
+    if (svg) applyExpression(svg.node, renderer, state.expression);
+  }, [svg, renderer, state.expression]);
+
+  // A new WebP file is not ready until it loads.
+  useLayoutEffect(() => {
+    if (asset.renderer !== "webp") return;
+    onReady(instanceId, false);
+  }, [asset.renderer, file, instanceId, onReady]);
 
   const shown = inline ? (svg?.entry ?? entry) : entry;
   const s = at.scale;
@@ -122,6 +137,7 @@ export function LayerView({ layer, asset, state, assets, tappable, onTap, regist
         },
       }
     : {};
+  const imageUrl = asset.renderer === "webp" && entry ? assets.url(ref, entry.file) : null;
 
   return (
     <div
@@ -140,12 +156,17 @@ export function LayerView({ layer, asset, state, assets, tappable, onTap, regist
       <div ref={loopRef} className="sv-loop" style={ORIGIN}>
         <div ref={onceRef} className="sv-once" style={ORIGIN}>
           <div ref={assetRef} className="sv-asset" style={assetStyle} {...tapProps}>
-            {asset.renderer === "webp" && entry ? (
+            {imageUrl && failedImage !== imageUrl ? (
               <img
-                src={assets.url(ref, entry.file)}
+                src={imageUrl}
                 alt=""
                 draggable={false}
                 style={{ display: "block", maxWidth: "none", width: "auto", height: "auto" }}
+                onLoad={() => onReady(instanceId, true)}
+                onError={() => {
+                  setFailedImage(imageUrl);
+                  onAssetFailed(instanceId, imageUrl, "could not be loaded", undefined);
+                }}
               />
             ) : null}
           </div>
@@ -153,4 +174,18 @@ export function LayerView({ layer, asset, state, assets, tappable, onTap, regist
       </div>
     </div>
   );
+}
+
+// svg-rig expression (R64): every expr-* element gets an explicit inline
+// value, "inline" for the chosen expression and "none" for the others.
+// Clearing it would leave an authored display="none" attribute in force.
+// Without an expression, the SVG stays as authored.
+function applyExpression(node: SVGSVGElement, renderer: ResolvedAsset["renderer"], expression: string | undefined): void {
+  if (renderer !== "svg-rig" || expression === undefined) return;
+  const show = `expr-${expression}`;
+  for (const el of Array.from(node.querySelectorAll<SVGElement>("[class]"))) {
+    const classes = Array.from(el.classList);
+    if (!classes.some((c) => c.startsWith("expr-"))) continue;
+    el.style.display = classes.includes(show) ? "inline" : "none";
+  }
 }

@@ -20,9 +20,9 @@ const REMOVED = new Set(
 );
 
 const XLINK = "http://www.w3.org/1999/xlink";
-// url(...) that does not point at a local fragment.
+// url(...) that does not point at a local fragment, in any letter case.
 const EXTERNAL_URL = /url\(\s*(?!['"]?\s*#)/i;
-const LOCAL_URL = /url\(\s*(['"]?)\s*#([^'")\s]+)\s*\1\s*\)/g;
+const LOCAL_URL = /url\(\s*(['"]?)\s*#([^'")\s]+)\s*\1\s*\)/gi;
 
 export function sanitizeSvg(text: string, idSuffix: string): SVGSVGElement | null {
   const doc = new DOMParser().parseFromString(text, "image/svg+xml");
@@ -30,7 +30,8 @@ export function sanitizeSvg(text: string, idSuffix: string): SVGSVGElement | nul
   if (doc.getElementsByTagName("parsererror").length > 0 || root.localName !== "svg") return null;
 
   const box = (root.getAttribute("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
-  if (box.length !== 4 || box.some((n) => !Number.isFinite(n)) || box[0] !== 0 || box[1] !== 0) return null;
+  const [x, y, w, h] = box as [number, number, number, number];
+  if (box.length !== 4 || box.some((n) => !Number.isFinite(n)) || x !== 0 || y !== 0 || w <= 0 || h <= 0) return null;
 
   for (const el of Array.from(root.querySelectorAll("*"))) {
     if (REMOVED.has(el.localName.toLowerCase())) el.remove();
@@ -56,15 +57,16 @@ export function sanitizeSvg(text: string, idSuffix: string): SVGSVGElement | nul
         else el.removeAttributeNode(attr);
       } else if (name === "id") {
         attr.value = scope(value);
-      } else if (name === "style" && EXTERNAL_URL.test(value)) {
+      } else if (EXTERNAL_URL.test(value)) {
+        // Any attribute, not only `style`: an external url() can fetch.
         el.removeAttributeNode(attr);
-      } else if (value.includes("url(")) {
+      } else if (/url\(/i.test(value)) {
         attr.value = value.replace(LOCAL_URL, (_m, _q, id: string) => `url(#${scope(id)})`);
       }
     }
   }
 
-  root.setAttribute("width", String(box[2]));
-  root.setAttribute("height", String(box[3]));
+  root.setAttribute("width", String(w));
+  root.setAttribute("height", String(h));
   return root as unknown as SVGSVGElement;
 }
