@@ -38,7 +38,7 @@ Spec: requirements US-7, "Core Features" 3 · design "2. StoryRun Workflow", "8.
 - Given a registry with assets, sounds, and templates
 - When the Studio sends `GET /api/studio/registry`
 - Then the response has the active assets, sounds, and templates
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### REG-01.S6 A page run after a new version uses the new version
 - Given a draft whose scenes were made with version `n` of an asset, and version `n + 1` is now active

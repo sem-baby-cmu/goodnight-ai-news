@@ -76,13 +76,13 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - Given a draft where TTS failed for page 5
 - When the operator publishes
 - Then the API returns 409 with "page 5: missing audio"
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/api.e2e.test.ts
 
 ### PUB-02.S2 A page without a text or a scene head blocks publishing
 - Given a draft where one page has no `page_text` head or no `scene` head
 - When the operator publishes
 - Then the API returns 409, and the list names that page and the reason
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### PUB-02.S3 A `needs_review` head blocks publishing
 - Given a draft where one head of a page has `status = needs_review`
@@ -94,7 +94,7 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - Given a draft where the text of a page changed after its audio was made
 - When the operator publishes
 - Then the API returns 409, and the list names that page and the reason
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### PUB-02.S5 A stale scene blocks publishing
 - Given a draft where the text of a page changed after its scene was made
@@ -103,13 +103,13 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - Test: @storybook/app · apps/storybook/worker/publish/publish.test.ts
 
 ### PUB-02.S6 "Still fits" unblocks a stale scene
-- Given a draft whose only blocking reason is one stale scene, and a "still fits" copy of that scene that passed its checks
+- Given a draft where page 2 text changed, page 2 audio regenerated, the only blocking reason is one stale scene, and a "still fits" copy of that scene that passed its checks
 - When the operator marks that scene "still fits" and publishes
 - Then publishing succeeds, and the scene revision in the release is the human copy
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/api.e2e.test.ts
 
 ### PUB-02.S7 The answer lists every blocking page
 - Given a draft with more than one blocking page
 - When the operator publishes
 - Then the API returns 409 with the list of the blocking pages and their reasons
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
