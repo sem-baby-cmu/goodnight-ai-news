@@ -5,7 +5,7 @@ import { newCall, newStory } from "../test/fixtures";
 import { getDb } from "./client";
 import { newId } from "./ids";
 import { insertRevisions } from "./revisions";
-import { revision } from "./schema";
+import { type NewRevision, revision } from "./schema";
 
 describe("revisions", () => {
   it("SYS-02.S1 insertRevisions: a retried insert returns the original id and adds no row", async () => {
@@ -29,7 +29,7 @@ describe("revisions", () => {
     const callId = await newCall(db, runId, "script");
     const basis = { source: sourceRevisionId };
     const pages = Array.from({ length: 8 }, () => newId());
-    const rows = [
+    const rows: NewRevision[] = [
       { storyId, kind: "outline" as const, origin: "ai" as const, callId, status: "ok" as const, basis, content: {} },
       ...pages.map((pageId) => ({
         storyId,
