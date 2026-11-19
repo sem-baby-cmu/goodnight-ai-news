@@ -56,6 +56,7 @@ highlighting, content safety and copyright policy, user accounts, export.
 | :-- | :-- |
 | [`docs/specs/storybook-mvp/requirements.md`](docs/specs/storybook-mvp/requirements.md) | MVP scope, user stories, acceptance criteria |
 | [`docs/specs/storybook-mvp/design.md`](docs/specs/storybook-mvp/design.md) | Architecture, workflow steps, DSL, data model, error handling, tests |
+| [`docs/user-stories/`](docs/user-stories/README.md) | Behaviour as stories and Given / When / Then scenarios; each scenario names its test |
 | [`docs/adr/`](docs/adr/README.md) | Architecture decision records; ADR 0015 is the current baseline |
 | [`DESIGN.md`](DESIGN.md) | Front-end tokens: palette, type, buttons, motion (its three.js section is superseded by ADR 0015) |
 | [`TASTES.md`](TASTES.md) | Aesthetic rules for people and agents |

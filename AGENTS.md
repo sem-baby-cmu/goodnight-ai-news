@@ -15,9 +15,10 @@ Read [`README.md`](README.md) first for what the project is.
   asset pipeline reads as its source.
 - [`app/`](app/) is the earlier Worker that is live today. Do not change it
   unless a task says so. It is replaced when the MVP Worker goes live.
-- Order of authority: ADR 0015 and the spec, then tests, then code. If two of
-  them disagree, that is a defect. Decide which side is wrong and correct that
-  side. Do not settle the conflict in code.
+- Order of authority: ADR 0015 and the spec, then the user stories in
+  [`docs/user-stories/`](docs/user-stories/README.md), then tests, then code.
+  If two of them disagree, that is a defect. Decide which side is wrong and
+  correct that side. Do not settle the conflict in code.
 - This file is the only rules file for all agents. Do not add copies such as
   `CLAUDE.md` or `GEMINI.md`.
 - GitHub issues are the only task list. Do not keep a local task file such as
@@ -85,6 +86,9 @@ The users are children ages 5 to 10.
 
 - Every acceptance criterion in the spec maps to a test (see the design
   document, "Testing Strategy").
+- A scenario in `docs/user-stories/` maps to one test. The title of the test
+  starts with the scenario ID. The pull request that adds the test changes
+  the `Test:` line of the scenario.
 - Expected values in a test come from the spec text. They do not come from
   what the code does today.
 - Do not change an expected value to make a test pass. If the spec is wrong,
@@ -186,6 +190,8 @@ spec or ADR -> issue -> refinement -> branch and worktree -> failing test
   in another language. In this repository, they use the English anchors
   above. The other parts of the section follow the `refine-issue` template,
   in English.
+- The acceptance part of a refinement names the scenario IDs from
+  `docs/user-stories/` that the issue covers.
 - The refinement is stale when a row in `### Contract anchors` no longer
   agrees with `origin/main`. Refine the issue again before you start code.
 
