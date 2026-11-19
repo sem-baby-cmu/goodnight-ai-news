@@ -54,7 +54,10 @@ export function layoutScene(
       return add("layout.slot-kind", `Slot "${slot.id}" accepts ${slot.accepts}, not ${layer.kind}.`);
     }
     if (out.layers.slice(0, index).some((earlier) => earlier.slot === layer.slot)) {
-      return add("layout.slot-taken", `Slot "${slot.id}" is already used by an earlier layer.`);
+      add("layout.slot-taken", `Slot "${slot.id}" is already used by an earlier layer.`);
+      // A layer with a manual `at` is still drawn, so it still takes part in
+      // every check (implementation decision R59). Without `at` it stays unplaced.
+      if (layer.at === undefined) return;
     }
     const asset = ctx.registry.assets[layer.ref];
     if (!asset || !LAYER_KINDS.has(asset.manifest.kind)) {
