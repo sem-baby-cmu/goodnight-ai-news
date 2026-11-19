@@ -42,6 +42,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
         local: { type: "boolean", default: false },
         remote: { type: "boolean", default: false },
         only: { type: "string" },
+        "dry-run": { type: "boolean", default: false },
       },
     });
   } catch (e) {
@@ -64,7 +65,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
       return 1;
     }
     const only = values.only === undefined ? undefined : values.only.split(",").map((s) => s.trim()).filter(Boolean);
-    return runPublish({ mode: values.local ? "local" : "remote", only, outDir }, { runWrangler, log: io.log, error });
+    return runPublish({ mode: values.local ? "local" : "remote", only, outDir, dryRun: values["dry-run"] }, { runWrangler, log: io.log, error });
   }
   if (command === "svg") {
     const version = Number(values.version);
@@ -83,7 +84,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
     error("usage: cli <cut|measure> <board> | --all [--propose] [--out <dir>] [--no-review]");
     error("       cli svg <key> --version <n> [--src <dir>] [--out <dir>]");
     error("       cli sfx [--out <dir>]");
-    error("       cli publish --local|--remote [--only <key>@<n>,...] [--out <dir>]");
+    error("       cli publish --local|--remote [--only <key>@<n>,...] [--dry-run] [--out <dir>]");
     return 1;
   }
   if (!values.all && !board) {
