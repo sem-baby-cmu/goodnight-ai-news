@@ -15,6 +15,8 @@
     "@fontsource/kiwi-maru": "catalog:",
     "@fontsource/nunito": "catalog:",
     "@storybook/dsl": "workspace:*",
+    "@storybook/layout": "workspace:*",
+    "@storybook/models": "workspace:*",
     "@tanstack/react-router": "catalog:",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",

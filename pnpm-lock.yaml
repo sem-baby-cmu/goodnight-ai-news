@@ -285,6 +285,12 @@ importers:
       '@storybook/dsl':
         specifier: workspace:*
         version: link:../../packages/dsl
+      '@storybook/layout':
+        specifier: workspace:*
+        version: link:../../packages/layout
+      '@storybook/models':
+        specifier: workspace:*
+        version: link:../../packages/models
       '@tanstack/react-router':
         specifier: 'catalog:'
         version: 1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
