@@ -4,7 +4,8 @@ import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { type Db, getDb } from "../db/client";
 import { newId } from "../db/ids";
-import { saveHumanRevision } from "../db/revisions";
+import { commitHead } from "../db/heads";
+import { insertRevisions, saveHumanRevision } from "../db/revisions";
 import { asset, assetVersion, release, story } from "../db/schema";
 import { movePointer, publishStory } from "./publish";
 import { SCENE_ASSET_VERSIONS, seedPublishableStory, testScene } from "./test/fixtures";
@@ -290,8 +291,53 @@ describe("publishStory: releases", () => {
     const first = await publishStory(env, seeded.storyId);
     const second = await publishStory(env, seeded.storyId);
     if (!first.ok || !second.ok) throw new Error("publish failed");
-    expect(await movePointer(db, seeded.storyId, first.releaseId, 1)).toBe(false);
+    expect(await movePointer(db, seeded.storyId, first.releaseId)).toBe(false);
     expect((await storyRow(db, seeded.storyId)).publishedReleaseId).toBe(second.releaseId);
+  });
+
+  it("movePointer ignores a release of another story", async () => {
+    const db = getDb(env.DB);
+    const a = await seedPublishableStory(env);
+    const b = await seedPublishableStory(env);
+    const c = await seedPublishableStory(env);
+    const releaseA = await publishStory(env, a.storyId);
+    const releaseB = await publishStory(env, b.storyId);
+    if (!releaseA.ok || !releaseB.ok) throw new Error("publish failed");
+    // A published story, and a story with no pointer yet.
+    expect(await movePointer(db, a.storyId, releaseB.releaseId)).toBe(false);
+    expect((await storyRow(db, a.storyId)).publishedReleaseId).toBe(releaseA.releaseId);
+    expect(await movePointer(db, c.storyId, releaseB.releaseId)).toBe(false);
+    const sc = await storyRow(db, c.storyId);
+    expect(sc.publishedReleaseId).toBeNull();
+    expect(sc.status).toBe("draft");
+  });
+
+  it("publish blocks an outline with no pages", async () => {
+    const db = getDb(env.DB);
+    const seeded = await seedPublishableStory(env);
+    const emptyId = newId();
+    await insertRevisions(db, [
+      {
+        id: emptyId,
+        storyId: seeded.storyId,
+        kind: "outline",
+        origin: "human",
+        callId: null,
+        status: "ok",
+        basis: {},
+        content: { title: "Empty", ageBand: "5-7", cast: ["test-bear"], pages: [] },
+      },
+    ]);
+    const moved = await commitHead(db, { storyId: seeded.storyId, moves: { outline: emptyId }, basis: {}, expected: { outline: seeded.outlineId } });
+    expect(moved).toBe("moved");
+    const before = await listKeys("releases/");
+    expect(await publishStory(env, seeded.storyId)).toEqual({
+      ok: false,
+      reason: "blocked",
+      blocking: [{ pageId: null, page: null, target: "outline", reason: "missing", message: "outline has no pages" }],
+    });
+    expect(await listKeys("releases/")).toEqual(before);
+    expect(await releaseRows(db, seeded.storyId)).toEqual([]);
   });
 
   it("PUB-01.S6 a release has a UUID v7 id, a prefix without the story id, and a unique number per story", async () => {
@@ -341,6 +387,52 @@ describe("publishStory: releases", () => {
       expect(page.assets["test-pop"]).toMatchObject({ renderer: "audio", base: "assets/test-pop/v1/" });
       expect(page.assets["test-bear"]).toMatchObject({ renderer: "webp", base: "assets/test-bear/v1/" });
     }
+  });
+
+  it("publish fails before any D1 write when a file that a manifest names is missing", async () => {
+    const db = getDb(env.DB);
+    const seeded = await seedPublishableStory(env);
+    const key = "assets/test-ball/v1/default.webp";
+    const saved = await env.BUCKET.get(key);
+    const bytes = await saved!.arrayBuffer();
+    await env.BUCKET.delete(key);
+    try {
+      await expect(publishStory(env, seeded.storyId)).rejects.toThrow(key);
+    } finally {
+      await env.BUCKET.put(key, bytes);
+    }
+    expect(await releaseRows(db, seeded.storyId)).toEqual([]);
+    const s = await storyRow(db, seeded.storyId);
+    expect(s.publishedReleaseId).toBeNull();
+    expect(s.status).toBe("draft");
+  });
+
+  it("publish copies only the files that a manifest names", async () => {
+    const seeded = await seedPublishableStory(env);
+    const extra = "assets/test-ball/v1/not-in-manifest.webp";
+    await env.BUCKET.put(extra, new Uint8Array([7]));
+    try {
+      const result = await publishStory(env, seeded.storyId);
+      if (!result.ok) throw new Error(`publish failed: ${JSON.stringify(result)}`);
+      const keys = await listKeys(`releases/${result.releaseId}/assets/test-ball/v1/`);
+      expect(keys).toEqual([`releases/${result.releaseId}/assets/test-ball/v1/default.webp`]);
+    } finally {
+      await env.BUCKET.delete(extra);
+    }
+  });
+
+  it("publish rejects an asset prefix without a trailing slash", async () => {
+    const db = getDb(env.DB);
+    const seeded = await seedPublishableStory(env);
+    const [ball] = await db.select().from(asset).where(eq(asset.key, "test-ball"));
+    const where = and(eq(assetVersion.assetId, ball!.id), eq(assetVersion.version, 1));
+    await db.update(assetVersion).set({ r2Prefix: "assets/test-ball/v1" }).where(where);
+    try {
+      await expect(publishStory(env, seeded.storyId)).rejects.toThrow("assets/test-ball/v1");
+    } finally {
+      await db.update(assetVersion).set({ r2Prefix: "assets/test-ball/v1/" }).where(where);
+    }
+    expect(await releaseRows(db, seeded.storyId)).toEqual([]);
   });
 
   it("REG-01.S4 a new asset version leaves release 1 with its copy of the old version", async () => {
