@@ -100,7 +100,7 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Given a layer for which the operator set an `at` value in the Studio
 - When the scene is laid out
 - Then the manual `at` value overrides the slot for that layer
-- Test: spec (to implement)
+- Test: @storybook/layout · packages/layout/test/layout.test.ts
 
 ### EDT-03.S6 Edit mode has selection boxes and drag handles
 - Given `SceneView` with `mode = "edit"`
