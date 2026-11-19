@@ -1,20 +1,14 @@
-import { act } from "react";
-import { createRoot } from "react-dom/client";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { App } from "./app";
+import { router } from "@/router";
 
-// Tell React that this environment wraps updates in act().
-(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+// Vitest globals are off, so Testing Library does not clean up by itself.
+afterEach(cleanup);
 
-afterEach(() => {
-  document.body.innerHTML = "";
-});
-
-it("app shell renders", () => {
-  const container = document.createElement("div");
-  document.body.append(container);
-  const root = createRoot(container);
-  act(() => root.render(<App />));
-  expect(container.textContent).toBe("Storybook MVP");
-  act(() => root.unmount());
+it("app shell renders", async () => {
+  // App renders the app router, which uses the browser history of jsdom.
+  await router.navigate({ to: "/studio" });
+  render(<App />);
+  expect(await screen.findByTestId("studio-placeholder")).toBeTruthy();
 });
