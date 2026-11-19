@@ -5,9 +5,6 @@ import { defineConfig } from "vitest/config";
 // Vite plugin does not load in tests.
 export default defineConfig({
   test: {
-    // Vitest accepts this option only at the root, not per project.
-    // The ui project has no tests yet.
-    passWithNoTests: true,
     projects: [
       {
         // Worker tests run inside workerd with the bindings from wrangler.jsonc.
