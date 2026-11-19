@@ -13,13 +13,13 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
-| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 49 |
-| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 18 |
-| [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 15 |
+| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 51 |
+| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 28 |
+| [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 16 |
 | [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 3 | 15 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 11 |
-| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 19 |
-| Total | | | 22 | 127 |
+| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 21 |
+| Total | | | 22 | 142 |
 
 ## Format
 
@@ -67,7 +67,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 122 scenarios are `spec (to implement)`, and 5 are
+Current state: 137 scenarios are `spec (to implement)`, and 5 are
 `manual · not run`. No scenario passes.
 
 ## Coverage of the requirements
@@ -127,12 +127,16 @@ Error rows (`design.md`, "Error Handling"):
 | Provider 4xx other than 429, in `script` | RUN-05.S8 |
 | TTS fails after retries | RUN-05.S6, RUN-01.S12, PUB-02.S1 |
 | Basis changed before commit | EDT-04.S1 |
-| Operator's scene fails validation | EDT-03.S7, EDT-03.S8, EDT-03.S9 |
+| Operator's scene fails validation | EDT-03.S7, EDT-03.S8, EDT-03.S9, EDT-03.S15 |
+| Operator's scene names a new layer in an animation or tap | EDT-03.S13 |
+| Operator's page text fails `PageText` validation | EDT-02.S4 |
 | "Still fits" on a `needs_review` scene | EDT-03.S11 |
-| Head moved since the operator loaded it | EDT-02.S2, EDT-03.S4, EDT-03.S10 |
+| "Still fits" copy fails validation against the active registry | EDT-03.S17 |
+| Full run requested when the newest run is not a failed full run | RUN-05.S10 |
+| Head moved since the operator loaded it | EDT-02.S2, EDT-02.S5, EDT-03.S4, EDT-03.S10, EDT-03.S18 |
 | Compare-and-set loop exhausted (5 tries) | SYS-02.S3 |
 | Publish blocked | PUB-02.S7 |
-| Run fails | RUN-05.S7 |
+| Run fails | RUN-05.S7, RUN-05.S9 |
 | Error record fields; no full text in logs | SYS-04.S2, SYS-04.S3 |
 
 Not written as scenarios, because they are not behaviour of the system:
@@ -146,20 +150,25 @@ Not written as scenarios, because they are not behaviour of the system:
 
 ## Open questions
 
-The spec is silent on these points, or two parts of it disagree. No scenario
-gives an expected result for them. Each one needs a decision from the owner
-(`AGENTS.md` section 7). Do not choose an answer in code.
+This section lists the points on which the spec is silent, or on which two
+parts of it disagree. No scenario gives an expected result for them. Each one
+needs a decision from the owner (`AGENTS.md` section 7). Do not choose an
+answer in code.
 
-| # | Question | Source | Effect on the stories |
-| :-- | :-- | :-- | :-- |
-| Q7 | Does OpenRouter pass Gemini TTS audio through, and in which format? | ADR 0015, "Consequences" (open); checked in TB0. | SYS-05.S3 covers only the raw PCM case. |
-| Q14 | What does an operator's scene carry? Who assigns the `instanceId` of a layer that the operator adds, and which values of a manual `at` are valid (for example a `scale` below the slot's `minScale`, or not positive)? | "Storybook DSL": code assigns `instanceId` to a model output and rewrites `target` and `on.tap`. "4. Layout engine": a manual `at` overrides the slot and is not shrunk (Q11). Neither says what the API accepts from the Studio. | EDT-03.S5 and EDT-03.S9 do not give the values. |
-| Q15 | Is an operator's page text validated (`PageText`: 1 to 3 sentences, at most 40 words), and does the API check `basedOn` first, as for a scene? | "6. API": `PUT .../text` gives "New human `page_text` revision. 409 if the head moved." It names no validation. Q12 gives the order for a scene only. | EDT-02 has no scenario for an invalid page text. |
+No question is open.
 
 On 2026-11-19 the owner closed Q1, Q4 to Q6, and Q8 to Q10 (#34), Q2 (#36),
-and Q11 to Q13 (#38). The owner also decided Q3 and Q7. Those decisions are
-on #32, which writes them into the spec. Until then, REG-01.S6 is the only Q3
-scenario. A question number is not used again.
+Q11 to Q13 (#38), and Q3, Q7, Q14, and Q15 (#32). The scenarios of the last
+four:
+
+| # | Scenarios |
+| :-- | :-- |
+| Q3 | REG-01.S6, EDT-03.S16, EDT-03.S19, PUB-01.S9 |
+| Q7 | SYS-05.S4, SYS-05.S5 |
+| Q14 | EDT-03.S12, EDT-03.S13, EDT-03.S14, EDT-03.S15 |
+| Q15 | EDT-02.S4, EDT-02.S5 |
+
+A question number is not used again.
 
 ## Changes
 

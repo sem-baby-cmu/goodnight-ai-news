@@ -100,9 +100,11 @@ child can look at, listen to, and touch.
 
 - **Platform.** TypeScript only. Cloudflare Workers (Paid), Workflows, D1, R2,
   Static Assets, AI Gateway, Access.
-- **Models.** All model calls go through one adapter with an OpenAI-compatible
-  API. Production: AI Gateway, then OpenRouter. Development: a local proxy.
-  TTS: Gemini 3.8 Flash TTS.
+- **Models.** All model calls go through one adapter. Text models use an
+  OpenAI-compatible API. Production: AI Gateway, then OpenRouter.
+  Development: a local proxy. TTS: Gemini 3.8 Flash TTS, never through
+  OpenRouter. Production: AI Gateway (`google-ai-studio`). Development: Google
+  AI Studio directly.
 - **Workflow limits.** A step returns IDs or R2 keys only. A non-stream step
   result is at most 1 MiB (Cloudflare Workflows limits, checked 2026-11-19).
 - **Idempotency.** Every model call has a call ID that includes its purpose

@@ -58,6 +58,12 @@ Spec: requirements US-4, AC-10, AC-11 · design "7. Publish", "Release layout (R
 - Then the response is the manifest, with `Cache-Control: public, max-age=31536000, immutable`
 - Test: spec (to implement)
 
+### PUB-01.S9 A release copies the asset versions that its scenes record
+- Given a draft that can be published, where the `scene` revision of one page records version `n` of an asset in `asset_versions`, and the `scene` revision of another page records version `n + 1`
+- When the operator sends `POST /api/studio/stories/:id/releases`
+- Then the release prefix holds a copy of version `n` and of version `n + 1` under `assets/<key>/v<n>/`, and each page uses the version that its scene revision records
+- Test: spec (to implement)
+
 ## PUB-02 Publishing is blocked while a page is not ready
 
 As the operator, I want publishing blocked while a page is incomplete, so

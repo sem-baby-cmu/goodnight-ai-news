@@ -65,8 +65,8 @@ Spec: requirements "Non-functional Requirements" · design "3. Calls, revisions,
 
 ### SYS-02.S1 A retried insert is a no-op
 - Given a revision that exists for a `(call_id, kind, page_id)`
-- When a retry inserts that revision again with `INSERT OR IGNORE`
-- Then the unique key makes the insert a no-op, and the existing row does not change
+- When a retry inserts that revision again with `INSERT ... ON CONFLICT (call_id, kind, page_id) DO NOTHING`
+- Then the unique key makes the insert a no-op; the existing row does not change, and the step reads the stored row and continues with it
 - Test: spec (to implement)
 
 ### SYS-02.S2 A head moves only when `heads_version` matches
@@ -137,7 +137,7 @@ As the system, I want every model call to go through one adapter, so that
 production and development differ only in configuration. (Derived from the
 models requirement.)
 
-Spec: requirements "Non-functional Requirements" · design "1. Model adapter"
+Spec: requirements "Non-functional Requirements" · design "1. Model adapter", "Deployment"
 
 ### SYS-05.S1 Model IDs come from the environment
 - Given the Worker configuration
@@ -155,4 +155,16 @@ Spec: requirements "Non-functional Requirements" · design "1. Model adapter"
 - Given a `synthesizeSpeech` call where the provider returns raw PCM
 - When the adapter returns
 - Then the adapter adds a WAV header, and the result is audio that the browser can play
+- Test: spec (to implement)
+
+### SYS-05.S4 Speech in development goes to Google AI Studio directly
+- Given the development configuration
+- When the adapter makes a `synthesizeSpeech` call
+- Then the request goes to `https://generativelanguage.googleapis.com/v1beta`, and not through OpenRouter
+- Test: spec (to implement)
+
+### SYS-05.S5 Speech on Cloudflare goes through AI Gateway
+- Given the Cloudflare configuration
+- When the adapter makes a `synthesizeSpeech` call
+- Then the request goes to `https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio/v1beta`, and not through OpenRouter
 - Test: spec (to implement)

@@ -13,7 +13,7 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 ### RUN-01.S1 A pasted text starts a full run
 - Given a news text of 200 to 2,000 words
 - When the operator sends `POST /api/studio/stories` with `{ text }`
-- Then the API creates a story with `heads = {}` and `heads_version = 0`, a `source` revision, and a full run; it returns 202 with `{ storyId, runId }`
+- Then the API creates, in one batch, a story with `heads = { source: <source revision ID> }` and `heads_version = 0`, the `source` revision, and a full run; it returns 202 with `{ storyId, runId }`
 - Test: spec (to implement)
 
 ### RUN-01.S2 A full run gives a draft of 6 to 8 pages
@@ -272,7 +272,7 @@ Spec: design "4. Layout engine", "Error Handling"
 As the operator, I want a failed page kept with its errors, so that I decide
 how to correct it and nothing changes silently. (Derived from AC-4.)
 
-Spec: requirements AC-4 · design "2. StoryRun Workflow", "Error Handling"
+Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handling"
 
 ### RUN-05.S1 One repair call corrects an invalid scene
 - Given a first scene output that fails validation, a provider 429 between the first call and the repair call, and a repair output that passes
@@ -301,7 +301,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "Error Handling"
 ### RUN-05.S5 Another provider 4xx is not retried
 - Given a model step for a page where the provider answers a 4xx that is not 429
 - When the step handles the answer
-- Then the error is non-retryable, and the page goes to `needs_review` with the provider message
+- Then the error is non-retryable; the step stores the provider error once in `call_log` and writes a `needs_review` revision with `content = null` and `error = { providerStatus, message }`, and that revision becomes the head; a replay of the step does not call the model again
 - Test: spec (to implement)
 
 ### RUN-05.S6 A failed narration leaves the page without audio
@@ -320,6 +320,18 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "Error Handling"
 - Given a `script` step where the provider answers a 4xx that is not 429
 - When the step handles the answer
 - Then the error is non-retryable, and the run fails with the provider message
+- Test: spec (to implement)
+
+### RUN-05.S9 A full run can start again after a failed full run
+- Given a story whose newest run is a full run with `status = failed`
+- When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
+- Then the API starts a new full run
+- Test: spec (to implement)
+
+### RUN-05.S10 A full run is refused when the newest run is not a failed full run
+- Given a story whose newest run is a page run, or a full run whose status is not `failed`
+- When the operator sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
+- Then the API returns 409 `full_run_not_allowed`, and no run starts
 - Test: spec (to implement)
 
 ## RUN-06 The scene approach holds on real news

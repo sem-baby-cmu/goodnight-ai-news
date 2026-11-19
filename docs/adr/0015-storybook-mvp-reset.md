@@ -5,6 +5,9 @@
 - Revised: 2026-11-19. The Durable Workflow row now names both end states of a
   run, as the design does since revision 2. The decision (no `waitForEvent`)
   does not change (#34).
+- Revised: 2026-11-19. Owner decision Q7: TTS does not go through OpenRouter.
+  The "One model adapter" rule and the open TTS question in "Consequences"
+  are corrected (#32).
 - Decided by: Jinyu Liu (owner of all technical decisions for the MVP)
 - Detail: [`docs/specs/storybook-mvp/`](../specs/storybook-mvp/requirements.md)
 - Supersedes: ADR 0003, 0004, 0005, 0006, 0012, 0014
@@ -57,9 +60,11 @@ Rules that hold from the first version:
 - **Immutable releases.** Publish takes one snapshot of the heads, writes a new
   R2 prefix with the manifest, page JSON, audio, and copies of the asset
   versions in use, and then updates the release pointer.
-- **One model adapter.** OpenAI-compatible API. Production goes through AI
-  Gateway to OpenRouter. Development uses a local proxy. TTS is Gemini 3.8
-  Flash TTS.
+- **One model adapter.** OpenAI-compatible API for JSON generation.
+  Production goes through AI Gateway to OpenRouter. Development uses a local
+  proxy. TTS is Gemini 3.8 Flash TTS. It does not go through OpenRouter: in
+  development the adapter calls Google AI Studio directly, and on Cloudflare
+  it goes through AI Gateway (`google-ai-studio`).
 
 ## Reasons
 
@@ -97,5 +102,9 @@ Rules that hold from the first version:
   does not depend on them.
 - Spike S1 (asset feasibility) runs first. If the rigged SVG for Pip fails its
   pass criteria, Pip also starts as WebP. The DSL and renderer do not change.
-- Open: whether OpenRouter passes Gemini TTS audio through, and in which
-  format. If it does not, the TTS call alone goes through AI Gateway to Google.
+- Closed (owner decision Q7, 2026-11-19): TTS does not go through
+  OpenRouter. In development, the adapter calls Google AI Studio directly
+  (`https://generativelanguage.googleapis.com/v1beta`). On Cloudflare, it goes
+  through AI Gateway
+  (`https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio/v1beta`).
+  TB0 (#25) still records the audio content type that the gateway returns.
