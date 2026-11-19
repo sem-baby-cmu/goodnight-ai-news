@@ -67,7 +67,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 22 scenarios are `spec (to implement)`, 118 have an
+Current state: 22 scenarios are `spec (to implement)`, 120 have an
 automated test, and 5 are `manual · not run`.
 
 ## Coverage of the requirements
@@ -134,8 +134,10 @@ Error rows (`design.md`, "Error Handling"):
 | "Still fits" on a `needs_review` scene | EDT-03.S11 |
 | "Still fits" copy fails validation against the active registry | EDT-03.S17 |
 | Full run requested when the story has an `outline` head, or a run of the story is `queued` or `running` | RUN-05.S10, RUN-05.S11 |
+| Page run requested while a run of the story is `queued` or `running` | RUN-05.S12 |
 | Head moved since the operator loaded it | EDT-02.S2, EDT-02.S5, EDT-03.S4, EDT-03.S10, EDT-03.S18 |
 | Compare-and-set loop exhausted (5 tries) | SYS-02.S3 |
+| Compare-and-set loop exhausted (5 tries), API save route | EDT-03.S22 |
 | Publish blocked | PUB-02.S7 |
 | Run fails | RUN-05.S7, RUN-05.S9 |
 | Error record fields; no full text in logs | SYS-04.S2, SYS-04.S3 |

@@ -340,6 +340,12 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Then the API returns 409 `full_run_not_allowed`, and no run starts
 - Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
+### RUN-05.S12 A page run is refused while a run is queued or running
+- Given a story with a run of the story with `status = queued` or `status = running`
+- When the operator sends `POST /api/studio/stories/:id/runs` with a page scope
+- Then the API returns 409 `run_active` with the `runId` of the active run, and no run starts
+- Test: @storybook/app · apps/storybook/worker/api/api.e2e.test.ts
+
 ## RUN-06 The scene approach holds on real news
 
 As the operator, I want real news texts to pass with the real models, so that

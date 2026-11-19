@@ -198,6 +198,12 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Then the API returns 422 `unknown_instance`; no revision is saved, and the `scene` head does not move
 - Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
+### EDT-03.S22 An operator save that loses the head race 5 times is answered busy
+- Given a page whose head has not moved since the operator loaded it, and a compare-and-set loop that loses the race 5 times
+- When the operator saves the page text, the scene, or "still fits"
+- Then the API returns 503 `busy`; the human revision is kept, and the head does not move
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
+
 ## EDT-04 A late result does not replace the operator's work
 
 As the operator, I want my edit to stay when a run finishes later, so that a
