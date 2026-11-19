@@ -5,6 +5,7 @@
 const REMOVED = new Set(
   [
     "script",
+    "style",
     "foreignObject",
     "iframe",
     "object",

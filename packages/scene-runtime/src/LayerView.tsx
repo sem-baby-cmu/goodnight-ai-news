@@ -94,8 +94,9 @@ export function LayerView({ layer, asset, state, assets, tappable, onTap, regist
     for (const el of Array.from(svg.node.querySelectorAll<SVGElement>("[class]"))) {
       const classes = Array.from(el.classList);
       if (!classes.some((c) => c.startsWith("expr-"))) continue;
-      if (classes.includes(show)) el.style.removeProperty("display");
-      else el.style.display = "none";
+      // R64: always an explicit inline value. Clearing it would leave an
+      // authored display="none" attribute in force.
+      el.style.display = classes.includes(show) ? "inline" : "none";
     }
   }, [svg, asset.renderer, state.expression]);
 
