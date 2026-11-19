@@ -3,21 +3,26 @@
 //   pnpm --filter @storybook/assets-tools run cli cut <board> --propose   # write the draft crop map
 //   pnpm --filter @storybook/assets-tools run cli cut <board> | --all     # cut out WebP files
 //   pnpm --filter @storybook/assets-tools run cli measure <board> | --all # write asset.json
+//   pnpm --filter @storybook/assets-tools run cli svg <key> --version <n> # sanitise and check an SVG asset
 //
 // `--out <dir>` writes the build output (and `review/`) there instead of
 // tools/assets/out. `--no-review` skips the review sheets.
-// `svg` belongs to #12; `publish` and `sfx` belong to #21.
-import { existsSync, realpathSync, writeFileSync } from "node:fs";
+// `publish` and `sfx` belong to #21.
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { AssetBuildSchema } from "./build";
+import { silhouetteIoU, writeCompareSheet } from "./compare";
 import { ALL_BOARDS, CropMapSchema, proposeCropMap } from "./crops";
 import { readBoard } from "./io";
 import { cropMapPath, cutBoard, loadCropMap, measureBoard } from "./pipeline";
-import { OUT_DIR } from "./paths";
+import { OUT_DIR, SOURCES_DIR } from "./paths";
+import { checkSvg, sanitizeSvg } from "./svg";
 
 type Io = { log: (line: string) => void; error?: (line: string) => void };
 
-const LATER: Record<string, string> = { svg: "#12", publish: "#21", sfx: "#21" };
+const LATER: Record<string, string> = { publish: "#21", sfx: "#21" };
 
 export async function main(argv: string[], io: Io = { log: console.log, error: console.error }): Promise<number> {
   const error = io.error ?? io.log;
@@ -31,6 +36,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
         propose: { type: "boolean", default: false },
         out: { type: "string" },
         "no-review": { type: "boolean", default: false },
+        version: { type: "string" },
       },
     });
   } catch (e) {
@@ -45,8 +51,22 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
     error(`"${command}" is not implemented yet (${LATER[command]}).`);
     return 1;
   }
+  if (command === "svg") {
+    const version = Number(values.version);
+    if (!board || !Number.isInteger(version) || version < 1) {
+      error("usage: cli svg <key> --version <n> [--out <dir>]");
+      return 1;
+    }
+    try {
+      return await svgAsset(board, version, outDir, io.log, error);
+    } catch (e) {
+      error(`svg ${board} v${version}: ${(e as Error).message}`);
+      return 1;
+    }
+  }
   if (command !== "cut" && command !== "measure") {
     error("usage: cli <cut|measure> <board> | --all [--propose] [--out <dir>] [--no-review]");
+    error("       cli svg <key> --version <n> [--out <dir>]");
     return 1;
   }
   if (!values.all && !board) {
@@ -89,6 +109,44 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
     error((e as Error).message);
     return 1;
   }
+}
+
+// Reads assets/<key>/v<n>/, sanitises and checks every pose file, and writes the
+// sanitised text and asset.json to <out>/<key>/v<n>/. For `svg-rig` it also
+// compares the first pose with the v1 board cut-out `<out>/<key>/v1/<pose>-happy.webp`
+// (implementation decision: run `cut` for that board first) and prints `IoU=`.
+async function svgAsset(key: string, version: number, outDir: string, log: (l: string) => void, error: (l: string) => void): Promise<number> {
+  const src = join(SOURCES_DIR, key, `v${version}`);
+  const build = AssetBuildSchema.parse(JSON.parse(readFileSync(join(src, "asset.json"), "utf8")));
+  if (build.key !== key || build.version !== version) throw new Error(`asset.json names ${build.key} v${build.version}`);
+  if (build.renderer !== "svg" && build.renderer !== "svg-rig") throw new Error(`renderer ${build.renderer} is not an SVG renderer`);
+  if (build.manifest.kind === "sfx") throw new Error("an sfx asset has no SVG");
+  const dest = join(outDir, key, `v${version}`);
+  const texts = new Map<string, string>();
+  let failed = false;
+  for (const file of new Set(build.manifest.poses.map((p) => p.file))) {
+    const clean = sanitizeSvg(readFileSync(join(src, file), "utf8"));
+    const issues = checkSvg(clean, build);
+    for (const i of issues) error(`${key}/v${version}/${file}: ${i.path}: ${i.code}: ${i.message}`);
+    failed ||= issues.length > 0;
+    texts.set(file, clean);
+  }
+  if (failed) return 1;
+  mkdirSync(dest, { recursive: true });
+  for (const [file, text] of texts) writeFileSync(join(dest, file), text);
+  writeFileSync(join(dest, "asset.json"), `${JSON.stringify(AssetBuildSchema.parse(build), null, 2)}\n`);
+  log(`${key} v${version}: wrote ${texts.size} SVG file(s) and asset.json to ${dest}`);
+  if (build.renderer === "svg-rig") {
+    const pose = build.manifest.poses[0]!;
+    const reference = join(outDir, key, "v1", `${pose.id}-happy.webp`);
+    if (!existsSync(reference)) throw new Error(`${reference} is missing; run cut for the board of ${key} first`);
+    const svgPath = join(dest, pose.file);
+    const reviewDir = join(outDir, "review");
+    mkdirSync(reviewDir, { recursive: true });
+    await writeCompareSheet({ svgPath, webpPath: reference, out: join(reviewDir, `${key}-v${version}-compare.png`) });
+    log(`IoU=${(await silhouetteIoU(svgPath, reference)).toFixed(4)}`);
+  }
+  return 0;
 }
 
 // Run only as the entry point, not when a test imports `main`. Real paths,
