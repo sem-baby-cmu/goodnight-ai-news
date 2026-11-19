@@ -85,6 +85,21 @@ export const ASSETS: Record<string, FakeAsset> = {
     ],
     { "stand.svg": rig("stand").replace('<g class="expr-sad">', '<g class="expr-sad" display="none">') },
   ),
+  // Review item 3: the manifest allows sad, but the rig file has only
+  // expr-happy, and the sit file does not exist (its load fails).
+  rigone: character(
+    "svg-rig",
+    [
+      { id: "stand", file: "stand.svg", foot, box },
+      { id: "sit", file: "sit.svg", foot: { x: 50, y: 180 }, box: { x: 0, y: 20, w: 100, h: 180 } },
+    ],
+    [
+      { pose: "stand", expression: "happy" },
+      { pose: "stand", expression: "sad" },
+      { pose: "sit", expression: "happy" },
+    ],
+    { "stand.svg": rig("stand").replace(/<g class="expr-sad">.*?<\/g>/s, "") },
+  ),
   // svg-rig without part-eyes and part-arm-right.
   noparts: character(
     "svg-rig",
@@ -118,6 +133,18 @@ export const ASSETS: Record<string, FakeAsset> = {
     ],
     {},
   ),
+  // Review item 4: a plain svg prop whose viewBox has a zero width.
+  flat: {
+    renderer: "svg",
+    manifest: {
+      kind: "prop",
+      poses: [{ id: "default", file: "flat.svg", foot: { x: 0, y: 100 }, box: { x: 0, y: 0, w: 1, h: 100 } }],
+      expressions: [],
+      legal: [],
+      flippable: true,
+    },
+    files: { "flat.svg": `<svg ${NS} viewBox="0 0 0 100"><rect width="1" height="1"/></svg>` },
+  },
   // Plain svg prop.
   tree: {
     renderer: "svg",

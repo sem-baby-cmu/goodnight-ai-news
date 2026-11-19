@@ -58,30 +58,27 @@ describe("keyframesFor", () => {
     const want = [0, 0.96, 0.98, 1];
     expect(got).toHaveLength(want.length);
     want.forEach((v, i) => expect(got[i]).toBeCloseTo(v, 10));
-    expect((out.keyframes as Keyframe[]).map((k) => k.transform)).toEqual([
-      "scaleY(1)",
-      "scaleY(1)",
-      "scaleY(0.1)",
-      "scaleY(1)",
-    ]);
+    // Review item 8: `scale` on the Y axis, not `transform`.
+    expect((out.keyframes as Keyframe[]).map((k) => k.scale)).toEqual(["1 1", "1 1", "1 0.1", "1 1"]);
   });
 
   it("blink once", () => {
     const out = keyframesFor("blink", { interval: 4 }, "once");
     expect(out.element).toBe("part-eyes");
-    expect(out.keyframes).toEqual([{ transform: "scaleY(1)" }, { transform: "scaleY(0.1)" }, { transform: "scaleY(1)" }]);
+    expect(out.keyframes).toEqual([{ scale: "1 1" }, { scale: "1 0.1" }, { scale: "1 1" }]);
     expect(out.options).toEqual({ duration: 160, iterations: 1 });
   });
 
   it("wave: count 3", () => {
     const out = keyframesFor("wave", { count: 3 }, "once");
     expect(out.element).toBe("part-arm-right");
+    // Review item 8: `rotate`, not `transform`.
     expect(out.keyframes).toEqual([
-      { transform: "rotate(0deg)" },
-      { transform: "rotate(-20deg)" },
-      { transform: "rotate(10deg)" },
-      { transform: "rotate(-20deg)" },
-      { transform: "rotate(0deg)" },
+      { rotate: "0deg" },
+      { rotate: "-20deg" },
+      { rotate: "10deg" },
+      { rotate: "-20deg" },
+      { rotate: "0deg" },
     ]);
     expect(out.options).toEqual({ duration: 900, easing: "ease-in-out", iterations: 3 });
   });
@@ -101,6 +98,22 @@ describe("keyframesFor", () => {
       expect(elements, name).toContain(out.element);
       expect(out.keyframes, name).toBeTruthy();
       expect(out.options.duration, name).toBeGreaterThan(0);
+    }
+  });
+
+  // Review item 8: design section 5 and invariant 3. A `transform` keyframe
+  // would overwrite an authored `transform` attribute on a part.
+  it("keyframes use only translate, rotate, scale and opacity in both modes", () => {
+    const allowed = ["translate", "rotate", "scale", "opacity"];
+    const timing = ["offset", "easing", "composite"];
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    for (const name of Object.keys(PRIMITIVES) as PrimitiveId[]) {
+      for (const mode of ["loop", "once"] as const) {
+        const { keyframes } = keyframesFor(name, {}, mode);
+        const frames = Array.isArray(keyframes) ? keyframes : [keyframes];
+        const props = new Set(frames.flatMap((f) => Object.keys(f)).filter((k) => !timing.includes(k)));
+        for (const p of props) expect(allowed, `${name} ${mode}: ${p}`).toContain(p);
+      }
     }
   });
 
