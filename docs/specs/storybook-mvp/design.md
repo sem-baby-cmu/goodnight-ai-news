@@ -172,7 +172,7 @@ Steps for a full run:
 | `script` | One LLM call: outline (title, cast, 6 to 8 page beats) and the text of every page. Code gives each page a new UUID v7 `pageId`. | 1 `outline` revision, N `page_text` revisions |
 | `scene:<pageId>` | LLM picks a template and fills slots, then validation, at most one repair, then layout. | 1 `scene` revision per page |
 | `audio:<pageId>` | TTS of the page text, stored in R2. | 1 `audio` revision per page |
-| `finish` | Checks that every page has current text, scene, and audio. Sets the run status. | `run.status` |
+| `finish` | Checks that every page has current text, scene, and audio. Sets the run status (rule below). | `run.status` |
 
 - Step names are unique because `pageId` values come from code, never from
   the model.
@@ -184,8 +184,15 @@ Steps for a full run:
   repair rule.
 - A page run (`scope.kind = "page"`) runs `freeze`, then the one target step,
   then `finish`.
+- Each run freezes the registry versions that are active when it starts, so
+  a page run after a new asset version uses the new version. One draft can
+  therefore hold scenes made with different versions of an asset. This is
+  allowed. Publish copies each version that a page uses ("7. Publish").
 - The workflow does not wait for a person. A run ends at `draft_ready` or
   `needs_review`.
+- `finish` sets `needs_review` when a page has no `page_text`, `scene`, or
+  `audio` head, or when one of these heads has `status = needs_review`.
+  Otherwise it sets `draft_ready`.
 
 ```plantuml
 @startuml
@@ -274,7 +281,9 @@ missing a current scene, and the operator regenerates it.
 ### 4. Layout engine (`packages/layout`)
 
 Narration is HTML outside the stage: below it in portrait, beside it in
-landscape (Producer guideline). The stage never carries text.
+landscape (Producer guideline). The stage image never carries text. The text
+of a `show_bubble` action is an HTML element over the stage. It is not part
+of the stage image.
 
 A layout template is data:
 
@@ -348,6 +357,9 @@ whose renderer does not support it.
 | `blink` | `svg-rig` | interval 2 to 6 s |
 | `wave` | `svg-rig` | count 1 to 3 |
 
+A parameter outside its bounds fails validation (repair rule, then
+`needs_review`). Code does not clamp it to the bounds.
+
 Tap actions (closed list):
 
 | Action | Rule |
@@ -378,7 +390,8 @@ Studio routes are behind Cloudflare Access.
 
 **URL input.**
 
-- `http` and `https` only.
+- `http` and `https` only. A URL, or a redirect target, with any other
+  scheme gives 422, and the Studio asks for pasted text.
 - `redirect: "manual"`; follow at most 3 redirects, checking the scheme of
   each target.
 - 10 s timeout. Read the body as a stream and stop at 2 MB.
@@ -387,6 +400,10 @@ Studio routes are behind Cloudflare Access.
 - If the result has fewer than 200 words, the API returns 422 and the Studio
   asks for pasted text. If it has more than 2,000 words, the text is cut at
   2,000 words and the Studio shows a note.
+
+**Text input.** A pasted `{ text }` follows the same word rule. Fewer than
+200 words gives 422. More than 2,000 words is cut at 2,000 words, and the
+Studio shows a note.
 
 ### 7. Publish
 
@@ -516,7 +533,14 @@ JSON schema cannot:
 - each layer's `kind` matches its slot's `accepts`;
 - `flip` is set only on flippable assets;
 - every primitive and action is allowed for the target's renderer;
-- every `target` names an existing layer.
+- every `target` names an existing layer;
+- every animation parameter is inside the bounds of its primitive
+  ("5. Scene runtime");
+- the page has at least one character layer, one animation, and one tap
+  interaction.
+
+A page that fails one of these checks is a validation failure (repair rule,
+then `needs_review`).
 
 ### Staleness
 
@@ -567,11 +591,12 @@ type ReleasePage = {
 
 | Error | Where | Behaviour |
 | :-- | :-- | :-- |
-| URL fetch fails, too many redirects, or text too short | API | 422. The Studio asks for pasted text. |
+| URL scheme refused, URL fetch fails, too many redirects, or text too short | API | 422. For a URL, the Studio asks for pasted text. |
 | Model output fails the schema or validation | `script`, `scene:*` | One repair call (`purpose = repair`) with the error list. If it still fails: for `scene`, save the candidate with `status = needs_review` and the errors; for `script`, fail the run with the errors. |
 | Layout check fails after shrinking | `scene:*` | Counts as a validation failure (same repair rule). |
 | Provider 429 or 5xx | any model step | Step throws; the platform retries (3 tries, exponential back-off). The stored-result check prevents a second call for a stored result. |
-| Provider 4xx other than 429 | any model step | Non-retryable error. The page goes to `needs_review` with the provider message. |
+| Provider 4xx other than 429 | `scene:*`, `audio:*` | Non-retryable error. The page goes to `needs_review` with the provider message. |
+| Provider 4xx other than 429 | `script` | Non-retryable error. The run fails with the provider message. |
 | TTS fails after retries | `audio:*` | No audio head. The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
 | Basis changed before commit | any step | The revision is kept as `superseded`. The head does not move. |
 | Head moved since the operator loaded it | API | 409 with the current revision. |
@@ -609,6 +634,7 @@ Integration sequences (each asserts both the revisions and `story.heads`):
 | Release contents | The prefix holds every asset, sound, and audio file the pages reference. |
 | Content route | `GET /content/releases/<id>/manifest.json` returns the manifest with the immutable cache header. |
 | URL input | Redirect chain of 4 is refused; a 3 MB body is cut at 2 MB; a short article returns 422. |
+| Text input | A pasted text of 199 words returns 422; a pasted text of 2,001 words is cut at 2,000 words. |
 
 Acceptance criteria to tests:
 

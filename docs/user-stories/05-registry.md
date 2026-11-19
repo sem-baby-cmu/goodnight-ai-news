@@ -8,7 +8,7 @@ Conventions: [README](README.md). The spec decides the expected behaviour.
 As the designer, I want to replace a character asset with a new version, so
 that new stories use it and old releases stay the same.
 
-Spec: requirements US-7, "Core Features" 3 · design "8. Asset pipeline", "D1 tables", "6. API"
+Spec: requirements US-7, "Core Features" 3 · design "2. StoryRun Workflow", "8. Asset pipeline", "D1 tables", "6. API"
 
 ### REG-01.S1 The registry holds every Producer character
 - Given the asset pipeline has published the Producer boards
@@ -38,6 +38,12 @@ Spec: requirements US-7, "Core Features" 3 · design "8. Asset pipeline", "D1 ta
 - Given a registry with assets, sounds, and templates
 - When the Studio sends `GET /api/studio/registry`
 - Then the response has the active assets, sounds, and templates
+- Test: spec (to implement)
+
+### REG-01.S6 A page run after a new version uses the new version
+- Given a draft whose scenes were made with version `n` of an asset, and version `n + 1` is now active
+- When the operator starts a page run for the scene of one page
+- Then its `freeze` step records version `n + 1`, and the new scene is made with it; the other scenes of the draft do not change; the draft can hold scenes made with both versions
 - Test: spec (to implement)
 
 ## REG-02 Asset files are cut out, measured, and safe
