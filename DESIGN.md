@@ -23,6 +23,8 @@ The product is English only.
 | Fonts | Kiwi Maru 400/500 (display); Nunito 400/600/700/800 (UI and story text) |
 | 3D | three.js, one bundled script, child screens only (section 11) |
 
+`apps/storybook` (the storybook MVP) uses code-based TanStack Router routes in `src/router.tsx`, and keeps its tokens in `apps/storybook/src/styles.css`.
+
 `ghibli-ui` is not used: version 0.1.0 needs React 18 and ships no types.
 
 ## 2. Color
