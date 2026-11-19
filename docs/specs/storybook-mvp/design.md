@@ -317,7 +317,9 @@ count as a validation failure. For a model output, the repair rule then
 applies ("Error Handling").
 
 MVP has 6 to 8 templates. An operator's manual `at` value in the Studio
-overrides the slot for that layer.
+overrides the slot for that layer. The engine does not shrink a layer that
+has a manual `at`. If a check still fails, the operator's scene fails
+validation ("6. API").
 
 ### 5. Scene runtime (`packages/scene-runtime`)
 
@@ -383,8 +385,8 @@ Studio routes are behind Cloudflare Access.
 | `GET /api/studio/stories/:id` | Heads with content, page states (`ok`, `stale`, `missing`, `needs_review`), and releases. |
 | `GET /api/studio/runs/:id` | Run status and step progress. |
 | `PUT /api/studio/stories/:id/pages/:pageId/text` | Body `{ text, basedOn }`. New human `page_text` revision. 409 if the head moved. |
-| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Validated, laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. |
-| `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. |
+| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the scene is not validated. Then validated (the same checks as a model output: enum rules, zod rules, layout checks), laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. |
+| `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. 409 if the current scene head has `status = needs_review`; nothing is copied. |
 | `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. |
 | `POST /api/studio/stories/:id/releases` | Publishes the current heads. 409 with a list of blocking pages and reasons. |
 | `GET /api/studio/registry` | Active assets, sounds, and templates. |
@@ -528,8 +530,9 @@ code assigns `instanceId` values and rewrites `target` and `on.tap`.
 
 The JSON schema sent to the model is built at run time from the frozen
 registry and the template list. `ref`, `pose`, `expression`, `slot`, `sfx`,
-and `templateId` are enums in that schema. Zod validation then checks what a
-JSON schema cannot:
+and `templateId` are enums in that schema. An operator's scene does not pass
+through that schema, so the API checks the same enums in code before the zod
+rules. Zod validation then checks what a JSON schema cannot:
 
 - every pose and expression pair is legal for its character;
 - each layer's `kind` matches its slot's `accepts`;
@@ -602,6 +605,7 @@ type ReleasePage = {
 | TTS fails after retries | `audio:*` | No new audio head (an old head in a page run is stale). The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
 | Basis changed before commit | any step | The revision is kept as `superseded`. The head does not move. |
 | Operator's scene fails validation | API | 422 with the error list. Nothing is saved. There is no repair call; the repair rule is for model output only. |
+| "Still fits" on a `needs_review` scene | API | 409. Nothing is copied. |
 | Head moved since the operator loaded it | API | 409 with the current revision. |
 | Compare-and-set loop exhausted (5 tries) | step | Step throws; the platform retries the step. |
 | Publish blocked | API | 409 with the list of pages and reasons. |

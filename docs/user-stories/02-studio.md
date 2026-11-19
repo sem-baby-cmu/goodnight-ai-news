@@ -102,6 +102,30 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Then the API returns 422 with the error list; no revision is saved, and the `scene` head does not move; no repair call is made
 - Test: spec (to implement)
 
+### EDT-03.S8 An edited scene with an asset that is not in the registry is refused
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a `ref` that is not an active registry asset key
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API returns 422 with the error list; no revision is saved
+- Test: spec (to implement)
+
+### EDT-03.S9 A layer with a manual position is not shrunk
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer with a manual `at` fails a layout check
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the engine does not shrink that layer; the API returns 422 with the error list; no revision is saved
+- Test: spec (to implement)
+
+### EDT-03.S10 An old `basedOn` is refused before validation
+- Given a page whose `scene` head has moved since the operator loaded it, and an edited scene that also fails validation
+- When the operator saves the scene with the old `basedOn`
+- Then the API returns 409 with the current revision, not 422; the scene is not validated, and no revision is saved
+- Test: spec (to implement)
+
+### EDT-03.S11 "Still fits" is refused for a scene that needs review
+- Given a page whose `scene` head has `status = needs_review`
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits`
+- Then the API returns 409; nothing is copied, and the `scene` head does not move
+- Test: spec (to implement)
+
 ## EDT-04 A late result does not replace the operator's work
 
 As the operator, I want my edit to stay when a run finishes later, so that a
