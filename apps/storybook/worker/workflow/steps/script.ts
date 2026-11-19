@@ -2,7 +2,7 @@ import { type Issue, OutlineSchema, PageTextSchema, type RegistrySnapshot, Scrip
 import { ModelOutputError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, commitHead, getDb, insertRevisions, newId, revision, story } from "../../db";
-import { type StoredCall, isUnparsed, storedCall } from "../model-call";
+import { type StoredCall, answerOf, buildSchema, isUnparsed, storedCall, unparsedResult } from "../model-call";
 import { UNPARSED_PREVIOUS, repairSuffix, scriptPrompt } from "../prompts";
 import { type FaultContext, seams } from "../seams";
 import { frozenRegistry } from "./freeze";
@@ -26,14 +26,18 @@ const pagesOf = (value: unknown): Array<Record<string, unknown>> | undefined => 
 
 // Checks a stored script result in stages, stopping at the first stage with
 // issues (implementation decision R24).
-function checkScript(value: unknown, registry: RegistrySnapshot): { issues: Issue[]; script?: ValidScript } {
-  if (isUnparsed(value)) return { issues: [{ path: "", code: "model_output_unparsed", message: "The answer was not valid JSON." }] };
-  // Remove only the code-set `pageId` keys before the draft check.
+// The answer without the code-set `pageId` keys. They are removed only where
+// `pages` is an array of objects; any other value stays as it is.
+function withoutPageIds(value: unknown): unknown {
   const pages = pagesOf(value);
-  const draftInput = pages
-    ? { ...(value as object), pages: pages.map(({ pageId: _pageId, ...rest }) => rest) }
-    : value;
-  const draft = ScriptDraftSchema.safeParse(draftInput);
+  return pages ? { ...(value as object), pages: pages.map(({ pageId: _pageId, ...rest }) => rest) } : value;
+}
+
+function checkScript(result: unknown, registry: RegistrySnapshot): { issues: Issue[]; script?: ValidScript } {
+  if (isUnparsed(result)) return { issues: [{ path: "", code: "model_output_unparsed", message: "The answer was not valid JSON." }] };
+  const value = answerOf(result);
+  const pages = pagesOf(value);
+  const draft = ScriptDraftSchema.safeParse(withoutPageIds(value));
   if (!draft.success) return { issues: zodIssues(draft.error.issues) };
 
   const ids = pages!.map((p) => p.pageId as string);
@@ -65,8 +69,8 @@ const outlineContent = (s: ValidScript) => ({
 });
 
 function providerError(call: StoredCall): ScriptStepResult | undefined {
-  const pe = (call.result as { providerError?: { status: number; message: string } } | null)?.providerError;
-  return pe ? { status: "provider_error", providerStatus: pe.status, message: pe.message } : undefined;
+  const r = call.result as { kind?: unknown; status: number; message: string } | null;
+  return r?.kind === "provider_error" ? { status: "provider_error", providerStatus: r.status, message: r.message } : undefined;
 }
 
 export async function scriptStep(env: Env, runId: string, storyId: string): Promise<ScriptStepResult> {
@@ -83,14 +87,14 @@ export async function scriptStep(env: Env, runId: string, storyId: string): Prom
         model: "script",
         system: prompt.system,
         user: prompt.user + suffix,
-        schema: buildOutlineJsonSchema(registry),
+        schema: buildSchema(() => buildOutlineJsonSchema(registry)),
       });
       // Code sets every page ID; the stored result holds them, so a retry
       // sees the same IDs.
       for (const page of pagesOf(r.value) ?? []) page.pageId = newId();
-      return { result: r.value, modelId: r.modelId, usage: r.usage };
+      return { result: { kind: "answer" as const, value: r.value }, modelId: r.modelId, usage: r.usage };
     } catch (err) {
-      if (err instanceof ModelOutputError) return { result: { unparsed: true }, modelId: err.modelId, usage: err.usage };
+      if (err instanceof ModelOutputError) return { result: unparsedResult(err.raw), modelId: err.modelId, usage: err.usage };
       throw err;
     }
   };
@@ -103,7 +107,8 @@ export async function scriptStep(env: Env, runId: string, storyId: string): Prom
   let accepted = first;
   let checked = checkScript(first.result, registry);
   if (!checked.script) {
-    const previous = isUnparsed(first.result) ? UNPARSED_PREVIOUS : first.result;
+    // The schema forbids `pageId`, so the repair prompt never shows the code-set IDs.
+    const previous = isUnparsed(first.result) ? UNPARSED_PREVIOUS : withoutPageIds(answerOf(first.result));
     accepted = await storedCall(deps("repair"), {
       basisKeys: ["source"],
       targetKeys: ["outline"],

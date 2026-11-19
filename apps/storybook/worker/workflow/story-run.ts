@@ -11,7 +11,8 @@ export type StoryRunParams = { runId: string; storyId: string; scope: RunScope }
 // `limit: 2` means 3 tries, as in the design. RUN-05.S6 checks the tries.
 export const MODEL_STEP = {
   retries: { limit: 2, delay: "10 seconds", backoff: "exponential" },
-  timeout: "5 minutes",
+  // Up to 2 model calls of up to 180 s each; the default step timeout is 10 minutes.
+  timeout: "10 minutes",
 } as const satisfies WorkflowStepConfig;
 
 export const DB_STEP = {
@@ -52,7 +53,12 @@ export class StoryRunWorkflow extends WorkflowEntrypoint<Env, StoryRunParams> {
     };
 
     try {
-      await step.do("freeze", DB_STEP, () => freezeStep(env, runId, storyId));
+      try {
+        await step.do("freeze", DB_STEP, () => freezeStep(env, runId, storyId));
+      } catch (err) {
+        errors.push(await step.do("error:freeze", DB_STEP, async () => toErrorRecord({ runId, storyId, pageId: null, step: "freeze", err })));
+        return await finish(true);
+      }
       if (scope.kind === "full") {
         let script: ScriptStepResult;
         try {

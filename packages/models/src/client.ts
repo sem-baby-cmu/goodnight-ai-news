@@ -59,7 +59,20 @@ function errorName(error: unknown): string {
 
 // Reads a 2xx body. A failed read (TypeError, TimeoutError, AbortError) is a
 // transport error: status 0, retryable. A body that is not JSON is an output error.
+// The largest 2xx body that is read: 16 MB. A larger body is an output error,
+// checked from Content-Length before the read and from the text after it.
+export const MAX_BODY = 16 * 1024 * 1024;
+
+function tooLarge(modelId: string): ModelOutputError {
+  return new ModelOutputError("Model response body is larger than 16 MB", { modelId, usage: null });
+}
+
 async function readJson(res: Response, modelId: string): Promise<unknown> {
+  const declared = Number(res.headers.get("Content-Length") ?? "");
+  if (Number.isFinite(declared) && declared > MAX_BODY) {
+    await res.body?.cancel().catch(() => {});
+    throw tooLarge(modelId);
+  }
   let text: string;
   try {
     text = await res.text();
@@ -70,6 +83,7 @@ async function readJson(res: Response, modelId: string): Promise<unknown> {
       modelId,
     });
   }
+  if (text.length > MAX_BODY) throw tooLarge(modelId);
   try {
     return JSON.parse(text) as unknown;
   } catch {

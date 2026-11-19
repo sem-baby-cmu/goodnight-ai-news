@@ -1,4 +1,5 @@
 import type { RegistrySnapshot } from "@storybook/dsl";
+import { NonRetryableError } from "cloudflare:workflows";
 import { and, eq, isNull } from "drizzle-orm";
 import { type Db, getDb, loadActiveRegistry, loadStoryHeads, run } from "../../db";
 
@@ -7,8 +8,12 @@ import { type Db, getDb, loadActiveRegistry, loadStoryHeads, run } from "../../d
 export async function freezeStep(env: Env, runId: string, storyId: string): Promise<{ ok: true }> {
   const db = getDb(env.DB);
   const loaded = await loadStoryHeads(db, storyId);
-  if (!loaded) throw new Error("story not found");
+  if (!loaded) throw new NonRetryableError("story not found");
   const registry = await loadActiveRegistry(db);
+  // No script can name a cast without a character; a retry does not help.
+  if (!Object.values(registry.assets).some((a) => a.kind === "character")) {
+    throw new NonRetryableError("the active registry has no character asset");
+  }
   await db
     .update(run)
     .set({ status: "running", basis: loaded.story.heads, registry })

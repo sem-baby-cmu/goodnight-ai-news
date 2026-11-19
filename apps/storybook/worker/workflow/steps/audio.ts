@@ -1,7 +1,7 @@
 import { ModelOutputError, UnsupportedAudioFormatError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, getDb, revision } from "../../db";
-import { providerErrorOf, storedCall } from "../model-call";
+import { answerOf, providerErrorOf, storedCall } from "../model-call";
 import { type FaultContext, seams } from "../seams";
 import { frozenRegistry } from "./freeze";
 import { type PageStepResult, writePageRevision, writeProviderError } from "./page-revision";
@@ -29,7 +29,7 @@ export async function audioStep(env: Env, runId: string, storyId: string, pageId
         try {
           const speech = await client.synthesizeSpeech({ text: (text!.content as { text: string }).text, voice: env.TTS_VOICE });
           return {
-            result: { contentType: speech.contentType, durationMs: speech.durationMs },
+            result: { kind: "answer" as const, value: { contentType: speech.contentType, durationMs: speech.durationMs } },
             bytes: { data: speech.bytes, contentType: speech.contentType },
             modelId: model,
             usage: null,
@@ -37,7 +37,7 @@ export async function audioStep(env: Env, runId: string, storyId: string, pageId
         } catch (err) {
           // A TTS output error is stored, not retried (implementation decisions R25b, R26b).
           if (err instanceof ModelOutputError || err instanceof UnsupportedAudioFormatError) {
-            return { result: { outputError: err.message.slice(0, 200) }, modelId: err.modelId, usage: err.usage };
+            return { result: { kind: "output_error" as const, message: err.message.slice(0, 200) }, modelId: err.modelId, usage: err.usage };
           }
           throw err;
         }
@@ -51,7 +51,7 @@ export async function audioStep(env: Env, runId: string, storyId: string, pageId
     kind: "audio",
     call: stored,
     status: "ok",
-    content: stored.result,
+    content: answerOf(stored.result),
     r2Key: stored.r2Key,
     assetVersions: null,
     error: null,

@@ -21,7 +21,7 @@ const MAX_MESSAGE = 200;
 // stores it and does not throw (implementation decisions R13, R26b).
 // A `ModelHttpError` keeps provider text in `providerMessage`, never in
 // `message`, so that field is used first (implementation decision).
-export function classifyProviderError(err: unknown): "retry" | ProviderErrorInfo {
+export function classifyProviderError(err: unknown): "retry" | { status: number; message: string } {
   if (err instanceof ModelHttpError) {
     if (err.retryable) return "retry";
     return { status: err.status, message: (err.providerMessage ?? err.message).slice(0, MAX_MESSAGE) };
@@ -55,8 +55,25 @@ export function readStatusTag(message: string): { status: number | null; message
   return match ? { status: Number(match[1]), message: message.slice(match[0].length) } : { status: null, message };
 }
 
+// What `call_log.result` holds: a tagged envelope, so a model answer is never
+// read as an internal marker (review item 1).
+export type CallResult =
+  | { kind: "answer"; value: unknown }
+  | { kind: "provider_error"; status: number; message: string }
+  | { kind: "unparsed"; raw: string; truncated?: true }
+  | { kind: "output_error"; message: string };
+
+// The raw output of an unparsed answer is kept, at most 65,536 characters
+// (review item 2). It is stored, never logged.
+export const MAX_RAW = 65_536;
+
+export function unparsedResult(raw: string | undefined): CallResult {
+  const text = raw ?? "";
+  return text.length > MAX_RAW ? { kind: "unparsed", raw: text.slice(0, MAX_RAW), truncated: true } : { kind: "unparsed", raw: text };
+}
+
 export type CallOutput = {
-  result?: unknown;
+  result: CallResult;
   bytes?: { data: Uint8Array; contentType: string };
   modelId: string;
   usage: unknown;
@@ -96,11 +113,11 @@ export async function storedCall(
     ({ basis, expectedHeads } = args.basisFrom);
   } else {
     const [row] = await db.select({ heads: story.heads }).from(story).where(eq(story.id, ctx.storyId));
-    if (!row) throw new Error("story not found");
+    if (!row) throw new NonRetryableError("story not found");
     basis = {};
     for (const key of args.basisKeys) {
       const id = row.heads[key];
-      if (id === undefined) throw new Error(`no head for basis key ${key}`);
+      if (id === undefined) throw new NonRetryableError(`no head for basis key ${key}`);
       basis[key] = id;
     }
     expectedHeads = {};
@@ -114,7 +131,7 @@ export async function storedCall(
   } catch (err) {
     const info = classifyProviderError(err);
     if (info === "retry") throw withStatusTag(err);
-    out = { result: { providerError: info }, modelId: args.model, usage: null };
+    out = { result: { kind: "provider_error", status: info.status, message: info.message }, modelId: args.model, usage: null };
   }
   await seams.at("after_model_call", ctx);
 
@@ -131,7 +148,7 @@ export async function storedCall(
     step: ctx.step,
     pageId: ctx.pageId,
     purpose: ctx.purpose,
-    result: out.result ?? null,
+    result: out.result,
     r2Key,
     basis,
     expectedHeads,
@@ -147,14 +164,27 @@ function toStored(row: { callId: string; result: unknown; r2Key: string | null; 
   return { callId: row.callId, result: row.result, r2Key: row.r2Key, basis: row.basis, expectedHeads: row.expectedHeads };
 }
 
-// The stored provider error of a call result, if it has one.
+const kindOf = (result: unknown) => (result as { kind?: unknown } | null)?.kind;
+
+// The stored provider error or TTS output error of a call, if it has one.
 export function providerErrorOf(result: unknown): ProviderErrorInfo | undefined {
-  if (typeof result !== "object" || result === null) return undefined;
-  const r = result as { providerError?: ProviderErrorInfo; outputError?: string };
-  if (r.providerError) return r.providerError;
-  if (typeof r.outputError === "string") return { status: null, message: r.outputError };
+  const r = result as CallResult;
+  if (kindOf(result) === "provider_error" && r.kind === "provider_error") return { status: r.status, message: r.message };
+  if (kindOf(result) === "output_error" && r.kind === "output_error") return { status: null, message: r.message };
   return undefined;
 }
 
-export const isUnparsed = (result: unknown) =>
-  typeof result === "object" && result !== null && (result as { unparsed?: unknown }).unparsed === true;
+export const isUnparsed = (result: unknown): result is Extract<CallResult, { kind: "unparsed" }> => kindOf(result) === "unparsed";
+
+// The model answer of a stored call; `undefined` when the call has no answer.
+export const answerOf = (result: unknown): unknown => (kindOf(result) === "answer" ? (result as { value: unknown }).value : undefined);
+
+// A JSON schema that cannot be built (for example, no character in the
+// registry) does not heal on retry (review item 3).
+export function buildSchema(build: () => Record<string, unknown>): Record<string, unknown> {
+  try {
+    return build();
+  } catch (err) {
+    throw new NonRetryableError(err instanceof Error ? err.message : String(err));
+  }
+}
