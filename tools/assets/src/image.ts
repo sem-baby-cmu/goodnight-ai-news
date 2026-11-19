@@ -222,6 +222,9 @@ export function findHoleCandidates(raw: Raw, box: Rect, bg: RGB, tolerance: numb
 }
 
 export type CutFigureInput = { index: number; key: string; pose: string; box: Rect; holes: Point[]; tolerance: number };
+// Largest dropped edge piece, as a share of the kept opaque area (R62).
+export const MAX_DROP_SHARE = 0.05;
+
 export type Cut = { data: Uint8Array; width: number; height: number; origin: Point; dropped: Array<{ area: number; box: Rect }> };
 
 // Cuts one figure out of a board: RGBA, trimmed to alpha > 0, with a 2 px
@@ -257,6 +260,14 @@ export function cutFigure(raw: Raw, bg: RGB, fig: CutFigureInput, log: (line: st
     log(`${name}: dropped a piece that touches the box edge at (${where.x}, ${where.y}, ${where.w} × ${where.h}), area ${c.area}`);
   });
   if (!alpha.some((a) => a > 0)) throw new Error(`${name} is empty`);
+  // A large dropped piece means a wrong box or tolerance, not a neighbour's ear:
+  // fail instead of cutting away part of the figure (R62, implementation decision).
+  const kept = alpha.reduce((n, a) => n + (a > 0 ? 1 : 0), 0);
+  for (const d of dropped) {
+    if (d.area > kept * MAX_DROP_SHARE) {
+      throw new Error(`${name}: a dropped edge piece at (${d.box.x}, ${d.box.y}, ${d.box.w} × ${d.box.h}), area ${d.area}, is larger than 5 % of the kept area ${kept}`);
+    }
+  }
 
   const soft = feather(alpha, w, h);
 

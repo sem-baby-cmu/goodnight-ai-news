@@ -52,12 +52,17 @@ export async function cutBoard(
     const dir = join(opts.outDir, fig.key!, `v${asset.version}`);
     if (written.has(join(dir, file))) throw new Error(`figure ${index}: ${fig.key}/${file} is cut twice`);
     written.add(join(dir, file));
-    const cut = cutFigure(
-      raw,
-      map.background,
-      { index, key: fig.key!, pose: fig.pose, box: fig.box, holes: fig.holes, tolerance: fig.tolerance ?? map.tolerance },
-      opts.log,
-    );
+    let cut: Cut;
+    try {
+      cut = cutFigure(
+        raw,
+        map.background,
+        { index, key: fig.key!, pose: fig.pose, box: fig.box, holes: fig.holes, tolerance: fig.tolerance ?? map.tolerance },
+        opts.log,
+      );
+    } catch (e) {
+      throw new Error(`${map.board.replace(/\.png$/, "")}: ${(e as Error).message}`);
+    }
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, file), await encodeWebp(cut));
     writeFileSync(join(dir, `${file}.trim.json`), `${JSON.stringify(cut.origin)}\n`);
