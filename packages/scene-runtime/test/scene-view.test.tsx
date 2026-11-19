@@ -312,6 +312,31 @@ describe("SceneView", () => {
     expect(screen.queryByText("Two")).toBeNull();
   });
 
+  // Bubble position, Exact change 5: centred on at.x, clamped to 0..1600, and
+  // the bottom edge 24 stage units above the target box top. jsdom has no
+  // layout, so the bubble width is stubbed to 400 stage units.
+  it("show_bubble places the bubble above the target box, centred on at.x and clamped to the stage", () => {
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(400);
+    const at = (x: number) => ({ at: { x, y: 600, scale: 0.5, z: 1 } });
+    show({
+      page: page(
+        [layer(1, "bun", at(500)), layer(2, "bun", at(1590)), layer(3, "bun", at(100))],
+        [],
+        [1, 2, 3].map((n) => tap(n, { action: "show_bubble", target: id(n), text: `B${n}` })),
+      ),
+    });
+    // Box top = 600 + (0 - 100) * 0.5 = 550; bottom edge 550 - 24 = 526.
+    const place = (n: number) => {
+      fireEvent.click(assetOf(n));
+      const bubble = screen.getByText(`B${n}`);
+      const rect = { left: parseFloat(bubble.style.left), bottom: 1200 - parseFloat(bubble.style.bottom) };
+      return rect;
+    };
+    expect(place(1)).toEqual({ left: 300, bottom: 526 });
+    expect(place(2)).toEqual({ left: 1200, bottom: 526 });
+    expect(place(3)).toEqual({ left: 0, bottom: 526 });
+  });
+
   it("set_expression on svg-rig shows only expr-<expression>", async () => {
     show({
       page: page(
