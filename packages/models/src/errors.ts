@@ -2,16 +2,20 @@ import type { Usage } from "./client";
 
 // A provider answered with a non-2xx status, or the request did not complete.
 // `retryable` is the classification only: the adapter never retries (#18 does).
-// Network failures and timeouts have `status: 0`.
+// Network failures and timeouts have `status: 0`. `message` never holds
+// provider text; `providerMessage` holds at most 300 characters of it, with
+// every configured key replaced by "[redacted]".
 export class ModelHttpError extends Error {
   status: number;
   retryable: boolean;
+  providerMessage?: string;
 
-  constructor(message: string, info: { status: number; retryable: boolean }) {
+  constructor(message: string, info: { status: number; retryable: boolean; providerMessage?: string }) {
     super(message);
     this.name = "ModelHttpError";
     this.status = info.status;
     this.retryable = info.retryable;
+    if (info.providerMessage !== undefined) this.providerMessage = info.providerMessage;
   }
 }
 

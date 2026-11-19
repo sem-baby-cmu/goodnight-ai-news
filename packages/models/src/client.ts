@@ -19,7 +19,7 @@ export interface ModelClient {
 }
 
 const TIMEOUT_MS = 180_000;
-const MAX_PROVIDER_MESSAGE = 200;
+const MAX_PROVIDER_MESSAGE = 300;
 
 type ChatBody = {
   model?: unknown;
@@ -27,19 +27,34 @@ type ChatBody = {
   usage?: { prompt_tokens?: number; completion_tokens?: number };
 };
 
-// The provider's `error.message`, cut to 200 characters, or "".
-async function providerMessage(res: Response): Promise<string> {
-  try {
-    const body = (await res.json()) as { error?: { message?: unknown } };
-    const message = body?.error?.message;
-    return typeof message === "string" ? message.slice(0, MAX_PROVIDER_MESSAGE) : "";
-  } catch {
-    return "";
-  }
+// Replaces every configured key with "[redacted]", then cuts to 300 characters.
+function redact(text: string, secrets: string[]): string {
+  let clean = text;
+  for (const secret of secrets) clean = clean.split(secret).join("[redacted]");
+  return clean.slice(0, MAX_PROVIDER_MESSAGE);
 }
 
+// The provider's `error.message`, or the raw body when it has none.
+async function providerText(res: Response): Promise<string | undefined> {
+  let text: string;
+  try {
+    text = await res.text();
+  } catch {
+    return undefined;
+  }
+  try {
+    const message = (JSON.parse(text) as { error?: { message?: unknown } })?.error?.message;
+    if (typeof message === "string") return message;
+  } catch {
+    // Not JSON: use the raw body.
+  }
+  return text || undefined;
+}
+
+type Request = { url: string; init: RequestInit; secrets: string[] };
+
 // One request. Classifies failures; never retries and never deduplicates.
-async function send(doFetch: typeof fetch, url: string, init: RequestInit): Promise<Response> {
+async function send(doFetch: typeof fetch, { url, init, secrets }: Request): Promise<Response> {
   let res: Response;
   try {
     res = await doFetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
@@ -48,10 +63,11 @@ async function send(doFetch: typeof fetch, url: string, init: RequestInit): Prom
     throw new ModelHttpError(`Model request failed before an answer (${kind})`, { status: 0, retryable: true });
   }
   if (!res.ok) {
-    const message = await providerMessage(res);
-    throw new ModelHttpError(`Model request failed with HTTP ${res.status}${message ? `: ${message}` : ""}`, {
+    const text = await providerText(res);
+    throw new ModelHttpError(`Model request failed with HTTP ${res.status}`, {
       status: res.status,
       retryable: res.status === 429 || res.status >= 500,
+      ...(text === undefined ? {} : { providerMessage: redact(text, secrets) }),
     });
   }
   return res;
@@ -60,6 +76,9 @@ async function send(doFetch: typeof fetch, url: string, init: RequestInit): Prom
 export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fetch } = {}): ModelClient {
   // Call the global fetch through a wrapper: Workers reject an unbound `fetch`.
   const doFetch: typeof fetch = deps.fetch ?? ((input, init) => fetch(input, init));
+  const secrets = [config.apiKey, config.tts.apiKey, config.gatewayToken].filter(
+    (secret): secret is string => Boolean(secret),
+  );
 
   return {
     async generateJson(req) {
@@ -69,20 +88,24 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
         "Content-Type": "application/json",
       };
       if (config.gatewayToken) headers["cf-aig-authorization"] = `Bearer ${config.gatewayToken}`;
-      const res = await send(doFetch, `${config.baseUrl}/chat/completions`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          model: configuredId,
-          messages: [
-            { role: "system", content: req.system },
-            { role: "user", content: req.user },
-          ],
-          response_format: {
-            type: "json_schema",
-            json_schema: { name: req.model, strict: true, schema: req.schema },
-          },
-        }),
+      const res = await send(doFetch, {
+        url: `${config.baseUrl}/chat/completions`,
+        secrets,
+        init: {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            model: configuredId,
+            messages: [
+              { role: "system", content: req.system },
+              { role: "user", content: req.user },
+            ],
+            response_format: {
+              type: "json_schema",
+              json_schema: { name: req.model, strict: true, schema: req.schema },
+            },
+          }),
+        },
       });
 
       let body: ChatBody;
@@ -109,7 +132,7 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
 
     async synthesizeSpeech(req) {
       const { url, init } = buildSpeechRequest(config, req);
-      const res = await send(doFetch, url, init);
+      const res = await send(doFetch, { url, init, secrets });
       try {
         let json: unknown;
         try {
