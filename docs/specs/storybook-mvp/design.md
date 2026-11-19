@@ -382,7 +382,7 @@ Studio routes are behind Cloudflare Access.
 | `GET /api/studio/stories/:id` | Heads with content, page states (`ok`, `stale`, `missing`, `needs_review`), and releases. |
 | `GET /api/studio/runs/:id` | Run status and step progress. |
 | `PUT /api/studio/stories/:id/pages/:pageId/text` | Body `{ text, basedOn }`. New human `page_text` revision. 409 if the head moved. |
-| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Validated, laid out, saved as a human `scene` revision whose basis is the current page text. |
+| `PUT /api/studio/stories/:id/pages/:pageId/scene` | Body `{ scene, basedOn }`. Validated, laid out, saved as a human `scene` revision whose basis is the current page text. 422 with the error list if it fails validation; nothing is saved. |
 | `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. |
 | `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. |
 | `POST /api/studio/stories/:id/releases` | Publishes the current heads. 409 with a list of blocking pages and reasons. |
@@ -600,6 +600,7 @@ type ReleasePage = {
 | Provider 4xx other than 429 | `script` | Non-retryable error. The run fails with the provider message. |
 | TTS fails after retries | `audio:*` | No new audio head (an old head in a page run is stale). The run ends `needs_review`. Publish is blocked ("missing audio"). The Studio offers "regenerate audio". |
 | Basis changed before commit | any step | The revision is kept as `superseded`. The head does not move. |
+| Operator's scene fails validation, or a layout check after shrinking | API | 422 with the error list. Nothing is saved. There is no repair call; the repair rule is for model output only. |
 | Head moved since the operator loaded it | API | 409 with the current revision. |
 | Compare-and-set loop exhausted (5 tries) | step | Step throws; the platform retries the step. |
 | Publish blocked | API | 409 with the list of pages and reasons. |
