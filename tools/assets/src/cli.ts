@@ -18,11 +18,12 @@ import { ALL_BOARDS, CropMapSchema, proposeCropMap } from "./crops";
 import { readBoard } from "./io";
 import { cropMapPath, cutBoard, loadCropMap, measureBoard } from "./pipeline";
 import { OUT_DIR, SOURCES_DIR } from "./paths";
+import { runPublish } from "./publish";
+import { writeSfxBuilds } from "./sfx/synth";
 import { checkSvg, sanitizeSvg } from "./svg";
+import { runWrangler } from "./wrangler";
 
 type Io = { log: (line: string) => void; error?: (line: string) => void };
-
-const LATER: Record<string, string> = { publish: "#21", sfx: "#21" };
 
 export async function main(argv: string[], io: Io = { log: console.log, error: console.error }): Promise<number> {
   const error = io.error ?? io.log;
@@ -38,6 +39,9 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
         "no-review": { type: "boolean", default: false },
         version: { type: "string" },
         src: { type: "string" },
+        local: { type: "boolean", default: false },
+        remote: { type: "boolean", default: false },
+        only: { type: "string" },
       },
     });
   } catch (e) {
@@ -48,9 +52,19 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
   const [command, board] = positionals;
   const outDir = values.out ?? OUT_DIR;
 
-  if (command && LATER[command]) {
-    error(`"${command}" is not implemented yet (${LATER[command]}).`);
-    return 1;
+  if (command === "sfx") {
+    for (const b of writeSfxBuilds(outDir)) io.log(`${b.key} v1: ${b.manifest.kind === "sfx" ? b.manifest.durationMs : 0} ms`);
+    io.log(`sfx: wrote 8 sounds to ${outDir}`);
+    return 0;
+  }
+  if (command === "publish") {
+    // Never rely on the wrangler default (#21).
+    if (values.local === values.remote) {
+      error("publish: pass exactly one of --local and --remote");
+      return 1;
+    }
+    const only = values.only === undefined ? undefined : values.only.split(",").map((s) => s.trim()).filter(Boolean);
+    return runPublish({ mode: values.local ? "local" : "remote", only, outDir }, { runWrangler, log: io.log, error });
   }
   if (command === "svg") {
     const version = Number(values.version);
@@ -68,6 +82,8 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
   if (command !== "cut" && command !== "measure") {
     error("usage: cli <cut|measure> <board> | --all [--propose] [--out <dir>] [--no-review]");
     error("       cli svg <key> --version <n> [--src <dir>] [--out <dir>]");
+    error("       cli sfx [--out <dir>]");
+    error("       cli publish --local|--remote [--only <key>@<n>,...] [--out <dir>]");
     return 1;
   }
   if (!values.all && !board) {
