@@ -96,6 +96,12 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Then the stage shows selection boxes and drag handles; `onSelectLayer` gets the `instanceId`, and `onMoveLayer` gets the `instanceId` and the new `at`
 - Test: spec (to implement)
 
+### EDT-03.S7 An edited scene that fails validation is refused
+- Given a page in the editor, and an edited scene that fails validation, for example a scene with no tap interaction
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API returns 422 with the error list; no revision is saved, and the `scene` head does not move; no repair call is made
+- Test: spec (to implement)
+
 ## EDT-04 A late result does not replace the operator's work
 
 As the operator, I want my edit to stay when a run finishes later, so that a
