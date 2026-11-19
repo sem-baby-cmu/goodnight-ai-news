@@ -1,1 +1,34 @@
-export {};
+export { ACTIONS, type ActionId, PRIMITIVES, type PaletteId, type PrimitiveId, SKY_PALETTES } from "./primitives";
+export {
+  type AssetKind,
+  type AssetManifest,
+  AssetManifestSchema,
+  type Point,
+  type PoseEntry,
+  type Rect,
+  type RegistrySnapshot,
+  type Renderer,
+  selectPoseEntry,
+} from "./registry";
+export type { LayoutTemplate } from "./template";
+export {
+  type Animation,
+  AnimationSchema,
+  type Interaction,
+  InteractionSchema,
+  type Layer,
+  LayerSchema,
+  type Outline,
+  OutlineSchema,
+  type PageScene,
+  PageSceneSchema,
+  type PageText,
+  PageTextSchema,
+  type ReleaseManifest,
+  ReleaseManifestSchema,
+  type ReleasePage,
+  ReleasePageSchema,
+} from "./schemas";
+export { assignSceneIds, type SceneDraft, SceneDraftSchema, type ScriptDraft, ScriptDraftSchema } from "./draft";
+export { type Issue, validateScene } from "./validate";
+export { buildOutlineJsonSchema, buildSceneJsonSchema } from "./json-schema";
