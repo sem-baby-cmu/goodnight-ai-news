@@ -349,3 +349,12 @@ describe("2xx bodies that are not answers", () => {
     expect(error).toMatchObject({ modelId: "m-tts" });
   });
 });
+
+it("synthesizeSpeech invalid base64 throws ModelOutputError", async () => {
+  const { fetch } = stubFetch(() =>
+    json({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;rate=24000", data: "!!not base64!!" } }] } }] }),
+  );
+  const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+  expect(error).toBeInstanceOf(ModelOutputError);
+  expect(error).toMatchObject({ modelId: "m-tts", usage: null });
+});
