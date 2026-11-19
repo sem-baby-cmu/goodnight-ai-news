@@ -53,14 +53,39 @@ async function providerText(res: Response): Promise<string | undefined> {
 
 type Request = { url: string; init: RequestInit; secrets: string[] };
 
+function errorName(error: unknown): string {
+  return error instanceof Error ? error.name : "unknown error";
+}
+
+// Reads a 2xx body. A failed read (TypeError, TimeoutError, AbortError) is a
+// transport error: status 0, retryable. A body that is not JSON is an output error.
+async function readJson(res: Response, modelId: string): Promise<unknown> {
+  let text: string;
+  try {
+    text = await res.text();
+  } catch (error) {
+    throw new ModelHttpError(`Model response body could not be read (${errorName(error)})`, {
+      status: 0,
+      retryable: true,
+    });
+  }
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new ModelOutputError("Model response body is not JSON", { modelId, usage: null });
+  }
+}
+
 // One request. Classifies failures; never retries and never deduplicates.
 async function send(doFetch: typeof fetch, { url, init, secrets }: Request): Promise<Response> {
   let res: Response;
   try {
     res = await doFetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch (error) {
-    const kind = error instanceof Error ? error.name : "unknown error";
-    throw new ModelHttpError(`Model request failed before an answer (${kind})`, { status: 0, retryable: true });
+    throw new ModelHttpError(`Model request failed before an answer (${errorName(error)})`, {
+      status: 0,
+      retryable: true,
+    });
   }
   if (!res.ok) {
     const text = await providerText(res);
@@ -108,12 +133,7 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
         },
       });
 
-      let body: ChatBody;
-      try {
-        body = (await res.json()) as ChatBody;
-      } catch {
-        throw new ModelOutputError("Model response body is not JSON", { modelId: configuredId, usage: null });
-      }
+      const body = (await readJson(res, configuredId)) as ChatBody;
       const usage: Usage = {
         inputTokens: body.usage?.prompt_tokens ?? 0,
         outputTokens: body.usage?.completion_tokens ?? 0,
@@ -134,13 +154,7 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
       const { url, init } = buildSpeechRequest(config, req);
       const res = await send(doFetch, { url, init, secrets });
       try {
-        let json: unknown;
-        try {
-          json = await res.json();
-        } catch {
-          throw new ModelOutputError("Speech response body is not JSON", { modelId: "", usage: null });
-        }
-        return decodeSpeechResponse(json);
+        return decodeSpeechResponse(await readJson(res, config.models.tts));
       } catch (error) {
         // The decoders have no response context; add the model ID here. TTS
         // reports no usage, so `usage` stays null (implementation decision R25b).
