@@ -13,7 +13,7 @@ import { TEMPLATES, layoutScene } from "@storybook/layout";
 import { ModelOutputError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, assetKeysOfScene, getDb, loadStoryHeads, newId, revision } from "../../db";
-import { type StoredCall, isUnparsed, providerErrorOf, storedCall } from "../model-call";
+import { type StoredCall, answerOf, buildSchema, isUnparsed, providerErrorOf, storedCall, unparsedResult } from "../model-call";
 import { UNPARSED_PREVIOUS, repairSuffix, scenePrompt } from "../prompts";
 import { type FaultContext, seams } from "../seams";
 import { frozenRegistry } from "./freeze";
@@ -26,10 +26,17 @@ type Checked = { issues: Issue[]; candidate: unknown; parsed: PageScene | null; 
 
 // The scene checks, in order, stopping at the first stage with issues
 // (implementation decision R23). Scene draft handling is #10's.
-function checkScene(value: unknown, registry: RegistrySnapshot): Checked {
-  if (isUnparsed(value)) {
-    return { issues: [{ path: "", code: "model_output_unparsed", message: "The answer was not valid JSON." }], candidate: value, parsed: null };
+function checkScene(result: unknown, registry: RegistrySnapshot): Checked {
+  if (isUnparsed(result)) {
+    // The candidate keeps the raw output (review item 2).
+    const { kind: _kind, ...rest } = result;
+    return {
+      issues: [{ path: "", code: "model_output_unparsed", message: "The answer was not valid JSON." }],
+      candidate: { unparsed: true, ...rest },
+      parsed: null,
+    };
   }
+  const value = answerOf(result);
   const draft = SceneDraftSchema.safeParse(value);
   if (!draft.success) return { issues: zodIssues(draft.error.issues), candidate: value, parsed: null };
   const scene = assignSceneIds(draft.data, newId);
@@ -80,11 +87,11 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
         model: "scene",
         system: prompt.system,
         user: prompt.user + suffix,
-        schema: buildSceneJsonSchema({ registry, templates: TEMPLATES }),
+        schema: buildSchema(() => buildSceneJsonSchema({ registry, templates: TEMPLATES })),
       });
-      return { result: r.value, modelId: r.modelId, usage: r.usage };
+      return { result: { kind: "answer" as const, value: r.value }, modelId: r.modelId, usage: r.usage };
     } catch (err) {
-      if (err instanceof ModelOutputError) return { result: { unparsed: true }, modelId: err.modelId, usage: err.usage };
+      if (err instanceof ModelOutputError) return { result: unparsedResult(err.raw), modelId: err.modelId, usage: err.usage };
       throw err;
     }
   };
@@ -97,7 +104,7 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
   let last: StoredCall = first;
   let checked = checkScene(first.result, registry);
   if (checked.issues.length > 0) {
-    const previous = isUnparsed(first.result) ? UNPARSED_PREVIOUS : first.result;
+    const previous = isUnparsed(first.result) ? UNPARSED_PREVIOUS : answerOf(first.result);
     last = await storedCall(deps("repair"), {
       basisKeys: [textKey],
       targetKeys: [sceneKey],

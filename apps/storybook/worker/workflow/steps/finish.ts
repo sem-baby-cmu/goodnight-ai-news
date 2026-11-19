@@ -24,6 +24,10 @@ export function toErrorRecord(input: {
   return { runId, storyId, pageId, step, providerStatus, message: tagged.message.slice(0, 300) };
 }
 
+// Parallel page steps push errors in any order. Sorted by step (stable, plain
+// string compare), a replay writes the same `run.error` (review item 7).
+const sortByStep = (errors: ErrorRecord[]) => [...errors].sort((a, b) => (a.step < b.step ? -1 : a.step > b.step ? 1 : 0));
+
 // Sets the final run status from the heads. Never waits for an event.
 export async function finishStep(
   env: Env,
@@ -48,7 +52,7 @@ export async function finishStep(
   }
   await db
     .update(run)
-    .set({ status, error: { errors: input.errors }, finishedAt: new Date().toISOString() })
+    .set({ status, error: { errors: sortByStep(input.errors) }, finishedAt: new Date().toISOString() })
     .where(eq(run.id, runId));
   return { status };
 }

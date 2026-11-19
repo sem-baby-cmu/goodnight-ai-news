@@ -51,7 +51,8 @@ export function scenePrompt(input: {
   ]);
   const cast = input.cast.flatMap((key) => {
     const m = input.registry.assets[key]?.manifest;
-    if (!m || m.kind === "sfx") return [];
+    // A cast key that is not a visual asset stays visible to the model (review item 3).
+    if (!m || m.kind === "sfx") return [`- ${key}: unknown`];
     const poses = [...new Set(m.poses.map((p) => p.id))];
     return [
       `- ${key}: poses ${JSON.stringify(poses)}; expressions ${JSON.stringify(m.expressions)}; legal pairs ${JSON.stringify(
