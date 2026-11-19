@@ -23,6 +23,15 @@ function errorName(error: unknown): string {
   return error instanceof Error ? error.name : "unknown error";
 }
 
+// Parses a 2xx body. `undefined` means the body is not JSON.
+function parseBody(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function probeGateway(config: ModelConfig) {
   const headers: Record<string, string> = { Authorization: `Bearer ${config.apiKey}` };
   if (config.gatewayToken) headers["cf-aig-authorization"] = `Bearer ${config.gatewayToken}`;
@@ -30,7 +39,8 @@ export async function probeGateway(config: ModelConfig) {
     const res = await fetch(`${config.baseUrl}/models`, { headers, signal: AbortSignal.timeout(30_000) });
     const result: Record<string, unknown> = { status: res.status };
     if (!res.ok) return result;
-    const body = (await res.json()) as { data?: Array<Record<string, unknown>> };
+    const body = parseBody(await res.text()) as { data?: Array<Record<string, unknown>> } | undefined;
+    if (body === undefined) return { ...result, bodyNotJson: true };
     const models = Array.isArray(body.data) ? body.data : [];
     const tts = models.find((model) => model.id === config.models.tts);
     result.modelCount = models.length;
@@ -51,13 +61,18 @@ export async function probeTts(config: ModelConfig) {
     const res = await fetch(url, { ...init, signal: AbortSignal.timeout(180_000) });
     const result: Record<string, unknown> = { status: res.status };
     if (!res.ok) return result;
-    const json: unknown = await res.json();
+    const json = parseBody(await res.text());
+    if (json === undefined) return { ...result, bodyNotJson: true };
     const inline = findInlineData(json);
     result.mimeType = typeof inline?.mimeType === "string" ? inline.mimeType : null;
     if (typeof inline?.data === "string") {
-      const bytes = base64ToBytes(inline.data);
-      result.decodedBytes = bytes.length;
-      result.first4Ascii = String.fromCharCode(...bytes.subarray(0, 4));
+      try {
+        const bytes = base64ToBytes(inline.data);
+        result.decodedBytes = bytes.length;
+        result.first4Ascii = String.fromCharCode(...bytes.subarray(0, 4));
+      } catch (error) {
+        result.base64Error = errorName(error);
+      }
     }
     try {
       const decoded = decodeSpeechResponse(json);
