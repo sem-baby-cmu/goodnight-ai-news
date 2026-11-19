@@ -1,5 +1,5 @@
 // Internal: the Gemini generateContent request for TTS, and the decoding of its
-// answer. Not exported from index.ts. scripts/probe-tts.ts imports it directly.
+// answer. Not exported from index.ts. scripts/probe.ts imports it directly.
 import type { ModelConfig } from "./config";
 import { ModelOutputError, UnsupportedAudioFormatError } from "./errors";
 import { isWav, pcmToWav, wavDurationMs, wavInfo } from "./wav";
