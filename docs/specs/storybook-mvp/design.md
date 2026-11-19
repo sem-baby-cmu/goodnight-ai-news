@@ -503,7 +503,7 @@ Offline Node.js scripts, run by the developer.
 | Cut out | Flood fill of the background from the box edges with a colour tolerance, trim, 2 px feather | Transparent WebP per pose and expression |
 | Measure | Alpha bounds, foot point (lowest opaque row, centre), face box (from the crop map) | Values for the registry manifest |
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
-| Sounds | A small set (about 8) of short licensed sound effects, normalised | `sfx` assets |
+| Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
 | Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows | Registry rows |
 
 All 13 characters get WebP cut-outs. Pip gets a rigged SVG in S1. Other
