@@ -149,7 +149,7 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Given a run with a frozen registry and the template list
 - When a `scene:<pageId>` step calls the model
 - Then the JSON schema it sends is built at run time from the frozen registry and the template list; `ref`, `pose`, `expression`, `slot`, `sfx`, and `templateId` are enums in that schema
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/json-schema.test.ts
 
 ### RUN-03.S3 Every layer references the frozen registry
 - Given a draft from a run
@@ -161,49 +161,49 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Given a scene with a character layer whose pose and expression pair is not legal for that character
 - When the scene is validated
 - Then validation fails for that layer
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S5 A layer in a slot of another kind fails validation
 - Given a scene with a layer whose `kind` does not match the `accepts` value of its slot
 - When the scene is validated
 - Then validation fails for that layer
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S6 A flip on an asset that cannot flip fails validation
 - Given a scene with `flip` set on a layer whose asset is not flippable
 - When the scene is validated
 - Then validation fails for that layer
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S7 A primitive that the renderer does not support fails validation
 - Given a scene with `blink` or `wave` on a layer whose renderer is not `svg-rig`, as an animation or as a `play_animation` tap action
 - When the scene is validated
 - Then validation rejects that primitive
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S8 A target that names no layer fails validation
 - Given a scene with an animation or an action whose `target` names no layer of the page
 - When the scene is validated
 - Then validation fails for that animation or action
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S9 A sound that is not in the registry fails validation
 - Given a scene with a `play_sfx` action whose `sfx` is not a key of an active `sfx` asset
 - When the scene is validated
 - Then validation fails for that action
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S10 A bubble text of more than 60 characters fails validation
 - Given a scene with a `show_bubble` action whose text has more than 60 characters
 - When the scene is validated
 - Then validation fails for that action
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S11 A tap that makes an illegal pair fails validation
 - Given a scene with a `set_expression` action where the pair (current pose, new expression) is not legal, or a `set_pose` action where the pair (new pose, current expression) is not legal
 - When the scene is validated
 - Then validation fails for that action
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S12 Code assigns every layer ID
 - Given a scene output in which the model names layers by their slot
