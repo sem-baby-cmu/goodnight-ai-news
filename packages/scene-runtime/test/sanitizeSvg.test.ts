@@ -118,6 +118,32 @@ describe("sanitizeSvg", () => {
     expect(sanitizeSvg(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"/>`, "x")).toBeNull();
   });
 
+  // Review item 1: an external url() is removed from every attribute, not only
+  // from `style`. Local references are rewritten in any letter case.
+  it("removes any attribute with an external url() and rewrites a local URL(#) in any case", () => {
+    const text = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <linearGradient id="fur"/>
+      <rect class="ext" width="1" height="1" fill="url(https://evil.test/a.svg#g)" mask="URL( 'https://evil.test/m.svg' )"/>
+      <rect class="loc" width="1" height="1" fill="URL(#fur)" filter="url('#fur')"/>
+    </svg>`;
+    const root = sanitizeSvg(text, "abc") as SVGSVGElement;
+    expect(root).not.toBeNull();
+    const ext = root.querySelector(".ext") as Element;
+    expect(ext.hasAttribute("fill")).toBe(false);
+    expect(ext.hasAttribute("mask")).toBe(false);
+    expect(ext.getAttribute("width")).toBe("1");
+    const loc = root.querySelector(".loc") as Element;
+    expect(loc.getAttribute("fill")).toBe("url(#fur--abc)");
+    expect(loc.getAttribute("filter")).toBe("url(#fur--abc)");
+  });
+
+  // Review item 4.
+  it("rejects a viewBox whose width or height is zero or less", () => {
+    for (const box of ["0 0 0 100", "0 0 100 0", "0 0 -5 100", "0 0 100 -1"]) {
+      expect(sanitizeSvg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box}"/>`, "x"), box).toBeNull();
+    }
+  });
+
   it("sets width and height from the viewBox", () => {
     const root = sanitizeSvg(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 300" width="50%" height="1em"><rect width="1" height="1"/></svg>`,

@@ -27,6 +27,10 @@ export type SceneViewProps = {
   textureUrl?: string;
   // When defined, wins over `prefers-reduced-motion`.
   reducedMotion?: boolean;
+  // Class names for `.sv-viewport` (#22, #24).
+  className?: string;
+  // Called when an asset of a layer fails to load (in addition to the warning).
+  onAssetError?: (instanceId: string, url: string) => void;
 };
 
 // The pose and expression of one layer. Starts from the layer; changes only

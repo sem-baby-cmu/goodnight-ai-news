@@ -25,11 +25,23 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// The resolver returns SVG text in a promise. Let it resolve and let React
-// commit the inserted nodes.
+// jsdom never loads an image. Review item 6 starts `enter` animations only
+// after the asset is ready, so the tests fire `load` on each asset image once.
+const loadedImages = new WeakSet<HTMLImageElement>();
+function loadImages(): void {
+  for (const img of document.querySelectorAll<HTMLImageElement>(".sv-asset img")) {
+    if (loadedImages.has(img)) continue;
+    loadedImages.add(img);
+    fireEvent.load(img);
+  }
+}
+
+// The resolver returns SVG text in a promise. Let it resolve, let React
+// commit the inserted nodes, and load the images.
 async function settle(): Promise<void> {
   for (let i = 0; i < 5; i++) {
     await act(async () => {});
+    loadImages();
   }
 }
 
@@ -38,7 +50,22 @@ type Props = Partial<SceneViewProps> & { page: SceneViewProps["page"] };
 function show(props: Props) {
   const { resolver, svgText } = makeResolver();
   const view = render(<SceneView assets={resolver} mode="play" {...props} />);
-  return { ...view, svgText };
+  const again = (next: Props) => view.rerender(<SceneView assets={resolver} mode="play" {...next} />);
+  return { ...view, svgText, resolver, again };
+}
+
+// Every url(#x) and href="#x" in `svg` names an id inside the same svg.
+function localRefsResolve(svg: SVGSVGElement): boolean {
+  for (const el of [svg, ...Array.from(svg.querySelectorAll("*"))]) {
+    for (const attr of Array.from(el.attributes)) {
+      const refs = [...attr.value.matchAll(/url\(\s*['"]?#([^'")\s]+)/gi)].map((m) => m[1] as string);
+      if (attr.localName === "href" && attr.value.startsWith("#")) refs.push(attr.value.slice(1));
+      for (const ref of refs) {
+        if (!Array.from(svg.querySelectorAll("[id]")).some((t) => t.id === ref)) return false;
+      }
+    }
+  }
+  return true;
 }
 
 function layerEl(n: number): HTMLElement {
@@ -112,7 +139,9 @@ describe("SceneView", () => {
     expect(svg.querySelector(".tree")?.hasAttribute("onclick")).toBe(false);
     expect(svg.getAttribute("width")).toBe("120");
     expect(svg.getAttribute("height")).toBe("240");
-    expect(svg.querySelector("linearGradient")?.getAttribute("id")).toBe(`leaf--${id(1)}`);
+    // Review item 5: the id suffix is unique per mount, not the bare instanceId.
+    expect(svg.querySelector("linearGradient")?.getAttribute("id")).toMatch(/^leaf--./);
+    expect(localRefsResolve(svg)).toBe(true);
   });
 
   it("two instances of one svg asset have distinct ids", async () => {
@@ -120,8 +149,12 @@ describe("SceneView", () => {
     await settle();
     const a = svgOf(1).querySelector("linearGradient")?.getAttribute("id");
     const b = svgOf(2).querySelector("linearGradient")?.getAttribute("id");
-    expect(a).toBe(`leaf--${id(1)}`);
-    expect(b).toBe(`leaf--${id(2)}`);
+    // Review item 5: the suffix is unique per mount, not the bare instanceId.
+    expect(a).toMatch(/^leaf--./);
+    expect(b).toMatch(/^leaf--./);
+    expect(a).not.toBe(b);
+    expect(localRefsResolve(svgOf(1))).toBe(true);
+    expect(localRefsResolve(svgOf(2))).toBe(true);
     const ids = Array.from(document.querySelectorAll("[id]")).map((el) => el.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
@@ -454,7 +487,10 @@ describe("SceneView", () => {
 
     // svg: the inlined svg is the sanitised text of the selected entry file.
     expect(assetOf(2).querySelectorAll("svg")).toHaveLength(1);
-    const expected = sanitizeSvg(SVG_TEXT("owl", "owl-sad.svg"), id(2)) as SVGSVGElement;
+    // Review item 5: read the per-mount id suffix from the inlined node.
+    const suffix = (svgOf(2).querySelector("radialGradient")?.id ?? "").replace(/^glow--/, "");
+    expect(suffix).not.toBe("");
+    const expected = sanitizeSvg(SVG_TEXT("owl", "owl-sad.svg"), suffix) as SVGSVGElement;
     const serialize = (node: Node) => new XMLSerializer().serializeToString(node);
     expect(serialize(svgOf(2))).toBe(serialize(expected));
 
@@ -584,6 +620,7 @@ describe("SceneView", () => {
         ],
       ),
     });
+    loadImages();
     fireEvent.click(assetOf(1));
     fireEvent.click(assetOf(1));
     const byProperty = (p: string) => callsOn(onceOf(1)).filter((c) => p in (c.keyframes as object));
@@ -651,5 +688,217 @@ describe("SceneView", () => {
     expect(animateCalls).toHaveLength(3);
     unmount();
     expect(animateCalls.every((c) => c.canceled)).toBe(true);
+  });
+
+  // ---- Review fix list (PR #54), items 2 to 12.
+
+  it("a throwing action warns once and the next action still runs", () => {
+    const onSfx = vi.fn(() => {
+      throw new Error("audio failed");
+    });
+    show({
+      page: page(
+        [layer(1, "bun")],
+        [],
+        [tap(1, { action: "play_sfx", sfx: "boom" }, { action: "show_bubble", target: id(1), text: "Still here" })],
+      ),
+      onSfx,
+    });
+    fireEvent.click(assetOf(1));
+    expect(onSfx).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Still here")).not.toBeNull();
+    expect(warn).toHaveBeenCalledTimes(1);
+    const message = warn.mock.calls[0]?.map(String).join(" ") ?? "";
+    expect(message).toContain("play_sfx");
+    expect(message).toContain(id(1));
+    expect(message).not.toContain("Still here");
+  });
+
+  it("set_expression to an expression the rig file lacks warns and keeps the current group", async () => {
+    // rigone: legal allows stand/sad, but stand.svg has only expr-happy.
+    show({
+      page: page(
+        [layer(1, "rigone", { pose: "stand", expression: "happy" })],
+        [],
+        [tap(1, { action: "set_expression", target: id(1), expression: "sad" })],
+      ),
+    });
+    await settle();
+    expect(exprDisplay(1, "happy")).toEqual(["inline"]);
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(exprDisplay(1, "happy")).toEqual(["inline"]);
+    expect(exprDisplay(1, "sad")).toEqual([]);
+    expect(warnedAbout(id(1))).toBe(true);
+  });
+
+  it("set_pose whose file fails to load warns and keeps the current pose shown", async () => {
+    // rigone: sit/happy is legal, but sit.svg does not load.
+    show({
+      page: page(
+        [layer(1, "rigone", { pose: "stand", expression: "happy" })],
+        [],
+        [tap(1, { action: "set_pose", target: id(1), pose: "sit" })],
+      ),
+    });
+    await settle();
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(assetOf(1).querySelectorAll("svg")).toHaveLength(1);
+    expect(layerEl(1).querySelector(".pose-stand")).not.toBeNull();
+    expect(exprDisplay(1, "happy")).toEqual(["inline"]);
+    expect(assetOf(1).style.transform).toBe("scale(0.5) translate(-50px, -100px)");
+    expect(warnedAbout(id(1))).toBe(true);
+  });
+
+  it("a layer whose svg has a zero-width viewBox is not rendered and warns once", async () => {
+    show({ page: page([layer(1, "flat"), layer(2, "tree")]) });
+    await settle();
+    expect(svgOf(2)).not.toBeNull();
+    expect(document.querySelectorAll(`[data-instance-id="${id(1)}"] svg`)).toHaveLength(0);
+    expect(warn.mock.calls.filter((args) => args.map(String).join(" ").includes(id(1)))).toHaveLength(1);
+  });
+
+  it("two SceneViews of the same page never share ids, and each local reference stays inside its own svg", async () => {
+    const { resolver } = makeResolver();
+    const p = page([layer(1, "tree"), layer(2, "pip", { pose: "stand", expression: "happy" })]);
+    render(
+      <>
+        <SceneView page={p} assets={resolver} mode="play" />
+        <SceneView page={p} assets={resolver} mode="play" />
+      </>,
+    );
+    await settle();
+    // The root svg of each layer (a child selector on svg is not reliable in jsdom).
+    const svgs = Array.from(document.querySelectorAll(".sv-asset")).flatMap(
+      (el) => Array.from(el.children).filter((c) => c.localName === "svg") as SVGSVGElement[],
+    );
+    expect(svgs).toHaveLength(4);
+    const ids = Array.from(document.querySelectorAll("[id]")).map((el) => el.id);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const svg of svgs) expect(localRefsResolve(svg)).toBe(true);
+  });
+
+  it("a webp load error warns once, leaves the layer empty, and calls onAssetError", () => {
+    const onAssetError = vi.fn();
+    show({ page: page([layer(1, "bun", { pose: "stand", expression: "happy" })]), onAssetError });
+    fireEvent.error(assetOf(1).querySelector("img") as HTMLImageElement);
+    expect(assetOf(1).childElementCount).toBe(0);
+    expect(warn.mock.calls.filter((args) => args.map(String).join(" ").includes(id(1)))).toHaveLength(1);
+    expect(onAssetError).toHaveBeenCalledTimes(1);
+    expect(onAssetError).toHaveBeenCalledWith(id(1), "https://cdn.test/bun/bun-happy.webp");
+  });
+
+  it("an svg load failure warns once, leaves the layer empty, and calls onAssetError", async () => {
+    const onAssetError = vi.fn();
+    // rigone/sit.svg does not load.
+    show({ page: page([layer(1, "rigone", { pose: "sit", expression: "happy" })]), onAssetError });
+    await settle();
+    expect(assetOf(1).childElementCount).toBe(0);
+    expect(warn.mock.calls.filter((args) => args.map(String).join(" ").includes(id(1)))).toHaveLength(1);
+    expect(onAssetError).toHaveBeenCalledTimes(1);
+    expect(onAssetError).toHaveBeenCalledWith(id(1), "https://cdn.test/rigone/sit.svg");
+  });
+
+  it("enter animations start only after the layer's asset is ready", async () => {
+    const { resolver, svgText } = makeResolver();
+    let release: (text: string) => void = () => {};
+    svgText.mockImplementationOnce(() => new Promise<string>((resolve) => (release = resolve)));
+    render(<SceneView page={page([layer(1, "tree"), layer(2, "bun")], [FADE(1), FADE(2)])} assets={resolver} mode="play" />);
+    await act(async () => {});
+    // Neither asset is ready: the svg text is pending, the image has not loaded.
+    expect(callsOn(onceOf(1))).toHaveLength(0);
+    expect(callsOn(onceOf(2))).toHaveLength(0);
+    fireEvent.load(assetOf(2).querySelector("img") as HTMLImageElement);
+    expect(callsOn(onceOf(2))).toHaveLength(1);
+    expect(callsOn(onceOf(1))).toHaveLength(0);
+    await act(async () => release(SVG_TEXT("tree", "tree.svg")));
+    await settle();
+    expect(svgOf(1)).not.toBeNull();
+    expect(callsOn(onceOf(1))).toHaveLength(1);
+    expect(callsOn(onceOf(2))).toHaveLength(1);
+  });
+
+  it("switching a layer's renderer clears the old svg", async () => {
+    const view = show({ page: page([layer(1, "tree")]) });
+    await settle();
+    expect(svgOf(1)).not.toBeNull();
+    view.again({ page: page([layer(1, "bun")]) });
+    await settle();
+    expect(assetOf(1).querySelectorAll("svg")).toHaveLength(0);
+    expect(assetOf(1).querySelector("img")?.getAttribute("src")).toBe("https://cdn.test/bun/bun-happy.webp");
+  });
+
+  it("a pose swap cancels the old node's animations and drops them from the Animator", async () => {
+    const view = show({
+      page: page(
+        [layer(1, "pip", { pose: "stand", expression: "happy" })],
+        [BLINK(1)],
+        [tap(1, { action: "set_pose", target: id(1), pose: "sit" })],
+      ),
+    });
+    await settle();
+    const oldEyes = partOf(1, "part-eyes");
+    const [oldCall] = callsOn(oldEyes);
+    expect(oldCall).toBeDefined();
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(oldEyes.isConnected).toBe(false);
+    expect(oldCall?.canceled).toBe(true);
+    // Dropped from the Animator: unmount cancels every entry it still holds.
+    const cancel = vi.spyOn(oldCall!.animation, "cancel");
+    view.unmount();
+    expect(cancel).not.toHaveBeenCalled();
+  });
+
+  it("a reduced-motion change cancels only loops; tap animations keep running and enter does not replay", async () => {
+    show({
+      page: page([layer(1, "bun")], [FLOAT, FADE(1)], [tap(1, { action: "play_animation", target: id(1), primitive: "bounce" })]),
+    });
+    await settle();
+    fireEvent.click(assetOf(1));
+    const float = callsOn(loopOf(1));
+    const fades = () => callsOn(onceOf(1)).filter((c) => "opacity" in (c.keyframes as object));
+    const bounces = () => callsOn(onceOf(1)).filter((c) => "translate" in (c.keyframes as object));
+    expect(float).toHaveLength(1);
+    expect(fades()).toHaveLength(1);
+    expect(bounces()).toHaveLength(1);
+    act(() => setReducedMotion(true));
+    await settle();
+    expect(float[0]?.canceled).toBe(true);
+    expect(bounces().map((c) => c.canceled)).toEqual([false]);
+    expect(fades().map((c) => c.canceled)).toEqual([false]);
+  });
+
+  it("className lands on .sv-viewport", () => {
+    show({ page: page([layer(1, "bun")]), className: "player-stage rounded" });
+    const viewport = document.querySelector(".sv-viewport") as HTMLElement;
+    expect(viewport.classList.contains("player-stage")).toBe(true);
+    expect(viewport.classList.contains("rounded")).toBe(true);
+  });
+
+  it("a new but equal page object does not preload again", async () => {
+    const make = () =>
+      page(
+        [layer(1, "pip", { pose: "stand", expression: "happy" })],
+        [],
+        [tap(1, { action: "set_pose", target: id(1), pose: "sit" })],
+      );
+    const view = show({ page: make() });
+    await settle();
+    const preloads = () => view.svgText.mock.calls.filter(([ref, file]) => ref === "pip" && file === "sit.svg").length;
+    expect(preloads()).toBe(1);
+    view.again({ page: make() });
+    await settle();
+    expect(preloads()).toBe(1);
+  });
+
+  it("play_sfx calls onSfx synchronously inside a native click dispatched outside act", () => {
+    const onSfx = vi.fn();
+    show({ page: page([layer(1, "bun")], [], [tap(1, { action: "play_sfx", sfx: "chime" })]), onSfx });
+    assetOf(1).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onSfx).toHaveBeenCalledTimes(1);
+    expect(onSfx).toHaveBeenCalledWith("chime");
   });
 });
