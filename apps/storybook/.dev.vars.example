@@ -6,3 +6,5 @@ MODEL_TTS=gemini-3.8-flash-tts
 TTS_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 TTS_API_KEY=
 TTS_VOICE=Kore
+# `real` calls the models; `stub` uses the stub model (no model calls).
+MODEL_MODE=real
