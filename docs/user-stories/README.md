@@ -151,12 +151,15 @@ gives an expected result for them. Each one needs a decision from the owner
 
 | # | Question | Source | Effect on the stories |
 | :-- | :-- | :-- | :-- |
-| Q3 | Decided by the owner; #32 writes it into the spec. Which registry version does an operator's scene edit, or "still fits", use? How does a scene revision record the versions that it was made with, so that publish knows which version to copy? | The owner decided that one draft can hold several versions of an asset, and that a release copies each version that it uses (Q3). The `revision` table has no column for registry versions, and a human revision has no `call_id` that leads to a run. `GET /api/studio/registry` returns only active versions. Issue #32 proposes `revision.asset_versions`. | REG-01.S6 covers a page run only. PUB-01.S3 says that the release copies every version in use, but no scenario says how the version is found. |
 | Q7 | Does OpenRouter pass Gemini TTS audio through, and in which format? | ADR 0015, "Consequences" (open); checked in TB0. | SYS-05.S3 covers only the raw PCM case. |
+| Q11 | Which checks does an operator's scene go through: the enum rules that the model gets from the JSON schema, the zod rules, and the layout checks with shrinking? Does shrinking change a layer that has a manual `at`? | Q2 decides the response to a failed validation. "6. API" says only "Validated, laid out". "Storybook DSL" puts the enums for `ref`, `pose`, `slot`, `sfx`, and `templateId` in the model's JSON schema. "4. Layout engine" shrinks layers, and says that a manual `at` overrides the slot. A shrink that changes a manual `at` can be a silent fix (`AGENTS.md` section 3). | EDT-03.S7 uses a missing tap as its example. No scenario covers an operator's scene that fails a layout check. |
+| Q12 | When an operator's scene is both invalid and based on an old revision, does the API return 409 or 422? | "3. Calls, revisions, and heads" gives 409 when the head moved. "6. API" gives 422 when the scene fails validation. Neither gives an order. | EDT-03.S4 and EDT-03.S7 each fix one condition only. |
+| Q13 | Can "still fits" copy a scene whose head has `status = needs_review`, and which status does the copy get? | "6. API": "Copies the current scene into a new human revision". It does not check the status. A human copy of a `needs_review` scene could pass the publish check without validation. | EDT-03.S2 covers a stale scene that is `ok`. |
 
 The owner closed Q1, Q4, Q5, Q6, Q8, Q9, and Q10 on 2026-11-19 (#34), and
-Q2 on 2026-11-19 (#36). The owner decided Q3 on 2026-11-19; #32 writes it
-into the spec and then removes its row. A question number is not used again.
+Q2 on 2026-11-19 (#36). The owner decided Q3 on 2026-11-19; the decision is
+on #32, which writes it into the spec. Until then, REG-01.S6 is the only Q3
+scenario. A question number is not used again.
 
 ## Changes
 
