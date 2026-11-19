@@ -26,31 +26,31 @@ Spec: requirements US-5, "Core Features" 5 · design "4. Layout engine", "5. Sce
 - Given a page with animations
 - When the Player shows the page
 - Then each animation runs with the Web Animations API on its layer element, or on the named parts of an `svg-rig` asset
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ### PLY-01.S4 A tap runs the actions of the layer
 - Given a page in play mode with an interaction on a layer
 - When the child taps that layer
 - Then the actions of the interaction run: `play_animation`, `play_sfx`, `show_bubble`, `set_expression`, or `set_pose`
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ### PLY-01.S5 A new expression is shown in the way of the renderer
 - Given a `set_expression` action on a layer
 - When the action runs
 - Then on `svg-rig` it swaps the face parts; on `svg` and `webp` it swaps the image
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ### PLY-01.S6 Reduced motion turns looping animations off
 - Given a device with `prefers-reduced-motion` set
 - When the Player shows a page with looping animations
 - Then the looping animations are off
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ### PLY-01.S7 A bubble text is shown over the stage
 - Given a tap interaction with a `show_bubble` action
 - When the child taps its layer
 - Then the text of the bubble is an HTML element over the stage; it is not part of the stage image
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ## PLY-02 Each page is read aloud
 
