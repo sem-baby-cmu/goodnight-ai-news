@@ -74,14 +74,14 @@ describe("generateJson", () => {
     const { fetch } = stubFetch(() => json({ error: { message: "slow down" } }, 429));
     const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
     expect(error).toBeInstanceOf(ModelHttpError);
-    expect(error).toMatchObject({ status: 429, retryable: true });
+    expect(error).toMatchObject({ status: 429, retryable: true, modelId: "m-scene" });
   });
 
   it("generateJson 503 is retryable", async () => {
     const { fetch } = stubFetch(() => new Response("busy", { status: 503 }));
     const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
     expect(error).toBeInstanceOf(ModelHttpError);
-    expect(error).toMatchObject({ status: 503, retryable: true });
+    expect(error).toMatchObject({ status: 503, retryable: true, modelId: "m-scene" });
   });
 
   it("generateJson 400 is not retryable", async () => {
@@ -89,7 +89,7 @@ describe("generateJson", () => {
     const { fetch } = stubFetch(() => json({ error: { message: longMessage } }, 400));
     const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
     expect(error).toBeInstanceOf(ModelHttpError);
-    expect(error).toMatchObject({ status: 400, retryable: false });
+    expect(error).toMatchObject({ status: 400, retryable: false, modelId: "m-scene" });
     expect((error as Error).message).toBe("Model request failed with HTTP 400");
     expect(error).toMatchObject({ providerMessage: "x".repeat(300) });
   });
@@ -121,7 +121,7 @@ describe("generateJson", () => {
     }) as typeof globalThis.fetch;
     const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
     expect(error).toBeInstanceOf(ModelHttpError);
-    expect(error).toMatchObject({ status: 0, retryable: true });
+    expect(error).toMatchObject({ status: 0, retryable: true, modelId: "m-scene" });
   });
 
   it("generateJson non-JSON content throws ModelOutputError without content in message", async () => {
@@ -213,7 +213,7 @@ describe("synthesizeSpeech", () => {
     const { fetch } = stubFetch(() => json({ error: { message: "quota" } }, 429));
     const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
     expect(error).toBeInstanceOf(ModelHttpError);
-    expect(error).toMatchObject({ status: 429, retryable: true });
+    expect(error).toMatchObject({ status: 429, retryable: true, modelId: "m-tts" });
   });
 
   it("SYS-05.S4 synthesizeSpeech in development posts to Google AI Studio directly", async () => {
