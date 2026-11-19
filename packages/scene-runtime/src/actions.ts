@@ -1,4 +1,4 @@
-import type { AssetManifest, PageScene, PrimitiveId } from "@storybook/dsl";
+import { type AssetManifest, type PageScene, type PrimitiveId, selectPoseEntry } from "@storybook/dsl";
 import type { LayerState, ResolvedAsset } from "./types";
 
 type Action = PageScene["interactions"][number]["do"][number];
@@ -10,17 +10,39 @@ export type TapContext = {
   setState(instanceId: string, state: LayerState): void;
   playOnce(target: string, primitive: PrimitiveId): void;
   showBubble(target: string, text: string): void;
+  // Whether the layer's inlined svg-rig node has `expr-<expression>`;
+  // undefined when the node is not inserted yet.
+  hasExpression(target: string, expression: string): boolean | undefined;
   onSfx?: (sfxRef: string) => void;
 };
 
 // Runs every interaction on `instanceId`, in page order, and each `do` action
 // in array order. Everything is synchronous, so `onSfx` runs inside the
-// user gesture (invariant 4).
+// user gesture (invariant 4). A throwing action is logged and the next one
+// still runs. The warning names the action and the layer, not scene text.
 export function runTap(instanceId: string, ctx: TapContext): void {
   for (const interaction of ctx.page.interactions) {
     if (interaction.on.tap !== instanceId) continue;
-    for (const action of interaction.do) runAction(action, ctx);
+    for (const action of interaction.do) {
+      try {
+        runAction(action, ctx);
+      } catch {
+        console.warn(`scene-runtime: action ${action.action} on the tap of ${instanceId} failed; skipped`);
+      }
+    }
   }
+}
+
+// The file a state would show exists: the entry is there and, on svg and
+// webp, it shows the requested expression (or one that is not named).
+function hasFile(asset: ResolvedAsset, state: LayerState): boolean {
+  const entry =
+    asset.renderer === "svg-rig"
+      ? selectPoseEntry(asset.manifest, state.pose)
+      : selectPoseEntry(asset.manifest, state.pose, state.expression);
+  if (!entry || (state.pose !== undefined && entry.id !== state.pose)) return false;
+  if (asset.renderer === "svg-rig" || state.expression === undefined || entry.expression === undefined) return true;
+  return entry.expression === state.expression;
 }
 
 function isLegal(manifest: AssetManifest, pose: string, expression: string): boolean {
@@ -53,7 +75,14 @@ function runAction(action: Action, ctx: TapContext): void {
         );
         return;
       }
-      ctx.setState(action.target, { ...state, expression: action.expression });
+      const next = { ...state, expression: action.expression };
+      const present =
+        asset.renderer === "svg-rig" ? ctx.hasExpression(action.target, action.expression) !== false : hasFile(asset, next);
+      if (!present) {
+        console.warn(`scene-runtime: ${action.target} has no file or group for expression "${action.expression}"; skipped`);
+        return;
+      }
+      ctx.setState(action.target, next);
       return;
     }
     case "set_pose": {
@@ -67,13 +96,18 @@ function runAction(action: Action, ctx: TapContext): void {
         (state.expression === undefined
           ? manifest.poses.some((p) => p.id === action.pose)
           : isLegal(manifest, action.pose, state.expression));
-      if (!legal || !state) {
+      if (!legal || !state || !asset) {
         console.warn(
           `scene-runtime: set_pose "${action.pose}" on ${action.target} is not legal with expression "${state?.expression}"; skipped`,
         );
         return;
       }
-      ctx.setState(action.target, { ...state, pose: action.pose });
+      const next = { ...state, pose: action.pose };
+      if (!hasFile(asset, next)) {
+        console.warn(`scene-runtime: ${action.target} has no file for pose "${action.pose}"; skipped`);
+        return;
+      }
+      ctx.setState(action.target, next);
       return;
     }
     default: {

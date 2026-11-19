@@ -21,6 +21,10 @@ export function isLoopable(primitive: PrimitiveId): boolean {
   return LOOPABLE.has(primitive);
 }
 
+// Keyframes use only the individual properties translate, rotate, scale and
+// opacity, never transform, so they never overwrite an authored transform
+// attribute on a part (design section 5, invariant 3).
+//
 // Keyframes for one primitive. Missing params come from the DSL defaults
 // (implementation decision R3). "loop" on a one-shot primitive runs once and
 // warns; validateScene rejects that case first (`loop_not_allowed`).
@@ -74,7 +78,7 @@ export function keyframesFor(primitive: PrimitiveId, params: Record<string, numb
       if (!loop) {
         return {
           element: "part-eyes",
-          keyframes: [{ transform: "scaleY(1)" }, { transform: "scaleY(0.1)" }, { transform: "scaleY(1)" }],
+          keyframes: [{ scale: "1 1" }, { scale: "1 0.1" }, { scale: "1 1" }],
           options: { duration: 160, iterations: 1 },
         };
       }
@@ -82,10 +86,10 @@ export function keyframesFor(primitive: PrimitiveId, params: Record<string, numb
       return {
         element: "part-eyes",
         keyframes: [
-          { transform: "scaleY(1)", offset: 0 },
-          { transform: "scaleY(1)", offset: 1 - 160 / d },
-          { transform: "scaleY(0.1)", offset: 1 - 80 / d },
-          { transform: "scaleY(1)", offset: 1 },
+          { scale: "1 1", offset: 0 },
+          { scale: "1 1", offset: 1 - 160 / d },
+          { scale: "1 0.1", offset: 1 - 80 / d },
+          { scale: "1 1", offset: 1 },
         ],
         options: { duration: d, iterations: Infinity },
       };
@@ -94,11 +98,11 @@ export function keyframesFor(primitive: PrimitiveId, params: Record<string, numb
       return {
         element: "part-arm-right",
         keyframes: [
-          { transform: "rotate(0deg)" },
-          { transform: "rotate(-20deg)" },
-          { transform: "rotate(10deg)" },
-          { transform: "rotate(-20deg)" },
-          { transform: "rotate(0deg)" },
+          { rotate: "0deg" },
+          { rotate: "-20deg" },
+          { rotate: "10deg" },
+          { rotate: "-20deg" },
+          { rotate: "0deg" },
         ],
         options: { duration: 900, easing: "ease-in-out", iterations: p.count },
       };
