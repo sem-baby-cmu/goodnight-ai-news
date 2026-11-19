@@ -67,7 +67,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 102 scenarios are `spec (to implement)`, 38 have an
+Current state: 69 scenarios are `spec (to implement)`, 71 have an
 automated test, and 5 are `manual · not run`.
 
 ## Coverage of the requirements

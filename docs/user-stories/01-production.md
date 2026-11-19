@@ -20,31 +20,31 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Given a full run on an empty database, with model outputs that pass validation
 - When the run ends
 - Then the story has 6 to 8 pages; every page has a current `page_text`, `scene`, and `audio` head; the run ends at `draft_ready`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S3 Each draft page can be seen, heard, and touched
 - Given a draft from a full run
 - When its pages are read
 - Then each page has narration text, one audio file, at least one character layer, at least one animation, and at least one tap interaction
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S4 The script step writes the outline and every page text
 - Given a run after its `freeze` step
 - When the `script` step runs and the model output passes validation
 - Then one model call gives the outline (title, cast, 6 to 8 page beats) and the text of every page; the step writes 1 `outline` revision and 1 `page_text` revision per page; each page text has 1 to 3 sentences and at most 40 words
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S5 Code creates every page ID
 - Given a script output from the model
 - When the `script` step stores it
 - Then code gives each page a new UUID v7 `pageId`; no `pageId` comes from the model; the step names `scene:<pageId>` and `audio:<pageId>` are unique
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S6 Page steps run at most 4 pages at a time
 - Given a full run with 6 to 8 pages
 - When the `scene:*` and `audio:*` steps run
 - Then they run in parallel, and at most 4 pages run at the same time
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S7 The Studio shows the progress of a run
 - Given a run that is in progress
@@ -56,7 +56,7 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Given a run whose page steps are complete
 - When the `finish` step runs
 - Then it checks that every page has current text, scene, and audio, and sets the run status; the run ends at `draft_ready` or `needs_review` and does not wait for a person
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S9 A short pasted text is refused
 - Given a pasted news text of fewer than 200 words
@@ -74,13 +74,13 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Given a run whose page steps are complete, and, when `finish` reads the heads, one page has no `page_text`, `scene`, or `audio` head, or has one of these heads with `status = needs_review`
 - When the `finish` step runs
 - Then the run ends at `needs_review`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S12 A stale head gives a `needs_review` run
 - Given a page run for the audio of a page whose text changed, so that its old `audio` head is stale, and TTS fails after the retries
 - When the `finish` step runs
 - Then the run ends at `needs_review`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## RUN-02 Start a full run from a URL
 
@@ -143,7 +143,7 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Given a new run
 - When the `freeze` step runs
 - Then it records the source revision, the active registry versions, and the current heads as the run basis
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-03.S2 The model schema is built from the frozen registry
 - Given a run with a frozen registry and the template list
@@ -155,7 +155,7 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Given a draft from a run
 - When its scenes are read
 - Then every layer references a character, pose, expression, or prop that exists in the registry version that the run froze at its start
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-03.S4 An illegal pose and expression pair fails validation
 - Given a scene with a character layer whose pose and expression pair is not legal for that character
@@ -209,19 +209,19 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Given a scene output in which the model names layers by their slot
 - When code stores the scene
 - Then code assigns each `instanceId` and rewrites `target` and `on.tap` to those values; no `instanceId` comes from the model
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-03.S13 A page without a character, an animation, or a tap fails validation
 - Given a scene output with no character layer, no animation, or no tap interaction
 - When it is validated
 - Then validation fails, and the repair rule applies (RUN-05)
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-03.S14 An animation parameter outside its bounds fails validation
 - Given a scene output with an animation parameter outside the bounds of its primitive, for example `float` with a period of 8 s
 - When it is validated
 - Then validation fails, and the repair rule applies (RUN-05); code does not clamp the parameter to the bounds
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## RUN-04 Code places the layers
 
@@ -265,7 +265,7 @@ Spec: design "4. Layout engine", "Error Handling"
 - Given a placed scene that still fails a check with every layer involved at its `minScale`
 - When the `scene:<pageId>` step continues
 - Then the page counts as a validation failure, and the repair rule of RUN-05 applies
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## RUN-05 A failure goes to a person
 
@@ -278,37 +278,37 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Given a first scene output that fails validation, a provider 429 between the first call and the repair call, and a repair output that passes
 - When the `scene:<pageId>` step runs
 - Then the model is called two times in total (first, repair); the repair call has `purpose = repair` and carries the error list; the repaired scene is the head
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S2 A scene that still fails is kept as `needs_review`
 - Given a scene output that fails validation, and a repair output that also fails
 - When the `scene:<pageId>` step ends
 - Then the candidate is saved with `status = needs_review` and its errors; no layer is dropped and no character is swapped; there is no second repair
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S3 A script that still fails makes the run fail
 - Given a script output that fails validation, and a repair output that also fails
 - When the `script` step ends
 - Then the run fails with the errors
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S4 A provider 429 or 5xx is retried by the platform
 - Given a model step where the provider answers 429 or 5xx
 - When the step throws
 - Then the platform retries the step: 3 tries, exponential back-off, starting at 10 s; a stored result is not requested again
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S5 Another provider 4xx is not retried
 - Given a model step for a page where the provider answers a 4xx that is not 429
 - When the step handles the answer
 - Then the error is non-retryable; the step stores the provider error once in `call_log` as `result = { providerError: { status, message } }` and writes a `needs_review` revision with `content = null` and `error = { providerError: { status, message } }`, with `message` cut to 300 characters, and that revision becomes the head; a replay of the step does not call the model again
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S6 A failed narration leaves the page without audio
 - Given an `audio:<pageId>` step where TTS fails after the retries
 - When the run ends
 - Then the page has no `audio` head; the run ends at `needs_review`; the Studio offers "regenerate audio"
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S7 A failed run can be started again
 - Given a run that failed
@@ -320,7 +320,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Given a `script` step where the provider answers a 4xx that is not 429
 - When the step handles the answer
 - Then the error is non-retryable, and the run fails with the provider message
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-05.S9 A full run can start again when the script step never succeeded
 - Given a story with no `outline` head, because its `script` step failed, and no run of the story is `queued` or `running`
