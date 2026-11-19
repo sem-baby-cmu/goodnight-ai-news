@@ -90,9 +90,9 @@ Spec: requirements "Non-functional Requirements" · design "3. Calls, revisions,
 ## SYS-03 The Studio is behind Access, and the Player is public
 
 As the operator, I want the Studio closed to other people, so that only I
-start runs and publish. (Derived from AC-13.)
+start runs and publish. (Derived from AC-15.)
 
-Spec: requirements AC-13 · design "Deployment", "Testing Strategy"
+Spec: requirements AC-15 · design "Deployment", "Testing Strategy"
 
 ### SYS-03.S1 The Studio and its API ask for a login
 - Given the deployed Worker, and a browser with no Access session

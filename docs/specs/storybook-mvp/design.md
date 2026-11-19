@@ -332,9 +332,11 @@ part of the stage image.
 
 **Backdrop.** Every page has one backdrop (ADR 0016): a painted full-frame
 background from the registry, below every layer. It is not a layer and has no
-slot. Every backdrop fits every template; the art contract in "8. Asset
-pipeline" keeps the character zone clear. The layout engine places layers as
-before and does not read the backdrop.
+slot. MVP backdrops are outdoor scenes only. Every backdrop fits every
+template; the art contract in "8. Asset pipeline" keeps the floor band open.
+The layout engine places layers as before and does not read the backdrop.
+Characters stand in front of the painting; a character cannot sit at a
+painted object or stand behind one.
 
 A layout template is data:
 
@@ -395,20 +397,31 @@ Q14).
   page={PageScene}
   assets={AssetResolver}          // key + version -> URL or SVG text
   mode="play" | "edit"
+  phase?="incoming" | "current" | "outgoing"   // Player only; default "current"
   onSelectLayer?={(instanceId) => void}
   onMoveLayer?={(instanceId, at) => void}
 />
 ```
 
 - The stage is 1600 × 1200 units, scaled to the container with CSS.
-- **Backdrop.** The backdrop variant (`backdrop`, `sky`) is the bottom
-  element. Its file is 2400 × 1200 units: the stage in the middle and 400
-  units of bleed on each side. In the Player, the stage keeps 4:3 and the
-  bleed fills a wider container; a narrower container crops the bleed. Layers
-  are never placed in the bleed. In edit mode, the Studio shows the stage
-  only.
+- **Backdrop frame.** The backdrop variant (`backdrop`, `sky`) is drawn in a
+  frame of 2400 × 1200 units: the stage in the middle and 400 units of bleed
+  on each side. Layers are drawn in a separate stage container of
+  1600 × 1200 units that clips them, so no layer shows in the bleed.
+- **Picture area.** The Player sizes the picture area from the space above
+  the narration (portrait and landscape, ADR 0016). The stage keeps 4:3 and
+  is never cropped:
+  - an area between 4:3 and 2:1 shows as much bleed as fits;
+  - an area wider than 2:1 shows the whole frame and the paper colour beyond it;
+  - an area narrower than 4:3 shows the stage at full width and the paper
+    colour above and below it.
+  - On a short landscape screen (for example a phone), the narration keeps
+    its minimum font size of 18 px and the stage gets the remaining height.
+- In edit mode, the Studio shows the stage only.
+- Until the backdrop file is loaded, the paper colour shows behind the stage,
+  not a sky colour.
 - `svg` and `svg-rig` assets are inlined. `webp` assets are `<img>` elements.
-- A paper texture image covers the backdrop and the stage with
+- A paper texture image is tiled over the whole backdrop frame with
   `mix-blend-mode: multiply`. No per-layer SVG filters.
 - Animations use the Web Animations API on the layer element, or on named
   parts of an `svg-rig` asset (`part-eyes`, `part-arm-left`, ...).
@@ -418,22 +431,34 @@ Q14).
   handler sets the new `src` and calls `play()` in the same handler, because
   iOS Safari blocks `play()` outside a user gesture. Sound effects use a
   second shared element, unlocked the same way.
+- **Loading.** "Start" is enabled only when the manifest, every page JSON,
+  and the assets of page 1 are loaded. After a page is shown, the Player
+  loads the assets of the next and the previous page.
 - **Page turn** (ADR 0016). A tap on "next" or "previous" turns the page:
-  - The page (stage, backdrop, and narration) turns like paper: a forward
-    turn rotates the old page about its left edge and shows the new page
-    below it; a backward turn runs the other way. 500 ms, `transform` and
+  - The page sheet (backdrop frame, stage, and narration on an opaque paper
+    background) turns about the left edge of the page panel. A forward turn
+    rotates the old sheet away and shows the new sheet below it; a backward
+    turn brings the new sheet back over the old one. 500 ms, `transform` and
     `opacity` only, no filters. The frame time target applies during the
     turn.
   - The tap handler sets the new audio `src` and calls `play()` at once. It
     does not wait for the turn to end.
-  - Looping animations of the old page stop when the turn starts. `enter`
-    animations of the new page start when the turn ends.
-  - A tap during a turn ends that turn at once and starts the next one.
+  - Looping animations and bubbles of the old page stop when the turn
+    starts. A playing sound effect is not stopped.
+  - Taps on layers are ignored during a turn.
+  - A tap on "next" or "previous" during a turn ends that turn at once and
+    starts a turn from the page that is now current.
   - With `prefers-reduced-motion`, the turn is a 200 ms cross-fade.
-  - After a page is shown, the Player loads the assets of the next page. If
-    a page is shown before its assets are loaded, its narration text and the
-    paper colour show at once, and each image fades in (200 ms) when it is
-    loaded.
+- **Page phases.** `SceneView` takes a `phase` prop: `incoming`, `current`,
+  or `outgoing`. `enter` animations run once, when the page is `current` and
+  all its assets are loaded. A layer with an `enter` `fade-in` is hidden
+  until then. A load callback for a page that is no longer `incoming` or
+  `current` is ignored.
+- **Late images.** If a page becomes `current` before an image is loaded, the
+  narration and the paper colour show at once, and the image fades in
+  (200 ms) when it is loaded. A layer with an `enter` `fade-in` uses its own
+  animation instead. With `prefers-reduced-motion`, a late image appears
+  without a fade.
 - Edit mode adds selection boxes and drag handles. Play mode adds tap handling.
 
 Animation primitives (closed list). Validation rejects a primitive on a layer
@@ -478,7 +503,7 @@ Studio routes are behind Cloudflare Access.
 | `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` | Body `{ basedOn, textBasedOn }`. `textBasedOn` is the `page_text` revision that the operator saw. Copies the current scene into a new human revision whose basis is the current page text. Clears a stale scene. Checks in this order, and saves nothing when one fails: 409 if the `scene` head moved since `basedOn`; 409 `head_moved` if the `page_text` head is not `textBasedOn`; 409 if the current scene head has `status = needs_review`; then the copied scene is validated again, and 422 `invalid_scene` with the error list if it fails. The validation runs the same checks as `PUT .../scene` (enum rules, zod rules, layout checks) with the active registry versions at the time of the request; a manual `at` is not shrunk. The new revision records those versions in `asset_versions` (owner decision Q3). |
 | `POST /api/studio/stories/:id/runs` | Body `{ scope }`. Starts a page run. It also takes `{ scope: { kind: "full" } }`, but only when the story has no `outline` head (the `script` step never succeeded) and no run of the story is `queued` or `running`; otherwise 409 `full_run_not_allowed`. A page run is refused with 409 `run_active` and the `runId` of the active run while a run of the story is `queued` or `running` (amendment R61). The check and the run insert are one statement (`INSERT ... SELECT ... WHERE NOT EXISTS (...)`). A failed page step is fixed with a page run. |
 | `POST /api/studio/stories/:id/releases` | Publishes the current heads. 409 with a list of blocking pages and reasons. |
-| `GET /api/studio/registry` | Active assets (with backdrops), sounds, and templates. |
+| `GET /api/studio/registry` | Active assets (with backdrops), sounds, and templates. The Studio page editor offers only the palettes of the chosen backdrop; when the operator picks a backdrop that lacks the current palette, the editor picks its first palette (implementation decision). |
 | `GET /api/studio/files/*` | Serves registry assets and draft audio from R2 to the Studio. Only keys under `assets/` and `calls/`. A key that does not start with `assets/` or `calls/`, or that has a `..` segment, gives 404 `{ error: "not_found" }`, the same as a missing object. |
 | `GET /content/releases/:releaseId/*` | Public. Serves `releases/<releaseId>/*` from R2 with `Cache-Control: public, max-age=31536000, immutable`, only when a `release` row with that ID exists. Answers a `Range` request with 206. |
 
@@ -512,6 +537,8 @@ Studio shows a note.
 3. Build page JSON and the manifest from the snapshot revisions.
 4. Copy each asset version and sound version that a snapshot `scene`
    revision records in `asset_versions` to `releases/<releaseId>/assets/`.
+   A backdrop version is copied whole, with all its variants, so its manifest
+   stays true in the release. The Player loads only the variant of the page.
 5. Copy each audio object to `releases/<releaseId>/audio/`.
 6. Write page JSON, then the manifest last.
 7. Insert the `release` row and update `story.published_release_id` in one
@@ -534,29 +561,35 @@ Offline Node.js scripts, run by the developer.
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
 | Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
 | Code backdrop | The backdrop `meadow` drawn in code: sky colour and three hills, one SVG per sky palette (all 4) | `backdrop` asset, renderer `svg` |
-| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP of at most 250 KB per file | `backdrop` asset, renderer `webp` |
-| Backdrop review | A sheet per backdrop variant with the slot boxes of all templates drawn over it. A person approves it before publish | `tools/assets/out/review/` |
+| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP within the file budget | `backdrop` asset, renderer `webp` |
+| Backdrop review | A sheet per backdrop variant with the slot envelopes of all templates drawn over it. A slot envelope is the union of the boxes of every active asset of the slot's kind, placed in that slot at scale 1, with and without flip | `tools/assets/out/review/` |
+| Backdrop approval | A person approves the sheets. The approval is a tracked file `tools/assets/reviews/<key>-v<n>.json` with the SHA-256 of every variant file and of the template list. Publish refuses a backdrop version without an approval whose digests match | Approval record |
 | Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows. One (`key`, `version`) always holds the same bytes (R65): publish compares the file digests, renderer and manifest of an existing version, and any difference is an error, never a skip | Registry rows |
 
 All 13 characters get WebP cut-outs. Pip gets a rigged SVG in S1. Other
 characters move to SVG later, one at a time, as a new asset version.
 
-**Backdrop art contract** (ADR 0016). The values come from the character
-slots of the 8 templates in `packages/layout/src/templates.ts` (foot points
-x 360 to 1240 and y 960 to 1200, heights up to 900 units). In stage units of
-the 1600 × 1200 middle part:
+**Backdrop art contract** (ADR 0016). The character slots of the 8 templates
+in `packages/layout/src/templates.ts` have foot points from x 250 to 1350 and
+y 960 to 1200, and heights up to 900 units; with real asset widths, layer
+boxes reach the stage edges. So, in stage units of the 1600 × 1200 middle
+part:
 
-- The floor band, x 200 to 1400 and y 940 to 1200, is open ground or floor.
+- The floor band, the whole stage width and y 940 to 1200, is open ground.
   No painted object stands in it.
-- Above the floor band, painted objects in x 200 to 1400 are far behind the
-  characters, end at y 940 or higher, and are not needed for the story.
+- Above the floor band, painted objects are far behind the characters, end
+  at y 940 or higher, and are not needed for the story.
+- The review sheet (slot envelopes) is the check; the numbers above are the
+  brief for the painter.
 - No painted text, no characters, no animals that look like a cast member.
 - Each variant has the same layout; only the light and colour change.
 - The style follows the Producer illustration guideline (painted paper,
   hand-cut shapes).
 
-The 250 KB file budget is a proposal. The device test checks it against the
-4G load target ("Testing Strategy").
+The file budget starts at 250 KB per variant. It is set from a compression
+test on 2 or 3 real paintings before the first painted backdrop is
+published, and the device test checks it against the 4G load target
+("Testing Strategy").
 
 ## Data Models
 
@@ -761,9 +794,9 @@ status. Logs do not contain the full news text or model output.
 | Unit | Vitest | DSL validation (legal pairs, slot kinds, renderer rules for primitives and actions, targets, flip, backdrop and sky pair); JSON schema builder from a registry fixture; layout placement, the three checks, and shrinking; staleness from basis; manifest builder. |
 | Worker integration | Vitest with `@cloudflare/vitest-plugin` (the new name of `@cloudflare/vitest-pool-workers`), local D1 and R2, stub model adapter that counts calls | See the sequences below. |
 | Model contract | Recorded model outputs as fixtures | Real outputs from S2 stay as fixtures; schema changes must keep them valid or update them on purpose. |
-| Product premise (S2) | Real models, 3 real news texts | At least 90% of pages pass validation and layout with at most one repair. This is the test that a stub cannot replace. |
+| Product premise (S2) | Real models, 3 real news texts | At least 90% of pages pass validation and layout with at most one repair. This is the test that a stub cannot replace. The backdrop choice is tested only with at least 3 backdrops, 1 of them with only some palettes (ADR 0016). |
 | Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render with their backdrop and the narration below the stage; taps fire actions; reduced motion stops loops and makes the page turn a cross-fade; audio starts on "Start" and continues on each page turn; a tap during a turn starts the next turn. |
-| Device | Manual, on a real phone and tablet | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. Recorded in the S1 and TB3 results. |
+| Device | Manual, on a real phone and tablet, with painted WebP backdrops at full size | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. Recorded in the S1 and TB3 results. |
 
 Integration sequences (each asserts both the revisions and `story.heads`):
 
@@ -887,3 +920,32 @@ of this revision is recorded below the table.
 
 Cross-family review of revision 6 (Codex, Gemini), 2026-11-19: 11 findings,
 all applied.
+
+Revision 7 (#59, ADR 0016), 2026-11-19: painted backdrops, narration below
+the stage in both orientations, and the page-turn transition. Cross-family
+review (Codex, Gemini) of commit 288ac05. Findings were merged as a union. A
+finding from one seat was checked against the source first; all were
+confirmed.
+
+| # | Finding | Seats | Change |
+| :-- | :-- | :-- | :-- |
+| 1 | Art contract range x 200 to 1400 misses `line-up` (x 250, 1350) and real asset widths | both | Floor band covers the whole stage width; review sheet draws slot envelopes from real assets |
+| 2 | Review sheet and approval had no definition and no publish check | both | Slot envelope defined; approval file with digests; publish refuses without it |
+| 3 | `enter` animations and asset loading had no lifecycle against the turn | both | `SceneView` `phase` prop; `enter` once when current and loaded; stale callbacks ignored |
+| 4 | Bleed: layers not clipped, frames wider than 2:1, narrower than 4:3, paper texture size, sky colour behind an unloaded backdrop | both | Separate clipped stage container; picture area rules; texture tiled over the frame; paper colour |
+| 5 | Preload covered only the next page; page JSON could be missing on a fast tap | both | "Start" waits for all page JSON and page 1; preload next and previous |
+| 6 | Indoor backdrop with outdoor scenery and `sky-*` slots | Gemini | MVP backdrops are outdoor only; indoor is an open question |
+| 7 | Cut-out characters cannot sit at or behind painted objects | Gemini | Scope limit stated in ADR 0016 and "4. Layout engine" |
+| 8 | Narration below the stage on a short landscape phone | Gemini | Narration minimum 18 px; stage gets the remaining height |
+| 9 | 3D turn cost on iOS Safari | Gemini | Device test during the turn; owner decides on a fallback if p95 is above 33 ms |
+| 10 | 250 KB budget fixed before any measurement | Gemini | Budget set from a compression test on real paintings |
+| 11 | `meadow` alone cannot test backdrop choice or load | Gemini | S2 and device tests need 3 backdrops, 2 painted, 1 with some palettes |
+| 12 | Publish of backdrop variants undefined | Gemini | Whole version copied; Player loads one variant |
+| 13 | Turn edge, opaque sheet, taps and sounds during a turn, "previous" during a turn | Gemini | Rules in "5. Scene runtime" |
+| 14 | Studio picker behaviour for a missing palette | Gemini | Implementation decision in "6. API" |
+| 15 | WAV narration size against the 4G budget | Gemini | Open question in ADR 0016 |
+| 16 | Root `DESIGN.md` disagrees (0.55 s turn) | Gemini | Open question in ADR 0016; the spec wins |
+| 17 | "No environment stores data" was stated too strongly | Codex | Reworded: no deployed environment; a scene without `backdrop` fails validation |
+| 18 | AC numbers and the pending count in the user-story README | Codex | Corrected |
+
+Kept open: the end of the book on the last page (owner decision).
