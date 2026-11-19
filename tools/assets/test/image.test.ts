@@ -75,8 +75,8 @@ describe("cutFigure", () => {
 
 describe("cut and measure", () => {
   it("REG-02.S1 each pose and expression becomes a transparent WebP", async () => {
-    // Two 40 × 40 figures on one board.
-    const raw = rect(rect(blank(200, 100), 30, 30, 40, 40, RED), 130, 30, 40, 40, INK);
+    // Two figures on one board: a 40 × 40 square and a disk of radius 20.
+    const raw = disk(rect(blank(200, 100), 30, 30, 40, 40, RED), 150, 50, 20, INK);
     const map: CropMap = {
       board: "synthetic.png",
       background: PAPER,
@@ -91,45 +91,48 @@ describe("cut and measure", () => {
     await cutBoard(map, raw, { outDir: out, review: false, log: () => {} });
     const dir = join(out, "pip", "v1");
     expect(readdirSync(dir).filter((f) => f.endsWith(".webp")).sort()).toEqual(["front-happy.webp", "front-sad.webp"]);
-    for (const file of ["front-happy.webp", "front-sad.webp"]) {
+    const decode = async (file: string) => {
       const { data, info } = await sharp(readFileSync(join(dir, file))).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-      const img = { data: new Uint8Array(data), width: info.width };
-      // Trimmed to the alpha bounds: 40 × 40, the square itself.
-      expect([info.width, info.height]).toEqual([40, 40]);
-      // Transparent where the paper was: the trimmed square has no paper, so check the trim origin instead.
-      const origin = JSON.parse(readFileSync(join(dir, `${file}.trim.json`), "utf8"));
-      expect(origin).toEqual(file === "front-happy.webp" ? { x: 30, y: 30 } : { x: 130, y: 30 });
-      // 2 px feather: the outermost pixel is softened, a pixel 3 px inside is not.
-      expect(alphaAt(img, 0, 20)).toBeLessThan(255);
-      expect(alphaAt(img, 0, 20)).toBeGreaterThan(0);
-      expect(alphaAt(img, 3, 20)).toBe(255);
-      expect(alphaAt(img, 20, 20)).toBe(255);
-    }
-  });
+      return { data: new Uint8Array(data), width: info.width, height: info.height };
+    };
+    const trim = (file: string) => JSON.parse(readFileSync(join(dir, `${file}.trim.json`), "utf8"));
 
-  it("encodeWebp keeps the transparent corners of a figure", async () => {
-    const raw = disk(blank(100, 100), 50, 50, 30, RED);
-    const cut = cutFigure(raw, PAPER, figure({ x: 0, y: 0, w: 100, h: 100 }));
-    const { data, info } = await sharp(await encodeWebp(cut)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    const img = { data: new Uint8Array(data), width: info.width };
-    expect([info.width, info.height]).toEqual([61, 61]);
-    for (const [x, y] of [[0, 0], [60, 0], [0, 60], [60, 60]] as const) expect(alphaAt(img, x, y)).toBe(0);
-    expect(alphaAt(img, 30, 30)).toBe(255);
+    // Square: trimmed to its alpha bounds, 40 × 40.
+    const square = await decode("front-happy.webp");
+    expect([square.width, square.height]).toEqual([40, 40]);
+    expect(trim("front-happy.webp")).toEqual({ x: 30, y: 30 });
+    // 2 px feather: alpha = min(alpha, floor(mean of the 5 × 5 square)), transparent outside.
+    // Edge column: 15 of 25 opaque -> 153. Next column: 20 of 25 -> 204. Corner: 9 of 25 -> 91.
+    expect(alphaAt(square, 0, 20)).toBe(153);
+    expect(alphaAt(square, 1, 20)).toBe(204);
+    expect(alphaAt(square, 2, 20)).toBe(255);
+    expect(alphaAt(square, 0, 0)).toBe(91);
+    expect(alphaAt(square, 3, 20)).toBe(255);
+    expect(alphaAt(square, 20, 20)).toBe(255);
+
+    // Disk: the box-edge flood fill leaves the corners of the trimmed image transparent.
+    const round = await decode("front-sad.webp");
+    expect([round.width, round.height]).toEqual([41, 41]);
+    expect(trim("front-sad.webp")).toEqual({ x: 130, y: 30 });
+    for (const [x, y] of [[0, 0], [40, 0], [0, 40], [40, 40]] as const) expect(alphaAt(round, x, y)).toBe(0);
+    expect(alphaAt(round, 20, 20)).toBe(255);
   });
 
   it("REG-02.S2 the manifest holds measured values", () => {
-    // 30 × 40 RGBA image. Opaque: rows 5 to 34, columns 4 to 24; the lowest row spans 8 to 20.
+    // 30 × 40 RGBA image. Opaque: rows 5 to 34, columns 4 to 24. The lowest row spans
+    // 16 to 22, off the box centre, and holds one pixel below the 128 threshold.
     const width = 30;
     const height = 40;
     const data = new Uint8Array(width * height * 4);
     const set = (x: number, y: number, a: number) => (data[(y * width + x) * 4 + 3] = a);
     for (let y = 5; y <= 33; y++) for (let x = 4; x <= 24; x++) set(x, y, 255);
-    for (let x = 8; x <= 20; x++) set(x, 34, 200);
+    for (let x = 16; x <= 22; x++) set(x, 34, 200);
+    set(6, 34, 100);
     // Below the 128 threshold: not opaque, not part of the box or the foot row.
     set(14, 36, 100);
     const m = measureImage({ data, width, height }, { origin: { x: 100, y: 200 }, face: { x: 110, y: 210, w: 10, h: 8 }, foot: null });
     expect(m.box).toEqual({ x: 4, y: 5, w: 21, h: 30 });
-    expect(m.foot).toEqual({ x: 14, y: 35 });
+    expect(m.foot).toEqual({ x: 19, y: 35 });
     expect(m.face).toEqual({ x: 10, y: 10, w: 10, h: 8 });
   });
 
