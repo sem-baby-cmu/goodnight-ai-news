@@ -531,8 +531,10 @@ code assigns `instanceId` values and rewrites `target` and `on.tap`.
 The JSON schema sent to the model is built at run time from the frozen
 registry and the template list. `ref`, `pose`, `expression`, `slot`, `sfx`,
 and `templateId` are enums in that schema. An operator's scene does not pass
-through that schema, so the API checks the same enums in code before the zod
-rules. Zod validation then checks what a JSON schema cannot:
+through that schema, so the API also checks the same enums in code. The registry versions for those enums follow owner decision Q3. The
+decision is recorded on #32, which writes it into this section.
+
+Zod validation then checks what a JSON schema cannot:
 
 - every pose and expression pair is legal for its character;
 - each layer's `kind` matches its slot's `accepts`;
@@ -704,3 +706,15 @@ Cross-family review of revision 4 (the owner's answer to Q2, #36),
 | 2 | A layout failure after shrinking went beyond the decision; shrinking a manual `at` is not defined | Gemini | Removed from the error row; kept open (Q11) |
 | 3 | "4. Layout engine" applied the repair rule to every scene | Gemini | Limited to model output |
 | 4 | "Still fits" can copy a `needs_review` scene | Gemini | Kept open (Q13) |
+
+Cross-family review of revision 5 (the owner's answers to Q11 to Q13, #38),
+2026-11-19. Seat 1: Codex. Seat 2: Gemini. Findings were merged as a union.
+
+| # | Finding | Seats | Result |
+| :-- | :-- | :-- | :-- |
+| 1 | The enum check for an operator's scene names no registry version | both | Points to owner decision Q3, which #32 writes |
+| 2 | EDT-03.S9 did not rule out a shrink of the other layers | both | Scenario corrected |
+| 3 | EDT-03.S2 and EDT-03.S11 disagreed for a stale `needs_review` scene | Codex | EDT-03.S2 now requires `status = ok` |
+| 4 | "before the zod rules" went beyond the decision | Gemini | Removed |
+| 5 | Who assigns `instanceId` to a layer that the operator adds; valid values of a manual `at` | Gemini | Kept open (Q14) |
+| 6 | Validation of `PUT .../text`, and its order against 409 | Gemini | Kept open (Q15) |

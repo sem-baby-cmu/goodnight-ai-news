@@ -153,10 +153,12 @@ gives an expected result for them. Each one needs a decision from the owner
 | # | Question | Source | Effect on the stories |
 | :-- | :-- | :-- | :-- |
 | Q7 | Does OpenRouter pass Gemini TTS audio through, and in which format? | ADR 0015, "Consequences" (open); checked in TB0. | SYS-05.S3 covers only the raw PCM case. |
+| Q14 | What does an operator's scene carry? Who assigns the `instanceId` of a layer that the operator adds, and which values of a manual `at` are valid (for example a `scale` below the slot's `minScale`, or not positive)? | "Storybook DSL": code assigns `instanceId` to a model output and rewrites `target` and `on.tap`. "4. Layout engine": a manual `at` overrides the slot and is not shrunk (Q11). Neither says what the API accepts from the Studio. | EDT-03.S5 and EDT-03.S9 do not give the values. |
+| Q15 | Is an operator's page text validated (`PageText`: 1 to 3 sentences, at most 40 words), and does the API check `basedOn` first, as for a scene? | "6. API": `PUT .../text` gives "New human `page_text` revision. 409 if the head moved." It names no validation. Q12 gives the order for a scene only. | EDT-02 has no scenario for an invalid page text. |
 
-The owner closed Q1, Q4, Q5, Q6, Q8, Q9, and Q10 on 2026-11-19 (#34), and
-Q2 on 2026-11-19 (#36), and Q11 to Q13 on 2026-11-19 (#38). The owner decided Q3 on 2026-11-19; the decision is
-on #32, which writes it into the spec. Until then, REG-01.S6 is the only Q3
+On 2026-11-19 the owner closed Q1, Q4 to Q6, and Q8 to Q10 (#34), Q2 (#36),
+and Q11 to Q13 (#38). The owner also decided Q3 and Q7. Those decisions are
+on #32, which writes them into the spec. Until then, REG-01.S6 is the only Q3
 scenario. A question number is not used again.
 
 ## Changes

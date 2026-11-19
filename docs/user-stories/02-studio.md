@@ -67,7 +67,7 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S2 "Still fits" makes a stale scene current
-- Given a page whose scene is stale
+- Given a page whose scene is stale and has `status = ok`
 - When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits`
 - Then the current scene is copied into a new human revision whose basis is the current page text, and the scene is not stale
 - Test: spec (to implement)
@@ -109,7 +109,7 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S9 A layer with a manual position is not shrunk
-- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer with a manual `at` fails a layout check
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer with a manual `at` fails a layout check, and the check still fails after the engine shrinks the other layers involved
 - When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
 - Then the engine does not shrink that layer; the API returns 422 with the error list; no revision is saved
 - Test: spec (to implement)
