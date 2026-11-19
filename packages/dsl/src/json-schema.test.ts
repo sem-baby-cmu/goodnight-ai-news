@@ -88,9 +88,10 @@ describe("json-schema", () => {
     expect(expressionEnums).toContainEqual(["calm", "happy", "sad", null]);
     expect(expressionEnums).toContainEqual(["calm", "happy", "sad"]);
 
-    for (const p of enumsOf(schema, "primitive")) {
-      expect(sorted(p)).toEqual(["blink", "bounce", "fade-in", "float", "pop", "sway", "wave"]);
-    }
+    // Each animation member has one primitive; play_animation lists all.
+    const primitives = enumsOf(schema, "primitive");
+    expect(sorted([...new Set(primitives.flat())])).toEqual(["blink", "bounce", "fade-in", "float", "pop", "sway", "wave"]);
+    expect(primitives).toContainEqual(["float", "sway", "bounce", "pop", "fade-in", "blink", "wave"]);
 
     // A second registry with one more asset: the schema follows the registry it gets.
     const bigger: RegistrySnapshot = registry();
