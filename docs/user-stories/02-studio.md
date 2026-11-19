@@ -33,7 +33,7 @@ Spec: requirements "Core Features" 4 · design "6. API", "Staleness"
 As the operator, I want to change the text of one page and regenerate only
 that page's audio, so that I keep the parts that are already good.
 
-Spec: requirements US-2, AC-5 · design "3. Calls, revisions, and heads", "6. API", "2. StoryRun Workflow"
+Spec: requirements US-2, AC-5 · design "3. Calls, revisions, and heads", "6. API", "2. StoryRun Workflow", "Storybook DSL", "Error Handling"
 
 ### EDT-02.S1 A saved text is a new human revision
 - Given a page whose `page_text` head is `T1`
@@ -53,12 +53,24 @@ Spec: requirements US-2, AC-5 · design "3. Calls, revisions, and heads", "6. AP
 - Then the run does `freeze`, `audio:<page 3>`, and `finish`; only the audio of page 3 gets a new revision, with the current page text as its basis; all other revisions and heads stay the same
 - Test: spec (to implement)
 
+### EDT-02.S4 A page text that fails validation is refused
+- Given a page whose `page_text` head has not moved since the operator loaded it, and an edited text that fails `PageText` validation, for example a text of 4 sentences or of more than 40 words
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/text` with `{ text, basedOn }`
+- Then the API returns 422 with the error list; no revision is saved, and the `page_text` head does not move
+- Test: spec (to implement)
+
+### EDT-02.S5 An old `basedOn` for a text is refused before validation
+- Given a page whose `page_text` head has moved since the operator loaded it, and an edited text that also fails `PageText` validation
+- When the operator saves the text with the old `basedOn`
+- Then the API returns 409 with the current revision, not 422; the text is not validated, and no revision is saved
+- Test: spec (to implement)
+
 ## EDT-03 Regenerate or edit the scene of one page
 
 As the operator, I want to regenerate the scene of one page, so that I can
 fix one bad page without a new story.
 
-Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4. Layout engine", "5. Scene runtime", "6. API"
+Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4. Layout engine", "5. Scene runtime", "6. API", "Storybook DSL", "Error Handling"
 
 ### EDT-03.S1 "Regenerate scene" runs one step for one page
 - Given a draft
@@ -67,8 +79,8 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S2 "Still fits" makes a stale scene current
-- Given a page whose scene is stale and has `status = ok`
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits`
+- Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, and whose copy passes validation against the active registry
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
 - Then the current scene is copied into a new human revision whose basis is the current page text, and the scene is not stale
 - Test: spec (to implement)
 
@@ -121,9 +133,57 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Test: spec (to implement)
 
 ### EDT-03.S11 "Still fits" is refused for a scene that needs review
-- Given a page whose `scene` head has `status = needs_review`
-- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits`
+- Given a page whose `scene` head has `status = needs_review` and has not moved since the operator loaded it
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
 - Then the API returns 409; nothing is copied, and the `scene` head does not move
+- Test: spec (to implement)
+
+### EDT-03.S12 The API assigns the ID of a layer that the operator adds
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene that passes validation and has one layer without `instanceId`
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API assigns the `instanceId` of that layer; the saved revision has an `instanceId` on every layer, and the ID of the new layer does not come from the Studio
+- Test: spec (to implement)
+
+### EDT-03.S13 An animation or tap cannot name a layer that is new in the same request
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene with a layer without `instanceId` and an animation or a tap that names that layer
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API returns 422 `unknown_target`; no revision is saved, and the `scene` head does not move
+- Test: spec (to implement)
+
+### EDT-03.S14 A manual scale below the slot's `minScale` is kept
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer has a manual `at` with `scale` greater than 0 and below its slot's `minScale`, and the layout checks pass
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the scene is saved, and the layer keeps the manual `at` with that `scale`
+- Test: spec (to implement)
+
+### EDT-03.S15 A manual scale that is not greater than 0 is refused
+- Given a page in the editor whose `scene` head has not moved since the operator loaded it, and an edited scene in which a layer has a manual `at` with `scale` 0 or less
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }`
+- Then the API returns 422 with the error list; no revision is saved
+- Test: spec (to implement)
+
+### EDT-03.S16 An edited scene uses the active registry versions
+- Given a draft whose scenes were made with version `n` of an asset, version `n + 1` is now active, and a page in the editor whose `scene` head has not moved since the operator loaded it
+- When the operator sends `PUT /api/studio/stories/:id/pages/:pageId/scene` with `{ scene, basedOn }` and a scene that uses that asset
+- Then the enums and checks use version `n + 1`, and the saved revision records version `n + 1` for that asset in `asset_versions`
+- Test: spec (to implement)
+
+### EDT-03.S17 "Still fits" is refused when the copy fails against the active registry
+- Given a page whose scene is stale, has `status = ok`, and has not moved since the operator loaded it, and whose copy fails validation against the active registry, for example because it uses a pose that the active version of its character does not have
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
+- Then the API returns 422 `invalid_scene` with the error list; nothing is saved, and the `scene` head does not move
+- Test: spec (to implement)
+
+### EDT-03.S18 An old `basedOn` for "still fits" is refused first
+- Given a page whose `scene` head has moved since the operator loaded it, and whose current scene would also fail validation against the active registry
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with the old `basedOn`
+- Then the API returns 409, not 422; nothing is copied, and the `scene` head does not move
+- Test: spec (to implement)
+
+### EDT-03.S19 A "still fits" copy records the active registry versions
+- Given a page whose stale scene has `status = ok` and was made with version `n` of an asset, version `n + 1` is now active, and the copy passes validation against the active registry
+- When the operator sends `POST /api/studio/stories/:id/pages/:pageId/scene/still-fits` with `{ basedOn }`
+- Then the new human revision records version `n + 1` for that asset in `asset_versions`
 - Test: spec (to implement)
 
 ## EDT-04 A late result does not replace the operator's work
