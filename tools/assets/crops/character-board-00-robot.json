@@ -195,7 +195,7 @@
           "y": 641
         }
       ],
-      "tolerance": null,
+      "tolerance": 12,
       "ignore": false
     },
     {
@@ -222,7 +222,7 @@
           "y": 637
         }
       ],
-      "tolerance": null,
+      "tolerance": 12,
       "ignore": false
     },
     {
