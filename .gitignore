@@ -15,3 +15,6 @@ node_modules/
 .wrangler/
 
 dist/
+
+# Asset pipeline build output (AGENTS.md section 9).
+tools/assets/out/
