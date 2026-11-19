@@ -194,14 +194,14 @@ export function SceneView(props: SceneViewProps) {
   );
 
   const onAssetFailed = useCallback(
-    (instanceId: string, url: string, reason: string, shownPose: string | undefined) => {
+    (instanceId: string, url: string, reason: string, shown: LayerState | undefined) => {
       console.warn(`scene-runtime: layer ${instanceId}: ${url} ${reason}; skipped`);
       live.current.onAssetError?.(instanceId, url);
-      // A failed pose swap changes nothing: the state goes back to the pose
-      // that is still on screen.
+      // A failed swap changes nothing (review item 3): the pose and the
+      // expression go back to what is still on screen.
       const state = states.current.get(instanceId);
-      if (shownPose !== undefined && state && state.pose !== shownPose) {
-        states.current.set(instanceId, { ...state, pose: shownPose });
+      if (shown && state && (state.pose !== shown.pose || state.expression !== shown.expression)) {
+        states.current.set(instanceId, { ...shown });
         rerender();
       }
     },
