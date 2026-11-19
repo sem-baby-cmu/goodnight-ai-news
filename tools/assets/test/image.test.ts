@@ -107,7 +107,7 @@ describe("cut and measure", () => {
     }
   });
 
-  it("REG-02.S1 a figure with transparent corners keeps them transparent", async () => {
+  it("encodeWebp keeps the transparent corners of a figure", async () => {
     const raw = disk(blank(100, 100), 50, 50, 30, RED);
     const cut = cutFigure(raw, PAPER, figure({ x: 0, y: 0, w: 100, h: 100 }));
     const { data, info } = await sharp(await encodeWebp(cut)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
