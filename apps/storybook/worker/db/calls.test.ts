@@ -11,11 +11,12 @@ describe("calls", () => {
     const { runId } = await newStory(db);
     const callId = newId();
     const base = { callId, runId, step: "script", pageId: "", purpose: "first" as const, model: "m", createdAt: new Date().toISOString() };
-    const first = await putCall(db, { ...base, result: { answer: 1 }, basis: { source: "a" } });
-    const second = await putCall(db, { ...base, result: { answer: 2 }, basis: { source: "b" } });
+    const first = await putCall(db, { ...base, result: { answer: 1 }, basis: { source: "a" }, expectedHeads: { outline: null } });
+    const second = await putCall(db, { ...base, result: { answer: 2 }, basis: { source: "b" }, expectedHeads: { outline: "x" } });
     expect(first.result).toEqual({ answer: 1 });
     expect(second.result).toEqual({ answer: 1 });
     expect(second.basis).toEqual({ source: "a" });
+    expect(second.expectedHeads).toEqual({ outline: null });
     expect(await getCall(db, callId)).toEqual(first);
   });
 
