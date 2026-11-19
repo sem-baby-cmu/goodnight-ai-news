@@ -10,7 +10,8 @@ export type Point = { x: number; y: number };
 export type Rect = { x: number; y: number; w: number; h: number };
 
 const PointSchema = z.strictObject({ x: z.number(), y: z.number() });
-const RectSchema = z.strictObject({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
+// A rect needs a positive size: a zero height gives layout scale Infinity (#47).
+const RectSchema = z.strictObject({ x: z.number(), y: z.number(), w: z.number().gt(0), h: z.number().gt(0) });
 
 // One item of `poses` (implementation decision R8). `expression` is set on
 // WebP and plain SVG entries that show one expression. It is absent on
