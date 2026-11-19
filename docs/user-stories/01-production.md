@@ -71,9 +71,9 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - Test: spec (to implement)
 
 ### RUN-01.S11 A missing or `needs_review` head gives a `needs_review` run
-- Given a run whose page steps are complete, and one page has no `page_text`, `scene`, or `audio` head, or has one of these heads with `status = needs_review`
+- Given a run whose page steps are complete, and, when `finish` reads the heads, one page has no `page_text`, `scene`, or `audio` head, or has one of these heads with `status = needs_review`
 - When the `finish` step runs
-- Then the run ends at `needs_review`; when no page has such a head, the run ends at `draft_ready`
+- Then the run ends at `needs_review`
 - Test: spec (to implement)
 
 ## RUN-02 Start a full run from a URL
@@ -277,7 +277,7 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "Error Handling"
 ### RUN-05.S2 A scene that still fails is kept as `needs_review`
 - Given a scene output that fails validation, and a repair output that also fails
 - When the `scene:<pageId>` step ends
-- Then the candidate is saved with `status = needs_review` and its errors; no layer is dropped and no character is swapped; there is no second repair; the run ends at `needs_review`
+- Then the candidate is saved with `status = needs_review` and its errors; no layer is dropped and no character is swapped; there is no second repair
 - Test: spec (to implement)
 
 ### RUN-05.S3 A script that still fails makes the run fail

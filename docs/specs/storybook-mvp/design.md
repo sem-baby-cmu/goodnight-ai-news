@@ -357,8 +357,9 @@ whose renderer does not support it.
 | `blink` | `svg-rig` | interval 2 to 6 s |
 | `wave` | `svg-rig` | count 1 to 3 |
 
-A parameter outside its bounds fails validation (repair rule, then
-`needs_review`). Code does not clamp it to the bounds.
+A parameter outside its bounds fails validation. Code does not clamp it to
+the bounds. For a model output, the repair rule then applies ("Error
+Handling").
 
 Tap actions (closed list):
 
@@ -539,8 +540,8 @@ JSON schema cannot:
 - the page has at least one character layer, one animation, and one tap
   interaction.
 
-A page that fails one of these checks is a validation failure (repair rule,
-then `needs_review`).
+A page that fails one of these checks fails validation. For a model output,
+the repair rule then applies ("Error Handling").
 
 ### Staleness
 
@@ -675,3 +676,15 @@ All findings were checked against the document before they were accepted.
 | 12 | Per-page audio fails on iOS page turns | Gemini | One shared audio element, `play()` in the tap handler |
 | 13 | URL redirects and size, `/studio` path, 4G test | Gemini | URL rules, Access paths, device test |
 | 14 | Stub tests cannot test the product premise | Gemini | S2 listed as the premise test |
+
+Cross-family review of revision 3 (the owner's answers to Q1 to Q9, #34),
+2026-11-19. Seat 1: Codex. Seat 2: Gemini. Findings were merged as a union.
+A finding from one seat was checked against the document first.
+
+| # | Finding | Seats | Result |
+| :-- | :-- | :-- | :-- |
+| 1 | The repair rule was written for every validation, so it also covered an operator's scene edit | Gemini | Limited to model output; the operator case stays open (Q2) |
+| 2 | Publish cannot know which version of an asset a scene used | Gemini | Kept open (Q3) |
+| 3 | In a page run, the Q9 rule and the row "TTS fails after retries" disagree | both | Kept open for the owner (Q10) |
+| 4 | ADR 0015 says "a run ends at `draft_ready`" | both | Not changed here. The design has named two end states since revision 2 |
+| 5 | Two scenarios stated a run status that their `Given` and `When` do not give | both | Scenarios corrected |
