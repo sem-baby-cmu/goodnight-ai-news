@@ -38,12 +38,13 @@ export function classifyProviderError(err: unknown): "retry" | ProviderErrorInfo
 // Workflows keep only `name` and `message` of a step error, so `status` is
 // lost when a step fails after its retries. A retried provider error carries
 // its status in a message tag, which `toErrorRecord` reads (implementation
-// decision; deviation from "rethrow the error").
-const STATUS_TAG = /^\[provider status (\d+)\] /;
+// decision R60). A `ModelHttpError` message holds no provider text.
+const STATUS_TAG = /^\[provider status (\d{3})\] /;
 
 export function withStatusTag(err: unknown): unknown {
   const status = (err as { status?: unknown } | null)?.status;
-  if (typeof status !== "number") return err;
+  // Only an HTTP status has a tag; a network failure (status 0) keeps its error.
+  if (typeof status !== "number" || !Number.isInteger(status) || status < 100 || status > 599) return err;
   const message = err instanceof Error ? err.message : String(err);
   return Object.assign(new Error(`[provider status ${status}] ${message}`), { status });
 }
