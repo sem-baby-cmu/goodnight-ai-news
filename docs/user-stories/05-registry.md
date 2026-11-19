@@ -82,5 +82,5 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 ### REG-02.S5 The registry holds a small sound set
 - Given the asset pipeline has run its sound step
 - When the registry is read
-- Then it holds a small set (about 8) of short licensed sound effects, normalised, as `sfx` assets
+- Then it holds a small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised, as `sfx` assets
 - Test: spec (to implement)
