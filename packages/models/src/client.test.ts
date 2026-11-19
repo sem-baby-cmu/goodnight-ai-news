@@ -267,3 +267,43 @@ it("sends cf-aig-authorization when AI_GATEWAY_TOKEN is set", async () => {
   await plainClient.synthesizeSpeech(speechRequest);
   expect(without.calls.map((call) => call.headers.has("cf-aig-authorization"))).toEqual([false, false]);
 });
+
+// A 2xx answer whose body fails while it is read.
+function brokenBody(): Response {
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.error(new TypeError("terminated"));
+    },
+  });
+  return new Response(stream, { status: 200 });
+}
+
+describe("body read after a 2xx", () => {
+  it("generateJson body read failure is retryable status 0", async () => {
+    const { fetch } = stubFetch(() => brokenBody());
+    const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
+    expect(error).toBeInstanceOf(ModelHttpError);
+    expect(error).toMatchObject({ status: 0, retryable: true });
+  });
+
+  it("generateJson body that is not JSON throws ModelOutputError", async () => {
+    const { fetch } = stubFetch(() => new Response("<html>ok</html>", { status: 200 }));
+    const error = await rejection(createModelClient(config, { fetch }).generateJson(jsonRequest));
+    expect(error).toBeInstanceOf(ModelOutputError);
+    expect(error).toMatchObject({ modelId: "m-scene" });
+  });
+
+  it("synthesizeSpeech body read failure is retryable status 0", async () => {
+    const { fetch } = stubFetch(() => brokenBody());
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(ModelHttpError);
+    expect(error).toMatchObject({ status: 0, retryable: true });
+  });
+
+  it("synthesizeSpeech body that is not JSON throws ModelOutputError", async () => {
+    const { fetch } = stubFetch(() => new Response("<html>ok</html>", { status: 200 }));
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(ModelOutputError);
+    expect(error).toMatchObject({ modelId: "m-tts" });
+  });
+});
