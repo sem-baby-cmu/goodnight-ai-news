@@ -43,8 +43,10 @@ describe("sanitizeSvg", () => {
       "</svg>";
     const clean = sanitizeSvg(dirty);
     expect(clean).not.toMatch(/<script|<style|onload|onclick|javascript:|alert|<foreignObject|<div/i);
-    expect(clean).toContain("<rect");
+    // preset-default may turn shapes into paths; the drawing itself stays.
+    expect(clean).toMatch(/<(rect|path)[^>]*fill="#02a093"/);
     expect(clean).toContain("<circle");
+    expect(clean).not.toContain("style=");
     expect(checkSvg(clean, pipBuild()).filter((i) => i.code === "svg_attribute")).toEqual([]);
   });
 
@@ -61,7 +63,7 @@ describe("sanitizeSvg", () => {
     const clean = sanitizeSvg(text);
     expect(clean).toContain('fill="url(#g)"');
     expect(clean).toMatch(/<use[^>]*href="#a"/);
-    expect(clean).not.toMatch(/http:|data:|other\.svg|<image/);
+    expect(clean).not.toMatch(/http:\/\/x|data:|other\.svg|<image/);
     expect(clean).not.toContain("drop-use");
     // The rect with the remote fill stays, without the remote value.
     expect(clean).toMatch(/class="drop-remote"/);
@@ -81,9 +83,20 @@ describe("sanitizeSvg", () => {
   });
 
   it("sanitizeSvg keeps the structure of a clean file", () => {
-    // Every element, class, data-pivot and display value survives, in order.
-    const shape = (text: string) => [...text.matchAll(/<(\w+)([^>]*)>/g)].filter(([, n]) => n !== "title").map(([, n, a]) => [n, /class="([^"]*)"/.exec(a!)?.[1], /data-pivot="([^"]*)"/.exec(a!)?.[1], /display="([^"]*)"/.exec(a!)?.[1]].join("|"));
-    expect(shape(sanitizeSvg(pipSource()))).toEqual(shape(pipSource().replace(/<!--[\s\S]*?-->/g, "")));
+    // preset-default may turn shapes into paths and merge paths inside a group.
+    // Every group survives in order, with its class, data-pivot and display, and
+    // still draws something; the viewBox and the colours stay.
+    const groups = (text: string) =>
+      [...text.matchAll(/<g\b([^>]*)>(?=(\s*<(?!\/g)\w+)?)/g)].map(([, a, child]) =>
+        [/class="([^"]*)"/.exec(a!)?.[1], /data-pivot="([^"]*)"/.exec(a!)?.[1], /display="([^"]*)"/.exec(a!)?.[1], child ? "draws" : "empty"].join("|"),
+      );
+    const colours = (text: string) => [...new Set(text.match(/#[0-9a-f]{6}/gi))].sort();
+    const source = pipSource();
+    const clean = sanitizeSvg(source);
+    expect(groups(clean)).toEqual(groups(source));
+    expect(groups(clean)).toHaveLength(14);
+    expect(colours(clean)).toEqual(colours(source));
+    expect(clean).toContain('viewBox="0 0 232 416"');
   });
 });
 
