@@ -32,7 +32,7 @@ Spec: requirements US-7, "Core Features" 3 · design "2. StoryRun Workflow", "8.
 - Given a release that was published before the new version
 - When the new version becomes active
 - Then the release still holds its copy of the old version, and its content does not change
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/publish.test.ts
 
 ### REG-01.S5 The Studio reads the active registry
 - Given a registry with assets, sounds, and templates
