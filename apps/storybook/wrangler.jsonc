@@ -24,5 +24,14 @@
       "binding": "BUCKET",
       "bucket_name": "storybook-mvp"
     }
+  ],
+  // The StoryRun Workflow (design "2. StoryRun Workflow"). The class is
+  // exported from worker/index.ts.
+  "workflows": [
+    {
+      "name": "story-run",
+      "binding": "STORY_RUN",
+      "class_name": "StoryRunWorkflow"
+    }
   ]
 }
