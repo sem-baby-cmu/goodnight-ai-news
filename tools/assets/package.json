@@ -21,6 +21,7 @@
     "sharp": "catalog:",
     "svgo": "catalog:",
     "tsx": "catalog:",
+    "uuid": "catalog:",
     "zod": "catalog:"
   }
 }
