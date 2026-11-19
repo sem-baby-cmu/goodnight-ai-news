@@ -41,7 +41,7 @@ export function classifyProviderError(err: unknown): "retry" | ProviderErrorInfo
 // decision; deviation from "rethrow the error").
 const STATUS_TAG = /^\[provider status (\d+)\] /;
 
-function withStatusTag(err: unknown): unknown {
+export function withStatusTag(err: unknown): unknown {
   const status = (err as { status?: unknown } | null)?.status;
   if (typeof status !== "number") return err;
   const message = err instanceof Error ? err.message : String(err);
