@@ -98,6 +98,10 @@ Run progress cells stand on Card. A legend with words is next to them.
 | working | `--cobalt` | none |
 | needs review | `--sun` | `#7A5410` (the chip text colour of "needs review") |
 | waiting | `--dot-ahead` | `--ink-3` (Soft ink) |
+| failed | `--bad-chip` (solid; 6.27 on Card) | none |
+
+A failed cell is solid and dark, and a waiting cell is light with a
+border, so the two differ in lightness and not only in hue (#92).
 
 ### Sky palettes
 
@@ -340,7 +344,7 @@ shadcn Base UI components, styled by the tokens above.
 | Two to four choices | `ToggleGroup` | The segmented control of section 4 |
 | More choices | `Select` | Section 4 |
 | Text input | `Input`, `Textarea` | The field of section 4 |
-| Messages in the Studio | `Alert` | A notice: state fill, state notice text, a 20 px icon, a bold first line, then what to do. One optional action button (Card fill, state edge) |
+| Messages in the Studio | `Alert` | A notice: state fill, state notice text, a 20 px icon, a bold first line, then what to do. One optional action button (Card fill, state edge, Teal text: 6.70 on Card) |
 | Lists in the Studio | `Table` | Head: 14 px, Soft ink, a 1 px Soft cream line. Rows: 1 px Soft cream lines, none after the last row; Paper fill on hover |
 | Overlays | `Dialog` | Studio only. A child screen has no overlay; the Small screen state is shown in the place of a screen, not over it (section 12.6). Used for "Take off the shelf" (section 13.2) |
 | Page position | Progress pill | Player. Section 12.3 |
@@ -888,7 +892,7 @@ wide: w >= 900 and h >= 600
 | Narration panel | 255 px high: the 12 px torn edge, then 20 px, 5 lines of narration, and 20 px. 32 px of padding at each side. The text is centred. It is as wide as the panel less 64 px, and at most 760 px. 28 px / 1.45, weight 600, Ink, `text-wrap: pretty`. With `w` under 1016 the text is narrower than 760 px. At `w` = 900 (644 px of text) the reference text still wraps to 5 lines, so the panel is 255 px (measured, headless Chromium, 2026-11-20) |
 | Home | Round button, 64 px, house icon. Centred in the left gutter, 16 px from each side of it, and 16 px from the top (the Home rule, section 12) |
 | Progress pill | Centred in the right gutter, the count only (no dots). 44 px high and 26 px from the top, so its middle is at the height of the middle of Home (48 px). It does not lie over the picture (ADR 0017). See "Progress pill" below |
-| Previous, next | Round buttons, 64 px, arrow icons, centred in the gutters. Their middle is at the middle height of the picture area. On page 1, "previous" is disabled |
+| Previous, next | Round buttons, 64 px, arrow icons, centred in the gutters. Their middle is at the middle height of the picture area, but their top is never less than 92 px from the top of the screen (Home ends at 80 px, plus the 12 px gap). A long page makes the panel higher and the picture area lower; without this limit, a page of 8 lines at 900 x 600 puts "previous" over Home (#92). On page 1, "previous" is disabled |
 
 The frame has at most 3 controls: Home, previous, next.
 
@@ -915,8 +919,8 @@ decision record while the rules of the spec hold.
 | :-- | :-- | :-- |
 | Page panel | The full width, no gutter | The full width, no gutter |
 | Frame parts | A top bar and a control row, both on Paper | A control rail on Paper at each side, 88 px wide (a 64 px button and 12 px on each side), from the top to the bottom |
-| Home (the Home rule) | In the top bar, at the left | At the top of the left rail |
-| Progress pill | In the top bar, right of Home, 12 px away, with the dots | At the top of the right rail, the count only (no dots) |
+| Home (the Home rule) | In the top bar, at the left | At the top of the left rail, 12 px from the top, so its 9 px focus ring is not cut |
+| Progress pill | In the top bar, right of Home, 12 px away, with the dots. With 8 dots it is 196 px wide (measured), so it fits the 212 px left at 320 px | At the top of the right rail, the count only (no dots), centred, 12 px from the top. The pill (71 px) is not a button, so it may leave less than 12 px at each side of the rail |
 | Previous, next | In the control row, at the left and at the right, 16 px from the sides and 10 px from the top and the bottom of the row | At the bottom of the left rail and at the bottom of the right rail, 12 px from the bottom |
 | Top bar | 84 px high (a 64 px button and 10 px above and below), 16 px from the sides | None |
 | Control row | A frame part on Paper below the narration panel, at the bottom of the screen, 84 px high (a 64 px button and 10 px above and below). It is not part of the page sheet and does not turn with it | None |
@@ -1074,7 +1078,7 @@ inert, and the layers of the new picture wait for the end of the turn
 | Part | Look |
 | :-- | :-- |
 | Picture | The backdrop of the last page in its sky, without layers. The place is quiet; the cast went home. No new file is loaded |
-| Panel | "The end" (40 px, weight 800; 28 px in Short) and one button: "Read again" (Primary, `child` size, round-arrow icon). In Wide and Narrow the button is below "The end", 16 px away, centred. In Short they are in one row. The panel has no second button, so it fits at every width |
+| Panel | "The end" (40 px, weight 800; 28 px in Short) and one button: "Read again" (Primary, `child` size, round-arrow icon). In Wide and Narrow the button is below "The end", 16 px away, centred. In Short with `w` of 640 px or more they are in one row, 16 px apart; in Short with `w` under 640 they stack, 12 px apart (section 12.2). The panel has no second button, so it fits at every width |
 | Frame | "Previous" and the Home round button stay in their places (the Home rule, section 12). "Next" and the progress pill are not shown |
 
 The end page has at most 3 controls: previous, Read again, and Home. It is
@@ -1177,15 +1181,16 @@ side column is a fixed 360 px wide, not a third of the width.
 | :-- | :-- |
 | Loading | "Loading the story." |
 | Title row | A Soft `icon` back button, the title (28 px), the run chip, and "Source article" at the right. "Source article" is a real link (`<a>`) in the Link variant, at least 44 px high. It is not a ghost button |
-| "Run" card | The five steps `freeze`, `script`, `scene`, `audio`, `finish`. Each has a row of cells (12 px high, fully round, one for each page or one for the step), its name, and a note. A legend gives each cell colour a word. When a cell failed, the note gives the failed count too, for example "8 of 8 done, 2 failed". The border of a failed cell and the border of a waiting cell differ by only 1.17:1, so the count carries the meaning |
-| A failed run | A "blocked" notice inside the "Run" card: "The run failed." Then one line for each failed step: `<kind>, page <n>: <message>`, for example "audio, page 5: ...". The step name holds a page ID, so the line gives the kind and the page number instead. The action button "Start again" is the notice button of section 6 (Card fill, `--bad-edge` edge), not `secondary` |
+| "Run" card | The five steps `freeze`, `script`, `scene`, `audio`, `finish`. Each has a row of cells (12 px high, fully round, one for each page or one for the step), its name, and a note. A legend gives each cell colour a word. When a cell failed, the note gives the failed count too, for example "6 of 8 done, 2 failed". A failed cell is solid `--bad-chip` (section 2), so it does not depend on the count to be seen |
+| A failed run | A "blocked" notice inside the "Run" card: "The run failed." Then one line for each failed step. A page step gives `<kind>, page <n>: <message>`, for example "audio, page 5: ...", because the step name holds a page ID. A step with no page (`freeze`, `script`, `finish`) gives `<kind>: <message>`. The action depends on the API (spec "6. API", `POST .../runs`): when the story has no `outline` head (the `script` step never succeeded), the action button "Start again" starts a full run. Otherwise a full run gives 409 `full_run_not_allowed`, so the notice has no button and says "Open a page to make its scene or audio again." The page cards stay the way to each page. The action button is the notice button of section 6, not `secondary` |
 | Lost contact | The notice stands inside the "Run" card |
 | "Pages" | A grid of page cards, at least 220 px wide, 16 px apart. A page card holds a preview of the page with a page number chip, the text (14 px, 3 lines), and three chips: Text, Scene, Audio, each with its state. The card moves up 2 px on hover. The whole card opens the editor |
 | "Publish" card | Blocked: one "blocked" row for each page that blocks, with the reason and a Soft "Open" button; the primary button is disabled. Ready: one sentence and the primary button "Publish release 3". Done: an "ok" notice and a Soft button that opens the release in the Player. Off the shelf: when the published release is withdrawn, the card never shows Done and has no "Open" button, because the Player would show the Resting state. It shows Ready with the primary button "Publish release <n+1>" when no page blocks, and Blocked when a page blocks. `n` is the number of the latest release. The pages need no change: publish always makes a new release |
 | "Releases" card | One row for each release: its number, its time, a chip, and its buttons. The release that is on the shelf has an "On the shelf" chip in the "ok" state (its fill, its chip text colour, and the check icon), a Soft "Open" button, and a Soft "Take off the shelf" button. A withdrawn release has an "Off the shelf" chip in the "missing" state (its fill, its chip text colour, and the dash icon) and no button. An earlier release that is not withdrawn has no chip and a Soft "Open" button. After a take-off, the published release and every earlier release are withdrawn |
-| "Take off the shelf" dialog | The shared `Dialog`, at most 440 px wide. Title: "Take this book off the shelf?" (20 px, weight 800). Text: "Children will no longer see this book on the shelf. Every link to release 3 and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release." Two buttons at the bottom right, 44 px high: the Soft button "Keep on the shelf" and the Primary button "Take off the shelf". The scrim is Ink at 40 %, with no blur. The dialog has no close button. The focus starts on "Keep on the shelf". Escape and a click outside close the dialog and change nothing |
-| After a take-off | The dialog closes. Every row of a release with a number up to the `withdrawnThrough` of the answer gets the "Off the shelf" chip and loses its buttons: the published release and every earlier one. The "Publish" card changes to its off-the-shelf form (above). A "working" (information) notice stands at the top of the "Releases" card: "This book is off the shelf. Publish a new release to put it back." It stays while the story is off the shelf. The focus goes to the heading of the "Releases" card |
-| A take-off that is refused (409) | The dialog closes. A "blocked" notice in the "Releases" card: "Another release was published after you opened this page. Nothing was changed." with the action button "Load the latest" (`release_moved`). For `not_published`: "This story has no release on the shelf. Nothing was changed.", also with the action button "Load the latest" |
+| "Take off the shelf" dialog | The shared `Dialog`, at most 440 px wide. Title: "Take this book off the shelf?" (20 px, weight 800). Text: "Children will no longer see this book on the shelf. Every link to release 3 and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release." Two buttons at the bottom right, 44 px high: the Soft button "Keep on the shelf" and the Primary button "Take off the shelf". The scrim is Ink at 40 %, with no blur. The dialog has no close button. The focus starts on "Keep on the shelf". Escape and a click outside close the dialog and change nothing. When the dialog closes without a take-off, the focus goes back to the "Take off the shelf" button of the row. The "Primary" button is disabled while the request runs |
+| After a take-off | The dialog closes. Every row of a release with a number up to the `withdrawnThrough` of the answer gets the "Off the shelf" chip and loses its buttons: the published release and every earlier one. The "Publish" card changes to its off-the-shelf form (above). A "working" (information) notice stands at the top of the "Releases" card: "This book is off the shelf. Publish a new release to put it back." It stays while the story is off the shelf. The focus goes to the heading of the "Releases" card, which has `tabindex="-1"` |
+| A take-off that is refused (409) | The dialog closes. A "blocked" notice in the "Releases" card: "Another release was published after you opened this page. Nothing was changed." with the action button "Load the latest" (`release_moved`). For `not_published`: "This story has no release on the shelf. Nothing was changed.", also with the action button "Load the latest". The focus goes to "Load the latest". After "Load the latest" loads the story, the focus goes to the heading of the "Releases" card |
+| A take-off that fails (404, 400, 500, or no answer) | The dialog closes. One "blocked" notice with `role="alert"` stands in the "Releases" card, in the place of the refusal notices, with no action button. For an HTTP error: "The server did not confirm the take-off. It answered with an error (<status>). Try again." For no answer: "No answer came from the server. It is not known if this book is still on the shelf. Try again." The rows stay as loaded. The route is idempotent, so trying again is safe. The focus goes back to the "Take off the shelf" button of the row |
 
 ### 13.3 Page editor
 
@@ -1205,7 +1210,7 @@ Three columns: the page rail (120 px), the work area, and the side column
 | Page text card | The narration field, the count ("2 of 3 sentences, 15 of 40 words"), a note that a save makes the scene and the audio stale, and the Soft button "Save text" |
 | Layers card | One row for each layer, 44 px high, with a kind chip. The selected row has the "working" fill and notice text colour. A Soft button "Add layer" |
 | Layer card | Pose and Expression (selects), x, y, and Scale (number fields, stage units; they are the `x`, `y`, and `scale` of the manual `at` in the spec, and the keyboard way to move and size a layer), a "Manual position" chip with the ghost button "Back to slot", the animation, and the tap actions with the bubble count ("21 of 60") |
-| "This page" card | The `lg` primary button "Save scene". Three Soft buttons in one row: "Still fits", "New scene", "New audio". The draft audio player: a 44 px round Deep teal play button, a track, and the time |
+| "This page" card | The `lg` primary button "Save scene". Three Soft buttons: "Still fits", "New scene", "New audio". They wrap to a second row when the 320 to 360 px column cannot hold them in one. The draft audio player: a 44 px round Deep teal play button, a track, and the time |
 
 A button that cannot be used now is disabled, with the reason in the
 notice. For example, "Still fits" is disabled unless the scene is stale.
@@ -1404,3 +1409,14 @@ with children.
     tested with children. The test of item 10 looks at it too. If
     children tap it, the sign changes: an edit of section 12.6 and of the
     spec line that names the sign.
+15. **The focus ring of a book on the shelf.** The ring stands on the
+    wood of the shelf. Computed from the hex values of section 12.1, Ink
+    is 2.19:1 on Deep wood (`#8E5533`) and Sun yellow is 2.97:1 on it;
+    on the wood grain (`#A5673D`) Ink is 2.88:1 and Sun yellow 2.25:1.
+    Neither ring reaches 3:1 there (found in the review of #92). The fix
+    is for #77: a third ring of Card inside the two rings, or a Card
+    plate behind the focused book. It needs a board before #77 starts.
+16. **"Look again" at 320 px.** The `child` Primary button "Look again"
+    is estimated at 255 to 265 px wide; the Narrow shelf plate has 256 px
+    inside at 320 px. Measure it in a browser before #77. If it does not
+    fit, the plate padding goes from 16 to 12 px under 360 px.
