@@ -5,7 +5,7 @@
 // synthetic (sharp), R2 is the fake, and every folder is temporary. No test
 // hard-codes a digest or a byte size.
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
@@ -233,10 +233,37 @@ describe("painted backdrop", () => {
       list.variants.push({ ...list.variants[0]!, source: "day-2.png" });
     });
     expect(SourceListSchema.safeParse(s.list).success).toBe(false);
-    expect(await main(s.argv(), quiet())).toBe(1);
+    const io = quiet();
+    expect(await main(s.argv(), io)).toBe(1);
+    expect(io.lines.join("\n")).toContain("at most one variant");
     expect(gets(s.fake.calls)).toEqual([]);
     expect(existsSync(join(s.out, "riverbank"))).toBe(false);
   });
+
+  it("a painting with an EXIF orientation tag fails and writes nothing", async () => {
+    const bytes = await sharp(await gradient(2400, 1200, 90)).jpeg().withMetadata({ orientation: 3 }).toBuffer();
+    expect((await sharp(bytes).metadata()).orientation).toBe(3);
+    const s = setup([{ sky: "day", source: "day.jpg", bytes }]);
+    const io = quiet();
+    expect(await main(s.argv(), io)).toBe(1);
+    expect(io.lines.join("\n")).toContain("riverbank v1 day: day.jpg has EXIF orientation 3; save the painting without an orientation tag");
+    expect(existsSync(join(s.out, "riverbank"))).toBe(false);
+  }, 60_000);
+
+  it("a rebuild with fewer variants leaves no file of the earlier build", async () => {
+    const day = { sky: "day", source: "day.png", bytes: smallValid };
+    const first = setup([day, { sky: "night", source: "night.png", bytes: await gradient(2400, 1200, 20) }]);
+    expect(await main(first.argv(), quiet())).toBe(0);
+    expect(existsSync(join(first.out, "riverbank/v1/night.webp"))).toBe(true);
+    const second = setup([day]);
+    const io = quiet();
+    expect(await main(second.argv(first.out), io), io.lines.join("\n")).toBe(0);
+    expect(readdirSync(join(first.out, "riverbank"))).toEqual(["v1"]);
+    expect(readdirSync(join(first.out, "riverbank/v1")).sort()).toEqual(["asset.json", "day.webp"]);
+    const build = AssetBuildSchema.parse(JSON.parse(readFileSync(join(first.out, "riverbank/v1/asset.json"), "utf8")));
+    if (build.manifest.kind !== "backdrop") throw new Error("not a backdrop manifest");
+    expect(build.manifest.variants).toEqual([{ sky: "day", file: "day.webp" }]);
+  }, 120_000);
 
   it("a source list whose key differs from its file name fails", async () => {
     const s = setup([{ sky: "day", source: "day.png", bytes: smallValid }], (list) => {

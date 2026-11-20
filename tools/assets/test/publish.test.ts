@@ -2,15 +2,24 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { isLayerManifest, manifestFiles, SKY_PALETTES } from "@storybook/dsl";
 import { TEMPLATES } from "@storybook/layout";
 import { type AssetBuild, AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
-import { SOURCES_DIR } from "../src/paths";
+import { PAINTINGS_DIR, SOURCES_DIR } from "../src/paths";
 import { buildSql, type ExistingRow, type LocalBuild, loadLocalBuilds, type Plan, planPublish, runPublish } from "../src/publish";
 import { sanitizeSvg } from "../src/svg";
 import { fakeWrangler, isFile, isPut, isWriteCommand, migratedDb } from "./fake-wrangler";
+
+// missingStep reads the global PAINTINGS_DIR (#74: no parameter); in this file
+// it is an empty temporary folder, so no test writes to tools/assets/paintings.
+vi.mock("../src/paths", async (importOriginal) => {
+  const { mkdtempSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  return { ...(await importOriginal<typeof import("../src/paths")>()), PAINTINGS_DIR: mkdtempSync(join(tmpdir(), "assets-paintings-")) };
+});
 
 const NOW = "2026-11-19T12:00:00.000Z";
 // Unique across the file, as UUID v7 IDs are.
@@ -318,6 +327,24 @@ describe("loadLocalBuilds", () => {
     expect(message).toMatch(/sfx-bell\/v1: asset\.json is missing; run sfx/);
     expect(message).toMatch(/owl: no version folder; run cut/);
     expect(message).not.toMatch(/review/);
+  });
+
+  it("loadLocalBuilds names backdrop when a source list exists for the version", () => {
+    const out = tmpOut();
+    mkdirSync(join(out, "riverbank/v1"), { recursive: true });
+    writeFileSync(join(out, "riverbank/v1/day.svg"), "x");
+    writeFileSync(join(PAINTINGS_DIR, "riverbank-v1.json"), "{}");
+    mkdirSync(join(out, "riverbank/v2"), { recursive: true });
+    writeFileSync(join(out, "riverbank/v2/day.svg"), "x");
+    let message = "";
+    try {
+      loadLocalBuilds({ outDir: out });
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(PAINTINGS_DIR.startsWith(tmpdir())).toBe(true);
+    expect(message).toMatch(/riverbank\/v1: asset\.json is missing; run backdrop/);
+    expect(message).toMatch(/riverbank\/v2: asset\.json is missing; run svg/);
   });
 
   it("loadLocalBuilds --only limits the set and rejects an entry with no build", () => {

@@ -9,7 +9,7 @@
 // none; it never crops, pads, upscales, or flattens a painting; one fixed
 // quality for every variant, never lowered to fit the budget.
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import sharp from "sharp";
 import { z } from "zod";
@@ -113,6 +113,9 @@ export async function buildPaintedBackdrop(
       const { isOpaque } = await sharp(path).stats();
       const w = meta.width ?? 0;
       const h = meta.height ?? 0;
+      // sharp does not apply an EXIF orientation unless told to; the build
+      // rejects it rather than turn the painting (invariant 3).
+      if ((meta.orientation ?? 1) > 1) errors.push(`${where} has EXIF orientation ${meta.orientation}; save the painting without an orientation tag`);
       if (w !== 2 * h) errors.push(`${where} is ${w} x ${h}; a painting is exactly 2:1`);
       if (w < WIDTH) errors.push(`${where} is ${w} x ${h}; a painting is at least ${WIDTH} x ${HEIGHT}`);
       if (!isOpaque) errors.push(`${where} has transparent pixels; a painting is opaque`);
@@ -136,7 +139,10 @@ export async function buildPaintedBackdrop(
   }
   if (errors.length > 0) return fail(errors);
 
-  // 5. All checks passed: the WebP files, then asset.json.
+  // 5. All checks passed: the WebP files, then asset.json, into a temporary
+  // folder next to <key>/v<n>; it replaces that folder only when every file is
+  // written, so no file of an earlier build stays. The temporary name is not
+  // v<n>, so loadLocalBuilds never reads a leftover one.
   const build = AssetBuildSchema.parse({
     key,
     kind: "backdrop",
@@ -150,15 +156,40 @@ export async function buildPaintedBackdrop(
       variants: SKY_PALETTES.filter((sky) => encoded.has(sky)).map((sky) => ({ sky, file: `${sky}.webp` })),
     },
   });
-  const dir = join(opts.outDir, key, `v${version}`);
-  mkdirSync(dir, { recursive: true });
+  const keyDir = join(opts.outDir, key);
+  const dir = join(keyDir, `v${version}`);
+  mkdirSync(keyDir, { recursive: true });
+  const temp = mkdtempSync(join(keyDir, `.v${version}-new-`));
+  // A rename onto a folder that is not empty fails: the old one moves aside
+  // first, and back if the rename fails.
+  let aside: string | undefined;
+  try {
+    for (const sky of SKY_PALETTES) {
+      const bytes = encoded.get(sky);
+      if (bytes) writeFileSync(join(temp, `${sky}.webp`), bytes);
+    }
+    writeFileSync(join(temp, "asset.json"), `${JSON.stringify(build, null, 2)}\n`);
+    if (existsSync(dir)) {
+      aside = mkdtempSync(join(keyDir, `.v${version}-old-`));
+      renameSync(dir, join(aside, "v"));
+    }
+    try {
+      renameSync(temp, dir);
+    } catch (e) {
+      if (aside) renameSync(join(aside, "v"), dir);
+      throw e;
+    }
+  } catch (e) {
+    rmSync(temp, { recursive: true, force: true });
+    // If the old build could not move back, it stays in the aside folder.
+    if (aside && !existsSync(join(aside, "v"))) rmSync(aside, { recursive: true, force: true });
+    return fail([`${name}: ${dir}: ${messageOf(e)}`]);
+  }
+  if (aside) rmSync(aside, { recursive: true, force: true });
   for (const sky of SKY_PALETTES) {
     const bytes = encoded.get(sky);
-    if (!bytes) continue;
-    writeFileSync(join(dir, `${sky}.webp`), bytes);
-    deps.log(`${name}: ${sky}.webp ${bytes.length} bytes`);
+    if (bytes) deps.log(`${name}: ${sky}.webp ${bytes.length} bytes`);
   }
-  writeFileSync(join(dir, "asset.json"), `${JSON.stringify(build, null, 2)}\n`);
   deps.log(`${name}: wrote ${encoded.size} WebP file(s) and asset.json to ${dir}`);
   deps.log(`next: cli review ${key} --version ${version}`);
   return 0;
