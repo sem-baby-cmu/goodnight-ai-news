@@ -4,6 +4,7 @@
   "error": null,
   "content": {
     "templateId": "circle-around-object",
+    "backdrop": "meadow",
     "sky": "day",
     "layers": [
       {

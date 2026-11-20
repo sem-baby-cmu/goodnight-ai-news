@@ -12,6 +12,7 @@
   },
   "content": {
     "templateId": "three-friends",
+    "backdrop": "meadow",
     "sky": "day",
     "layers": [
       {

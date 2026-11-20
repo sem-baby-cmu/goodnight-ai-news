@@ -4,6 +4,7 @@
   "error": null,
   "content": {
     "templateId": "hero-and-object",
+    "backdrop": "meadow",
     "sky": "night",
     "layers": [
       {
