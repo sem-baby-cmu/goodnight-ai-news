@@ -63,6 +63,13 @@ function unrequestable(page: PageScene, assets: AssetResolver): AssetFailure[] {
   return out;
 }
 
+// The file of a layer's starting pose and expression on `page`.
+function startFile(page: PageScene, assets: AssetResolver, instanceId: string): string | undefined {
+  const l = page.layers.find((x) => x.instanceId === instanceId);
+  const asset = l && assets.get(l.ref);
+  return asset && l ? entryFor(asset, { pose: l.pose, expression: l.expression })?.file : undefined;
+}
+
 const hasEnterFade = (page: PageScene, instanceId: string) =>
   page.animations.some((a) => a.target === instanceId && a.trigger === "enter" && a.primitive === "fade-in");
 
@@ -128,9 +135,13 @@ export function SceneView(props: SceneViewProps) {
   const enterStarted = useRef(false);
   const reported = useRef(false);
   // Views that stay mounted across a page change do not load again, so their
-  // result is carried to the new page (implementation decision).
-  const layerFailures = useRef(new Map<string, AssetFailure>()).current;
+  // result is carried to the new page (ID12b): per layer view, the file on
+  // screen and the file it last failed on; for the backdrop, the result of
+  // the view that stays mounted (same id on the previous page).
+  const onScreen = useRef(new Map<string, { ref: string; file: string }>()).current;
+  const lastFailed = useRef(new Map<string, { ref: string; file: string; failure: AssetFailure }>()).current;
   const backdropDone = useRef<{ id: string; failure: AssetFailure | null } | null>(null);
+  const previousBackdropId = useRef<string | null>(null);
   // Layers whose asset is shown (SVG inserted or WebP loaded).
   const ready = useRef(new Set<string>()).current;
 
@@ -153,25 +164,25 @@ export function SceneView(props: SceneViewProps) {
     failures.current = [];
     enterStarted.current = false;
     reported.current = false;
+    // The backdrop view stays mounted only when the previous page had the
+    // same id; otherwise it mounts again and its old result is dropped.
+    if (previous === null || previousBackdropId.current !== backdropId) backdropDone.current = null;
+    previousBackdropId.current = backdropId;
     if (!source.ok) record(BACKDROP, { key: BACKDROP, ref: page.backdrop, url: null, reason: source.reason });
     else if (backdropDone.current?.id === backdropId) record(BACKDROP, backdropDone.current.failure);
     for (const failure of unrequestable(page, assets)) record(failure.key, failure);
     for (const l of page.layers) {
-      // Carry only when the view keeps its ref and the file of its starting
-      // state (ID12 ruling). Otherwise it loads again: drop its old result.
-      const before = previous?.layers.find((p) => p.instanceId === l.instanceId);
-      const asset = assets.get(l.ref);
-      const fileOf = (x: typeof l) => (asset ? entryFor(asset, { pose: x.pose, expression: x.expression })?.file : undefined);
-      if (!before || before.ref !== l.ref || fileOf(before) !== fileOf(l)) {
-        if (before?.ref === l.ref) {
-          ready.delete(l.instanceId);
-          layerFailures.delete(l.instanceId);
-        }
+      // ID12b: carry only by the file the view has on screen or last failed
+      // on; any other starting file waits for its own load.
+      const start = startFile(page, assets, l.instanceId);
+      if (start === undefined) continue;
+      const shown = onScreen.get(l.instanceId);
+      if (shown && shown.ref === l.ref && shown.file === start) {
+        record(l.instanceId, null);
         continue;
       }
-      if (ready.has(l.instanceId)) record(l.instanceId, null);
-      const failure = layerFailures.get(l.instanceId);
-      if (failure && failure.ref === l.ref) record(l.instanceId, failure);
+      const failed = lastFailed.get(l.instanceId);
+      if (failed && failed.ref === l.ref && failed.file === start) record(l.instanceId, failed.failure);
     }
   }
 
@@ -206,6 +217,8 @@ export function SceneView(props: SceneViewProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState(() => fitFrame(0, 0));
+  // The layer whose `.sv-asset` has :focus-visible (focus ring).
+  const [focused, setFocused] = useState<string | null>(null);
   const [bubble, setBubble] = useState<BubbleState | null>(null);
   const bubbleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -253,8 +266,9 @@ export function SceneView(props: SceneViewProps) {
   // per page; `partsOnly` restarts them on a new SVG node.
   const startEnter = useCallback(
     (instanceId: string, partsOnly: boolean) => {
-      const { page: current, play: playing } = live.current;
-      if (!playing) return;
+      const { page: current, play: playing, phase: now } = live.current;
+      // In outgoing a load starts nothing (#68 invariant 7).
+      if (!playing || now === "outgoing") return;
       for (const a of current.animations) {
         if (isPageLoop(a) || a.target !== instanceId) continue;
         const spec = pageKeyframes(a);
@@ -276,16 +290,20 @@ export function SceneView(props: SceneViewProps) {
   );
 
   const markReady = useCallback(
-    (instanceId: string) => {
+    (instanceId: string, file: string | undefined) => {
       ready.add(instanceId);
-      layerFailures.delete(instanceId);
+      const ref = live.current.page.layers.find((l) => l.instanceId === instanceId)?.ref;
+      if (ref !== undefined && file !== undefined) {
+        onScreen.set(instanceId, { ref, file });
+        if (lastFailed.get(instanceId)?.file === file) lastFailed.delete(instanceId);
+      }
       if (!settled.current.has(instanceId)) {
         settled.current.add(instanceId);
         lateFade(nodes.get(instanceId)?.root, instanceId);
         bumpSettled();
       }
     },
-    [ready, layerFailures, nodes, lateFade],
+    [ready, onScreen, lastFailed, nodes, lateFade],
   );
 
   const register = useCallback(
@@ -297,16 +315,19 @@ export function SceneView(props: SceneViewProps) {
       } else {
         nodes.delete(instanceId);
         ready.delete(instanceId);
-        layerFailures.delete(instanceId);
+        onScreen.delete(instanceId);
+        lastFailed.delete(instanceId);
+        // A focused layer that goes away fires no blur in every engine.
+        setFocused((prev) => (prev === instanceId ? null : prev));
       }
     },
-    [animator, nodes, ready, layerFailures],
+    [animator, nodes, ready, onScreen, lastFailed],
   );
 
   // A new SVG node (first load or pose swap): cancel and drop the animations
   // of the old node, then start the page's part animations on the new one.
   const onSvg = useCallback(
-    (instanceId: string, svg: SVGSVGElement | null) => {
+    (instanceId: string, svg: SVGSVGElement | null, file?: string) => {
       const old = svgs.get(instanceId);
       if (old) animator.cancelWithin(old);
       if (!svg) {
@@ -317,28 +338,30 @@ export function SceneView(props: SceneViewProps) {
       svgs.set(instanceId, svg);
       startLoops(instanceId, true);
       if (entered.has(instanceId)) startEnter(instanceId, true);
-      markReady(instanceId);
+      markReady(instanceId, file);
     },
     [animator, svgs, ready, entered, startLoops, startEnter, markReady],
   );
 
   const onReady = useCallback(
-    (instanceId: string, isReady: boolean) => {
-      if (isReady) markReady(instanceId);
+    (instanceId: string, isReady: boolean, file?: string) => {
+      if (isReady) markReady(instanceId, file);
       else ready.delete(instanceId);
     },
     [ready, markReady],
   );
 
   const onAssetFailed = useCallback(
-    (instanceId: string, url: string, reason: string, shown: LayerState | undefined) => {
+    (instanceId: string, url: string, reason: string, shown: LayerState | undefined, file: string) => {
       console.warn(`scene-runtime: layer ${instanceId}: ${url} ${reason}; skipped`);
+      const { page: current, assets: resolver } = live.current;
       live.current.onAssetError?.(instanceId, url);
-      // A failed first load is a failure of the report; a failed swap is not.
-      if (shown === undefined) {
-        const ref = live.current.page.layers.find((l) => l.instanceId === instanceId)?.ref ?? "";
-        const failure: AssetFailure = { key: instanceId, ref, url, reason };
-        layerFailures.set(instanceId, failure);
+      const ref = current.layers.find((l) => l.instanceId === instanceId)?.ref ?? "";
+      const failure: AssetFailure = { key: instanceId, ref, url, reason };
+      lastFailed.set(instanceId, { ref, file, failure });
+      // A failed first load, or a failed load of this page's starting file
+      // (ID12b), is a failure of the report; a failed tap swap is not.
+      if (shown === undefined || file === startFile(current, resolver, instanceId)) {
         if (!settled.current.has(instanceId)) {
           settled.current.add(instanceId);
           failures.current.push(failure);
@@ -353,7 +376,7 @@ export function SceneView(props: SceneViewProps) {
         rerender();
       }
     },
-    [layerFailures],
+    [lastFailed],
   );
 
   const onBackdropReady = useCallback(() => {
@@ -546,7 +569,11 @@ export function SceneView(props: SceneViewProps) {
   }
 
   // Focus ring of the layer with :focus-visible, in CSS px (DESIGN.md 14).
-  const [focused, setFocused] = useState<string | null>(null);
+  // A layer that stops being tappable loses `focused` here: losing tabIndex
+  // fires no blur in every engine (review of PR #93, item 6).
+  useLayoutEffect(() => {
+    if (focused !== null && !tappable.has(focused)) setFocused(null);
+  }, [focused, tappable]);
   const onFocusVisible = useCallback((instanceId: string, visible: boolean) => {
     setFocused((prev) => (visible ? instanceId : prev === instanceId ? null : prev));
   }, []);
