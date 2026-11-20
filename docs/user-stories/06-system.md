@@ -180,3 +180,9 @@ Spec: requirements "Non-functional Requirements" · design "1. Model adapter", "
 - When the adapter makes a `synthesizeSpeech` call
 - Then the request goes to `https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio/v1beta`, and not through OpenRouter
 - Test: @storybook/models · src/client.test.ts
+
+### SYS-05.S6 Speech returns the token counts of the answer
+- Given a `synthesizeSpeech` answer whose `usageMetadata` has `promptTokenCount` and `candidatesTokenCount`
+- When the adapter returns
+- Then `usage` is `{ inputTokens: promptTokenCount, outputTokens: candidatesTokenCount }`; an answer without both counts gives `usage` null, never 0
+- Test: @storybook/models · src/client.test.ts

@@ -20,8 +20,8 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, the shelf list, and the take-off | 4 | 49 |
 | [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release, on every viewport | 7 | 103 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 16 |
-| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 23 |
-| Total | | | 29 | 299 |
+| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 24 |
+| Total | | | 29 | 300 |
 
 ## Format
 
@@ -69,7 +69,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 58 scenarios are `spec (to implement)`, 230 have an
+Current state: 58 scenarios are `spec (to implement)`, 231 have an
 automated test, 10 are `manual · not run`, and 1 is a recorded manual check.
 
 ## Coverage of the requirements
