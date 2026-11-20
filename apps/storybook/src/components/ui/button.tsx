@@ -37,7 +37,11 @@ const buttonVariants = cva(
         class:
           "shadow-[0_5px_0_var(--teal-edge)] active:not-data-disabled:translate-y-[3px]",
       },
-      { variant: "link", class: "px-0" },
+      {
+        variant: "link",
+        class:
+          "px-0 data-disabled:bg-transparent data-disabled:shadow-none data-disabled:text-ink-2",
+      },
     ],
     defaultVariants: {
       variant: "default",
@@ -46,12 +50,23 @@ const buttonVariants = cva(
   }
 )
 
+type Size = NonNullable<VariantProps<typeof buttonVariants>["size"]>
+
+// DESIGN.md section 4: `round` is an icon button and needs a name, and `link`
+// has the default size only.
+type ButtonProps = ButtonPrimitive.Props &
+  (
+    | { variant?: "default" | "secondary" | "ghost"; size?: Size }
+    | { variant: "round"; size: "child-icon" | "icon"; "aria-label": string }
+    | { variant: "link"; size?: "default" }
+  )
+
 function Button({
   className,
   variant = "default",
   size = "default",
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
   return (
     <ButtonPrimitive
       data-slot="button"
