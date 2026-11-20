@@ -587,14 +587,25 @@ test("Studio frame 7: the Releases card in its 360 px column", async ({ page }, 
     await settle(page, PREVIEWS);
     const card = region(page, "Releases");
     expectPx((await boxOf(card, "Releases")).width, 360, `Releases at ${width}`);
+    const numberLocator = card.getByText("Release 2", { exact: true });
+    const number = await boxOf(numberLocator, "Release 2");
+    const time = await boxOf(numberLocator.locator("xpath=following-sibling::span[1]"), "time of release 2");
     const chip = await boxOf(card.getByText("On the shelf"), "On the shelf");
-    const open = await boxOf(card.getByLabel("Open release 2"), "Open release 2");
-    // One line: the same vertical centre (within 2 px), the button right of the chip.
+    const openLocator = card.getByLabel("Open release 2");
+    const open = await boxOf(openLocator, "Open release 2");
+    const row = await boxOf(card.getByRole("listitem").filter({ has: openLocator }), "row of release 2");
+    // Board 13 item 9: number and time on one line, the chip under them, the button at the right.
     expect(
-      Math.abs(chip.y + chip.height / 2 - (open.y + open.height / 2)),
-      `centres of the chip and Open at ${width}`,
+      Math.abs(number.y + number.height / 2 - (time.y + time.height / 2)),
+      `centres of the number and the time at ${width}`,
     ).toBeLessThanOrEqual(2);
-    expect(open.x).toBeGreaterThanOrEqual(chip.x + chip.width);
+    expect(chip.y, `chip under the number at ${width}`).toBeGreaterThanOrEqual(number.y + number.height - 1);
+    expect(open.x, `Open right of the chip at ${width}`).toBeGreaterThanOrEqual(chip.x + chip.width);
+    expect(open.x, `Open right of the time at ${width}`).toBeGreaterThanOrEqual(time.x + time.width);
+    const openCentre = open.y + open.height / 2;
+    expect(openCentre, `Open centre in its row at ${width}`).toBeGreaterThanOrEqual(row.y);
+    expect(openCentre, `Open centre in its row at ${width}`).toBeLessThanOrEqual(row.y + row.height);
+    expect(row.height, `row of release 2 not wrapped at ${width}`).toBeLessThan(2 * open.height + 40);
     await shotOf(card, `studio-releases-${width}x${height}`);
   }
   expect(api.unrouted).toEqual([]);
