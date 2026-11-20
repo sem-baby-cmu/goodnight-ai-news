@@ -1,0 +1,132 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "count": 2,
+            "height": 0.04
+          },
+          "primitive": "bounce",
+          "target": "center",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "count": 2,
+            "height": 0.03
+          },
+          "primitive": "bounce",
+          "target": "left",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "angle": 3,
+            "period": 4
+          },
+          "primitive": "sway",
+          "target": "back-left",
+          "trigger": "loop"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "bounce",
+              "target": "center"
+            },
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-tada"
+            },
+            {
+              "action": "show_bubble",
+              "target": "center",
+              "text": "We're here! Happy grand opening, STEAM Lab!"
+            }
+          ],
+          "on": {
+            "tap": "center"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "bounce",
+              "target": "right"
+            },
+            {
+              "action": "show_bubble",
+              "target": "right",
+              "text": "Hello, everyone!"
+            }
+          ],
+          "on": {
+            "tap": "right"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "tree",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "flowers",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "sun",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "pip",
+          "slot": "center"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "walk",
+          "ref": "kiki",
+          "slot": "left"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "walk",
+          "ref": "lumi",
+          "slot": "right"
+        }
+      ],
+      "sky": "day",
+      "templateId": "three-friends"
+    }
+  },
+  "usage": {
+    "inputTokens": 7743,
+    "outputTokens": 359
+  }
+}

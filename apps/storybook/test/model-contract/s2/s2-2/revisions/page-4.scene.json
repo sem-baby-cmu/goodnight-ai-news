@@ -1,0 +1,137 @@
+{
+  "id": "01a1f646-03d0-75d0-97dc-7ab43afe93f3",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "two-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f646-03cf-7016-b9bf-1911549d6788",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 300,
+          "y": 880,
+          "scale": 1.4141,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f646-03cf-7016-b9bf-1d5572bac17d",
+        "kind": "scenery",
+        "ref": "sun",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 300,
+          "scale": 0.6667,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f646-03cf-7016-b9bf-2002fbfa1e06",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "read",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1080,
+          "scale": 1.5625,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f646-03cf-7016-b9bf-253ca49898e0",
+        "kind": "character",
+        "ref": "rabbit",
+        "pose": "walk",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1080,
+          "y": 1080,
+          "scale": 1.4634,
+          "z": 51
+        }
+      },
+      {
+        "instanceId": "01a1f646-03cf-7016-b9bf-2b645ddd9a02",
+        "kind": "prop",
+        "ref": "book",
+        "pose": "default",
+        "slot": "prop-center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1110,
+          "scale": 0.6769,
+          "z": 52
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f646-03cf-7016-b9bf-1911549d6788",
+        "primitive": "sway",
+        "params": {
+          "angle": 3,
+          "period": 5
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f646-03cf-7016-b9bf-2b645ddd9a02",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.08
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f646-03cf-7016-b9bf-2b645ddd9a02"
+        },
+        "do": [
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-03cf-7016-b9bf-2002fbfa1e06",
+            "text": "100,000 animal pictures in over 1,000 places in just two ¡y"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f646-03cf-7016-b9bf-253ca49898e0"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f646-03cf-7016-b9bf-253ca49898e0",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-03cf-7016-b9bf-253ca49898e0",
+            "text": "Moose in Swedish forests! Red deer on sunny Spanish bea"
+          }
+        ]
+      }
+    ]
+  }
+}

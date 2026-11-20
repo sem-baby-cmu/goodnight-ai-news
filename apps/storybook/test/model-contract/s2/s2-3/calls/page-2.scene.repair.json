@@ -1,0 +1,113 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "amplitude": 0.03,
+            "period": 6
+          },
+          "primitive": "float",
+          "target": "sky-1",
+          "trigger": "loop"
+        },
+        {
+          "params": {
+            "scale": 1.05
+          },
+          "primitive": "pop",
+          "target": "prop-front",
+          "trigger": "enter"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-tick"
+            },
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "prop-front"
+            },
+            {
+              "action": "show_bubble",
+              "target": "prop-front",
+              "text": "Snap! From the ground in Chile, Rubin takes fast photos of a"
+            }
+          ],
+          "on": {
+            "tap": "prop-front"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-chime"
+            },
+            {
+              "action": "show_bubble",
+              "target": "hero",
+              "text": "Over ten years, Rubin will picture billions of galaxies!"
+            }
+          ],
+          "on": {
+            "tap": "hero"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "workshop",
+          "slot": "place"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "rocks",
+          "slot": "side"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "stars",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "three-quarter",
+          "ref": "lumi",
+          "slot": "hero"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "prop",
+          "pose": "default",
+          "ref": "machine",
+          "slot": "prop-front"
+        }
+      ],
+      "sky": "night",
+      "templateId": "landscape"
+    }
+  },
+  "usage": {
+    "inputTokens": 7665,
+    "outputTokens": 324
+  }
+}

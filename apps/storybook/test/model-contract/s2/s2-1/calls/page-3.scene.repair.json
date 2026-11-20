@@ -1,0 +1,105 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "delay": 0.2
+          },
+          "primitive": "fade-in",
+          "target": "hero",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "scale": 1.08
+          },
+          "primitive": "pop",
+          "target": "object",
+          "trigger": "enter"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "object"
+            },
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-chime"
+            },
+            {
+              "action": "show_bubble",
+              "target": "hero",
+              "text": "Engineering, robotics, and manufacturing—so much to explore!"
+            }
+          ],
+          "on": {
+            "tap": "object"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "hero"
+            },
+            {
+              "action": "show_bubble",
+              "target": "hero",
+              "text": "Look at this bright workspace! It's ready for hands-on تعلم!"
+            }
+          ],
+          "on": {
+            "tap": "hero"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "workshop",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "window",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "prop",
+          "pose": "default",
+          "ref": "machine",
+          "slot": "object"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "three-quarter",
+          "ref": "kiki",
+          "slot": "hero"
+        }
+      ],
+      "sky": "day",
+      "templateId": "hero-and-object"
+    }
+  },
+  "usage": {
+    "inputTokens": 7651,
+    "outputTokens": 288
+  }
+}

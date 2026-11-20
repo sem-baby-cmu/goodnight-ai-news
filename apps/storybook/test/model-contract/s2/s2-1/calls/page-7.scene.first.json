@@ -1,0 +1,149 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "amplitude": 0.025,
+            "period": 4
+          },
+          "primitive": "float",
+          "target": "sky-1",
+          "trigger": "loop"
+        },
+        {
+          "params": {
+            "count": 1,
+            "height": 0.04
+          },
+          "primitive": "bounce",
+          "target": "center",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "angle": 3,
+            "period": 3
+          },
+          "primitive": "sway",
+          "target": "left",
+          "trigger": "loop"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "bounce",
+              "target": "center"
+            },
+            {
+              "action": "show_bubble",
+              "target": "center",
+              "text": "Imagine all the things we could build!"
+            },
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-chime"
+            }
+          ],
+          "on": {
+            "tap": "center"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "show_bubble",
+              "target": "left",
+              "text": "I could invent a wagon that flies!"
+            },
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "left"
+            }
+          ],
+          "on": {
+            "tap": "left"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "show_bubble",
+              "target": "right",
+              "text": "Let's dream, explore, and create together!"
+            },
+            {
+              "action": "play_animation",
+              "primitive": "wave",
+              "target": "right"
+            }
+          ],
+          "on": {
+            "tap": "right"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "cottage",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "tree",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "clouds",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "walk",
+          "ref": "kiki",
+          "slot": "left"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "pip",
+          "slot": "center"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "walk",
+          "ref": "lumi",
+          "slot": "right"
+        }
+      ],
+      "sky": "dusk",
+      "templateId": "three-friends"
+    }
+  },
+  "usage": {
+    "inputTokens": 7335,
+    "outputTokens": 411
+  }
+}

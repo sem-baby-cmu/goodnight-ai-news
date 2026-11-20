@@ -1,0 +1,96 @@
+{
+  "id": "01a1f643-ef26-7669-b350-a785d2637f76",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "hero-and-object",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f643-ef24-7774-8279-8d53c84d58aa",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 230,
+          "y": 860,
+          "scale": 1.2968,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f643-ef24-7774-8279-91345f7e0054",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "hero",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1090,
+          "scale": 1.5776,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f643-ef24-7774-8279-95e2df13138a",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "object",
+        "flip": false,
+        "at": {
+          "x": 1120,
+          "y": 1090,
+          "scale": 1.3867,
+          "z": 40
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f643-ef24-7774-8279-95e2df13138a",
+        "primitive": "sway",
+        "params": {
+          "angle": 6,
+          "period": 2
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f643-ef24-7774-8279-91345f7e0054",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.08
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f643-ef24-7774-8279-95e2df13138a"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f643-ef24-7774-8279-95e2df13138a",
+            "primitive": "bounce"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f643-ef24-7774-8279-91345f7e0054",
+            "text": "Wow! Working together turns big ideas into real things!"
+          }
+        ]
+      }
+    ]
+  }
+}

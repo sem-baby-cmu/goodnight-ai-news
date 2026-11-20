@@ -1,0 +1,97 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "amplitude": 0.025,
+            "period": 4
+          },
+          "primitive": "float",
+          "target": "sky-1",
+          "trigger": "loop"
+        },
+        {
+          "params": {
+            "count": 1,
+            "height": 0.04
+          },
+          "primitive": "bounce",
+          "target": "left",
+          "trigger": "enter"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "show_bubble",
+              "target": "center",
+              "text": "Print just one night of our space photos, and the stack of紙会"
+            }
+          ],
+          "on": {
+            "tap": "center"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "grass-patch",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "tree",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "stars",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "sit",
+          "ref": "cat",
+          "slot": "left"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "pip",
+          "slot": "center"
+        },
+        {
+          "expression": "happy",
+          "flip": true,
+          "kind": "character",
+          "pose": "three-quarter",
+          "ref": "lumi",
+          "slot": "right"
+        }
+      ],
+      "sky": "night",
+      "templateId": "three-friends"
+    }
+  },
+  "usage": {
+    "inputTokens": 7328,
+    "outputTokens": 599
+  }
+}

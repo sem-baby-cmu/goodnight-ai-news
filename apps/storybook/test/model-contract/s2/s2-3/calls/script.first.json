@@ -1,0 +1,54 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "title": "Three Telescopes, One Super View",
+      "cast": [
+        "lumi",
+        "pip",
+        "cat"
+      ],
+      "pages": [
+        {
+          "beat": "Stargazing on the hill",
+          "text": "Lumi, Pip, and Cat looked up at the starry night sky. \"Scientists have three giant telescopes watching space,\" said Lumi. \"Now they want to connect them into one supertelescope!\"",
+          "pageId": "01a1f647-4195-767d-a9eb-5da5295af44a"
+        },
+        {
+          "beat": "Rubin on Earth",
+          "text": "First is the Rubin Observatory on the ground in Chile. Every three days, it snaps fast photos of the southern sky. Over ten years, it will picture billions of galaxies.",
+          "pageId": "01a1f647-41a2-713e-924a-16d1443cde5e"
+        },
+        {
+          "beat": "Euclid and Roman in space",
+          "text": "Far above Earth float two space telescopes named Euclid and Roman. Euclid takes sharp pictures from a million miles away. Soon Roman will join in and peer even deeper into space.",
+          "pageId": "01a1f647-41a2-713e-924a-185f3764eaac"
+        },
+        {
+          "beat": "A giant stack of space photos",
+          "text": "Together, the three telescopes take mountains of pictures. Cat purred in amazement when Pip shared a fun fact. Printing just one night of their photos would reach the International Space Station!",
+          "pageId": "01a1f647-41a2-713e-924a-1d1e62d4e724"
+        },
+        {
+          "beat": "AI blends the pictures",
+          "text": "That is far too many photos for people to sort alone. So scientists want to use smart AI computers to blend the images together. Mixing all three views makes one super-clear picture.",
+          "pageId": "01a1f647-41a2-713e-924a-234c4b89cbc8"
+        },
+        {
+          "beat": "Discovering cosmic treasures",
+          "text": "With this supertelescope, astronomers could spot tiny dwarf planets far beyond Neptune. They could find distant worlds and maybe even hidden moons. Best of all, they might discover brand-new space surprises!",
+          "pageId": "01a1f647-41a2-713e-924a-27595b24422e"
+        },
+        {
+          "beat": "Working together to switch it on",
+          "text": "Space teams around the world must work together soon to build this shared tool. Pip grinned and hugged Cat tightly. \"When everyone shares their view,\" said Lumi, \"we see so much more!\"",
+          "pageId": "01a1f647-41a2-713e-924a-2a07ae0f6ead"
+        }
+      ]
+    }
+  },
+  "usage": {
+    "inputTokens": 4601,
+    "outputTokens": 3337
+  }
+}

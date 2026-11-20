@@ -1,0 +1,88 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "interval": 2.4
+          },
+          "primitive": "blink",
+          "target": "sky-1",
+          "trigger": "loop"
+        },
+        {
+          "params": {
+            "scale": 1.08
+          },
+          "primitive": "pop",
+          "target": "object",
+          "trigger": "enter"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-chime"
+            },
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "sky-1"
+            },
+            {
+              "action": "show_bubble",
+              "target": "hero",
+              "text": "A tiny dwarf planet? A hidden moon? What will we discover?"
+            }
+          ],
+          "on": {
+            "tap": "object"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "stars",
+          "slot": "sky-1"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "rocks",
+          "slot": "back-left"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "three-quarter",
+          "ref": "lumi",
+          "slot": "hero"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "prop",
+          "pose": "default",
+          "ref": "machine",
+          "slot": "object"
+        }
+      ],
+      "sky": "night",
+      "templateId": "hero-and-object"
+    }
+  },
+  "usage": {
+    "inputTokens": 7328,
+    "outputTokens": 535
+  }
+}

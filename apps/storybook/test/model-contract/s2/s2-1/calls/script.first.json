@@ -1,0 +1,54 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "title": "The Big Ribbon Cutting at the STEAM Lab",
+      "cast": [
+        "pip",
+        "kiki",
+        "lumi"
+      ],
+      "pages": [
+        {
+          "beat": "Arriving for the celebration",
+          "text": "On November 10, Pip, Kiki, and Lumi walked to New Hope-Solebury Middle School in Pennsylvania. Families, teachers, and students gathered outside with big smiles. Today was the grand opening of the brand-new STEAM Lab!",
+          "pageId": "01a1f643-17eb-75e1-8c0e-142d047e0444"
+        },
+        {
+          "beat": "Cutting the ribbon",
+          "text": "Everyone cheered as the big ribbon went snip and opened the doors. STEAM stands for Science, Technology, Engineering, Arts, and Mathematics. Pip clapped with joy and could not wait to look inside.",
+          "pageId": "01a1f643-17ed-70aa-86a0-392138cb5ed6"
+        },
+        {
+          "beat": "Touring the hands-on space",
+          "text": "Inside, Principal Dr. Erik Pedersen welcomed guests on a tour. He shared that sixth- to eighth-grade students will explore engineering, robotics, and making things here. Kiki spotted bright workspaces ready for hands-on learning.",
+          "pageId": "01a1f643-17ed-70aa-86a0-3dbb7871e75c"
+        },
+        {
+          "beat": "Watching the robotics showcase",
+          "text": "Next, the Middle School Lions proudly showed off their projects and robotics demonstrations. Lumi watched in wonder as students shared how they team up and solve problems. Here, kids can turn their big imaginations into real things.",
+          "pageId": "01a1f643-17ed-70aa-86a0-423ed052ad23"
+        },
+        {
+          "beat": "Learning about the Navy partnership",
+          "text": "A partnership with the U.S. Navy and the STEM+M Program helped bring nearly $1 million in equipment for the middle and high schools. Pip and Kiki marveled at all the new resources.",
+          "pageId": "01a1f643-17ed-70aa-86a0-44f3a5ef2f8d"
+        },
+        {
+          "beat": "Thanking the community",
+          "text": "Generous families, local donors, and the New Hope-Solebury Education Fund also pitched in to support the project. Teachers, students, and community members all shared one dream. Lumi felt happy seeing a whole town come together for kids.",
+          "pageId": "01a1f643-17ed-70aa-86a0-4bcccf5c1941"
+        },
+        {
+          "beat": "Dreaming of a world of possibilities",
+          "text": "Superintendent Dr. Charles Lentz said the lab helps students explore, create, and prepare for a world of possibilities. Walking home, Pip, Kiki, and Lumi dreamed about all the fun things they will build someday.",
+          "pageId": "01a1f643-17ed-70aa-86a0-4fe9dbe8c881"
+        }
+      ]
+    }
+  },
+  "usage": {
+    "inputTokens": 3254,
+    "outputTokens": 5358
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "scale": 1.08
+          },
+          "primitive": "pop",
+          "target": "object",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "amplitude": 0.03,
+            "period": 3
+          },
+          "primitive": "float",
+          "target": "sky-1",
+          "trigger": "loop"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "object"
+            },
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-chime"
+            },
+            {
+              "action": "show_bubble",
+              "target": "object",
+              "text": "Three views blend into one super-clear picture!"
+            }
+          ],
+          "on": {
+            "tap": "object"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "show_bubble",
+              "target": "hero",
+              "text": "AI helps scientists blend more photos than people could sort"
+            },
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "hero"
+            }
+          ],
+          "on": {
+            "tap": "hero"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "workshop",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "window",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "burst",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "three-quarter",
+          "ref": "lumi",
+          "slot": "hero"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "prop",
+          "pose": "default",
+          "ref": "machine",
+          "slot": "object"
+        }
+      ],
+      "sky": "day",
+      "templateId": "hero-and-object"
+    }
+  },
+  "usage": {
+    "inputTokens": 7669,
+    "outputTokens": 317
+  }
+}

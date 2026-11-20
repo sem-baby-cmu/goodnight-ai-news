@@ -1,0 +1,193 @@
+{
+  "id": "01a1f646-836d-7757-8f3c-02d3d9da0735",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "three-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f646-836d-7757-8f3b-e9b0ea99d09a",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 260,
+          "y": 820,
+          "scale": 1.2121,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f646-836d-7757-8f3b-ee5cdc596046",
+        "kind": "scenery",
+        "ref": "flowers",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1340,
+          "y": 820,
+          "scale": 1.9355,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f646-836d-7757-8f3b-f0b612dcffda",
+        "kind": "scenery",
+        "ref": "sun",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 260,
+          "scale": 0.6667,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f646-836d-7757-8f3b-f54263a833b7",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1100,
+          "scale": 1.5306,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f646-836d-7757-8f3b-f867d557e640",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 380,
+          "y": 1010,
+          "scale": 1.1538,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f646-836d-7757-8f3b-febfb49f0b49",
+        "kind": "character",
+        "ref": "rabbit",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "right",
+        "flip": false,
+        "at": {
+          "x": 1220,
+          "y": 1010,
+          "scale": 1.1189,
+          "z": 51
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f646-836d-7757-8f3b-f54263a833b7",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.045,
+          "count": 3
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f646-836d-7757-8f3b-f867d557e640",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.035,
+          "count": 3
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f646-836d-7757-8f3b-febfb49f0b49",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.04,
+          "count": 3
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f646-836d-7757-8f3b-e9b0ea99d09a",
+        "primitive": "sway",
+        "params": {
+          "angle": 3,
+          "period": 4
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f646-836d-7757-8f3b-f54263a833b7"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f646-836d-7757-8f3b-f54263a833b7",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-836d-7757-8f3b-f54263a833b7",
+            "text": "Pictures for everyone, everywhere—for free!"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f646-836d-7757-8f3b-f867d557e640"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f646-836d-7757-8f3b-f867d557e640",
+            "primitive": "bounce"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-tada"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-836d-7757-8f3b-f867d557e640",
+            "text": "Japan, Brazil, Chile, and Paraguay are joining Snapshot ..."
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f646-836d-7757-8f3b-febfb49f0b49"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f646-836d-7757-8f3b-febfb49f0b49",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-836d-7757-8f3b-febfb49f0b49",
+            "text": "Together, we can protect wildlife across borders!"
+          }
+        ]
+      }
+    ]
+  }
+}

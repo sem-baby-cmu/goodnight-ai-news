@@ -1,0 +1,44 @@
+{
+  "id": "01a1f645-812f-761f-b691-0786d7c3bf36",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "title": "Smile for Snapshot Europe!",
+    "ageBand": "5-7",
+    "cast": [
+      "lumi",
+      "pip",
+      "rabbit"
+    ],
+    "pages": [
+      {
+        "pageId": "01a1f645-8123-7334-87b0-f1591f497bc0",
+        "beat": "Autumn cameras across Europe"
+      },
+      {
+        "pageId": "01a1f645-8124-7096-bc05-1d3f1fd4ddce",
+        "beat": "Gentle motion-triggered photos"
+      },
+      {
+        "pageId": "01a1f645-8124-7096-bc05-22ca4cc53863",
+        "beat": "Rabbit poses for the camera"
+      },
+      {
+        "pageId": "01a1f645-8124-7096-bc05-26b9b62d72fa",
+        "beat": "Wildlife from Sweden to Spain"
+      },
+      {
+        "pageId": "01a1f645-8124-7096-bc05-29fc6e7ac8c5",
+        "beat": "So many woodland neighbors"
+      },
+      {
+        "pageId": "01a1f645-8124-7096-bc05-2f0cb1efe004",
+        "beat": "Smart computers and scientists check labels"
+      },
+      {
+        "pageId": "01a1f645-8124-7096-bc05-32d64bcf99cd",
+        "beat": "Sharing nature with the whole world"
+      }
+    ]
+  }
+}

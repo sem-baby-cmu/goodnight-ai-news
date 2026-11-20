@@ -1,0 +1,184 @@
+{
+  "id": "01a1f644-7ee3-7040-9b38-19edbc2e9b85",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "three-friends",
+    "sky": "dusk",
+    "layers": [
+      {
+        "instanceId": "01a1f644-7ee2-7742-9cc4-ae7b646b5830",
+        "kind": "scenery",
+        "ref": "cottage",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 260,
+          "y": 820,
+          "scale": 0.9424,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f644-7ee2-7742-9cc4-b1970c3f48e5",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1340,
+          "y": 820,
+          "scale": 1.2121,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f644-7ee2-7742-9cc4-b635ae33196c",
+        "kind": "scenery",
+        "ref": "clouds",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 260,
+          "scale": 0.7813,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f644-7ee2-7742-9cc4-bb536a094f59",
+        "kind": "character",
+        "ref": "kiki",
+        "pose": "walk",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 380,
+          "y": 1010,
+          "scale": 1.2903,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f644-7ee2-7742-9cc4-bfc74e5af8c8",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1100,
+          "scale": 1.4423,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f644-7ee2-7742-9cc4-c373325dda77",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "walk",
+        "expression": "happy",
+        "slot": "right",
+        "flip": false,
+        "at": {
+          "x": 1220,
+          "y": 1010,
+          "scale": 1.2468,
+          "z": 51
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f644-7ee2-7742-9cc4-b635ae33196c",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.025,
+          "period": 4
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f644-7ee2-7742-9cc4-bfc74e5af8c8",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.04,
+          "count": 1
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f644-7ee2-7742-9cc4-bb536a094f59",
+        "primitive": "sway",
+        "params": {
+          "angle": 3,
+          "period": 3
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f644-7ee2-7742-9cc4-bfc74e5af8c8"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f644-7ee2-7742-9cc4-bfc74e5af8c8",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-7ee2-7742-9cc4-bfc74e5af8c8",
+            "text": "Imagine all the things we could build!"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f644-7ee2-7742-9cc4-bb536a094f59"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-7ee2-7742-9cc4-bb536a094f59",
+            "text": "I could invent a wagon that flies!"
+          },
+          {
+            "action": "play_animation",
+            "target": "01a1f644-7ee2-7742-9cc4-bb536a094f59",
+            "primitive": "pop"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f644-7ee2-7742-9cc4-c373325dda77"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-7ee2-7742-9cc4-c373325dda77",
+            "text": "Let's dream, explore, and create together!"
+          },
+          {
+            "action": "play_animation",
+            "target": "01a1f644-7ee2-7742-9cc4-c373325dda77",
+            "primitive": "bounce"
+          }
+        ]
+      }
+    ]
+  }
+}

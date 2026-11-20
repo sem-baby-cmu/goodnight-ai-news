@@ -1,0 +1,123 @@
+{
+  "id": "01a1f647-9dc1-71d2-8c35-2a6aab88fc3f",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "two-friends",
+    "sky": "night",
+    "layers": [
+      {
+        "instanceId": "01a1f647-9dc0-7702-bbca-efce54f88afd",
+        "kind": "scenery",
+        "ref": "stars",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 300,
+          "scale": 0.8811,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f647-9dc0-7702-bbca-f344ffc8f6bc",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "prop-center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1110,
+          "scale": 0.5867,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f647-9dc0-7702-bbca-f676c1cbbeb7",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1080,
+          "scale": 1.5306,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f647-9dc0-7702-bbca-fa69d0479258",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "right",
+        "flip": false,
+        "at": {
+          "x": 1080,
+          "y": 1080,
+          "scale": 1.4423,
+          "z": 51
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f647-9dc0-7702-bbca-f676c1cbbeb7",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.025,
+          "period": 5
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f647-9dc0-7702-bbca-fa69d0479258",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.025,
+          "period": 6
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f647-9dc0-7702-bbca-f676c1cbbeb7"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-9dc0-7702-bbca-f676c1cbbeb7",
+            "text": "I'm Euclid! I take sharp pictures of space from a million …"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f647-9dc0-7702-bbca-fa69d0479258"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-9dc0-7702-bbca-fa69d0479258",
+            "text": "I'm Roman! Soon I'll join the search and peer even deeper …"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          }
+        ]
+      }
+    ]
+  }
+}
