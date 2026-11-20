@@ -92,7 +92,7 @@ Spec: requirements "Non-functional Requirements" · design "3. Calls, revisions,
 As the operator, I want the Studio closed to other people, so that only I
 start runs and publish. (Derived from AC-15.)
 
-Spec: requirements AC-15 · design "Deployment", "Testing Strategy"
+Spec: requirements AC-15 · design "Deployment", "Testing Strategy", "9. Player screens" (Unknown path)
 
 ### SYS-03.S1 The Studio and its API ask for a login
 - Given the deployed Worker, and a browser with no Access session
@@ -105,6 +105,12 @@ Spec: requirements AC-15 · design "Deployment", "Testing Strategy"
 - When it opens `/`, `/read/x`, and `/api/shelf`
 - Then none of them asks for a login; `/`, `/read/*`, `/api/shelf`, and `/content/*` are public (ADR 0017)
 - Test: manual · not run
+
+### SYS-03.S3 An unknown Studio path shows the stories list
+- Given the Studio in a browser with an Access session
+- When the operator opens `/studio/abc/def`, a path that matches no Studio route
+- Then the Studio shows its stories list, and the address is `/studio`; no Player screen is shown
+- Test: spec (to implement)
 
 ## SYS-04 No child data, and no full text in logs
 

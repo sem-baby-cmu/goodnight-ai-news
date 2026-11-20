@@ -23,8 +23,9 @@ Nunito, a night reading stage) until the MVP Worker replaces it. Comments in
 `3d6ef6c`). Sections 1 to 11 keep their numbers and their subjects.
 
 A part marked **Proposal** is not a rule. It waits for a decision in the
-spec (section 16, open items). Do not build it and do not write a test
-against it until the spec defines it.
+spec. Do not build it and do not write a test against it until the spec
+defines it. This file has no Proposal now: ADR 0017 (decisions 17 to 25,
+2026-11-19) settled the last one.
 
 ## 1. Stack
 
@@ -309,8 +310,6 @@ state changes of a button (`box-shadow`, `background`).
 | Waiting dots | Opacity 0.3 to 1 and back, 1.8 s, ease-in-out; each dot starts 0.3 s after the one before |
 | Cover on the shelf | 200 ms fade-in, as a whole, when every file of the cover is loaded |
 | Shelf page change | 200 ms cross-fade of the books. The shelf and the arrows do not move |
-| A character on the shelf (**Proposal**, section 12.1) | Floats 6 px up and down, 4 s, ease-in-out |
-| A tapped character on the shelf (**Proposal**, section 12.1) | Bounce: up 18 px, 600 ms, `cubic-bezier(0.3, 1.6, 0.5, 1)`, 2 times |
 
 - A character is not UI. On a story page, its animation comes from the
   scene (the closed primitive list of the spec), not from this table.
@@ -337,7 +336,7 @@ shadcn Base UI components, styled by the tokens above.
 | Text input | `Input`, `Textarea` | The field of section 4 |
 | Messages in the Studio | `Alert` | A notice: state fill, state notice text, a 20 px icon, a bold first line, then what to do. One optional action button (Card fill, state edge) |
 | Lists in the Studio | `Table` | Head: 14 px, Soft ink, a 1 px Soft cream line. Rows: 1 px Soft cream lines, none after the last row; Paper fill on hover |
-| Overlays | `Dialog` | Studio only. A child screen has no overlay |
+| Overlays | `Dialog` | Studio only. A child screen has no overlay; the Small screen state is shown in the place of a screen, not over it (section 12.6). Used for "Take off the shelf" (section 13.2) |
 | Page position | Progress pill | Player. Section 12.3 |
 | A character speaks | Bubble | Player. Section 12.3 |
 | A book | Book | Player. Section 12.1 |
@@ -350,8 +349,9 @@ steps 6, 10, and 14 are allowed.
 | Surface | Layout |
 | :-- | :-- |
 | Player, wide (width 900 px or more and height 600 px or more) | A page panel with a 96 px Desk gutter on each side. Section 12.3 |
-| Player, short (width 640 px or more and height under 600 px) | The page panel has the full width, with a control rail on each side. Section 12.3 |
+| Player, short (width 640 px or more and height under 600 px; or height under 365 px) | The page panel has the full width, with a control rail on each side. Section 12.3 |
 | Player, narrow (every other viewport) | The page panel has the full width, with a top bar and a control row. Section 12.3 |
+| Player, a viewport that cannot hold the fixed parts of a screen | The Small screen state. Section 12.6 |
 | Studio | Desktop first. Header 64 px high. Content max width 1360 px, side padding 24 px, 22 px between cards. Under 1024 px the columns wrap to one column. There is no phone layout |
 
 Dividers are 1 px Soft cream. A field border is 2 px. The selection outline
@@ -421,6 +421,9 @@ placed (S2 results, or the operator's notes).
   scene: no animation and no tap (spec "5. Scene runtime", "Still mode").
   The picture window of a book is narrower than 4:3, so the stage is cut
   at the left and the right (section 12.1). No file is made for a cover.
+  The one exception is the cover file of a painted backdrop, which the
+  asset pipeline makes only after a failed shelf load check (item 12 of
+  section 16).
 - The ground of the shelf and the picture of the Resting state are drawn
   by the Player: inline SVG and CSS in the Player source, with the colours
   of section 2. The shelf ground is the `day` palette: the Sky colour with
@@ -501,6 +504,8 @@ control. The shelf has none.
 | Reading page | The Home round button. Its place is given for each layout in section 12.3 |
 | End page | The Home round button, in the same place |
 | Resting | A Home button with a label (`child` size) in the panel. No Home round button |
+| Small screen, on a book route (section 12.6) | The Home round button, 16 px from the top and from the left |
+| Small screen, on the shelf route | None |
 
 ### 12.1 Bookshelf
 
@@ -509,7 +514,8 @@ the spec ("9. Player screens"); the look is here. The book size, the wood
 colours, the cloth colours, and the 2 boards of 3 come from the approved
 board. The other Wide sizes are arithmetic for this file. They were not
 measured on the board or in a browser. No board exists for Narrow and
-Short; their values are starting values (section 16, open item 7).
+Short. Their values are starting values, and they stay until a device
+test changes them (section 12.3, "Starting values").
 
 | Part | Look |
 | :-- | :-- |
@@ -542,9 +548,11 @@ Short; their values are starting values (section 16, open item 7).
 - A smaller book has a window that is less upright, so its cover shows
   more of the stage. The 180 px book is the tightest crop.
 - A book is never narrower than 128 px (128 x 159 px, with a window of
-  107 x 90 px and about 10 letters in a title line). A viewport that
-  cannot hold its shelf page at that size is not covered (section 16, open
-  item 7).
+  107 x 90 px and about 10 letters in a title line). Where the books of
+  a Narrow or a Short shelf page do not fit at that size, the shelf page
+  has one book less, down to 1 ("Shelf page" below). A viewport that
+  cannot hold one book of that size with the name and the arrows shows
+  the Small screen state (section 12.6).
 
 **Shelf page.** The books that show at one time.
 
@@ -553,6 +561,12 @@ Short; their values are starting values (section 16, open item 7).
 | Wide | 6 books: 2 boards of 3 | 180 px when `h` >= 612. Below that, the book height is (`h` - 164) / 2 and the width follows: 175 x 218 px at `h` = 600 | Centred in the 96 px gutters, at the middle height of the shelf |
 | Narrow | 4 books: 2 boards of 2. With `h` < 700: 2 books on 1 board | The largest width up to 180 px that leaves 16 px at each side and between books, and whose height fits the space between the name and the control row | In a control row at the bottom, 88 px high, at the left and at the right |
 | Short | 3 books on 1 board | The largest width up to 180 px that fits between the rails with 12 px between books, and whose height fits below the name | At the bottom of the left rail and of the right rail |
+
+- **Fewer books.** In Narrow and Short, where the books of the shelf page
+  do not fit at 128 px wide, the shelf page has one book less, down to 1
+  (ADR 0017, decision 18). For example, at 568 x 320 (Short) the rails
+  leave 392 px. 3 books need 408 px, so the shelf page has 2 books
+  (arithmetic).
 
 **The Wide shelf** (arithmetic, not measured in a browser). `B` is the
 book height.
@@ -605,12 +619,13 @@ book height.
 - A line of a quiet state stands on a Paper plate, never on the ground or
   on the wood, so it needs no new colour pair (section 2, "Contrast").
 
-**Friends (Proposal).** One or two characters stand by the shelf. One
-floats. A tap makes it bounce and say "Pick a story!" in a bubble. The
-shelf is not a stage, so this bubble is in CSS px: 20 px / 1.3, weight
-700, radius 24 px, edge `0 3px 0 var(--edge)`. This part is not a rule:
-ADR 0017 does not decide it, and a character file is served only inside a
-release (section 16, open item 11). Do not build it.
+**No characters by the shelf.** The approved board has one or two
+characters beside the shelf, and a tap makes one say "Pick a story!". The
+MVP does not have them (ADR 0017, decision 19). The shelf shows no
+character and no registry file outside the covers, and it has no bubble.
+The reasons: the answer to the tap is a text, which says nothing to a
+child who cannot read; and a character file is served only inside a
+release.
 
 ### 12.2 Start gate and quiet states
 
@@ -621,7 +636,7 @@ action for each state.
 | :-- | :-- | :-- | :-- |
 | Loading | Until the manifest, every page JSON, and the first-page files are loaded | Paper | "Opening the book", three waiting dots in Deep teal, and the Start button, disabled (PLY-04.S10) |
 | Ready | When they are loaded | Page 1 as the incoming page: its `loop` animations run. No `enter` animation yet, and no tap handling | The title and the Start button: play icon, "Start", `child-start` size |
-| Resting | The release does not exist, or the manifest, a page JSON, or a first-page file fails before "Start" (spec "9. Player screens") | The night picture that the Player draws (section 8, "Other pictures") | "This book is sleeping. Come back soon." and a Home button (Primary, `child` size, house icon, label "Home") |
+| Resting | The release does not exist or was taken off the shelf, or the manifest, a page JSON, or a first-page file fails before "Start" (spec "9. Player screens") | The night picture that the Player draws (section 8, "Other pictures") | "This book is sleeping. Come back soon." and a Home button (Primary, `child` size, house icon, label "Home") |
 
 **What "Start" waits for.** The first-page files are the backdrop variant
 of page 1, the first file of each layer of page 1, and the paper texture
@@ -636,7 +651,7 @@ Short they are starting values.
 
 | Part | Wide | Narrow | Short |
 | :-- | :-- | :-- | :-- |
-| Form | A stack, centred | A stack, centred | One row, centred: the text at the left, the button at the right, 16 px apart |
+| Form | A stack, centred | A stack, centred | One row, centred: the text at the left, the button at the right, 16 px apart. With `w` < 640: a stack (below) |
 | Book title (Ready) | 40 px / 1.1, at most 2 lines | 28 px / 1.1, at most 2 lines | 28 px / 1.1, at most 2 lines |
 | Message (Loading, Resting) | 28 px / 1.3 | 28 px / 1.3 | 22 px / 1.3 |
 | Waiting dots (Loading) | Below the message, 12 px away | Below the message, 12 px away | Below the message, 8 px away, in the text group |
@@ -645,6 +660,14 @@ Short they are starting values.
 | Lowest panel | 232 px: 180 px, 40 px of padding, and the 12 px edge. The 5 lines of narration give 256 px or more | 197 px: 153 px, 32 px of padding, and the 12 px edge | 112 px: 76 px, 24 px of padding, and the 12 px edge |
 | Widest row | Not a row | Not a row | 440 px of space at `w` = 640. Loading: a message of 176 px, 16 px, and a button of 212 px, together 404 px. Resting: a line in 2 rows of 254 px, 16 px, and a button of 170 px |
 
+- **Short under 640 px wide** (ADR 0017, decision 18). The row needs
+  404 px, and a viewport of 568 px leaves 368 px between the rails and
+  their 12 px. So with `w` < 640 the Start gate, Resting, and the end page
+  of the Short layout are a stack: the text above the button, centred,
+  12 px apart. The highest content is Ready: a title of 2 lines (62 px),
+  12 px, and the Start button (76 px), together 150 px. The lowest panel
+  is 186 px: 150 px, 24 px of padding, and the 12 px edge. Arithmetic, not
+  measured in a browser.
 - A title longer than 2 lines is cut with an ellipsis. The accessible name
   has the whole title.
 - **One panel height.** The narration panel of a book is never lower than
@@ -664,7 +687,9 @@ Short they are starting values.
   it has no `role`, no `tabindex`, and no pointer events. The reasons: the
   audio is locked until "Start", and the state has one action.
 - A tap on "Start" unlocks the audio and starts the narration of page 1
-  (PLY-02.S1). The panel changes to the narration with a 200 ms cross-fade.
+  (PLY-02.S1). The same tap plays a silent clip on the sound-effect
+  element, so a later sound effect can play (PLY-02.S7; spec "5. Scene
+  runtime", "Sound-effect unlock"). The clip has no sound and no sign. The panel changes to the narration with a 200 ms cross-fade.
   The picture keeps its size and its place. Page 1 becomes the current
   page: its `enter` animations play once, and tap handling starts (spec
   "5. Scene runtime", "Start gate"). A layer with an `enter` `fade-in` is
@@ -691,8 +716,17 @@ Test them in this order.
 | Layout | When | For example |
 | :-- | :-- | :-- |
 | Wide | `w` >= 900 and `h` >= 600 | A tablet; a desktop window |
-| Short | `w` >= 640 and `h` < 600 | A phone in landscape |
-| Narrow | Every other viewport: `w` < 640, or `w` < 900 and `h` >= 600 | A phone in portrait; a small tablet in portrait |
+| Short | `w` >= 640 and `h` < 600; or `h` < 365 | A phone in landscape, also a small one (568 x 320) |
+| Narrow | Every other viewport: `w` < 640 and `h` >= 365, or `w` < 900 and `h` >= 600 | A phone in portrait; a small tablet in portrait |
+
+- **Why 365 px.** The Narrow frame needs 365 px with no picture: the top
+  bar (80 px), the control row (88 px), and the lowest narration panel
+  (197 px). Below that height Narrow cannot fit at any width. The Short
+  layout has its controls at the sides, so it needs less height (ADR
+  0017, decision 18).
+- **A layout is not always enough.** A viewport that cannot hold the
+  fixed parts of its layout shows the Small screen state (section 12.6).
+  So every viewport has a defined result.
 
 Every layout gets its sizes in the same order:
 
@@ -749,8 +783,14 @@ so they are 50 px apart. Both are more than the 12 px of section 10.
 
 #### Narrow and Short
 
-No board exists for these two layouts. The values are starting values; the
-device tests of PLY-03 confirm or change them.
+No board exists for these two layouts. The values are starting values.
+
+**Starting values** (ADR 0017, decision 22). A starting value of the
+Narrow or the Short layout, in sections 12.1, 12.2, and 12.3, is the rule
+until a device test changes it. The device tests (PLY-03, PLY-05.S17, and
+PLY-05.S18) confirm the values or change them. A change is an edit of
+this file, with the measured result in the pull request. It needs no new
+decision record while the rules of the spec hold.
 
 | Part | Narrow | Short |
 | :-- | :-- | :-- |
@@ -764,8 +804,8 @@ device tests of PLY-03 confirm or change them.
 | Narration | 22 px / 1.45. 16 px from the sides, 16 px above and below, between the torn edge and the control row | 18 px / 1.4. Between the rails, 12 px from each rail, 12 px above and below |
 | Picture area | Between the top bar and the torn edge, the full width | Between the rails, above the torn edge |
 | Small picture | If the picture area is less than 200 px high with 22 px narration, the narration is 18 px / 1.4 and the panel gets its height again | The narration is already at the smallest size. The stage gets the height that is left (spec) |
-| Start gate, Resting, end page | A stack in the place of the narration: the text above the button, centred. Sizes in section 12.2 | One row in the place of the narration: the text at the left, the button at the right. Sizes in section 12.2 |
-| Lowest narration panel | 197 px (section 12.2) | 112 px (section 12.2) |
+| Start gate, Resting, end page | A stack in the place of the narration: the text above the button, centred. Sizes in section 12.2 | One row in the place of the narration: the text at the left, the button at the right. With `w` < 640: a stack. Sizes in section 12.2 |
+| Lowest narration panel | 197 px (section 12.2) | 112 px; 186 px with `w` < 640 (section 12.2) |
 
 The narration is never smaller than 18 px. The steps are fixed: 28 px in
 Wide, 22 px or 18 px in Narrow, 18 px in Short. A page does not pick its
@@ -788,6 +828,10 @@ the text does not get smaller than the steps above.
 | 390 x 844 | Narrow | 22 px, 8 lines, 299 px; with the top bar and the control row | 390 x 377 | 390 x 292, Paper above and below |
 | 375 x 553 | Narrow | 22 px would leave a picture of 86 px, so 18 px: 7 lines, 220 px; with the top bar and the control row | 375 x 165 | 220 x 165, the whole frame, Paper beyond |
 | 667 x 375 | Short | 18 px, 5 lines, 162 px | 491 x 213 | 284 x 213, the whole frame, Paper beyond |
+| 568 x 320 | Short (`h` < 365) | 18 px, 6 lines in 368 px of text, 187 px | 392 x 133 | 177 x 133, the whole frame (266 px wide), Paper beyond |
+| 320 x 480 | Narrow | 18 px, 8 lines in 288 px of text, 246 px; with the top bar and the control row | 320 x 66 | 88 x 66, the whole frame (132 px wide), Paper beyond. The layout fits, so it is not a Small screen |
+| 320 x 400 | Narrow | 18 px, 8 lines, 246 px; with the top bar and the control row that is 414 px | None | The Small screen state (section 12.6) |
+| 400 x 300 | Short (`h` < 365) | 18 px, 11 lines in 200 px of text, 313 px | None | The Small screen state (section 12.6) |
 
 #### Progress pill
 
@@ -931,6 +975,36 @@ open item 10).
 The behaviour is decision B in ADR 0016, with the Home rule of ADR 0017.
 The focus after each event is in section 14, "Focus moves".
 
+### 12.6 Small screen
+
+Every viewport has one layout (section 12.3). Some viewports cannot hold
+the fixed parts of that layout: for example 320 x 400 and 400 x 300 (the
+size table of section 12.3). There the Player shows the Small screen
+state (spec "9. Player screens", "Small screen"; ADR 0017, decision 18).
+
+| Part | Rule |
+| :-- | :-- |
+| When, a screen of a book | The frame parts and the narration panel of the layout do not fit the viewport, uncut. The picture area has no smallest size, so a small picture is not a reason |
+| When, the shelf | The name band, one board with one book of 128 x 159 px, and the arrows of the layout do not fit the viewport, uncut |
+| Ground | Paper, the whole viewport, with the paper texture |
+| Sign | A book in a frame, with four arrows that point outward from the frame. The Player draws it (inline SVG, section 8): Deep teal lines of 3 px on Paper. 96 px wide where the viewport allows it, and never less than 48 px. It says "more room" |
+| Line | "This screen is too small for the book.", below the sign, 12 px away. 18 px / 1.3, weight 600, Ink, centred, `text-wrap: pretty`, 12 px from each side |
+| Home | On a book route: the Home round button (`child-icon`, 64 px), 16 px from the top and from the left (the Home rule, section 12). A tap stops the narration and shows the shelf. On the shelf route: no control |
+| Other controls | None. The state has no other button and no link, and it makes no sound |
+| The screen | The state is shown in the place of the screen, not over it. The parts of the screen are not drawn. The Player keeps the route, the page, the shelf page, and the loaded files. A narration that plays goes on to its end, or until Home |
+| A viewport that is too small for the state | No part is cut. The line is left out first, then the sign. Home is shown while the viewport has 64 x 64 px |
+| End | When the viewport can hold the fixed parts again, the screen shows as it was, at once. No fade, no time limit |
+| Focus | On the state itself (`main`, `tabindex="-1"`). The next Tab goes to Home, where the state has it. When the state ends, on the `main` of the screen |
+
+- The sign is true in every case. It does not say "turn the screen": at
+  400 x 300 a turn does not help.
+- The sign carries the message for a child who cannot read. The line is
+  for the adult who helps.
+- The state is not a fault screen. It has no red, no cross, and no
+  failure wording (section 10).
+- The state is content of the Player, not of a release. It needs no
+  request.
+
 ## 13. Studio screens
 
 Ground: Desk. Header: Paper, 64 px high, with a 5 px Light wood line below
@@ -944,7 +1018,7 @@ button "Open the Player".
 | "New story" card | At most 440 px wide. A segmented control "Paste text" / "Article URL". One field. A note with the word count and the limit "200 to 2,000 words". The `lg` primary button "Make story" at the bottom right |
 | Refused input (422) | A "blocked" notice in the card: what was wrong, and "No run was started." The count turns to the "blocked" chip text colour, weight 700 |
 | Cut input | A "working" (information) notice: "The text had 2,640 words. The run uses the first 2,000." |
-| "Stories" card | A table: Title (link), Run (chip), Pages (one chip for each state with its count), Release, Updated. A story with no release shows "None" in Soft ink |
+| "Stories" card | A table: Title (link), Run (chip), Pages (one chip for each state with its count), Release, Updated. A story with no release shows "None" in Soft ink. A story that was taken off the shelf shows its release number and an "Off the shelf" chip (the "missing" state, section 13.2) |
 
 ### 13.2 Story view
 
@@ -954,7 +1028,10 @@ button "Open the Player".
 | "Run" card | The five steps `freeze`, `script`, `scene`, `audio`, `finish`. Each has a row of cells (12 px high, fully round, one for each page or one for the step), its name, and a note. A legend gives each cell colour a word |
 | "Pages" | A grid of page cards, at least 220 px wide, 16 px apart. A page card holds a preview of the page with a page number chip, the text (14 px, 3 lines), and three chips: Text, Scene, Audio, each with its state. The card moves up 2 px on hover. The whole card opens the editor |
 | "Publish" card | Blocked: one "blocked" row for each page that blocks, with the reason and a Soft "Open" button; the primary button is disabled. Ready: one sentence and the primary button "Publish release 3". Done: an "ok" notice and a Soft button that opens the release in the Player |
-| "Releases" card | One row for each release: its number, its time, an "On the shelf" chip on the published one, and a Soft "Open" button. The chip uses the "ok" state: its fill, its chip text colour, and the check icon |
+| "Releases" card | One row for each release: its number, its time, a chip, and its buttons. The release that is on the shelf has an "On the shelf" chip in the "ok" state (its fill, its chip text colour, and the check icon), a Soft "Open" button, and a Soft "Take off the shelf" button. A withdrawn release has an "Off the shelf" chip in the "missing" state (its fill, its chip text colour, and the dash icon) and no button. An earlier release that is not withdrawn has no chip and a Soft "Open" button |
+| "Take off the shelf" dialog | The shared `Dialog`, at most 440 px wide. Title: "Take this book off the shelf?" (20 px, weight 800). Text: "Children will no longer see this book on the shelf. Every link to release 3 and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release." Two buttons at the bottom right: the Soft button "Keep on the shelf" and the Primary button "Take off the shelf". The focus starts on "Keep on the shelf". Escape and a click outside close the dialog and change nothing |
+| After a take-off | The dialog closes. The row gets the "Off the shelf" chip and loses its buttons. A "working" (information) notice stands at the top of the "Releases" card: "This book is off the shelf. Publish a new release to put it back." It stays while the story is off the shelf. The focus goes to the heading of the "Releases" card |
+| A take-off that is refused (409) | The dialog closes. A "blocked" notice in the "Releases" card: "Another release was published after you opened this page. Nothing was changed." with the action button "Load the latest". For `not_published`: "This story has no release on the shelf. Nothing was changed." |
 
 ### 13.3 Page editor
 
@@ -979,6 +1056,11 @@ Three columns: the page rail (120 px), the work area, and the side column
 A button that cannot be used now is disabled, with the reason in the
 notice. For example, "Still fits" is disabled unless the scene is stale.
 
+The take-off has no red button: `destructive` is not used (section 4). The
+dialog and its plain text carry the weight of the action. "Open" is not
+shown on a withdrawn release, because the Player would show the Resting
+state for it.
+
 ## 14. Accessibility
 
 | Topic | Rule |
@@ -994,6 +1076,7 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 | Motion | Section 5, reduced motion |
 | Keyboard | Every control is a real button or link, in reading order. No function needs a pointer, except dragging a layer in the Studio, which the x, y, and Scale fields replace |
 | Text | Real text, never text in an image. The narration is at least 18 px |
+| Small screen | The state is a `main` with the accessible name of its line. The sign is decoration (`aria-hidden`). The parts of the screen are not drawn. Home has the name "Home" (section 12.6) |
 | Sound | Narration starts only after the tap on "Start" |
 
 ## 15. What not to do
@@ -1024,6 +1107,11 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 - No information that needs hover (no tooltip as the only source).
 - No Sun yellow or Teal as a text colour. No Sun yellow alone as a ring on
   a light ground.
+- No character and no bubble on the shelf (section 12.1).
+- No "turn the screen" sign. The Small screen sign says "more room", which
+  is true for every small viewport (section 12.6).
+- No cut frame control and no cut narration. A viewport that cannot hold
+  them shows the Small screen state.
 
 ## 16. Differences and open items
 
@@ -1049,7 +1137,7 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 | The progress pill lies over the top left of the picture, with dots (board 3) | In the right gutter, the count only | ADR 0017: on a viewport of 900 px the pill covers up to 41 % of the width of a `sky-1` object at 900 x 600, and its whole width at 900 x 827 (arithmetic). No frame part lies over the picture |
 | A cover on the shelf is a small scene placed by hand, with drawn hills and a CSS `filter` on the art | Page 1 of the release as a still scene, cut to the picture window. No filter | Owner decision (ADR 0017): no new asset. A cover uses only files of its release |
 | A book of 180 x 224 px has a picture window of 151 x 208 px. That leaves 16 px of its height for the title label | A title plate of 54 px above a window of 151 x 148 px | A plate for 2 lines of 18 px text does not fit in 16 px, and no text lies over a picture. The lower window also shows more of the stage: 1224 of its 1600 units, not 872 |
-| The shelf ground has registry art (trees) and characters beside the shelf | The Player draws the ground. The characters are a Proposal | A registry file is served only inside a release. Open item 11 |
+| The shelf ground has registry art (trees) and characters beside the shelf | The Player draws the ground. No characters stand beside the shelf | A registry file is served only inside a release. ADR 0017, decision 19: the characters are out of the MVP |
 | The shelf shows 6 books and has no arrows | Arrows with more than one shelf page | ADR 0017: shelf pages, no scrolling, no cap |
 | No Home control on the Start gate | The Home round button | ADR 0017: one Home control on every screen of a book |
 | The editor has a dashed "text zone" on the stage, and the error "overlaps the text zone" | Not included | The spec has no text zone; the narration is below the stage |
@@ -1061,9 +1149,8 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 
 ### Taste rules
 
-The owner's general taste rules and the repository `TASTES.md` were written
-before the boards. Where they disagree with the approved boards, the boards
-win. That holds for the child screens in every case. For the Studio:
+The owner's general taste rules were written before the boards. Where they
+disagree with the approved boards, the boards win. That holds for the child screens in every case. For the Studio:
 
 | Rule | Result |
 | :-- | :-- |
@@ -1074,16 +1161,18 @@ win. That holds for the child screens in every case. For the Studio:
 | No bordered container inside a bordered container | Kept (section 4, "Edges") |
 | The chevron of a select is not closer to the edge than the text | Kept (section 4) |
 | shadcn Base UI components for structure | Kept |
-| Repository `TASTES.md`: Kiwi Maru and Nunito, a night reading stage, watercolor skies, radii 22 and 16 px, "the only shadow is the primary button's edge", a 3D layer | Out of date. It describes the earlier look. It needs an update to this file |
+| Repository `TASTES.md` | Rewritten for this file (#78). It holds short rules and points here for values |
 
 ### Open items
 
 An item that is not marked "Resolved" is not decided here. It needs the
-spec or the owner.
+spec or the owner. Items 8 and 10 are the only ones that are not
+resolved: item 8 is a list of code work, and item 10 needs a test with
+children.
 
 1. **The shelf.** Resolved by ADR 0017. The shelf is at `/`, with the
    public `GET /api/shelf` and shelf pages for more than 6 books. Section
-   12.1 is a rule, except its "Friends" part (item 11).
+   12.1 is a rule. Its "Friends" part is removed (item 11).
 2. **The resting state.** Resolved by ADR 0017. The spec has its triggers
    ("9. Player screens"). The Player draws its picture (section 8), and it
    has a Home button (section 12.2).
@@ -1097,13 +1186,16 @@ spec or the owner.
    shows stars only.
 6. **The torn paper edge.** Resolved. The edge is in the narration panel
    and never lies over the stage or the bleed (section 8).
-7. **The narrow and the short Player layout** have no approved board,
-   for the reading page, for the Start gate, and for the shelf. The
-   values of sections 12.1, 12.2, and 12.3 are starting values, and the
-   size table is arithmetic, not a measurement. On a stage under 390 px
-   wide, the text of a bubble is under 16 px on the screen. A low Narrow
-   viewport is not covered: at 568 x 320 (a small phone in landscape)
-   the top bar, the control row, and the lowest panel need 365 px.
+7. **The narrow and the short Player layout.** Resolved by ADR 0017,
+   decisions 18 and 22. The two layouts have no approved board. The
+   values of sections 12.1, 12.2, and 12.3 stay as starting values until
+   a device test changes them (section 12.3, "Starting values"). The size
+   table is arithmetic, not a measurement. A viewport under 365 px high
+   uses the Short layout, so 568 x 320 has a layout. A viewport that
+   cannot hold the fixed parts of its layout shows the Small screen state
+   (section 12.6). On a stage under 390 px wide, the text of a bubble is
+   under 16 px on the screen; that is accepted, because a bubble is an
+   addition (section 12.3).
 8. **Code that this file makes stale:**
    - `apps/storybook/src/styles.css` and `tokens.test.tsx` (the earlier 28
      tokens), and `apps/storybook/src/main.tsx` (Kiwi Maru and Nunito).
@@ -1133,7 +1225,17 @@ spec or the owner.
     children. A stronger sign (for example the cast on the end page, or a
     sound) needs a spec change, because the spec gives the end page no
     layers and no audio.
-11. **Friends by the shelf.** The approved board has one or two
-    characters beside the shelf, and a tap makes one say "Pick a story!".
-    Section 12.1 keeps this as a Proposal. It needs a decision on the
-    behaviour, and a source for the character file outside a release.
+11. **Friends by the shelf.** Resolved by ADR 0017, decision 19: out of
+    the MVP. The approved board has one or two characters beside the
+    shelf, and a tap makes one say "Pick a story!". Section 12.1 has no
+    such part, and the Proposal is removed.
+12. **A cover file.** Resolved by ADR 0017, decision 17. A cover uses the
+    full-size backdrop. If the shelf load check fails, the asset pipeline
+    makes a cover file of 800 x 400 px for each painted backdrop variant,
+    and the cover draws it. The look of a cover does not change (section
+    12.1).
+13. **The `clouds` cut-out on a `dusk` sky.** Resolved by ADR 0017,
+    decision 23: accepted as it is. The cloud (mean colour `#F6E1CC`) is
+    seen on the `dusk` Sky colour by its hue; the measured values are in
+    the record. A cloud is scenery, so the contrast rules of section 2 do
+    not apply to it.

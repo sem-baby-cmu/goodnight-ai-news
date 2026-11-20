@@ -6,6 +6,8 @@
 - Amends: [ADR 0015](0015-storybook-mvp-reset.md) (not superseded)
 - Amended: 2026-11-19 by [ADR 0017](0017-shelf-home-player-states.md). The
   Home rule of decision B changed, and five items left "Still open" (#70).
+  On 2026-11-19 (#78) the last two items of "Still open" were settled in
+  ADR 0017, decisions 23 and 24.
 - Spec: [`design.md`](../specs/storybook-mvp/design.md) "4. Layout engine",
   "5. Scene runtime", "8. Asset pipeline", "Data Models"
 - Issue: #59
@@ -205,13 +207,15 @@ it and this record or the spec disagree, the spec wins.
 
 ## Still open
 
-- The `clouds` cut-out is warm cream; its contrast on the `dusk` sky is not
-  checked.
-- Indoor backdrops: 36 of the 60 page settings of the sample stories (3
-  stories, 2 age scripts each) are indoor (`bedroom`, `office`,
-  `classroom`; counted 2026-11-19 from `setting.place`). Not in the MVP;
-  S2 records how often a news story cannot be told outdoors.
-  [ADR 0017](0017-shelf-home-player-states.md) keeps them out.
+Nothing.
+
+Settled by [ADR 0017](0017-shelf-home-player-states.md), "Decisions
+(2026-11-19, #78)":
+
+| Item | Result | ADR 0017 |
+| :-- | :-- | :-- |
+| The `clouds` cut-out is warm cream; its contrast on the `dusk` sky was not checked | Measured and accepted. The mean cloud colour is `#F6E1CC`. Its colour difference to the `dusk` sky is 9.7 (CIE76), with a lightness difference of 4.4. No rule and no new file | Decision 23 |
+| Indoor backdrops: 36 of the 60 page settings of the sample stories (3 stories, 2 age scripts each) are indoor (`bedroom`, `office`, `classroom`; counted 2026-11-19 from `setting.place`) | Out of the MVP. The S2 result record has the number of indoor pages of each story. A new backdrop needs a new record | Decision 24 |
 
 Settled by [ADR 0017](0017-shelf-home-player-states.md) (2026-11-19, #70):
 

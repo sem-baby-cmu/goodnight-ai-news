@@ -16,12 +16,12 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
 | [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
-| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 33 |
-| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, and the shelf list | 3 | 30 |
-| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release | 6 | 77 |
-| [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 14 |
-| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 22 |
-| Total | | | 26 | 231 |
+| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page, take a book off the shelf | 5 | 38 |
+| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, the shelf list, and the take-off | 4 | 43 |
+| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release, on every viewport | 7 | 99 |
+| [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 16 |
+| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 23 |
+| Total | | | 29 | 274 |
 
 ## Format
 
@@ -69,8 +69,8 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 85 scenarios are `spec (to implement)`, 137 have an
-automated test, 8 are `manual · not run`, and 1 is a recorded manual check.
+Current state: 126 scenarios are `spec (to implement)`, 137 have an
+automated test, 10 are `manual · not run`, and 1 is a recorded manual check.
 
 ## Coverage of the requirements
 
@@ -84,6 +84,7 @@ automated test, 8 are `manual · not run`, and 1 is a recorded manual check.
 | US-6 Each page is read aloud | PLY-02 |
 | US-7 Replace a character asset with a new version | REG-01 |
 | US-8 Pick a book from a shelf | PLY-05 |
+| US-9 Take a book off the shelf | PUB-04, EDT-05 |
 | AC-1 200 to 2,000 words give 6 to 8 pages | RUN-01.S1, RUN-01.S2, RUN-01.S9, RUN-01.S10 |
 | AC-2 Each page has text, audio, a character, an animation, a tap | RUN-01.S3, RUN-03.S13 |
 | AC-3 Every layer references the registry: the frozen version for an AI draft, the active version for an operator's edit | RUN-03.S1, RUN-03.S2, RUN-03.S3, EDT-03.S16, EDT-03.S19 |
@@ -93,16 +94,19 @@ automated test, 8 are `manual · not run`, and 1 is a recorded manual check.
 | AC-7 A retry completes the head move | SYS-01.S2 |
 | AC-8 A late result is kept as `superseded` | EDT-04.S1 |
 | AC-9 Publishing is blocked; "still fits" | PUB-02.S1 to PUB-02.S7, EDT-03.S2 |
-| AC-10 A release has a new prefix and changes no earlier release | PUB-01.S1, PUB-01.S4 |
-| AC-11 A release has copies of its asset versions, with each backdrop | PUB-01.S3, PUB-01.S10 |
+| AC-10 A release has a new prefix and changes no earlier release; a take-off changes no release | PUB-01.S1, PUB-01.S4, PUB-04.S4 |
+| AC-11 A release has copies of its asset versions, with each backdrop | PUB-01.S3, PUB-01.S10, PUB-01.S12 |
 | AC-12 Every scene names a backdrop with a variant for its sky | RUN-03.S15, RUN-03.S16, EDT-03.S23 |
 | AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S17 |
-| AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2 |
+| AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2, PLY-03.S5 |
 | AC-15 The Studio is behind Access; the Player, the shelf, and `GET /api/shelf` are public | SYS-03.S1, SYS-03.S2 |
-| AC-16 `GET /api/shelf` lists the latest release of each published story, three fields, newest story first; a story with a broken pointer is not listed | PUB-03.S1 to PUB-03.S12, PUB-01.S11 |
-| AC-17 The shelf shows books with a title and a still cover; shelf pages; quiet empty and failed states | PLY-05.S1 to PLY-05.S15, PLY-05.S19 to PLY-05.S21 |
-| AC-18 One Home control on each book screen; the Resting state; "Start" does not wait for audio | PLY-06.S1 to PLY-06.S15, PLY-04.S11, PLY-04.S14 |
+| AC-16 `GET /api/shelf` lists the latest release of each published story, three fields, newest story first; a story with a broken pointer is not listed, and a story that was taken off the shelf is not listed | PUB-03.S1 to PUB-03.S12, PUB-01.S11, PUB-04.S2 |
+| AC-17 The shelf shows books with a title and a still cover; shelf pages; quiet empty and failed states | PLY-05.S1 to PLY-05.S15, PLY-05.S19 to PLY-05.S24 |
+| AC-18 One Home control on each book screen; the Resting state; "Start" does not wait for audio | PLY-06.S1 to PLY-06.S15, PLY-04.S11, PLY-04.S14, PLY-07.S5, PLY-07.S10 |
 | AC-19 A tappable layer has a hit area of 64 x 64 CSS px or more, cut at the stage edge; a drawn layer wins over a margin | PLY-01.S8 to PLY-01.S14 |
+| AC-20 The operator takes a story off the shelf: not in the shelf list, 404 for every release up to the published one, the resting state for a link, no release changes, no undo, a new release puts it back | PUB-04.S1 to PUB-04.S12, EDT-05.S1 to EDT-05.S5, PLY-06.S16 to PLY-06.S18 |
+| AC-21 A path that matches no Player route shows the shelf | PLY-06.S19, SYS-03.S3 |
+| AC-22 Every viewport has a layout; the Small screen state where the fixed parts cannot fit | PLY-07.S1 to PLY-07.S10 |
 
 ## Coverage of the design
 
@@ -127,6 +131,9 @@ Integration sequences (`design.md`, "Testing Strategy"):
 | Shelf after a second release | PUB-03.S4 |
 | Shelf on an empty database | PUB-03.S6 |
 | Shelf with a broken pointer | PUB-03.S11, PUB-03.S12 |
+| Take-off | PUB-04.S1, PUB-04.S2, PUB-04.S3, PUB-04.S4 |
+| Take-off of a release that is not the published one | PUB-04.S6 |
+| Publish after a take-off | PUB-04.S10 |
 
 Error rows (`design.md`, "Error Handling"):
 
@@ -160,6 +167,12 @@ Error rows (`design.md`, "Error Handling"):
 | A release does not exist; or the manifest, a page JSON, or a first-page file fails before "Start" | PLY-06.S5, PLY-06.S6, PLY-06.S7, PLY-06.S12, PLY-06.S13 |
 | An image fails to load after "Start" | PLY-06.S10 |
 | The narration of a page cannot be loaded or played after "Start" | PLY-06.S11 |
+| A take-off names a release that is not the published one | PUB-04.S6, EDT-05.S4 |
+| A take-off of a story with no published release | PUB-04.S7 |
+| A file of a withdrawn release is requested | PUB-04.S3, PLY-06.S16, PLY-06.S17 |
+| A path matches no route | PLY-06.S19, SYS-03.S3 |
+| The viewport cannot hold the fixed parts of a screen | PLY-07.S5, PLY-07.S6, PLY-07.S8, PLY-07.S9, PLY-07.S10 |
+| The silent clip or a sound effect cannot be played | PLY-02.S8, PLY-02.S9 |
 | Error record fields; no full text in logs | SYS-04.S2, SYS-04.S3 |
 
 Not written as scenarios, because they are not behaviour of the system:
@@ -170,6 +183,16 @@ Not written as scenarios, because they are not behaviour of the system:
 - The bounds of each animation parameter. They are data in the primitive
   table. RUN-03.S14 covers a value outside them.
 - The exit criteria of spike S1 (the owner accepts the look; clean-up time).
+- The count of indoor pages in the S2 result record (ADR 0017, decision
+  24). A person counts them from the S2 output.
+- The rule that the starting values of the Narrow and the Short layout
+  stay until a device test changes them (ADR 0017, decision 22). The
+  device tests are PLY-03 and PLY-05.S17, PLY-05.S18.
+- The acceptance of the `clouds` cut-out on a `dusk` sky (ADR 0017,
+  decision 23). It is a recorded measurement, and no rule follows from it.
+- No characters beside the shelf (ADR 0017, decision 19). PLY-05.S19
+  covers the files that a cover requests; the shelf requests no other
+  release file.
 
 ## Open questions
 
@@ -180,8 +203,21 @@ answer in code.
 
 No question is open.
 
-The points that ADR 0017 leaves open are in its "Still open" section. No
-scenario gives an expected result for them.
+ADR 0016 and ADR 0017 leave no point open. On 2026-11-19 the owner had
+every item of their "Still open" sections settled (#78). The decisions are
+in ADR 0017, "Decisions (2026-11-19, #78)". Their scenarios:
+
+| Decision | Scenarios |
+| :-- | :-- |
+| 17 Cover file, only after a failed shelf load check | REG-02.S9, REG-02.S10, PUB-01.S12, PLY-05.S22 to PLY-05.S25 |
+| 18 Low viewports and the Small screen state | PLY-07.S1 to PLY-07.S10 |
+| 19 No friends by the shelf | None; nothing is built |
+| 20 Taking a book off the shelf | PUB-04.S1 to PUB-04.S12, EDT-05.S1 to EDT-05.S5, PLY-06.S16 to PLY-06.S18 |
+| 21 A path that matches no route | PLY-06.S19, SYS-03.S3 |
+| 22 Starting values of the Narrow and the Short layout | None; a rule for the device tests |
+| 23 `clouds` on the `dusk` sky | None; a recorded measurement |
+| 24 Indoor backdrops | None; a number in the S2 record |
+| 25 Unlock of the sound-effect element | PLY-02.S3, PLY-02.S7 to PLY-02.S9, PLY-03.S5 |
 
 On 2026-11-19 the owner closed Q1, Q4 to Q6, and Q8 to Q10 (#34), Q2 (#36),
 Q11 to Q13 (#38), and Q3, Q7, Q14, and Q15 (#32). The scenarios of the last

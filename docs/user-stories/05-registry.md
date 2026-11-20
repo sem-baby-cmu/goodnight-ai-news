@@ -53,7 +53,7 @@ assets, so that the layout engine and the browser can use them. (Derived from
 the asset pipeline design and the rule "No generated code runs in the
 browser".)
 
-Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", "Asset manifest"
+Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline" (Cover files), "Asset manifest" · ADR 0017 "Cover file (decision 17)"
 
 ### REG-02.S1 Each pose and expression becomes a transparent WebP
 - Given a Producer board and its tracked crop map
@@ -102,3 +102,15 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 - When the developer runs publish
 - Then publish refuses the backdrop version with an error and uploads nothing for it
 - Test: @storybook/assets-tools · tools/assets/test/publish.test.ts
+
+### REG-02.S9 The cover file step makes one cover file for each painted variant
+- Given a painted backdrop with a painting for each of its variants, and the code backdrop `meadow`
+- When the cover file step of the asset pipeline runs
+- Then a new version of the painted backdrop has, for each variant, a file `cover-<sky>.webp` beside the variant file: a lossy WebP of 800 x 400 px with no alpha, within the cover file budget; the manifest names it in `variants[].coverFile`; `meadow` gets no cover file, and no existing version changes
+- Test: spec (to implement)
+
+### REG-02.S10 The approval record covers the cover files
+- Given a backdrop version with cover files, whose approval record lists a SHA-256 that does not match one cover file
+- When the developer runs publish
+- Then publish refuses the backdrop version with an error and uploads nothing for it
+- Test: spec (to implement)

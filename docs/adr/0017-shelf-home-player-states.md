@@ -11,6 +11,9 @@
   Resting triggers, and they removed the cover fallback.
 - Amends: [ADR 0016](0016-backdrops-page-turn.md) (decision B, and five items
   of "Still open"). ADR 0015 is not superseded.
+- Amended: 2026-11-19 (#78). Every item of "Still open" is settled in
+  "Decisions (2026-11-19, #78)", decisions 17 to 25. Those decisions change
+  the shelf data, the Resting triggers, and the layout rule of this record.
 - Spec: [`design.md`](../specs/storybook-mvp/design.md) "Deployment",
   "5. Scene runtime", "6. API", "7. Publish", "9. Player screens",
   "Data Models"
@@ -233,9 +236,10 @@ shelf goes public, on the 4G profile of the page load test:
 | Pass | 2 s or less in each viewport. On the phone, the browser does not reload the tab while the shelf shows its covers |
 | Record | For each viewport: the time, the number of requests, and the bytes |
 
-If the check fails, the shelf does not go public, and the cover method is
-a new decision ("Still open"). This record defines no fallback, and
-nothing is built for one. The shelf response keeps its three fields.
+If the check fails, the shelf does not go public. The first text of this
+record defined no fallback. Decision 17 now defines one: a cover file for
+each painted backdrop variant. It is built only after a failed check. The
+shelf response keeps its three fields.
 
 Arithmetic from the review, not measured, for the first Wide shelf page:
 
@@ -301,7 +305,7 @@ is true:
 
 | Trigger | Detail |
 | :-- | :-- |
-| The release does not exist | `releaseId` is not a lower-case UUID version 7, or the request for `manifest.json` gives 404 |
+| The release does not exist | `releaseId` is not a lower-case UUID version 7, or the request for `manifest.json` gives 404. A release that was taken off the shelf gives 404 too (decision 20) |
 | A request fails before "Start" | A request for the manifest, a page JSON, or a first-page file ends with a network error or a status that is not 2xx |
 | A file cannot be used before "Start" | The manifest or a page JSON does not pass the release schema. Or a first-page file cannot be decoded (WebP), cannot be parsed, or does not pass the sanitiser (SVG). The status of the response can be 200 (`packages/scene-runtime/src/LayerView.tsx:101`, `:196`) |
 
@@ -328,8 +332,8 @@ is true:
   nothing on the page: the picture, the text, and the controls stay. The
   Player plays no sound for that page, shows no fault sign, and does not
   try again by itself. A turn away and back sets the `src` again.
-- The second audio element for `play_sfx` is not changed here. Its unlock
-  problem stays open for #22 (design "Review record").
+- The second audio element for `play_sfx` was not changed by the first
+  text of this record. Decision 25 settles its unlock.
 
 ### Hit area of a tappable layer (decision 10)
 
@@ -483,7 +487,7 @@ there. A count-only pill is about 77 px wide and fits the 96 px gutter.
 | A hit area moved inside the stage, never cut | The first text of this record. A box can be wider than the stage (a legal prop of 1700 units), so it cannot always be inside. A moved area is also not centred on its drawing. The cost of the cut: a small layer at the edge has a target under 64 px on that axis |
 | A margin as a part of each layer element | A margin then has the `z` of its layer and lies over the drawn box of a lower layer (`LayerView.tsx:174-178`). "A drawn box wins" would need hit testing in code |
 | The nearest centre decides between two margins | Needs hit testing in code. In the hit layer, the stacking order decides by `z` |
-| A fallback cover image, promised now for a failed load check | It had no size, no format, and no step that makes it. It needs a fourth field in a response of three fields, and it leaves earlier releases as they are. It is an open item |
+| A fallback cover image, promised now for a failed load check | It had no size, no format, and no step that makes it. It needs a fourth field in a response of three fields, and it leaves earlier releases as they are. It was an open item. Decision 17 (2026-11-19) defines a cover file with a size, a format, and a pipeline step, and with no fourth field |
 | The focus ring in stage units, divided by the scale | The stage container still cuts it at the stage edge |
 | The `enter` animations of page 1 play behind the Start gate | An exception to the phase rule, and "Start" then changes nothing that a child can see |
 | A night tint by CSS `filter`, or by one layer over the stage | See decision 11 |
@@ -515,26 +519,368 @@ there. A count-only pill is about 77 px wide and fits the 96 px gutter.
 - Requirements: the hit area criterion no longer promises 64 px for a
   small layer at the stage edge.
 
+## Decisions (2026-11-19, #78)
+
+On 2026-11-19 the owner decided that every item of "Still open", in this
+record and in ADR 0016, is settled now. The recommendations of issue #78
+were the starting points, and a Fable 5.2 design pass made the choices.
+They are accepted with this record. The numbers continue the table of
+"Decision".
+
+| # | Item | Decision | Reason |
+| :-- | :-- | :-- | :-- |
+| 17 | Cover method if the shelf load check fails | A cover file of 800 x 400 px for each painted backdrop variant, made by the asset pipeline and copied into each release with its backdrop. Still mode draws it. It is built only after a failed check | It cuts the bytes and the decoded memory of a cover by about 9 times. It needs no publish step, no new R2 path, and no fourth shelf field |
+| 18 | A low Narrow viewport | A viewport under 365 px high uses the Short layout, at every width. Where the fixed parts of a screen still cannot fit, the Player shows the Small screen state: a picture sign, one line, and, for a book, the Home control | 365 px is what the Narrow frame needs, so Narrow cannot fit below it. The Short layout has its controls at the sides. Now every viewport has a defined result |
+| 19 | The friends by the shelf | Out of the MVP. The Proposal is removed from `DESIGN.md` | No requirement needs it. Its only answer to a tap is a text. It needs a second source for a character file |
+| 20 | Taking a book off the shelf | A Studio action sets `story.withdrawn_through` to the number of the published release. The shelf does not list the story. The content route answers 404 for every release up to that number, so a link shows Resting. No release changes. There is no undo; a new release puts the story back | A book that the operator removed must not reach a child by any path. One number that only goes up needs no change to a release |
+| 21 | A path that matches no route | The Player shows the shelf at `/`. `/read/<text>` stays a book route and shows Resting | A path that names no screen has one safe place to go. A link to a book that is not there is a sleeping book |
+| 22 | Narrow and Short shelf layouts without a board | The starting values stay. The device tests confirm or change them | No evidence for other values exists before a device test |
+| 23 | `clouds` on the `dusk` sky | Accepted as it is. No rule and no new file | The cloud is scenery, not a sign. Its colour difference to the `dusk` sky is small but can be seen, and its lightness difference is higher there than on `day` and `cloudy` |
+| 24 | Indoor backdrops | Out of the MVP. S2 records the share of indoor pages | ADR 0016; a number comes before a new backdrop |
+| 25 | The unlock of the `play_sfx` audio element | The handler of the "Start" tap also plays a short silent clip of the app on the sound-effect element | A `play()` in a user gesture unlocks an element. The element has no `src` before the first effect |
+
+### Cover file (decision 17)
+
+Decision 7 stays: a cover is the page 1 scene of the release as a still
+picture, and the shelf load check runs first with the full-size files.
+Nothing of this section is built before a failed check, so owner
+decision 3 ("no new asset") holds while the check passes.
+
+After a failed check, the asset pipeline makes a cover file for each
+variant of a painted backdrop:
+
+| Part | Value |
+| :-- | :-- |
+| Name and place | `cover-<sky>.webp`, beside the variant file: `assets/<key>/v<n>/cover-<sky>.webp` |
+| Size | 800 x 400 px: the frame of 2400 x 1200 px at one third |
+| Format | WebP, lossy, no alpha |
+| File budget | 40 KB for each file. A starting value; the compression test that sets the 250 KB budget sets it too |
+| Source | The source painting of the variant, scaled in the same build |
+| Manifest | The variant entry names it in a new optional field: `variants[].coverFile` |
+| Code backdrop | `meadow` gets no cover file. Its SVG variant is small, and an SVG has no fixed pixel size |
+| Version | A new version of each painted backdrop. An existing version never gets a new file (design "8. Asset pipeline", R65) |
+| Approval | The approval record of the new version holds the digest of every file that the manifest names, so also of each cover file. The review sheet is made from the full-size variant. A cover file is a scaled copy and gets no sheet of its own |
+
+- **Why 800 x 400 px.** The picture window of a 180 px book is 148 CSS px
+  high, and a smaller book has a lower window. That is 296 px at a pixel
+  ratio of 2 and 444 px at a ratio of 3. So 400 px is enough at ratio 2 and
+  10 % under the window at ratio 3.
+- **In a release.** Publish copies a backdrop version with every file that
+  its manifest names (design "7. Publish", step 4). The manifest names the
+  cover file, so the file is in
+  `releases/<releaseId>/assets/<key>/v<n>/`. Publish gets no new step, no
+  new R2 path, and no new column. The list of the files of a manifest
+  (`manifestFiles`, `apps/storybook/worker/publish/publish.ts:26`) reads
+  the new field. The shelf response keeps its three fields.
+- **How the Player finds it.** A release page holds a copy of the asset
+  manifest of each asset that it uses (`ReleasePage.assets`, design
+  "Release layout (R2)"). So the page 1 JSON, which a cover loads already,
+  names the cover file. A cover needs no other request, and the release
+  schema changes only through the optional field of `AssetManifest`.
+- **In the runtime.** In still mode, `SceneView` loads the `coverFile` of
+  the backdrop variant when the manifest names one. When it names none, it
+  loads the `file` of the variant, as before. Play mode and edit mode
+  always load `file`. So a cover no longer loads the full-size backdrop,
+  and the first open of the book loads it. That cost is accepted.
+- **Not one file for all books.** The MVP has 3 backdrops, so books share
+  paintings. Each release still gets its own copy. A file of the app that
+  every book shares would change the cover of a published book when a
+  backdrop is painted again, and a release never changes.
+- **Earlier releases.** No release is written again. A book gets cover
+  files with its next release, when its scenes record the new backdrop
+  version. A scene that is saved or made after the new version is active
+  records it (owner decision Q3). Until then the cover of that book uses
+  the full-size file. So the operator publishes the books of the shelf
+  again before the second check.
+- **The second check.** The check runs again, with the same parts
+  (PLY-05.S16 to PLY-05.S18) and a fixture whose releases have cover
+  files. If it fails again, the shelf does not go public. The owner gets
+  the record of both runs. A cover image that publish makes, or fewer
+  covers on a shelf page, then needs a new record. Nothing is defined or
+  built for them.
+
+Arithmetic, not measured, for the first Wide shelf page with 6 painted
+backdrops:
+
+| Cost | Full-size files | Cover files |
+| :-- | :-- | :-- |
+| Backdrop bytes | Up to 1.5 MB (6 x 250 KB) | Up to 240 KB (6 x 40 KB) |
+| Decoded backdrops | 11 MiB for one, about 66 MiB for 6 | 800 x 400 px x 4 bytes is 1.2 MiB for one, about 7.3 MiB for 6 |
+| Request rounds | 4 | 4. The cover file changes no round |
+
+The cut-outs of a cover are the files of the page. This decision does not
+change them.
+
+### Low viewports and the Small screen state (decision 18)
+
+The layout rule of `DESIGN.md` section 12.3 gets one more clause:
+
+| Layout | When |
+| :-- | :-- |
+| Wide | `w` >= 900 and `h` >= 600 |
+| Short | `w` >= 640 and `h` < 600; or `h` < 365 |
+| Narrow | Every other viewport |
+
+- The Narrow frame needs 365 px with no picture: the top bar (80 px), the
+  control row (88 px), and the lowest narration panel (197 px). Below
+  that height Narrow cannot fit at any width. The Short layout has no top
+  bar and no control row.
+- At 568 x 320 the Short layout has 392 px between its rails. A 40-word
+  page needs 6 lines of 18 px text, so the panel is 187 px, and the
+  picture area is 392 x 133 px (arithmetic by the estimate method of
+  `DESIGN.md` section 12.3; not measured in a browser).
+- Under 640 px wide, the Start gate, Resting, and the end page of the
+  Short layout are a stack, as in Narrow. The row of the Short layout
+  needs 404 px, and 568 px leaves 368 px. The lowest panel of that stack
+  is 186 px.
+- A shelf page of the Narrow or the Short layout has one book less, down
+  to 1, while its books do not fit at 128 px wide. At 568 x 320 it has 2
+  books.
+
+Some viewports still cannot hold the fixed parts of a screen: for example
+320 x 400 (the Narrow frame needs 414 px at that width) and 400 x 300
+(the Short panel needs 313 px). No current phone in the support list of
+the requirements has such a viewport in a browser; a small window on a
+desktop can. For these the Player has one state:
+
+- **When.** The viewport cannot hold the fixed parts of the screen of the
+  route, uncut. For a book screen they are the frame parts and the
+  narration panel. For the shelf they are the name, one board with one
+  book of 128 x 159 px, and the arrows. The test uses the sizes of the
+  layout. It runs when the screen is shown and after each resize.
+- **What it shows.** Paper, a sign that the Player draws (a book in a
+  frame, with four arrows that point outward), and the line "This screen
+  is too small for the book."
+- **Home.** On a book route the state has one control, the Home round
+  button, so decision 8 holds: every screen of a book has exactly one
+  Home control. Home stops the narration and shows the shelf. On the
+  shelf route the state has no control.
+- **The sign is true in every case.** It says "more room". A sign that
+  says "turn the screen" is false where a turn does not help.
+- **Not an overlay.** The state is shown in the place of the screen. The
+  parts of the screen are not drawn, so they take no tap and no focus.
+- **The Player keeps the state of the screen**: the route, the page, the
+  shelf page, and the loaded files. A request that runs goes on. The
+  state stops no sound and starts none, so a narration that plays goes
+  on to its end, or until Home.
+- **No part is cut.** If the viewport cannot hold the parts of the state
+  itself, the line is left out first, and then the sign. Home is shown
+  while the viewport has 64 x 64 CSS px.
+- **How it ends.** When the viewport can hold the fixed parts again, the
+  screen shows as it was. There is no time limit and no request.
+- A fitting layout with a small picture is not a Small screen. At
+  320 x 480 the Narrow layout fits with a picture area of 66 px, and it
+  stays: the story is still heard and read.
+
+### No friends by the shelf (decision 19)
+
+The board has one or two characters beside the shelf, and a tap makes one
+say "Pick a story!". It stays out of the MVP:
+
+- No requirement and no acceptance criterion needs it.
+- The answer to the tap is a text in a bubble. For a child who cannot
+  read, it says nothing. A spoken line needs an audio file outside a
+  release.
+- A character file is served only inside a release. A copy in the app
+  bundle is a second source for a registry asset, and it does not follow
+  a new asset version.
+- A figure that moves beside the books takes the first tap from the books.
+
+`DESIGN.md` loses the "Friends" Proposal and its two motion rows. The shelf
+still draws no registry file outside the covers.
+
+### Taking a book off the shelf (decision 20)
+
+**Data.** A new column `story.withdrawn_through` (integer, not null,
+default 0). A release of the story is **withdrawn** when its `number` is
+`withdrawn_through` or less. The value only goes up.
+
+- A take-off changes no `release` row, no file of a release prefix, and no
+  head. Releases never change (ADR 0015).
+- `story.status` stays `published`, and the pointer stays. `status` says
+  that the story has a release. It does not say that the story is on the
+  shelf.
+- No deployed database exists, so the migration needs no value for a
+  stored row.
+
+**Route.** `POST /api/studio/stories/:id/withdrawal`, behind Access, with
+the body `{ releaseId }`. `releaseId` is the published release that the
+operator saw.
+
+| Case | Answer |
+| :-- | :-- |
+| `releaseId` is the release that `published_release_id` names | 200 `{ storyId, releaseId, withdrawnThrough }`. `withdrawn_through` is the `number` of that release |
+| The same request again | 200 with the same body. Nothing changes |
+| `published_release_id` names another release | 409 `{ error: "release_moved", current }` with the ID of the published release. Nothing changes |
+| The story has no published release, or its pointer names no `release` row of the story | 409 `{ error: "not_published" }` |
+| No story with that ID | 404 `{ error: "not_found" }` |
+| A body that is not `{ releaseId }` with a UUID | 400 `{ error: "bad_request", issues }`, as every Studio route with a body (`apps/storybook/worker/api/app.ts:67`) |
+
+- The write is one statement, a compare-and-set on the pointer:
+  `UPDATE story SET withdrawn_through = :n WHERE id = :id AND
+  published_release_id = :releaseId AND withdrawn_through < :n`. `:n` is
+  read from the `release` row, which never changes. `heads` and
+  `heads_version` are not part of it.
+- A publish that runs at the same time is safe in both orders. If the
+  publish is first, the pointer moved, and the take-off gets 409. If the
+  take-off is first, the new release has a higher number and is on the
+  shelf.
+- The route writes one log line with the story ID, the release ID, and the
+  number. The line has no title.
+
+**Shelf.** `GET /api/shelf` lists a story only when the release that its
+pointer names is not withdrawn. A withdrawn story is not a broken pointer,
+and the route writes no log line for it.
+
+**Content route.** `GET /content/releases/:releaseId/*` serves a file only
+when the `release` row exists and is not withdrawn. For a withdrawn
+release it answers 404 `{ error: "not_found" }`, the same answer as for a
+release that does not exist. That holds for every release of the story up
+to the number: an earlier release has the same story, and the operator has
+no list of the links that adults keep.
+
+**Player.**
+
+- `/read/<id>` of a withdrawn release shows Resting. The trigger is the
+  existing one: the request for `manifest.json` gives 404.
+- The content route serves its files as immutable for one year, so a
+  browser can hold a whole book. The Player therefore requests
+  `manifest.json` with the fetch cache mode `no-cache`, for a cover and
+  for a book. That request reaches the content route each time. The cache
+  header of the content route does not change (PUB-01.S8). The content
+  route makes the withdrawn check before it reads the object and before
+  any conditional answer (304), and its 404 has `Cache-Control: no-store`.
+  Today the route gives no 304 (`apps/storybook/worker/publish/serve.ts`). The fetch
+  standard defines the mode; it is not yet tested in Safari (PLY-06.S17).
+- A book that is open after "Start" stays open. A file that then gives
+  404 follows the "Late images" rule and the "Narration that fails" rule.
+  This limit is accepted: every page text was loaded before "Start".
+- A shelf that is open still shows the book until its next load. A tap on
+  it shows Resting.
+
+**Studio.** The "Releases" card has a "Take off the shelf" button on the
+row of the release that is on the shelf. A dialog asks first and names
+the result. A withdrawn release has an "Off the shelf" chip and no "Open"
+button. `GET /api/studio/stories` gives `onShelf` for each story, and
+`GET /api/studio/stories/:id` gives `onShelf` and `withdrawn` for each
+release. The look is in `DESIGN.md` section 13.
+
+**The way back.** There is no undo. The operator publishes again. Publish
+is as before: the new release has the next number, which is above
+`withdrawn_through`, so the story is on the shelf again, in its old place
+(decision 3). The withdrawn releases stay withdrawn. Publish needs a
+draft that can be published: no page is missing, `needs_review`, or
+stale.
+
+The files of a withdrawn release stay in R2. The MVP has no route that
+reads them and none that deletes them.
+
+### A path that matches no route (decision 21)
+
+| Path | Result |
+| :-- | :-- |
+| Matches no route: `/abc`, `/read`, `/read/<id>/more` | The Player puts `/` in the place of the address (no new history entry) and shows the shelf |
+| `/read/<text>`, where the text is not a lower-case UUID version 7 | It matches the book route. The Player shows Resting, and the address stays (decision 9) |
+| A path under `/studio/` that matches no Studio route | Behind Access as before. The Studio puts `/studio` in the place of the address and shows its stories list. It never shows a Player screen |
+| A path under `/api/` or `/content/` that matches no route | The Worker answers 404 `{ error: "not_found" }`, as today |
+
+`/abc` is a public static path with the SPA fallback, so the rule needs no
+Worker change.
+
+### Shelf layouts without a board (decision 22)
+
+The values of the Narrow and the Short shelf in `DESIGN.md` section 12.1
+stay as starting values. The device tests (PLY-05.S17, PLY-05.S18, and
+PLY-03) confirm or change them. A change after a test is an edit of
+`DESIGN.md` with the measured result in the pull request. It needs no new
+record while the rules of design "9. Player screens" hold.
+
+### `clouds` on the `dusk` sky (decision 23)
+
+Measured on 2026-11-19. The figure `clouds` on the source board
+`prop-board-01-nature-objects.png` (crop box 448 x 272 px in
+`tools/assets/crops/prop-board-01-nature-objects.json`): the mean sRGB
+colour of the 53,657 pixels of the figure. A pixel is background when it
+is within the board tolerance (10) of the board background `[246, 242,
+232]` and is joined to the edge of the box through such pixels; every
+other pixel of the box is the figure. A script decoded the PNG and
+counted. The result is `#F6E1CC`. It is compared with
+the flat "Sky" value of each palette (`DESIGN.md` section 2) in CIELAB
+(D65). The built WebP and a painted sky were not measured; a painted sky
+can have a soft gradient.
+
+| Sky | Colour | Colour difference (CIE76) | Lightness difference (L*) | Luminance ratio |
+| :-- | :-- | --: | --: | --: |
+| `day` | `#CFE6EE` | 21.7 | 0.8 | 1.02 |
+| `cloudy` | `#DCE3E6` | 16.2 | 0.9 | 1.02 |
+| `dusk` | `#F2D3B0` | 9.7 | 4.4 | 1.13 |
+| `night` | `#2F4066` | 73.5 | 63.3 | 8.1 |
+
+- On `dusk` the cloud has the smallest colour difference. It is still
+  about 4 times the difference that an eye can just see (about 2.3).
+- On every light sky the cloud is seen by its hue, not by its lightness.
+  `dusk` has the highest lightness difference of the three.
+- The cloud is scenery. The contrast rules of `DESIGN.md` are for text,
+  controls, and signs. A soft cloud on a warm sky is the look of the
+  Producer boards.
+- So the asset stays, no validation rule is added, and no palette changes.
+  The focus ring of a tappable cloud does not depend on its colour.
+
+### Indoor backdrops (decision 24)
+
+They stay out of the MVP (decision 14, ADR 0016). The S2 result record
+has, for each of its stories, the number of pages and the number of
+indoor pages. A page is indoor when its narration places the action
+inside a room; the person who reads the S2 output counts them. A new
+backdrop needs a new record with that number (ADR 0016, decision A).
+
+### Unlock of the sound-effect element (decision 25)
+
+- The Player has two audio elements for a book: one for the narration and
+  one for sound effects.
+- The handler of the "Start" tap sets the narration `src` of page 1 and
+  calls `play()`. Then, in the same handler, it sets a silent clip as the
+  `src` of the sound-effect element and calls `play()` on it.
+- The silent clip is part of the app: 0.1 s or less, with no sound. It is
+  not a release file, and no request is sent for it (implementation
+  decision: a `data:` URL in the bundle).
+- If that `play()` is rejected, the Player handles the error and shows
+  nothing. A later sound effect that cannot play is quiet in the same
+  way.
+- The device test (PLY-03.S5) checks on an iPad and an iPhone that a
+  sound effect plays after "Start" while the narration plays. It is not
+  measured yet.
+
+### What these decisions change
+
+- `apps/storybook/worker`: the column `story.withdrawn_through` with a
+  migration; the route `POST /api/studio/stories/:id/withdrawal`; the
+  withdrawn check in `GET /api/shelf` and in the content route; `onShelf`
+  and `withdrawn` in the two Studio story routes.
+- `apps/storybook/src/player`: the route fallback to `/`; the Small
+  screen state; the `no-cache` request for the manifest; the silent clip
+  at "Start"; the Short layout under 640 px wide.
+- `apps/storybook/src/studio`: the take-off button, its dialog, and the
+  "Off the shelf" chip; the fallback to `/studio`.
+- Only after a failed shelf load check: `tools/assets` (the cover files),
+  `packages/dsl` (`coverFile` in the backdrop manifest),
+  `packages/scene-runtime` (still mode draws it), and `manifestFiles` in
+  publish.
+- Requirements: one user story and three acceptance criteria, at the end
+  of their lists.
+
 ## Still open
 
-- The cover method, if the shelf load check fails. Not decided, and not
-  built: a cover image that publish makes (a new asset, a publish step,
-  a fourth field, and a rule for earlier releases), smaller files for a
-  cover, or fewer covers on a shelf page.
-- A low Narrow viewport, for example 568 x 320 (a small phone in
-  landscape, under the 640 px of Short). The top bar, the control row,
-  and the lowest narration panel need 365 px. No rule covers it.
-- The friends by the shelf. The board has one or two characters beside the
-  shelf, and a tap makes one say "Pick a story!". This record does not
-  decide it. It needs a decision on the behaviour, and a source for a
-  character file outside a release. `DESIGN.md` section 12.1 keeps it as a
-  proposal.
-- Taking a book off the shelf. The spec has no way to unpublish a story:
-  `story.status` never goes back to `draft`. Today the operator can only
-  publish a corrected release.
-- A path that matches no route (for example `/abc`). The spec does not say
-  what the app shows.
-- The Narrow and the Short layout of the shelf have no approved board. The
-  values in `DESIGN.md` section 12.1 are starting values.
-- The `clouds` cut-out on the `dusk` sky, and indoor backdrops: still open
-  in ADR 0016.
+Nothing. The items that this section held are settled in "Decisions
+(2026-11-19, #78)":
+
+| Item | Decision |
+| :-- | :-- |
+| The cover method, if the shelf load check fails | 17 |
+| A low Narrow viewport | 18 |
+| The friends by the shelf | 19 |
+| Taking a book off the shelf | 20 |
+| A path that matches no route | 21 |
+| The Narrow and the Short layout of the shelf | 22 |
+| The `clouds` cut-out on the `dusk` sky | 23 |
+| Indoor backdrops | 24 |
