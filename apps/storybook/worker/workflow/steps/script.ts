@@ -11,7 +11,7 @@ import { ModelOutputError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, commitHead, getDb, insertRevisions, newId, revision, story } from "../../db";
 import { type StoredCall, answerOf, buildSchema, isUnparsed, storedCall, unparsedResult } from "../model-call";
-import { UNPARSED_PREVIOUS, repairSuffix, scriptPrompt } from "../prompts";
+import { UNPARSED_PREVIOUS, modelRegistry, repairSuffix, scriptPrompt } from "../prompts";
 import { type FaultContext, seams } from "../seams";
 import { frozenRegistry } from "./freeze";
 
@@ -90,13 +90,13 @@ export async function scriptStep(env: Env, runId: string, storyId: string): Prom
 
   const call = (suffix: string) => async (basis: Heads) => {
     const [source] = await db.select({ content: revision.content }).from(revision).where(eq(revision.id, basis.source!));
-    const prompt = scriptPrompt({ sourceText: (source!.content as { text: string }).text, registry });
+    const prompt = scriptPrompt({ sourceText: (source!.content as { text: string }).text, registry: modelRegistry(registry) });
     try {
       const r = await client.generateJson({
         model: "script",
         system: prompt.system,
         user: prompt.user + suffix,
-        schema: buildSchema(() => buildOutlineJsonSchema(registry)),
+        schema: buildSchema(() => buildOutlineJsonSchema(modelRegistry(registry))),
       });
       // Code sets every page ID; the stored result holds them, so a retry
       // sees the same IDs.
