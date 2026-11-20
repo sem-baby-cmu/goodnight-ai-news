@@ -1348,6 +1348,164 @@ describe("SceneView frame, fit, still mode, phases and load report (#68)", () =>
     expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed: [] });
   });
 
+  // ID12b (review of PR #93): a view that stays mounted keeps a result only
+  // by the file it has on screen or last failed on.
+  const owlPage = (expression: string, interactions: Interaction[] = []) =>
+    page([layer(1, "owl", { pose: "stand", expression }), layer(2, "tree")], [], interactions);
+
+  it("ID12b a start file a -> b (still loading) -> a carries the file on screen", async () => {
+    const onAssetsSettled = vi.fn();
+    const view = show({ page: owlPage("happy"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    hold(view.svgText, "owl", "owl-sad.svg");
+    view.again({ page: owlPage("sad"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    // Back to the file on screen: no load is needed.
+    view.again({ page: owlPage("happy"), onAssetsSettled });
+    await settle();
+    expect(layerEl(1).querySelector(".owl-happy")).not.toBeNull();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed: [] });
+  });
+
+  it("ID12b a tap swap, then a new page that starts on the swapped file, carries it", async () => {
+    const onAssetsSettled = vi.fn();
+    const taps = [tap(1, { action: "set_expression", target: id(1), expression: "sad" })];
+    const view = show({ page: owlPage("happy", taps), onAssetsSettled });
+    await settle();
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(layerEl(1).querySelector(".owl-sad")).not.toBeNull();
+    view.again({ page: owlPage("sad", taps), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed: [] });
+  });
+
+  it("ID12b a tap swap, then a new page that starts on the old start file, waits for that file", async () => {
+    const onAssetsSettled = vi.fn();
+    const taps = [tap(1, { action: "set_expression", target: id(1), expression: "sad" })];
+    const view = show({ page: owlPage("happy", taps), onAssetsSettled });
+    await settle();
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(layerEl(1).querySelector(".owl-sad")).not.toBeNull();
+    // On screen: owl-sad. The new page starts on owl-happy, which must load again.
+    const release = hold(view.svgText, "owl", "owl-happy.svg");
+    view.again({ page: owlPage("happy", taps), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    await release();
+    await settle();
+    expect(layerEl(1).querySelector(".owl-happy")).not.toBeNull();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+  });
+
+  it("ID12b a new start file that fails is a reported failure", async () => {
+    const onAssetsSettled = vi.fn();
+    // owlx: owl-happy.svg loads; owl-sad.svg does not.
+    const make = (expression: string) => page([layer(1, "owlx", { pose: "stand", expression }), layer(2, "tree")]);
+    const view = show({ page: make("happy"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    view.again({ page: make("sad"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({
+      failed: [{ key: id(1), ref: "owlx", url: "https://cdn.test/owlx/owl-sad.svg", reason: "could not be loaded" }],
+    });
+  });
+
+  it("ID12b a webp layer back on the file it failed on carries that failure", async () => {
+    const onAssetsSettled = vi.fn();
+    const make = (expression: string) => page([layer(1, "bun", { pose: "stand", expression })]);
+    const happyFailure = {
+      key: id(1),
+      ref: "bun",
+      url: "https://cdn.test/bun/bun-happy.webp",
+      reason: "could not be loaded",
+    };
+    const view = show({ page: make("happy"), onAssetsSettled });
+    fireEvent.error(assetOf(1).querySelector("img") as HTMLImageElement);
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0]).toEqual({ failed: [happyFailure] });
+    // bun-sad.webp loads (settle fires `load` on the new img).
+    view.again({ page: make("sad"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed: [] });
+    // Back to bun-happy.webp, the file it last failed on: no event comes.
+    view.again({ page: make("happy"), onAssetsSettled });
+    for (let i = 0; i < 3; i++) await act(async () => {});
+    expect(onAssetsSettled).toHaveBeenCalledTimes(3);
+    expect(onAssetsSettled.mock.calls[2]?.[0]).toEqual({ failed: [happyFailure] });
+  });
+
+  it("ID12b a backdrop A -> B (pending) -> A waits for A to load again", async () => {
+    const onAssetsSettled = vi.fn();
+    const make = (sky: "night" | "day") => page([layer(1, "tree")], [], [], sky);
+    const view = show({ page: make("night"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    hold(view.svgText, "meadow", "day.svg");
+    view.again({ page: make("day"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    // The view of A mounts again (key change) and loads night.svg again.
+    const release = hold(view.svgText, "meadow", "night.svg");
+    view.again({ page: make("night"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    await release();
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+  });
+
+  it("ID12b a backdrop A -> unresolvable -> A waits for A to load again", async () => {
+    const onAssetsSettled = vi.fn();
+    const view = show({ page: page([layer(1, "tree")]), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    // pond has no dusk variant: reported at once, no view.
+    view.again({ page: page([layer(1, "tree")], [], [], "dusk", "pond"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    const release = hold(view.svgText, "meadow", "night.svg");
+    view.again({ page: page([layer(1, "tree")]), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    await release();
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(3);
+  });
+
+  it("P2 a swap that loads in phase outgoing starts no enter animation", async () => {
+    const wave: Animation = { target: id(1), primitive: "wave", params: { count: 2 }, trigger: "enter" };
+    const p = page(
+      [layer(1, "pip", { pose: "stand", expression: "happy" })],
+      [wave],
+      [tap(1, { action: "set_pose", target: id(1), pose: "sit" })],
+    );
+    const view = show({ page: p, phase: "current" });
+    await settle();
+    // The enter wave ran on the stand svg.
+    expect(callsOn(partOf(1, "part-arm-right"))).toHaveLength(1);
+    // The preload already ran; the swap request of sit.svg is held.
+    const release = hold(view.svgText, "pip", "sit.svg");
+    fireEvent.click(assetOf(1));
+    await settle();
+    view.again({ page: p, phase: "outgoing" });
+    await settle();
+    const before = animateCalls.length;
+    await release();
+    await settle();
+    expect(layerEl(1).querySelector(".pose-sit")).not.toBeNull();
+    expect(animateCalls).toHaveLength(before);
+  });
+
   it("a failed swap is not in the report", async () => {
     const onAssetsSettled = vi.fn();
     show({
