@@ -11,10 +11,11 @@
   "preview_urls": false,
   "routes": [{ "pattern": "lullabyte.ioenv.com", "custom_domain": true }],
   "observability": { "enabled": true },
-  // The first deploy is a stub deploy: the stub model client needs no secrets.
-  // Secrets (OPENAI_API_KEY, TTS_API_KEY, AI_GATEWAY_TOKEN) never go in vars.
+  // "real" calls the models through AI Gateway and needs the three secrets
+  // (OPENAI_API_KEY, TTS_API_KEY, AI_GATEWAY_TOKEN). They never go in vars.
+  // "stub" uses the stub model client and needs no secrets.
   "vars": {
-    "MODEL_MODE": "stub",
+    "MODEL_MODE": "real",
     "OPENAI_BASE_URL": "https://gateway.ai.cloudflare.com/v1/5ad69dedffa38d8b7ab8ab17e051e410/storybook-mvp/compat",
     "MODEL_SCRIPT": "google-ai-studio/gemini-4-neon",
     "MODEL_SCENE": "openai/gpt-6.1-sol",
