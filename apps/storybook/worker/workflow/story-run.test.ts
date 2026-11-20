@@ -272,11 +272,14 @@ async function seedHiddenKeys() {
     { key: "door", kind: "scenery" as const, manifest: doorManifest },
     { key: "window", kind: "character" as const, manifest: windowManifest },
   ]) {
-    const assetId = newId();
-    await d.insert(asset).values({ id: assetId, key: h.key, kind: h.kind, name: h.key, createdAt });
+    // Safe to call twice: this file does not clear the D1 database between tests, so the keys of an
+    // earlier test are still there (same pattern as `seedRegistry`).
+    await d.insert(asset).values({ id: newId(), key: h.key, kind: h.kind, name: h.key, createdAt }).onConflictDoNothing();
+    const row = await d.query.asset.findFirst({ where: (a, { eq: same }) => same(a.key, h.key) });
     await d
       .insert(assetVersion)
-      .values({ id: newId(), assetId, version: 1, renderer: "webp", manifest: h.manifest, r2Prefix: `assets/${h.key}/v1/`, active: true, createdAt });
+      .values({ id: newId(), assetId: row!.id, version: 1, renderer: "webp", manifest: h.manifest, r2Prefix: `assets/${h.key}/v1/`, active: true, createdAt })
+      .onConflictDoNothing();
   }
 }
 
@@ -753,6 +756,39 @@ describe("StoryRunWorkflow", () => {
       if (i === 0) expect(prompt).toContain("- none");
       for (let k = 1; k <= i; k++) expect(prompt).toContain(`- page ${k}: solo-center, day, []`);
     });
+  });
+
+  it("the scene step lists only the ok earlier scenes and only the scenery keys that the model sees (#105)", async () => {
+    await seedRegistry(env);
+    await seedHiddenKeys();
+    const registry = await loadActiveRegistry(db());
+    expect(registry.assets.door?.kind).toBe("scenery");
+    expect(registry.assets["test-tree"]?.kind).toBe("scenery");
+    const stub = useStub(registry);
+    const ids = await newStory(db());
+    await runWorkflow(ids.runId, ids.storyId);
+    const st = await readStory(ids.storyId);
+    const [p1, p2, p3] = st.pageIds as [string, string, string];
+    // Page 1: an `ok` scene with a hidden (`door`) and a visible (`test-tree`) scenery layer.
+    const scene1 = st.head(`scene:${p1}`)!;
+    expect(scene1.status).toBe("ok");
+    const content1 = scene1.content as PageScene;
+    const scenery = (ref: string, instanceId: string) => ({ ...content1.layers[0]!, kind: "scenery", ref, instanceId }) as PageScene["layers"][number];
+    const withScenery = { ...content1, layers: [...content1.layers, scenery("door", "door-1"), scenery("test-tree", "tree-1")] };
+    await db().update(revision).set({ content: withScenery }).where(eq(revision.id, scene1.id));
+    // Page 2: a `needs_review` scene that keeps its content, so only the status filter gives "no scene".
+    const scene2 = st.head(`scene:${p2}`)!;
+    expect(scene2.content).not.toBeNull();
+    await db().update(revision).set({ status: "needs_review" }).where(eq(revision.id, scene2.id));
+
+    const prompts = captureScenePrompts(stub);
+    await pageRun(ids.storyId, { kind: "page", pageId: p3, target: "scene" });
+    expect(prompts).toHaveLength(1);
+    const lines = prompts[0]!.split("\n");
+    expect(lines).toContain(`- page 1: ${content1.templateId}, ${content1.sky}, ["test-tree"]`);
+    expect(lines.find((l) => l.startsWith("- page 1: "))).not.toContain("door");
+    expect(lines).toContain("- page 2: no scene");
+    expect(lines).toContain("This page: 3 of 6");
   });
 
   it("RUN-01.S8 finish sets the final status from the heads and does not wait", async () => {
