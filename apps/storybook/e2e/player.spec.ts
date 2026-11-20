@@ -777,10 +777,10 @@ test("PLY-07.S3 the Start gate of a Short viewport under 640 px wide is a stack"
 });
 
 test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async ({ page }) => {
-  const requests: { url: string; method: string; postData: string | null }[] = [];
+  const requests: { url: string; method: string; postData: string | null; type: string }[] = [];
   const cookies: string[] = [];
   page.on("request", (r) => {
-    if (!r.url().startsWith("data:")) requests.push({ url: r.url(), method: r.method(), postData: r.postData() });
+    if (!r.url().startsWith("data:")) requests.push({ url: r.url(), method: r.method(), postData: r.postData(), type: r.resourceType() });
   });
   page.on("response", async (r) => {
     const cookie = await r.headerValue("set-cookie");
@@ -803,7 +803,9 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
     expect(r.postData, r.url).toBeNull();
     expect(url.origin, r.url).toBe("http://localhost:4317");
     expect(url.pathname.startsWith("/api/"), r.url).toBe(false);
-    expect(url.search, r.url).toBe("");
+    // The dev server adds a cache version (`?v=`, `?t=`) to its own module and style
+    // URLs; a production build has none. Every other request must have no query.
+    if (r.type !== "script" && r.type !== "stylesheet") expect(url.search, r.url).toBe("");
     if (url.pathname.startsWith("/content/")) expect(url.pathname.startsWith(ROOT), r.url).toBe(true);
   }
   expect(cookies).toEqual([]);
