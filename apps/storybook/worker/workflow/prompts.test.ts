@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { buildSceneJsonSchema } from "@storybook/dsl";
+import type { RegistrySnapshot } from "@storybook/dsl";
 import { TEMPLATES } from "@storybook/layout";
 import { describe, expect, it } from "vitest";
 import { getDb, loadActiveRegistry } from "../db";
@@ -66,6 +67,52 @@ describe("prompts", () => {
     expect(system).toContain("2 to 6 words");
     expect(system).toContain("at most 40 characters");
     expect(system).toContain("does not repeat the page text");
+  });
+
+  it("scenePrompt lists the assets each primitive works on", () => {
+    const layer = (kind: "character" | "scenery") => ({
+      kind,
+      poses: [{ id: "stand", file: "stand.webp", foot: { x: 0, y: 0 }, box: { x: 0, y: 0, w: 1, h: 1 } }],
+      expressions: [],
+      legal: [],
+      flippable: false,
+    });
+    const registry: RegistrySnapshot = {
+      assets: {
+        bear: { kind: "character", renderer: "webp", version: 1, manifest: layer("character") },
+        pip: { kind: "character", renderer: "svg-rig", version: 1, manifest: layer("character") },
+        tree: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
+        chime: { kind: "sfx", renderer: "audio", version: 1, manifest: { kind: "sfx", file: "chime.mp3", durationMs: 300 } },
+      },
+    };
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry, templates: TEMPLATES });
+    expect(user).toContain(
+      [
+        "Animations (primitive: the assets it works on):",
+        "- float: all",
+        "- sway: all",
+        "- bounce: all",
+        "- pop: all",
+        "- fade-in: all",
+        '- blink: ["pip"]',
+        '- wave: ["pip"]',
+      ].join("\n"),
+    );
+  });
+
+  it("scenePrompt gives an empty list for a primitive that no asset can play", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    expect(user).toContain("- blink: []\n- wave: []");
+  });
+
+  it("scenePrompt states the primitive rule", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    expect(system).toContain('only on a layer whose asset its line under "Animations" names');
+    expect(system.split("\n").at(-1)).toBe("Answer with JSON only.");
   });
 
   it("scenePrompt lists a missing cast key as unknown", async () => {
