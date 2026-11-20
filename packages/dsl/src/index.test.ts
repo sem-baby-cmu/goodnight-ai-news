@@ -24,6 +24,8 @@ it("index re-exports the public API", () => {
     "validateScene",
     "buildOutlineJsonSchema",
     "buildSceneJsonSchema",
+    "SCRIPT_TEXT_LIMITS",
+    "scriptTextIssues",
   ]) {
     expect(dsl, name).toHaveProperty(name);
   }

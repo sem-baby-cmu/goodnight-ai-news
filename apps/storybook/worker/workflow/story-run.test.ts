@@ -1082,6 +1082,25 @@ describe("StoryRunWorkflow", () => {
     expect((await readRun(s.ids.runId)).status).toBe("draft_ready");
   });
 
+  it("a script sentence over 12 words starts the script repair", async () => {
+    const s = await setup((registry) => ({
+      script: (attempt) =>
+        attempt === 1
+          ? {
+              value: {
+                ...stubScript(registry),
+                pages: stubScript(registry).pages.map((p, i) =>
+                  i === 0 ? { ...p, text: "Page 1. The small bear walks to the park to hear the good news today." } : p,
+                ),
+              },
+            }
+          : undefined,
+    }));
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    expect(s.stub.attempts.script).toBe(2);
+    expect((await readRun(s.ids.runId)).status).toBe("draft_ready");
+  });
+
   it("finishStep writes the errors sorted by step", async () => {
     const d = await directDraft();
     const rec = (step: string): ErrorRecord => ({ runId: d.ids.runId, storyId: d.ids.storyId, pageId: null, step, providerStatus: null, message: step });
