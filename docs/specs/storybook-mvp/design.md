@@ -599,8 +599,10 @@ Q14).
   and no audio. "Previous" turns back to the last page and plays its
   narration in the tap handler. "Read again" sets the `src` of page 1, calls
   `play()` in the tap handler, and shows page 1 with a 200 ms cross-fade;
-  the Start gate is not shown again. A tap on "next" or "previous" during
-  the cross-fade ends it at once, as during a turn. The end page has the
+  the Start gate is not shown again. A tap on "next" ends the cross-fade
+  at once, as during a turn, and turns to page 2. "Previous" is disabled on
+  page 1: a tap on it does nothing, and the cross-fade runs to its end. The
+  end page has the
   Home round button ("9. Player screens", "Home").
 - **Page phases.** `SceneView` takes a `phase` prop: `incoming`, `current`,
   or `outgoing`. `enter` animations run once, when the page is `current` and
