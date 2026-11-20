@@ -1,6 +1,6 @@
 import type { ModelConfig } from "./config";
 import { ModelHttpError, ModelOutputError, UnsupportedAudioFormatError } from "./errors";
-import { buildSpeechRequest, decodeSpeechResponse } from "./tts";
+import { buildSpeechRequest, decodeSpeechResponse, speechUsage } from "./tts";
 
 export type JsonSchema = Record<string, unknown>;
 export type Usage = { inputTokens: number; outputTokens: number };
@@ -15,7 +15,7 @@ export interface ModelClient {
   synthesizeSpeech(req: {
     text: string;
     voice?: string; // default: config.tts.voice
-  }): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number }>;
+  }): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number; usage: Usage | null }>;
 }
 
 const TIMEOUT_MS = 180_000;
@@ -201,15 +201,16 @@ export function createModelClient(config: ModelConfig, deps: { fetch?: typeof fe
     async synthesizeSpeech(req) {
       const { url, init } = buildSpeechRequest(config, req);
       const res = await send(doFetch, { url, init, secrets, modelId: config.models.tts });
+      const body = await readAnswer(res, { modelId: config.models.tts, secrets, answerKey: "candidates" });
+      // The token counts of the answer, or null when it reports none (#65).
+      const usage = speechUsage(body);
       try {
-        return decodeSpeechResponse(
-          await readAnswer(res, { modelId: config.models.tts, secrets, answerKey: "candidates" }),
-        );
+        return { ...decodeSpeechResponse(body), usage };
       } catch (error) {
-        // The decoders have no response context; add the model ID here. TTS
-        // reports no usage, so `usage` stays null (implementation decision R25b).
+        // The decoders have no response context; add the model ID and the usage here.
         if (error instanceof ModelOutputError || error instanceof UnsupportedAudioFormatError) {
           error.modelId = config.models.tts;
+          error.usage = usage;
         }
         throw error;
       }

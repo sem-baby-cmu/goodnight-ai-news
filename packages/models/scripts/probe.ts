@@ -3,7 +3,7 @@
 import { createModelClient } from "../src/client";
 import { loadModelConfig, type ModelConfig } from "../src/config";
 import { ModelHttpError } from "../src/errors";
-import { base64ToBytes, buildSpeechRequest, decodeSpeechResponse, findInlineData } from "../src/tts";
+import { base64ToBytes, buildSpeechRequest, decodeSpeechResponse, findInlineData, speechUsage } from "../src/tts";
 
 const PROBE_TEXT = "Good night, little star.";
 
@@ -80,6 +80,10 @@ export async function probeTts(config: ModelConfig) {
     } catch (error) {
       result.decode = { error: errorName(error) };
     }
+    // Token counts only (#65): the mapped usage and the field names of the usage block.
+    const meta = (json as { usageMetadata?: unknown } | null)?.usageMetadata;
+    result.usage = speechUsage(json);
+    result.usageFields = typeof meta === "object" && meta !== null ? Object.keys(meta).sort() : null;
     return result;
   } catch (error) {
     return { status: 0, error: errorName(error) };

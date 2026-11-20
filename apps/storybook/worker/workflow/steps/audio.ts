@@ -32,7 +32,7 @@ export async function audioStep(env: Env, runId: string, storyId: string, pageId
             result: { kind: "answer" as const, value: { contentType: speech.contentType, durationMs: speech.durationMs } },
             bytes: { data: speech.bytes, contentType: speech.contentType },
             modelId: model,
-            usage: null,
+            usage: speech.usage,
           };
         } catch (err) {
           // A TTS output error is stored, not retried (implementation decisions R25b, R26b).
