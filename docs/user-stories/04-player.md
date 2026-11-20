@@ -14,7 +14,7 @@ Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", 
 - Given a published release
 - When a child opens `/read/:releaseId`
 - Then the Player reads that one release, and shows its pages with animation, narration, and tap reactions
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-01.S2 A page shows its layers on a scaled stage
 - Given a release page with `svg-rig`, `svg`, and `webp` layers
@@ -105,55 +105,55 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" (Audio,
 - Given a release open in the Player, with one `<audio>` element for the narration of the whole book
 - When the child taps "Start"
 - Then that tap unlocks the element, and the narration of the first page starts
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S2 A page turn plays the narration of the new page
 - Given a book that was started
 - When the child taps to turn the page
 - Then the tap handler sets the new `src` and calls `play()` in the same handler, and the narration continues on each page turn
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S3 Sound effects use a second shared element
 - Given a book that was started
 - When a tap runs a `play_sfx` action
 - Then the sound plays on a second shared audio element, the one that "Start" unlocked with the silent clip (PLY-02.S7); it is the same DOM element as on the Start gate, and the narration element is too; the narration element keeps its `src` and goes on
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S4 The narration text is below the stage
 - Given a page in the Player
 - When the device is in portrait, and then in landscape
 - Then the narration is HTML outside the stage, below it in both orientations; the stage keeps 4:3 and is never cropped; the bleed fills the width up to 2:1 and the paper colour fills the rest; the narration font is at least 18 px (ADR 0016)
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S5 No frame part lies over the picture
 - Given a reading page in the Player
 - When it is shown in the Wide, the Narrow, and the Short layout
 - Then no control and no status of the frame (Home, "previous", "next", the progress pill) lies over the picture area
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S6 The frame controls keep their gaps at 900 x 600
 - Given the Wide layout at 900 x 600, and a reading page with a 40-word text
 - When the page is shown
 - Then Home, "previous", "next", and the progress pill are in the gutters, no two of them are less than 12 CSS px apart, and none lies over the picture
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S7 "Start" plays a silent clip on the sound-effect element
 - Given a release open in the Player, in the Ready state
 - When the child taps "Start"
 - Then the handler of that tap calls `play()` on the narration element with the narration of page 1, and then `play()` on the sound-effect element with the silent clip of the app, both before it returns; the clip is a `data:audio/wav` URL of a PCM WAV file with 1 sample or more, and no request is sent for it
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/player/BookRoute.test.tsx
 
 ### PLY-02.S8 A silent clip that cannot play shows nothing
 - Given a browser that rejects the `play()` of the silent clip
 - When the child taps "Start"
 - Then the narration of page 1 starts, and the reading page shows; there is no fault sign, no thrown error, and no second try
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-02.S9 A sound effect that cannot play is quiet
 - Given a book that was started, and a tap with a `play_sfx` action and a `show_bubble` action (`target`: a layer of the page, `text`: "Hello!"), where the `sfx` file gives 404
 - When the child taps the layer
 - Then the bubble of the `show_bubble` action shows "Hello!" at its target layer; there is no sound effect, no fault sign, no thrown error, and no second try; the narration goes on
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ## PLY-03 The story runs on phones and tablets
 
@@ -167,7 +167,7 @@ Spec: requirements AC-14, "Non-functional Requirements" · design "Testing Strat
 - Given a fixture release, and WebKit with the iPad and iPhone profiles
 - When the Player runs the release
 - Then the pages render; taps fire their actions; reduced motion stops the loops; the audio starts on "Start" and continues on each page turn
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-03.S2 The Player works in Chrome on Android
 - Given a published release, and current Chrome on an Android device
@@ -258,7 +258,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 - Given a release whose manifest is loaded and whose page JSON files are still loading
 - When the Start gate is shown
 - Then "Start" is enabled only when every page JSON and the first-page files are loaded: the backdrop variant of page 1, the file of the starting pose and expression of each layer of page 1, and the paper texture
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/player/BookRoute.test.tsx
 
 ### PLY-04.S11 "Next" on the last page turns to the end page
 - Given a book that was started, on its last page, with its narration playing
@@ -282,31 +282,31 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 - Given a release whose manifest, page JSON files, and first-page files are loaded, and whose narration and `sfx` requests have no response
 - When the Start gate is shown
 - Then "Start" is enabled; the Player waits for no audio file, no `sfx` file, no swap file of a tap, and no file of another page
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/player/BookRoute.test.tsx
 
 ### PLY-04.S15 The `enter` animations of page 1 wait for "Start"
 - Given the Start gate in Ready, for a book whose page 1 has a `loop` animation, an `enter` animation, and a tap interaction
 - When the child taps "Start"
 - Then the `enter` animations of page 1 play once and tap handling starts; before the tap the `loop` animation ran, no `enter` animation ran, and no layer took a tap or the focus
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S16 The picture keeps its size and its place at "Start"
 - Given the Narrow layout at 390 x 844, and the Start gate in Ready
 - When the child taps "Start"
 - Then the picture area has the same size and the same place before and after the tap, and the narration panel has the same height; the top bar and the control row had their full height (84 px each) in Loading and in Ready
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S17 The Start gate fits its panel in every layout
 - Given the viewports 900 x 600 (Wide), 844 x 600 and 375 x 553 (Narrow), and 667 x 375 (Short), and a book with a title of 2 lines
 - When the Start gate is shown in Loading, in Ready, and in the Resting state
 - Then the text and the button of each state are inside the narration panel; nothing is cut, nothing lies over another part, and nothing scrolls
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S18 The panel has the height of the longest page before Ready
 - Given the Narrow layout at 390 x 844, and a book with one legal page of 40 words whose text needs more lines than the reference text of the Player
 - When the Start gate changes from Loading to Ready
 - Then the narration panel has the height of that page in Ready, on every page, and on the end page; the whole text of that page shows, nothing is cut, and nothing scrolls; the picture area has the same size from Ready on
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ## PLY-05 A child picks a book from the shelf
 
@@ -482,7 +482,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given a book that was started, on page 3, with its narration playing
 - When the child taps Home
 - Then the narration and any sound effect stop, and the Player shows `/`; there is no question and no overlay
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S3 Home works during a page turn
 - Given a forward turn that has run for 200 ms
@@ -500,55 +500,55 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given no `release` row with the ID `R`, so that `GET /content/releases/R/manifest.json` gives 404
 - When a child opens `/read/R`
 - Then the Player shows the Resting state: the Player frame, a night picture from the app bundle (no request is sent for it), the line "This book is sleeping. Come back soon.", and one Home button with a label; it has no "Start", "previous", "next", progress pill, Home round button, or sound; the address stays `/read/R`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S6 An ID that is not a UUID version 7 shows the Resting state
 - Given the path `/read/abc`
 - When a child opens it
 - Then the Player shows the Resting state
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/player/loadRelease.test.tsx
 
 ### PLY-06.S7 A file that "Start" waits for fails to load
 - Given a release whose manifest loads, and whose request for one page JSON gives 500
 - When the Start gate is in Loading
 - Then the Player shows the Resting state; "Start" is not enabled, and no request is sent again
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S8 Home in the Resting state shows the shelf
 - Given the Resting state
 - When the child taps Home
 - Then the Player shows `/`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S9 A slow load does not rest
 - Given a release whose page JSON requests have no response for 60 s
 - When the Start gate is in Loading for those 60 s
 - Then the Player stays in Loading with the Home round button, and does not show the Resting state
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S10 A failed image after "Start" does not rest
 - Given a book that was started, and an image of page 3 that fails to load
 - When the child turns to page 3
 - Then the narration plays and the paper colour shows in place of the image; the Player does not show the Resting state
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S11 A narration that fails after "Start" does not rest
 - Given a book that was started, and a narration file of page 2 that gives 404
 - When the child turns to page 2
 - Then page 2 shows with its picture, its text, and its controls; there is no sound, no fault sign, no thrown error, and no request is sent again by itself; the Player does not show the Resting state, and the child can turn the page
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S12 A backdrop that cannot be decoded shows the Resting state
 - Given a release whose manifest and page JSON files load, and whose backdrop variant of page 1 answers 200 with bytes that the browser cannot decode as an image
 - When the Start gate is in Loading
 - Then the Player shows the Resting state; "Start" is not enabled
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S13 A layer file that the sanitiser refuses shows the Resting state
 - Given a release whose manifest and page JSON files load, and whose SVG file of one layer of page 1 answers 200 with a text that cannot be parsed or that the sanitiser refuses
 - When the Start gate is in Loading
 - Then the Player shows the Resting state; "Start" is not enabled
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S14 A turning sheet does not lie over a frame control
 - Given the Wide layout, and a forward turn in which the sheet swings past the left edge of the page panel
@@ -566,31 +566,31 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given a release `R` of a story that was taken off the shelf, so that `GET /content/releases/R/manifest.json` gives 404
 - When a child opens `/read/R`
 - Then the Player shows the Resting state of PLY-06.S5; no page text, no picture, and no sound of the book is shown or played
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S17 A withdrawn book that the browser holds shows the Resting state
 - Given a browser that read release `R` before, so that its HTTP cache holds the files of `R`; the story was then taken off the shelf
 - When a child opens `/read/R`
 - Then the Player requests `manifest.json` first, with the fetch cache mode `no-cache`; the content route answers 404, and the Player shows the Resting state; it requests and shows no other file of `R`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S18 A book that is open stays open after a take-off
 - Given a book that was started, on page 2; the story is then taken off the shelf, so that the narration file of page 3 gives 404
 - When the child turns to page 3
 - Then page 3 shows with its text and its controls and no sound; the Player does not show the Resting state
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S19 A path that matches no route shows the shelf
 - Given the paths `/abc`, `/read`, and `/read/<a release ID>/more`
 - When a child opens each of them
 - Then the Player shows the shelf each time; the address is `/`, and the history has no new entry for it
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S20 A book in Ready stays open after a take-off
 - Given a release open in the Player, in the Ready state; the story is then taken off the shelf, so that the narration file of page 1 gives 404
 - When the child taps "Start"
 - Then page 1 shows with its text, its picture, and its controls, and no sound; the Player sends no new request for `manifest.json`, and it does not show the Resting state
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ## PLY-07 Every viewport has a layout
 
@@ -603,19 +603,19 @@ Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene
 - Given a reading page in a viewport of 568 x 320
 - When the page is shown
 - Then the layout is Short: a control rail at each side, no top bar, and no control row; Home, "previous", "next", and the progress pill are whole and inside the viewport
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-07.S2 A 40-word page fits at 568 x 320
 - Given a reading page with a 40-word text in a viewport of 568 x 320
 - When the page is shown
 - Then the whole text shows at 18 px or more, nothing scrolls, no frame part lies over the picture area, and the picture area is 64 CSS px high or more
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-07.S3 The Start gate of a Short viewport under 640 px wide is a stack
 - Given a release in the Ready state in a viewport of 568 x 320
 - When the Start gate is shown
 - Then the title stands above the Start button; both are whole and inside the panel, and the Home round button is whole
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-07.S4 The shelf at 568 x 320 has 2 books
 - Given a shelf response with 6 books, in a viewport of 568 x 320

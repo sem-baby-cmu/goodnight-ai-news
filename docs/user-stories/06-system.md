@@ -123,7 +123,7 @@ Spec: requirements "Non-functional Requirements" · design "Error Handling"
 - Given a child who reads a release in the Player
 - When the child reads, taps, and turns pages
 - Then no child data is stored on a server
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### SYS-04.S2 An error record names where it happened
 - Given an error in a run

@@ -1,4 +1,11 @@
-import { createRootRoute, createRouter, Outlet } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  createRouter,
+  Navigate,
+  Outlet,
+  type RouterHistory,
+  useLocation,
+} from "@tanstack/react-router";
 import { playerRoutes } from "./player/routes";
 import { spikeRoutes } from "./spike/routes";
 import { studioRoutes } from "./studio/routes";
@@ -12,11 +19,24 @@ function RootLayout() {
   return <Outlet />;
 }
 
-export const rootRoute = createRootRoute({ component: RootLayout });
+// A path that matches no route: under /studio/ to the Studio, else to the
+// shelf, with the history entry replaced (design "9", Unknown path).
+function NotFound() {
+  const { pathname } = useLocation();
+  return pathname.startsWith("/studio/") ? <Navigate to="/studio" replace /> : <Navigate to="/" replace />;
+}
 
-export const router = createRouter({
-  routeTree: rootRoute.addChildren([...playerRoutes, ...studioRoutes, ...spikeRoutes]),
-});
+export const rootRoute = createRootRoute({ component: RootLayout, notFoundComponent: NotFound });
+
+const routeTree = rootRoute.addChildren([...playerRoutes, ...studioRoutes, ...spikeRoutes]);
+
+// `notFoundMode: "root"`: every unknown path uses the root not-found
+// component, also below a matched route (`/read/<id>/more`).
+export function createAppRouter(history?: RouterHistory) {
+  return createRouter({ routeTree, history, notFoundMode: "root" });
+}
+
+export const router = createAppRouter();
 
 declare module "@tanstack/react-router" {
   interface Register {
