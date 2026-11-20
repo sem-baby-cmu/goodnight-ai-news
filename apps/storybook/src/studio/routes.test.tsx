@@ -19,6 +19,14 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// The runId test is about the search param, not the preview. The real SceneView
+// calls `new ResizeObserver`, which jsdom does not have (scene-runtime stubs it
+// only in its own test setup), so this file replaces SceneView, as StoryPage.test does.
+vi.mock("@storybook/scene-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@storybook/scene-runtime")>();
+  return { ...actual, SceneView: () => null };
+});
+
 // `router` comes from "@/router", never from "./routes": router.tsx must load first.
 function routerAt(path: string) {
   const history = createMemoryHistory({ initialEntries: [path] });
