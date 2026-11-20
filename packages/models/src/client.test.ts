@@ -3,7 +3,7 @@ import { createModelClient } from "./client";
 import { loadModelConfig } from "./config";
 import { ModelHttpError, ModelOutputError, UnsupportedAudioFormatError } from "./errors";
 import { pcmToWav } from "./wav";
-import { ascii, baseEnv, json, speechAnswer, stubFetch } from "./test-helpers";
+import { ascii, baseEnv, json, speechAnswer, stubFetch, toBase64 } from "./test-helpers";
 
 const config = loadModelConfig(baseEnv);
 const jsonRequest = {
@@ -13,6 +13,10 @@ const jsonRequest = {
   schema: { type: "object" },
 };
 const speechRequest = { text: "Good night.", voice: "Kore" };
+// A generateContent answer with one inline audio part and extra top-level fields (#65).
+const answerWith = (mimeType: string, bytes: Uint8Array, extra: Record<string, unknown>) =>
+  json({ candidates: [{ content: { parts: [{ inlineData: { mimeType, data: toBase64(bytes) } }] } }], ...extra });
+const counts = { usageMetadata: { promptTokenCount: 7, candidatesTokenCount: 120, totalTokenCount: 127 } };
 
 function chatAnswer(content: unknown, extra: Record<string, unknown> = {}) {
   return json({ choices: [{ message: { content } }], ...extra });
@@ -193,6 +197,36 @@ describe("synthesizeSpeech", () => {
     expect(error).toBeInstanceOf(UnsupportedAudioFormatError);
     expect((error as Error).message).toContain("audio/mpeg");
     expect(error).toMatchObject({ modelId: "m-tts", usage: null });
+  });
+
+  it("SYS-05.S6 synthesizeSpeech returns the token counts of the answer", async () => {
+    const { fetch } = stubFetch(() => answerWith("audio/wav", pcmToWav(new Uint8Array(4800), 24000, 1), counts));
+    const result = await createModelClient(config, { fetch }).synthesizeSpeech(speechRequest);
+    expect(result).toHaveProperty("usage", { inputTokens: 7, outputTokens: 120 });
+  });
+
+  it("synthesizeSpeech without both token counts returns usage null", async () => {
+    const extras: Record<string, unknown>[] = [
+      {},
+      { usageMetadata: null },
+      { usageMetadata: { promptTokenCount: 7 } },
+      { usageMetadata: { promptTokenCount: "7", candidatesTokenCount: 120 } },
+      { usageMetadata: { promptTokenCount: 7.5, candidatesTokenCount: 120 } },
+      { usageMetadata: { promptTokenCount: 7, candidatesTokenCount: -1 } },
+    ];
+    for (const extra of extras) {
+      const { fetch } = stubFetch(() => answerWith("audio/wav", pcmToWav(new Uint8Array(4800), 24000, 1), extra));
+      const result = await createModelClient(config, { fetch }).synthesizeSpeech(speechRequest);
+      expect(result, JSON.stringify(extra)).toHaveProperty("usage", null);
+    }
+  });
+
+  it("a speech output error after a 2xx answer carries the token counts of the answer", async () => {
+    const mp3 = new Uint8Array([0x49, 0x44, 0x33, 0x04, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const { fetch } = stubFetch(() => answerWith("audio/mpeg", mp3, counts));
+    const error = await rejection(createModelClient(config, { fetch }).synthesizeSpeech(speechRequest));
+    expect(error).toBeInstanceOf(UnsupportedAudioFormatError);
+    expect(error).toMatchObject({ modelId: "m-tts", usage: { inputTokens: 7, outputTokens: 120 } });
   });
 
   it("synthesizeSpeech rejects PCM without rate", async () => {

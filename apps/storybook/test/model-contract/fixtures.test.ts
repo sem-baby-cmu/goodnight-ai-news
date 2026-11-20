@@ -145,6 +145,12 @@ describe("S2 summary", () => {
     });
   });
 
+  it("leaves the TTS tokens out of the token totals (#65)", () => {
+    const rows = fakeRun();
+    for (const c of rows.calls) if (c.step.startsWith("audio:")) c.usage = JSON.stringify({ inputTokens: 7, outputTokens: 120 });
+    expect([summarize(rows).inputTokens, summarize(rows).outputTokens]).toEqual([2400, 1040]);
+  });
+
   it("gives a run without an outline 0 pages and fails the verdict on the script", () => {
     const noOutline = fakeRun();
     noOutline.run.status = "failed";

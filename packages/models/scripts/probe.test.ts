@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadModelConfig } from "../src/config";
-import { baseEnv } from "../src/test-helpers";
+import { baseEnv, toBase64 } from "../src/test-helpers";
+import { pcmToWav } from "../src/wav";
 import { probeGateway, probeTts } from "./probe";
 
 const config = loadModelConfig(baseEnv);
@@ -22,6 +23,27 @@ describe("probe", () => {
   it("reports the real status and bodyNotJson for a 2xx TTS body that is not JSON", async () => {
     answerWith("not json", 201);
     expect(await probeTts(config)).toEqual({ status: 201, bodyNotJson: true });
+  });
+
+  it("reports the usage and the usage field names of a TTS answer (#65)", async () => {
+    answerWith(
+      JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [{ inlineData: { mimeType: "audio/wav", data: toBase64(pcmToWav(new Uint8Array(4800), 24000, 1)) } }],
+            },
+          },
+        ],
+        usageMetadata: { promptTokenCount: 7, candidatesTokenCount: 120, totalTokenCount: 127 },
+      }),
+    );
+    expect(await probeTts(config)).toMatchObject({
+      status: 200,
+      decode: { contentType: "audio/wav", durationMs: 100 },
+      usage: { inputTokens: 7, outputTokens: 120 },
+      usageFields: ["candidatesTokenCount", "promptTokenCount", "totalTokenCount"],
+    });
   });
 
   it("still reports status 0 when the request itself fails", async () => {
