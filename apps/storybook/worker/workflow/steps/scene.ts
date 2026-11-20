@@ -14,7 +14,7 @@ import { ModelOutputError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, assetKeysOfScene, getDb, loadStoryHeads, newId, revision } from "../../db";
 import { type StoredCall, answerOf, buildSchema, isUnparsed, providerErrorOf, storedCall, unparsedResult } from "../model-call";
-import { UNPARSED_PREVIOUS, repairSuffix, scenePrompt } from "../prompts";
+import { UNPARSED_PREVIOUS, modelRegistry, repairSuffix, scenePrompt } from "../prompts";
 import { type FaultContext, seams } from "../seams";
 import { frozenRegistry } from "./freeze";
 import { type PageStepResult, writePageRevision, writeProviderError } from "./page-revision";
@@ -64,6 +64,8 @@ function assetVersions(scene: PageScene | null, registry: RegistrySnapshot): Rec
 export async function sceneStep(env: Env, runId: string, storyId: string, pageId: string): Promise<SceneStepResult> {
   const db = getDb(env.DB);
   const registry = await frozenRegistry(db, runId);
+  // The model sees fewer keys than validation accepts (#84).
+  const shown = modelRegistry(registry);
   const client = seams.modelClient(env, { registry });
   const ctx = (purpose: FaultContext["purpose"]): FaultContext => ({ runId, storyId, step: `scene:${pageId}`, pageId, purpose });
   const textKey: HeadKey = `page_text:${pageId}`;
@@ -79,7 +81,7 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
       beat: outline.pages.find((p) => p.pageId === pageId)?.beat ?? "",
       pageText: (text!.content as { text: string }).text,
       cast: outline.cast,
-      registry,
+      registry: shown,
       templates: TEMPLATES,
     });
     try {
@@ -87,7 +89,7 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
         model: "scene",
         system: prompt.system,
         user: prompt.user + suffix,
-        schema: buildSchema(() => buildSceneJsonSchema({ registry, templates: TEMPLATES })),
+        schema: buildSchema(() => buildSceneJsonSchema({ registry: shown, templates: TEMPLATES })),
       });
       return { result: { kind: "answer" as const, value: r.value }, modelId: r.modelId, usage: r.usage };
     } catch (err) {

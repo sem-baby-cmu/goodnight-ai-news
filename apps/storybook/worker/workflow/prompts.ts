@@ -1,6 +1,8 @@
 import {
+  type AssetManifest,
   type Issue,
   type LayoutTemplate,
+  type PrimitiveId,
   type RegistrySnapshot,
   isLayerManifest,
   PRIMITIVE_IDS,
@@ -8,6 +10,7 @@ import {
   primitiveAllows,
   SCRIPT_TEXT_LIMITS,
 } from "@storybook/dsl";
+import { TEMPLATE_DESCRIPTIONS } from "@storybook/layout";
 
 // Prompts for the script and scene steps (#18, Exact changes 10). Never log a
 // prompt or an output.
@@ -19,7 +22,16 @@ const keysOf = (registry: RegistrySnapshot, kind: string) =>
     .filter((key) => registry.assets[key]!.kind === kind)
     .sort();
 
-export function modelRegistry(registry: RegistrySnapshot): RegistrySnapshot { return registry; }
+// Keys that the models do not see until an indoor backdrop exists (ADR 0016; #84).
+// Validation still uses the whole frozen registry.
+export const HIDDEN_FROM_MODEL: readonly string[] = ["door", "window"];
+
+// The registry that prompts and model JSON schemas use (#84).
+export function modelRegistry(registry: RegistrySnapshot): RegistrySnapshot {
+  return { assets: Object.fromEntries(Object.entries(registry.assets).filter(([key]) => !HIDDEN_FROM_MODEL.includes(key))) };
+}
+
+const PROMPT_PRIMITIVE_KIND: Partial<Record<PrimitiveId, string>> = { sway: "scenery" }; // Prompt rule (#84); validation allows sway on every layer.
 
 export function scriptPrompt(input: { sourceText: string; registry: RegistrySnapshot }): { system: string; user: string } {
   const system = [
@@ -80,6 +92,10 @@ export function scenePrompt(input: {
     'Use a primitive (in `animations` or in a `play_animation` action) only on a layer whose asset its line under "Animations" names; "all" means every asset.',
     "Name layers by slot ID: every `target` and `on.tap` is a slot ID.",
     'A `bust` pose goes only into a slot that lists it in `poses`.',
+    "Each template and each asset has a description. Choose the template and the assets whose descriptions fit the page text. Do not use an asset for a thing that its description does not name.",
+    "Give every character layer a tap: an interaction whose `on.tap` is that character's slot.",
+    'Choose each character\'s expression from the feeling words of the page text (for example "sad", "surprised", "worried"), from its legal pairs. Use `happy` only when the text is happy, has no feeling word, or no legal pair has that feeling.',
+    "Never use `set_expression` with the expression that its target layer already has.",
     "A bubble (`show_bubble` text) is a short line that the character says: 2 to 6 words, at most 40 characters.",
     'A bubble ends with ".", "!", or "?". Use only English letters, digits, spaces, and plain ASCII punctuation: no long dashes, no ellipsis character, no curly quotes.',
     "A bubble does not repeat the page text.",
@@ -87,7 +103,7 @@ export function scenePrompt(input: {
   ].join("\n");
 
   const templates = input.templates.flatMap((t) => [
-    `Template "${t.id}":`,
+    `Template "${t.id}": ${TEMPLATE_DESCRIPTIONS[t.id] ?? "no description"}`,
     ...t.slots.map(
       (s) => `  - slot "${s.id}" accepts ${s.accepts}` + (s.poses ? `, poses ${JSON.stringify(s.poses)}` : ""),
     ),
@@ -101,28 +117,39 @@ export function scenePrompt(input: {
       const skies = a.manifest.variants.map((v) => v.sky);
       return [`- ${key}: ${JSON.stringify(a.manifest.description)}; skies ${JSON.stringify(skies)}`];
     });
+  const describe = (m: AssetManifest) => (isLayerManifest(m) && m.description !== undefined ? JSON.stringify(m.description) : "no description");
   const cast = input.cast.flatMap((key) => {
     const m = input.registry.assets[key]?.manifest;
     // A cast key that is not a visual asset stays visible to the model (review item 3).
     if (!m || !isLayerManifest(m)) return [`- ${key}: unknown`];
     const poses = [...new Set(m.poses.map((p) => p.id))];
     return [
-      `- ${key}: poses ${JSON.stringify(poses)}; expressions ${JSON.stringify(m.expressions)}; legal pairs ${JSON.stringify(
+      `- ${key}: ${describe(m)}; poses ${JSON.stringify(poses)}; expressions ${JSON.stringify(m.expressions)}; legal pairs ${JSON.stringify(
         m.legal.map((p) => `${p.pose}/${p.expression}`),
       )}`,
     ];
   });
   // Props, scenery, and sounds, so the model can fill the other slots.
-  const others = (["prop", "scenery", "sfx"] as const).map((kind) => `- ${kind}: ${JSON.stringify(keysOf(input.registry, kind))}`);
+  const others = [
+    ...(["prop", "scenery"] as const).flatMap((kind) =>
+      keysOf(input.registry, kind).map((key) => `- ${key} (${kind}): ${describe(input.registry.assets[key]!.manifest)}`),
+    ),
+    `- sfx: ${JSON.stringify(keysOf(input.registry, "sfx"))}`,
+  ];
   // Each primitive with the layer assets that it works on (#63).
   const layerKeys = Object.keys(input.registry.assets)
     .filter((key) => isLayerManifest(input.registry.assets[key]!.manifest))
     .sort();
-  const animations = PRIMITIVE_IDS.map((id) =>
-    PRIMITIVES[id].renderers === "all"
-      ? `- ${id}: all`
-      : `- ${id}: ${JSON.stringify(layerKeys.filter((key) => primitiveAllows(id, input.registry.assets[key]!.renderer)))}`,
-  );
+  // `sway` lists scenery keys only (#84, PROMPT_PRIMITIVE_KIND).
+  const animations = PRIMITIVE_IDS.map((id) => {
+    const kind = PROMPT_PRIMITIVE_KIND[id];
+    if (PRIMITIVES[id].renderers === "all" && kind === undefined) return `- ${id}: all`;
+    const keys = layerKeys.filter(
+      (key) =>
+        primitiveAllows(id, input.registry.assets[key]!.renderer) && (kind === undefined || input.registry.assets[key]!.kind === kind),
+    );
+    return `- ${id}: ${JSON.stringify(keys)}`;
+  });
   const user = [
     "Templates:",
     ...templates,
