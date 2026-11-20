@@ -807,10 +807,13 @@ describe("Studio API routes", () => {
 
   it("EDT-01.S7 GET stories gives the status of the run that GET story names as latestRun", async () => {
     const ids = await newStory(db());
-    // Two runs with the same `created_at`, later than the first run.
-    const pair = [newId(), newId()].sort();
-    const low = pair[0]!;
-    const high = pair[1]!;
+    // Two runs with the same `created_at`, later than the first run. A third run
+    // has the highest id of the three but the oldest `created_at`: ordering by id
+    // alone (UUIDv7 order is not creation order) would pick it.
+    const trio = [newId(), newId(), newId()].sort();
+    const low = trio[0]!;
+    const high = trio[1]!;
+    const oldest = trio[2]!;
     await db()
       .insert(run)
       .values([
@@ -830,11 +833,21 @@ describe("Studio API routes", () => {
           createdAt: "2999-01-01T00:00:00.000Z",
           finishedAt: "2999-01-01T00:00:01.000Z",
         },
+        {
+          id: oldest,
+          storyId: ids.storyId,
+          scope: { kind: "full" },
+          status: "draft_ready",
+          createdAt: "2000-01-01T00:00:00.000Z",
+          finishedAt: "2000-01-01T00:00:01.000Z",
+        },
       ]);
     const detail = StoryDetailResponseSchema.parse(await (await call(fakeEnv().env, "GET", `/api/studio/stories/${ids.storyId}`)).json());
     expect(detail.latestRun!.id).toBe(high);
     expect(detail.latestRun!.status).toBe("failed");
     expect((await listed(ids.storyId)).latestRunStatus).toBe(detail.latestRun!.status);
+    // The run term of `updatedAt`: the latest `finished_at` of the runs, not `created_at`.
+    expect((await listed(ids.storyId)).updatedAt).toBe("2999-01-01T00:00:01.000Z");
   });
 
   it("EDT-02.S1 PUT text saves a human page_text revision and moves the head", async () => {
