@@ -168,6 +168,21 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
         }
         return;
       }
+      if (a.action === "show_bubble") {
+        // Report only: code never cuts or changes a bubble (#82).
+        const max = ACTIONS.show_bubble.maxTextLength;
+        if (a.text.length > max) {
+          add(`${q}.text`, "bubble_too_long", `Bubble text has ${a.text.length} characters; at most ${max} are allowed.`);
+        }
+        if (!/[.!?]$/.test(a.text)) {
+          add(`${q}.text`, "bubble_no_end_mark", `Bubble text does not end with ".", "!", or "?".`);
+        }
+        const bad = /[^\x20-\x7E]/.exec(a.text);
+        if (bad) {
+          const hex = a.text.codePointAt(bad.index)!.toString(16).toUpperCase().padStart(4, "0");
+          add(`${q}.text`, "bubble_not_ascii", `Bubble text has a character outside printable ASCII (U+${hex}).`);
+        }
+      }
       const layer = layerById.get(a.target);
       if (!layer) {
         add(`${q}.target`, "unknown_target", `Target "${a.target}" names no layer of the page.`);

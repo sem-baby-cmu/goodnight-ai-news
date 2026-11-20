@@ -54,7 +54,8 @@ export function actionSchema(e: ActionEnums) {
   const showBubble = z.strictObject({
     action: z.literal("show_bubble"),
     target: e.target,
-    text: z.string().min(1).max(60),
+    // Length and character rules are in `validateScene`, so the model JSON schema has no length cap (#82).
+    text: z.string().min(1),
   });
   const setExpression = z.strictObject({ action: z.literal("set_expression"), target: e.target, expression: e.expression });
   const setPose = z.strictObject({ action: z.literal("set_pose"), target: e.target, pose: e.pose });
