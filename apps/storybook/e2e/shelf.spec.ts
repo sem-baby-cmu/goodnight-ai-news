@@ -580,6 +580,7 @@ test("PLY-06.S15 Home moves the focus to the shelf", async ({ page }) => {
   await homeButton(page).focus();
   await page.keyboard.press("Enter");
   await expect(shelfMain(page)).toBeFocused();
+  expect(await shelfMain(page).evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("none");
   await expect(page.getByRole("link")).toHaveCount(0);
   await expect.poll(() => net.held).toBe(1);
   await net.release();
