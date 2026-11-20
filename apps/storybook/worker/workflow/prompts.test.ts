@@ -81,6 +81,7 @@ describe("prompts", () => {
       assets: {
         bear: { kind: "character", renderer: "webp", version: 1, manifest: layer("character") },
         pip: { kind: "character", renderer: "svg-rig", version: 1, manifest: layer("character") },
+        ada: { kind: "character", renderer: "svg-rig", version: 1, manifest: layer("character") },
         tree: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
         chime: { kind: "sfx", renderer: "audio", version: 1, manifest: { kind: "sfx", file: "chime.mp3", durationMs: 300 } },
       },
@@ -94,8 +95,8 @@ describe("prompts", () => {
         "- bounce: all",
         "- pop: all",
         "- fade-in: all",
-        '- blink: ["pip"]',
-        '- wave: ["pip"]',
+        '- blink: ["ada","pip"]',
+        '- wave: ["ada","pip"]',
       ].join("\n"),
     );
   });
