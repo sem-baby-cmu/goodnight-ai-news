@@ -5664,6 +5664,37 @@
         "legal": [],
         "flippable": true
       }
+    },
+    "meadow": {
+      "kind": "backdrop",
+      "renderer": "svg",
+      "version": 1,
+      "manifest": {
+        "kind": "backdrop",
+        "description": "an open meadow with soft hills",
+        "size": {
+          "width": 2400,
+          "height": 1200
+        },
+        "variants": [
+          {
+            "sky": "day",
+            "file": "day.svg"
+          },
+          {
+            "sky": "cloudy",
+            "file": "cloudy.svg"
+          },
+          {
+            "sky": "dusk",
+            "file": "dusk.svg"
+          },
+          {
+            "sky": "night",
+            "file": "night.svg"
+          }
+        ]
+      }
     }
   }
 }

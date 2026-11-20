@@ -4,6 +4,7 @@
   "error": null,
   "content": {
     "templateId": "landscape",
+    "backdrop": "meadow",
     "sky": "day",
     "layers": [
       {

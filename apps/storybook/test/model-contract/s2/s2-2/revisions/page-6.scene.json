@@ -4,6 +4,7 @@
   "error": null,
   "content": {
     "templateId": "two-friends",
+    "backdrop": "meadow",
     "sky": "cloudy",
     "layers": [
       {
