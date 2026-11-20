@@ -8,7 +8,7 @@ decides the expected behaviour.
 As the operator, I want to paste a news text and get a draft storybook, so
 that I can test a story with children without manual drawing.
 
-Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", "Storybook DSL"
+Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6. API", "Storybook DSL"
 
 ### RUN-01.S1 A pasted text starts a full run
 - Given a news text of 200 to 2,000 words
@@ -81,6 +81,18 @@ Spec: requirements US-1, AC-1, AC-2 · design "2. StoryRun Workflow", "6. API", 
 - When the `finish` step runs
 - Then the run ends at `needs_review`
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
+
+### RUN-01.S13 A script sentence of more than 12 words fails script validation
+- Given a script output whose page text has a sentence of 13 words
+- When the `script` step checks the output
+- Then it reports `sentence_too_long` for that page text, and the repair rule applies
+- Test: @storybook/dsl · packages/dsl/src/script-text.test.ts
+
+### RUN-01.S14 A script with more than 2 real-world names fails script validation
+- Given a script output whose page texts hold 3 real-world names (capitalised words inside a sentence that are not cast keys)
+- When the `script` step checks the output
+- Then it reports `too_many_names` with the 3 names, and the repair rule applies
+- Test: @storybook/dsl · packages/dsl/src/script-text.test.ts
 
 ## RUN-02 Start a full run from a URL
 

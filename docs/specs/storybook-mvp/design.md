@@ -215,6 +215,42 @@ Steps for a full run:
   `audio` head, when one of these heads has `status = needs_review`, or when
   one of these heads is stale ("Staleness"). Otherwise it sets `draft_ready`.
 
+Script rules (#83). The script tells the news as a story of the cast in
+their own world, outdoors (DESIGN.md section 8, ADR 0016). It keeps the one
+or two main facts of the news (what happened, what is new). It leaves out
+personal names, dates, and money. Every page names a cast member who does
+something, and the last page slows down toward sleep. The prompt gives the
+model each character with its poses, and the prop and scenery keys, and asks
+for only what these can show. These are prompt rules. Code checks two limits
+on the page texts of a model output:
+
+- every sentence has at most 12 words (`sentence_too_long`);
+- the page texts of the story hold at most 2 real-world names
+  (`too_many_names`).
+
+The counting rule:
+
+1. A page text is split into sentences where white space follows `.`, `!`,
+   or `?`, or follows one of these and then `"` or `”`.
+2. A sentence is split into words at white space. Its word count is the
+   number of words.
+3. The core of a word is the word without the characters at its start and
+   end that are not letters or digits, and without a final `'s` or `’s`.
+4. A word is a name word when it is not the first word of its sentence, it
+   does not start with `"` or `“`, its core starts with a capital letter A
+   to Z, its core in lower case is not a cast key, and its core is not `I`
+   and does not start with `I'` or `I’`.
+5. Name words that follow each other form one name. A name ends at a word
+   that is not a name word, and after a word whose last character is not a
+   letter or a digit.
+6. The names of a story are the distinct names of all its page texts. The
+   title and the beats are not counted.
+
+A failure starts the repair rule ("Error Handling"). Code never changes the
+text. These limits apply to the `script` step only. An operator's text is
+checked as `PageText` only (owner decision Q15), with the `PageText`
+sentence split.
+
 ```plantuml
 @startuml
 participant Studio
