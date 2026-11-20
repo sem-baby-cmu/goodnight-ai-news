@@ -12,6 +12,7 @@ import {
   type Heads,
   type RevisionRow,
   type RunScope,
+  type RunStatus,
   asset,
   assetKeysOfScene,
   assetVersion,
@@ -198,24 +199,64 @@ app.post("/api/studio/stories", body(CreateStoryRequestSchema), async (c) => {
 // same story; else null (a null or a broken pointer). The outer columns are
 // written as text, so they bind to `story`, not to `r`.
 const pointerNumber = sql<number | null>`(SELECT r.number FROM release r WHERE r.id = story.published_release_id AND r.story_id = story.id)`;
+// The latest run of the story: the same order as `latestRun` of GET /stories/:id (#71).
+const latestRunStatus = sql<RunStatus | null>`(SELECT u.status FROM run u WHERE u.story_id = story.id ORDER BY u.created_at DESC, u.id DESC LIMIT 1)`;
+// The last change (design "6. API"): the latest time of the story, its
+// revisions that are not superseded, its runs, and its releases.
+const updatedAt = sql<string>`MAX(story.created_at,
+  COALESCE((SELECT MAX(r.created_at) FROM revision r WHERE r.story_id = story.id AND r.status <> 'superseded'), story.created_at),
+  COALESCE((SELECT MAX(COALESCE(u.finished_at, u.created_at)) FROM run u WHERE u.story_id = story.id), story.created_at),
+  COALESCE((SELECT MAX(l.created_at) FROM release l WHERE l.story_id = story.id), story.created_at))`;
+// The 100 stories of the list, newest first.
+const LISTED = sql.raw("(SELECT id FROM story ORDER BY id DESC LIMIT 100)");
 
 app.get("/api/studio/stories", async (c) => {
-  const rows = await getDb(c.env.DB)
-    .select({
-      id: story.id,
-      title: story.title,
-      status: story.status,
-      createdAt: story.createdAt,
-      publishedReleaseId: story.publishedReleaseId,
-      // Invariant 8: on the shelf only when the pointer's release is of the
-      // same story and above `withdrawn_through`. SQLite gives 0 or 1.
-      onShelf: sql<number>`COALESCE(${pointerNumber} > story.withdrawn_through, 0)`,
-      publishedReleaseNumber: pointerNumber,
-    })
-    .from(story)
-    .orderBy(desc(story.id))
-    .limit(100);
-  const stories = rows.map((r) => ({ ...r, onShelf: Number(r.onShelf) === 1, publishedReleaseNumber: r.publishedReleaseNumber ?? null }));
+  const db = getDb(c.env.DB);
+  // One batch is one transaction, so no head moves between the three reads (#71).
+  const [rows, headRows, outlineRows] = await db.batch([
+    db
+      .select({
+        id: story.id,
+        title: story.title,
+        status: story.status,
+        createdAt: story.createdAt,
+        publishedReleaseId: story.publishedReleaseId,
+        // Invariant 8: on the shelf only when the pointer's release is of the
+        // same story and above `withdrawn_through`. SQLite gives 0 or 1.
+        onShelf: sql<number>`COALESCE(${pointerNumber} > story.withdrawn_through, 0)`.as("on_shelf"),
+        publishedReleaseNumber: pointerNumber.as("published_release_number"),
+        // Unique aliases: a batch maps D1 rows by column name (invariant 9).
+        latestRunStatus: latestRunStatus.as("latest_run_status"),
+        updatedAt: updatedAt.as("updated_at"),
+        heads: story.heads,
+      })
+      .from(story)
+      .orderBy(desc(story.id))
+      .limit(100),
+    db
+      .select({ id: revision.id, status: revision.status, basis: revision.basis })
+      .from(revision)
+      .where(sql`${revision.id} IN (SELECT h.value FROM story s, json_each(s.heads) h WHERE s.id IN ${LISTED})`),
+    db
+      .select({ id: revision.id, content: revision.content })
+      .from(revision)
+      .where(sql`${revision.id} IN (SELECT json_extract(s.heads, '$.outline') FROM story s WHERE s.id IN ${LISTED})`),
+  ]);
+  const revisions = new Map(headRows.map((r) => [r.id, r]));
+  const outlines = new Map(outlineRows.map((r) => [r.id, r.content as Outline]));
+  const stories = rows.map(({ heads, ...r }) => {
+    const outline = heads.outline === undefined ? undefined : outlines.get(heads.outline);
+    const pageCounts = { ok: 0, stale: 0, needs_review: 0, missing: 0 };
+    const pageIds = outline?.pages.map((p) => p.pageId) ?? [];
+    for (const page of pageStates({ pageIds, heads, revisions })) pageCounts[page.state] += 1;
+    return {
+      ...r,
+      onShelf: Number(r.onShelf) === 1,
+      publishedReleaseNumber: r.publishedReleaseNumber ?? null,
+      latestRunStatus: r.latestRunStatus ?? null,
+      pageCounts,
+    };
+  });
   return c.json({ stories }, 200);
 });
 
