@@ -12,11 +12,22 @@ export default defineConfig(async () => ({
       {
         // Worker tests run inside workerd with the bindings from wrangler.jsonc.
         // TEST_MIGRATIONS is a test-only binding; the setup file applies it.
+        // The model bindings replace the values of a local `.dev.vars`, which
+        // wrangler loads here too: worker tests use the stub model and cannot
+        // reach a provider (#73). A test that needs the real client passes
+        // its own env object.
         plugins: [
           cloudflareTest({
             wrangler: { configPath: "./wrangler.jsonc" },
             miniflare: {
-              bindings: { TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "migrations")) },
+              bindings: {
+                TEST_MIGRATIONS: await readD1Migrations(path.join(import.meta.dirname, "migrations")),
+                MODEL_MODE: "stub",
+                OPENAI_BASE_URL: "http://127.0.0.1:9/no-network-in-tests",
+                TTS_BASE_URL: "http://127.0.0.1:9/no-network-in-tests",
+                OPENAI_API_KEY: "no-key-in-tests",
+                TTS_API_KEY: "no-key-in-tests",
+              },
             },
           }),
         ],
