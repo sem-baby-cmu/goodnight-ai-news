@@ -159,7 +159,7 @@ generateJson(req: {
 synthesizeSpeech(req: {
   text: string;
   voice?: string;         // default: `tts.voice`
-}): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number }>;
+}): Promise<{ bytes: Uint8Array; contentType: string; durationMs: number; usage: Usage | null }>;
 ```
 
 - `ModelConfig` follows the #17 implementation: the TTS settings and the voice
@@ -172,6 +172,13 @@ synthesizeSpeech(req: {
   content type that the gateway returns. Narration is to be compressed (MP3,
   mono) after a spike on Worker encoding cost and Safari playback (ADR 0016,
   decision E); until then this WAV rule holds.
+- `synthesizeSpeech` returns the token counts of the answer as `usage`:
+  `usageMetadata.promptTokenCount` is `inputTokens`, and
+  `usageMetadata.candidatesTokenCount` is `outputTokens`. If the answer does
+  not have both as integers of 0 or more, `usage` is null; the adapter never
+  puts 0 in place of a missing count. An output error after a 2xx answer
+  carries the same `usage`. The audio step stores it in `call_log.usage`
+  (#65).
 - The adapter does not deduplicate. Deduplication is the job of `call_log`
   (section 3).
 
