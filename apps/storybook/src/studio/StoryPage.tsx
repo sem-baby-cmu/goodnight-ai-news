@@ -48,11 +48,15 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
   const [runFailure, setRunFailure] = useState<Failure | null>(null);
   const [starting, setStarting] = useState(false);
   const request = useRef(0);
+  // Story GETs sent and not answered yet, stale ones included.
+  const inFlight = useRef(0);
 
   // True only when this call's answer was applied and was ok.
   const refetch = useCallback((): Promise<boolean> => {
     const n = ++request.current;
+    inFlight.current += 1;
     return studioApi.getStory(storyId).then((r) => {
+      inFlight.current -= 1;
       if (n !== request.current) return false;
       // A failed refetch keeps the story that is shown.
       setLoad((prev) => (r.ok ? { kind: "ok", data: r.data } : prev.kind === "ok" ? prev : { kind: "error", status: r.status }));
@@ -61,11 +65,18 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
   }, [storyId]);
 
   // The rows after a take-off come from the answer, not from a refetch. The
-  // request number goes up first, so a story GET in flight is dropped.
-  const applyWithdrawal = useCallback((withdrawnThrough: number) => {
-    request.current += 1;
-    setLoad((prev) => (prev.kind !== "ok" ? prev : { kind: "ok", data: withdrawnView(prev.data, withdrawnThrough) }));
-  }, []);
+  // request number goes up first, so a story GET in flight is dropped. That
+  // GET can hold a change the view needs (a run that ended), so it is sent
+  // again: sent after the 200, it holds the server state. With no GET in
+  // flight, nothing is fetched.
+  const applyWithdrawal = useCallback(
+    (withdrawnThrough: number) => {
+      request.current += 1;
+      setLoad((prev) => (prev.kind !== "ok" ? prev : { kind: "ok", data: withdrawnView(prev.data, withdrawnThrough) }));
+      if (inFlight.current > 0) void refetch();
+    },
+    [refetch],
+  );
 
   useEffect(() => {
     void refetch();

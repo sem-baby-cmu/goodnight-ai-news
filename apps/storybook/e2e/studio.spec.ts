@@ -941,6 +941,10 @@ test("Studio frame 12: a take-off while it runs, and after a 200", async ({ page
   const notice = card.getByRole("status").filter({ hasText: "This book is off the shelf." });
   await expect(notice).toContainText("Publish a new release to put it back.");
   await expect(card.getByRole("heading", { name: "Releases", exact: true })).toBeFocused();
+  // 12 px under the heading, so the notice does not cover the Sun ring of the focused heading.
+  const headingBox = await boxOf(card.getByRole("heading", { name: "Releases", exact: true }), "Releases heading");
+  const noticeBox = await boxOf(notice, "off-the-shelf notice");
+  expectPx(noticeBox.y - (headingBox.y + headingBox.height), 12, "12 px between the Releases heading and the notice");
   const publish = region(page, "Publish");
   await expect(publish.getByRole("button", { name: "Publish release 3", exact: true })).toBeVisible();
   await expect(publish).not.toContainText("published.");

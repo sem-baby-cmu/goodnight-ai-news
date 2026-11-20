@@ -851,11 +851,18 @@ it("A story GET in flight when the take-off answer lands does not bring back the
   const held = new Promise<Reply>((resolve) => {
     release = resolve;
   });
+  // The server state after the take-off: the shape of the patch of the 200.
+  const off: StoryDetailResponse = {
+    ...old,
+    story: { ...old.story, onShelf: false },
+    releases: old.releases.map((r) => ({ ...r, withdrawn: true })),
+  };
   let gets = 0;
   const { calls } = stubStory(old, {
     [`GET ${storyPath}`]: () => {
       gets += 1;
-      return gets === 1 ? { status: 200, body: old } : held;
+      // The third GET is sent after the 200, because the second was in flight.
+      return gets === 1 ? { status: 200, body: old } : gets === 2 ? held : { status: 200, body: off };
     },
     // The run has ended at the first poll, so `useRunPoll` fetches the story again.
     [`GET ${runPath(RUN_ID)}`]: { status: 200, body: runFixture("draft_ready") },
@@ -873,6 +880,7 @@ it("A story GET in flight when the take-off answer lands does not bring back the
   expect(screen.getAllByText("Off the shelf")).toHaveLength(2);
   expect(screen.queryByText("On the shelf")).toBeNull();
   expect(screen.queryAllByText("Open")).toHaveLength(0);
+  expect(storyGets(calls)).toHaveLength(3);
 });
 
 it("After Publish and a take-off in the same view, the Publish card leaves Done and offers the next release", async () => {
@@ -935,4 +943,38 @@ it("After a take-off, Publish shows Done for the new release", async () => {
   await waitFor(() => expect(rowButton().closest("li")).toBe(screen.getByText("Release 3").closest("li")));
   expect(screen.getByText("Release 3 published.")).toBeTruthy();
   expect(screen.getByRole("link", { name: "Open release 3 in the Player" })).toBeTruthy();
+});
+
+it("A refetch while the take-off dialog is open changes neither the dialog text nor the release that is posted", async () => {
+  const [r1, r2, r3] = [releaseFixture(1), releaseFixture(2), releaseFixture(3)];
+  const running = { latestRun: { id: RUN_ID, status: "running" as const, scope: { kind: "full" as const }, error: null } };
+  let endRun: (reply: Reply) => void = () => {};
+  const runEnds = new Promise<Reply>((resolve) => {
+    endRun = resolve;
+  });
+  let gets = 0;
+  const { calls } = stubStory(
+    () => {
+      gets += 1;
+      return gets === 1 ? onShelfStory([r1, r2], running) : onShelfStory([r1, r2, r3], running);
+    },
+    {
+      // The run ends while the dialog is open, so `useRunPoll` fetches the story again.
+      [`GET ${runPath(RUN_ID)}`]: () => runEnds,
+      [`POST ${withdrawalPath}`]: withdrawn(r2.id, 2),
+    },
+  );
+  renderStory();
+
+  const dialog = await openDialog();
+  expect(within(dialog).getByText(dialogText(2))).toBeTruthy();
+  endRun({ status: 200, body: runFixture("draft_ready") });
+  await waitFor(() => expect(storyGets(calls)).toHaveLength(2));
+  await settled();
+  expect(within(dialog).getByText(dialogText(2))).toBeTruthy();
+
+  fireEvent.click(within(dialog).getByRole("button", { name: "Take off the shelf" }));
+  await dialogClosed();
+  const post = posts(calls).filter((c) => c.path === withdrawalPath);
+  expect(post.map((c) => c.body)).toEqual([{ releaseId: r2.id }]);
 });
