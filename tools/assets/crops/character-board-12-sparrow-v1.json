@@ -10,7 +10,8 @@
     "sola": {
       "kind": "character",
       "name": "Sola",
-      "version": 1,
+      "description": "a sparrow",
+      "version": 2,
       "flippable": true
     }
   },

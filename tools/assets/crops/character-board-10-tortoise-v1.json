@@ -10,7 +10,8 @@
     "toma": {
       "kind": "character",
       "name": "Toma",
-      "version": 1,
+      "description": "a tortoise",
+      "version": 2,
       "flippable": true
     }
   },

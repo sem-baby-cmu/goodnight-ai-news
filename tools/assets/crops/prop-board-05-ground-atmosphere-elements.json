@@ -10,49 +10,57 @@
     "grass-patch": {
       "kind": "scenery",
       "name": "Grass patch",
-      "version": 1,
+      "description": "a flat patch of grass on the ground",
+      "version": 2,
       "flippable": true
     },
     "stone-patch": {
       "kind": "scenery",
       "name": "Stone patch",
-      "version": 1,
+      "description": "a flat grey patch of stone on the ground",
+      "version": 2,
       "flippable": true
     },
     "ripples": {
       "kind": "scenery",
       "name": "Ripples",
-      "version": 1,
+      "description": "rings of ripples on water",
+      "version": 2,
       "flippable": true
     },
     "leaves": {
       "kind": "scenery",
       "name": "Leaves",
-      "version": 1,
+      "description": "five autumn leaves",
+      "version": 2,
       "flippable": true
     },
     "stars": {
       "kind": "scenery",
       "name": "Stars",
-      "version": 1,
+      "description": "a group of five yellow stars",
+      "version": 2,
       "flippable": true
     },
     "raindrops": {
       "kind": "scenery",
       "name": "Raindrops",
-      "version": 1,
+      "description": "falling raindrops",
+      "version": 2,
       "flippable": true
     },
     "wind": {
       "kind": "scenery",
       "name": "Wind",
-      "version": 1,
+      "description": "lines of wind with two blown leaves",
+      "version": 2,
       "flippable": true
     },
     "burst": {
       "kind": "scenery",
       "name": "Burst",
-      "version": 1,
+      "description": "short yellow lines of a burst, for a surprise",
+      "version": 2,
       "flippable": true
     }
   },

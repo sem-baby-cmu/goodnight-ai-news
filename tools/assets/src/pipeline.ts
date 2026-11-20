@@ -101,6 +101,7 @@ export async function measureBoard(map: CropMap, opts: { outDir: string }): Prom
       renderer: "webp",
       manifest: {
         kind: asset.kind,
+        ...(asset.description === undefined ? {} : { description: asset.description }),
         poses,
         expressions,
         legal: character ? poses.map((p) => ({ pose: p.id, expression: p.expression! })) : [],

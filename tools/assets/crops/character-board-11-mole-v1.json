@@ -10,7 +10,8 @@
     "puck": {
       "kind": "character",
       "name": "Puck",
-      "version": 1,
+      "description": "a mole",
+      "version": 2,
       "flippable": true
     }
   },

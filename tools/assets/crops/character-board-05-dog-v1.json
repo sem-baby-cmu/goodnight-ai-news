@@ -10,7 +10,8 @@
     "dog": {
       "kind": "character",
       "name": "Dog",
-      "version": 1,
+      "description": "a dog",
+      "version": 2,
       "flippable": true
     }
   },

@@ -10,7 +10,8 @@
     "kiki": {
       "kind": "character",
       "name": "Kiki",
-      "version": 1,
+      "description": "a frog",
+      "version": 2,
       "flippable": true
     }
   },

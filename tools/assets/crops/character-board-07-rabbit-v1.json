@@ -10,7 +10,8 @@
     "rabbit": {
       "kind": "character",
       "name": "Rabbit",
-      "version": 1,
+      "description": "a rabbit",
+      "version": 2,
       "flippable": true
     }
   },

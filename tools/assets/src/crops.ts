@@ -24,6 +24,7 @@ export const CropMapSchema = z.strictObject({
     z.strictObject({
       kind: z.enum(["character", "prop", "scenery"]),
       name: z.string().min(1),
+      description: z.string().min(1).optional(),
       version: int.min(1),
       flippable: z.boolean(),
     }),

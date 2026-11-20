@@ -10,49 +10,57 @@
     "toolbox": {
       "kind": "prop",
       "name": "Toolbox",
-      "version": 1,
+      "description": "a toolbox with a handle",
+      "version": 2,
       "flippable": true
     },
     "gears": {
       "kind": "prop",
       "name": "Gears",
-      "version": 1,
+      "description": "three toy gears",
+      "version": 2,
       "flippable": true
     },
     "screws": {
       "kind": "prop",
       "name": "Screws",
-      "version": 1,
+      "description": "three metal screws",
+      "version": 2,
       "flippable": true
     },
     "battery": {
       "kind": "prop",
       "name": "Battery",
-      "version": 1,
+      "description": "a big battery",
+      "version": 2,
       "flippable": true
     },
     "light-bulb": {
       "kind": "prop",
       "name": "Light bulb",
-      "version": 1,
+      "description": "a light bulb",
+      "version": 2,
       "flippable": true
     },
     "robot-parts": {
       "kind": "prop",
       "name": "Robot parts",
-      "version": 1,
+      "description": "loose robot parts: a spring, a plate, a cable, and a joint",
+      "version": 2,
       "flippable": true
     },
     "wagon": {
       "kind": "prop",
       "name": "Wagon",
-      "version": 1,
+      "description": "a pull wagon with four wheels and a handle",
+      "version": 2,
       "flippable": true
     },
     "machine": {
       "kind": "prop",
       "name": "Machine",
-      "version": 1,
+      "description": "a toy machine on a base, with a dome, a pipe, and three buttons",
+      "version": 2,
       "flippable": true
     }
   },
