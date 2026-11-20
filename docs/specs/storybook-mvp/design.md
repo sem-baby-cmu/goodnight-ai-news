@@ -1180,7 +1180,7 @@ code assigns `instanceId` values and rewrites `target` and `on.tap`.
 The JSON schema sent to the model is built at run time from the frozen
 registry and the template list. `ref`, `pose`, `expression`, `slot`, `sfx`,
 `backdrop`, and `templateId` are enums in that schema. The prompt gives the
-model the `description` of each backdrop and the palettes that it has. An operator's scene does not pass
+model the `description` of each backdrop and the palettes that it has. It also lists each animation primitive with the layer assets that it works on: `all`, or the keys whose renderer the primitive allows, so that a first answer does not fail on `primitive_renderer` (#63). An operator's scene does not pass
 through that schema, so the API also checks the same enums in code. For an
 operator's scene, the enums use the active registry versions at the time of
 the request (owner decision Q3). A `scene` revision records the versions that
