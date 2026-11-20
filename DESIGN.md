@@ -1165,7 +1165,7 @@ button "Open the Player".
 
 | Part | Look |
 | :-- | :-- |
-| "New story" card | At most 440 px wide. A segmented control "Paste text" / "Article URL". One field. A note with the word count and the limit "200 to 2,000 words". The `lg` primary button "Make story" at the bottom right |
+| "New story" card | At most 440 px wide. A segmented control "Paste text" / "Article URL". One field. In URL mode the field has the visible label "Article address" (the boards show no URL-mode label). A note with the word count and the limit "200 to 2,000 words". The `lg` primary button "Make story" at the bottom right. When "Make story" gets no answer, the card shows "No answer came from the server." and then "It is not known if the story was made. Check the stories list before you try again." The stories list is fetched again. If that fetch also gets no answer, the rows on screen stay |
 | Refused input (422) | A "blocked" notice in the card: what was wrong, and "No run was started." The count turns to the "blocked" chip text colour, weight 700 |
 | Cut input | A "working" (information) notice: "The text had 2,640 words. The run uses the first 2,000." It stands on the story view of the new story, on the Desk, between the title row and the "Run" card (section 13.2) |
 | "Stories" card | While the list loads: "Loading the stories." With no story: "No stories yet." A table: Title (link), Run (chip), Pages (one chip for each state with its count), Release, Updated. A story with no release shows "None" in Soft ink and no chip. Its `onShelf` is false too, so `onShelf` alone does not give the chip. A story that has a release and `onShelf: false` was taken off the shelf: it shows its release number and an "Off the shelf" chip (the "missing" state, section 13.2) |

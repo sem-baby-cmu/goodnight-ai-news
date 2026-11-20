@@ -13,7 +13,7 @@ const storyId = uuid(41);
 const runId = uuid(42);
 
 function renderForm() {
-  return renderInRouter(<NewStoryForm />, "/studio", "/studio");
+  return renderInRouter(<NewStoryForm onNoAnswer={() => {}} />, "/studio", "/studio");
 }
 
 const makeStory = () => screen.getByRole("button", { name: "Make story" });

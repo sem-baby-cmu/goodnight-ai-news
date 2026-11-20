@@ -20,21 +20,25 @@ const cellClass = "px-3 py-1 text-[16px]";
 // stops at 440 px, "Stories" grows 2.
 export function StoryListPage() {
   const [load, setLoad] = useState<Load>({ kind: "loading" });
+  const [fetches, setFetches] = useState(0);
 
+  // A fetch that fails keeps the rows already on screen.
   useEffect(() => {
     let active = true;
     void studioApi.listStories().then((r) => {
       if (!active) return;
-      setLoad(r.ok ? { kind: "ok", stories: r.data.stories } : { kind: "error", status: r.status });
+      setLoad((prev) =>
+        r.ok ? { kind: "ok", stories: r.data.stories } : prev.kind === "ok" ? prev : { kind: "error", status: r.status },
+      );
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetches]);
 
   return (
     <div className="flex flex-col gap-[22px] lg:flex-row lg:items-start">
-      <NewStoryForm />
+      <NewStoryForm onNoAnswer={() => setFetches((n) => n + 1)} />
       <Card role="region" aria-labelledby="stories-title" className={cn(cardClass, "min-w-0 lg:flex-[2_1_0]")}>
         <h2 id="stories-title" className={cardTitleClass}>
           Stories

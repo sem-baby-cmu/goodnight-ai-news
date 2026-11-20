@@ -32,8 +32,10 @@ function isHttpUrl(value: string): boolean {
 const segmentClass =
   "h-11 min-w-0 flex-1 rounded-full px-[14px] text-[16px] font-bold text-ink-2 hover:bg-transparent hover:text-ink-2 aria-pressed:bg-card aria-pressed:text-teal-text aria-pressed:shadow-[0_2px_0_var(--seg-edge)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink focus-visible:ring-0 relative focus-visible:after:pointer-events-none focus-visible:after:absolute focus-visible:after:-inset-[9px] focus-visible:after:rounded-full focus-visible:after:border-3 focus-visible:after:border-sun";
 
-// The "New story" card (#23, Exact changes 9; DESIGN.md 13.1).
-export function NewStoryForm() {
+// The "New story" card (#23, Exact changes 9; DESIGN.md 13.1). With no
+// answer from the server it is not known if a story was made, so
+// `onNoAnswer` makes the stories list fetch again.
+export function NewStoryForm({ onNoAnswer }: { onNoAnswer: () => void }) {
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("text");
   const [text, setText] = useState("");
@@ -77,6 +79,7 @@ export function NewStoryForm() {
       }
     }
     setRefused(false);
+    if (r.status === 0) onNoAnswer();
     setRefusal(
       r.status === 0
         ? { title: NO_ANSWER, detail: "It is not known if the story was made. Check the stories list before you try again." }
@@ -110,7 +113,7 @@ export function NewStoryForm() {
           Article URL
         </ToggleGroupItem>
       </ToggleGroup>
-      <label htmlFor={fieldId} className="text-[14px] leading-[1.2] font-bold text-ink">
+      <label htmlFor={fieldId} className="text-[14px] leading-[1.2] font-bold text-ink-3">
         {mode === "text" ? "News text" : "Article address"}
       </label>
       {mode === "text" ? (
@@ -118,7 +121,7 @@ export function NewStoryForm() {
           id={fieldId}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={cn(fieldClass, "min-h-40")}
+          className={cn(fieldClass, "min-h-40 resize-none")}
         />
       ) : (
         <Input
