@@ -19,12 +19,13 @@ type Props = {
   register(instanceId: string, nodes: LayerNodes | null): void;
   // A new inlined SVG node (or null when it is removed). Inserting it makes
   // the layer ready.
-  onSvg(instanceId: string, svg: SVGSVGElement | null): void;
+  onSvg(instanceId: string, svg: SVGSVGElement | null, file?: string): void;
   // The WebP image loaded (ready) or is about to change (not ready).
-  onReady(instanceId: string, ready: boolean): void;
+  onReady(instanceId: string, ready: boolean, file?: string): void;
   // The asset failed. `shown` is the state of the asset still on screen, if
   // any (a failed swap); undefined on a failed first load.
-  onAssetFailed(instanceId: string, url: string, reason: string, shown: LayerState | undefined): void;
+  // `file` is the pose entry file that failed.
+  onAssetFailed(instanceId: string, url: string, reason: string, shown: LayerState | undefined, file: string): void;
 };
 
 const ORIGIN: CSSProperties = { transformOrigin: "0 0", pointerEvents: "none" };
@@ -97,8 +98,9 @@ export function LayerView(props: Props) {
     if (!inline || !entry || svg?.entry.file === entry.file) return;
     let live = true;
     const url = assets.url(ref, entry.file);
+    const failedFile = entry.file;
     const fail = (reason: string) => {
-      if (live) onAssetFailed(instanceId, url, reason, shownNow());
+      if (live) onAssetFailed(instanceId, url, reason, shownNow(), failedFile);
     };
     const loading = { pose: state.pose, expression: state.expression };
     assets.svgText(ref, entry.file).then((text) => {
@@ -126,7 +128,7 @@ export function LayerView(props: Props) {
     if (renderer === "svg-rig") node.style.overflow = "visible";
     host.appendChild(node);
     showExpression(node);
-    onSvg(instanceId, node);
+    onSvg(instanceId, node, svg.entry.file);
     return () => {
       onSvg(instanceId, null);
       node.remove();
@@ -220,13 +222,19 @@ export function LayerView(props: Props) {
                 onLoad={() => {
                   shownState.current = { pose: state.pose, expression: state.expression };
                   setLoadedImage(imageUrl);
-                  onReady(instanceId, true);
+                  onReady(instanceId, true, file);
                 }}
                 onError={() => {
                   // A failed swap goes back to the image on screen; a failed
                   // first load leaves the layer empty.
                   setFailedImage(imageUrl);
-                  onAssetFailed(instanceId, imageUrl, "could not be loaded", loadedImage ? shownNow() : undefined);
+                  onAssetFailed(
+                    instanceId,
+                    imageUrl,
+                    "could not be loaded",
+                    loadedImage ? shownNow() : undefined,
+                    file ?? "",
+                  );
                 }}
               />
             ) : null}
