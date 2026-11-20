@@ -43,4 +43,4 @@ jobs:
         with:
           name: scene-runtime-screenshots
           path: packages/scene-runtime/test/browser/__screenshots__
-          if-no-files-found: ignore
+          if-no-files-found: error

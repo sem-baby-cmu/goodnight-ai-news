@@ -1,7 +1,21 @@
 import { userEvent } from "vitest/browser";
 import { describe, expect, it, vi } from "vitest";
 import { SceneView } from "../../src";
-import { clickAt, id, layer, mount, q, scene, settled, sfxTap, shot, stageBox, testResolver, toCss } from "./helpers";
+import {
+  clickAt,
+  id,
+  layer,
+  mount,
+  q,
+  rerender,
+  scene,
+  settled,
+  sfxTap,
+  shot,
+  stageBox,
+  testResolver,
+  toCss,
+} from "./helpers";
 
 // Hit layer and focus ring in real browsers (#68 Part B, ADR 0017 decisions
 // 10 and 16, DESIGN.md 12.3 and 14). Values from the Acceptance rows. A host
@@ -104,6 +118,36 @@ describe("focus ring", () => {
     ring.style.pointerEvents = "";
     expect(Math.abs(parseFloat(getComputedStyle(ring).borderTopWidth) * s.k - 3)).toBeLessThanOrEqual(0.25);
     await shot(host, "focus-ring-390");
+  });
+
+  // P2 (review of PR #93, item 6): `focused` must be cleared when the layer
+  // stops being tappable or is gone, not only on blur.
+  it("P2 the focus ring does not come back after phase outgoing and current again", async () => {
+    const p = ringPage();
+    const resolver = testResolver();
+    const host = mount(<SceneView page={p} assets={resolver} mode="play" phase="current" />, size);
+    await settled(host);
+    await userEvent.tab();
+    await vi.waitFor(() => expect(host.querySelectorAll(".sv-focus-ring")).toHaveLength(1));
+    rerender(host, <SceneView page={p} assets={resolver} mode="play" phase="outgoing" />);
+    expect(host.querySelectorAll(".sv-focus-ring")).toHaveLength(0);
+    rerender(host, <SceneView page={p} assets={resolver} mode="play" phase="current" />);
+    await new Promise((r) => setTimeout(r, 100));
+    expect(host.querySelectorAll(".sv-focus-ring")).toHaveLength(0);
+  });
+
+  it("P2 the focus ring goes when the focused layer is replaced by a ref change", async () => {
+    const resolver = testResolver();
+    const host = mount(<SceneView page={ringPage()} assets={resolver} mode="play" />, size);
+    await settled(host);
+    await userEvent.tab();
+    await vi.waitFor(() => expect(host.querySelectorAll(".sv-focus-ring")).toHaveLength(1));
+    // Same instanceId and tap, another ref: the layer view mounts again.
+    const next = scene([layer(1, "tall", { x: 0, y: 500, z: 1 })], [sfxTap(1, "L1")]);
+    rerender(host, <SceneView page={next} assets={resolver} mode="play" />);
+    await settled(host);
+    await new Promise((r) => setTimeout(r, 100));
+    expect(host.querySelectorAll(".sv-focus-ring")).toHaveLength(0);
   });
 
   it("PLY-01.S14 a pointer click on the layer shows no focus ring", async () => {

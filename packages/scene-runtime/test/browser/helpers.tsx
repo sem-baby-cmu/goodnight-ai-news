@@ -136,6 +136,13 @@ export function mount(node: ReactNode, style: CSSProperties = {}): HTMLDivElemen
   return host;
 }
 
+// Renders `node` again into the root of `host` (a new page object, a phase).
+export function rerender(host: HTMLDivElement, node: ReactNode): void {
+  const entry = mounted.find((m) => m.host === host);
+  if (!entry) throw new Error("host is not mounted");
+  flushSync(() => entry.root.render(node));
+}
+
 export const q = <T extends Element = HTMLElement>(root: ParentNode, selector: string): T => {
   const el = root.querySelector<T>(selector);
   if (!el) throw new Error(`no ${selector}`);
