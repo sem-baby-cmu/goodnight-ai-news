@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { isLayerManifest } from "@storybook/dsl";
 import { type AssetBuild, AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
+import { meadowSvg } from "../src/meadow";
 import { REPO_ROOT, SOURCES_DIR } from "../src/paths";
 import { checkSvg, MAX_SVG_BYTES, sanitizeSvg } from "../src/svg";
 
@@ -296,5 +297,28 @@ describe("svg sub-command failures (PR #53 review)", () => {
     const out = mkdtempSync(join(tmpdir(), "assets-out-"));
     expect(await main(["svg", "pip", "--version", "2", "--src", src, "--out", out], { log: () => {}, error: (l) => errors.push(l) })).toBe(1);
     expect(errors.join(" ")).toMatch(/svg-rig.*character/);
+  });
+});
+
+describe("checkSvg of a backdrop (#67)", () => {
+  const backdrop: AssetBuild = {
+    key: "meadow",
+    kind: "backdrop",
+    name: "Meadow",
+    version: 1,
+    renderer: "svg",
+    manifest: { kind: "backdrop", description: "an open meadow with soft hills", size: { width: 2400, height: 1200 }, variants: [{ sky: "day", file: "day.svg" }] },
+  };
+  const svg = (viewBox: string) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path fill="#cfe6ee" d="M0 0h2400v1200H0z"/></svg>`;
+
+  it("checkSvg needs the viewBox 0 0 2400 1200 on a backdrop", () => {
+    const issues = checkSvg(svg("0 0 1600 1200"), backdrop, "day.svg");
+    expect(issues.map((i) => i.code)).toEqual(["svg_viewbox"]);
+    expect(issues[0]!.message).toBe('viewBox is "0 0 1600 1200"; it must be "0 0 2400 1200".');
+    expect(checkSvg(svg("0 0 2400 1200"), backdrop, "day.svg")).toEqual([]);
+  });
+
+  it("checkSvg accepts the code-made meadow", () => {
+    expect(checkSvg(meadowSvg("day"), backdrop, "day.svg")).toEqual([]);
   });
 });

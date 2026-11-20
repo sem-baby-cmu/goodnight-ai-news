@@ -3,7 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFil
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { isLayerManifest, manifestFiles } from "@storybook/dsl";
+import { isLayerManifest, manifestFiles, SKY_PALETTES } from "@storybook/dsl";
+import { TEMPLATES } from "@storybook/layout";
 import { type AssetBuild, AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
 import { SOURCES_DIR } from "../src/paths";
@@ -70,6 +71,31 @@ const rows = (db: ReturnType<typeof migratedDb>) =>
     .all() as unknown as Row[];
 const seed = (db: ReturnType<typeof migratedDb>, builds: LocalBuild[]) => db.exec(buildSql({ skip: [], create: builds, errors: [] }, NOW, ids()));
 const DIFFERS = "differs from the published version; publish it as a new version";
+
+// A backdrop build (ADR 0016 section 1): one variant file per sky palette.
+// The SVG is a sanitised 2400 x 1200 flat sky, so it passes every SVG check.
+const BACKDROP_SVG = sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1200" width="2400" height="1200"><rect width="2400" height="1200" fill="#cfe6ee"/></svg>');
+function backdrop(renderer: AssetBuild["renderer"] = "svg", ext = renderer === "webp" ? "webp" : "svg"): AssetBuild {
+  return {
+    key: "meadow",
+    kind: "backdrop",
+    name: "Meadow",
+    version: 1,
+    renderer,
+    manifest: { kind: "backdrop", description: "an open meadow with soft hills", size: { width: 2400, height: 1200 }, variants: SKY_PALETTES.map((sky) => ({ sky, file: `${sky}.${ext}` })) },
+  };
+}
+const backdropBytes = (b: AssetBuild) => Object.fromEntries(names(b).map((n) => [n, BACKDROP_SVG]));
+// The template digest of the approval record: SHA-256 of JSON.stringify(TEMPLATES) (#67 implementation decision).
+const TEMPLATES_DIGEST = sha(JSON.stringify(TEMPLATES));
+const tmpReviews = () => mkdtempSync(join(tmpdir(), "assets-reviews-"));
+// Writes the approval record <reviews>/<key>-v<n>.json of `b`; `edit` replaces fields.
+function writeApprovalRecord(reviews: string, b: LocalBuild, edit: { templates?: string; files?: Record<string, string> } = {}): void {
+  writeFileSync(join(reviews, `${b.key}-v${b.version}.json`), `${JSON.stringify({ key: b.key, version: b.version, templates: TEMPLATES_DIGEST, files: b.files, ...edit }, null, 2)}\n`);
+}
+const MISSING = "meadow v1: the approval meadow-v1.json is missing; review the sheets, then a person runs approve";
+const NOT_MATCH_DAY = "meadow v1: the approval meadow-v1.json does not match day.svg";
+const OTHER_TEMPLATES = "meadow v1: the approval meadow-v1.json has another template digest; the templates changed, so review the sheets again";
 
 describe("planPublish", () => {
   it("planPublish skips an existing equal version", () => {
@@ -302,6 +328,28 @@ describe("loadLocalBuilds", () => {
     expect(() => loadLocalBuilds({ outDir: out, only: ["sfx-pop@1", "pip@3"] })).toThrow(/pip@3/);
     expect(() => loadLocalBuilds({ outDir: out, only: ["pip"] })).toThrow(/<key>@<n>/);
   });
+
+  it("loadLocalBuilds rejects a backdrop variant file without the extension of its renderer, and a backdrop with renderer audio", () => {
+    const mixed = tmpOut();
+    const webpBackdrop = backdrop("webp");
+    if (webpBackdrop.manifest.kind !== "backdrop") throw new Error("not a backdrop");
+    webpBackdrop.manifest.variants[0] = { sky: "day", file: "day.svg" };
+    writeBuild(mixed, webpBackdrop, { "day.svg": BACKDROP_SVG });
+    expect(() => loadLocalBuilds({ outDir: mixed })).toThrow("meadow v1: a backdrop with renderer webp has only .webp variant files; day.svg is not");
+    const audio = tmpOut();
+    const audioBackdrop = backdrop("audio", "svg");
+    writeBuild(audio, audioBackdrop, backdropBytes(audioBackdrop));
+    expect(() => loadLocalBuilds({ outDir: audio })).toThrow("meadow v1: kind backdrop with renderer audio is not allowed");
+  });
+
+  it("loadLocalBuilds ignores the spike texture folder out/spike/", () => {
+    const out = tmpOut();
+    writeBuild(out, webp());
+    // apps/storybook/scripts/make-texture.ts writes one texture file here, with no version folder.
+    mkdirSync(join(out, "spike"), { recursive: true });
+    writeFileSync(join(out, "spike/texture.webp"), "texture bytes");
+    expect(loadLocalBuilds({ outDir: out })).toEqual([local(webp())]);
+  });
 });
 
 describe("runPublish", () => {
@@ -434,6 +482,79 @@ describe("runPublish", () => {
     expect(await runPublish({ mode: "local", outDir: out }, { runWrangler, ...io })).toBe(1);
     expect(io.lines.join("\n")).toMatch(/unexpected output/);
     expect(calls).toHaveLength(1);
+  });
+
+  it("REG-02.S8 a backdrop without a matching approval is not published", async () => {
+    const meadow = backdrop();
+    const bytes = backdropBytes(meadow);
+    const built = local(meadow, bytes);
+    const cases: Array<{ name: string; edit?: { templates?: string; files?: Record<string, string> }; message: string; dryRun?: boolean }> = [
+      { name: "(a) no approval", message: MISSING },
+      { name: "(a) no approval, --dry-run", message: MISSING, dryRun: true },
+      { name: "(b) another digest for day.svg", edit: { files: { ...built.files, "day.svg": sha("other bytes") } }, message: NOT_MATCH_DAY },
+      { name: "(c) another template digest", edit: { templates: sha("other templates") }, message: OTHER_TEMPLATES },
+    ];
+    for (const c of cases) {
+      const out = tmpOut();
+      writeBuild(out, meadow, bytes);
+      const reviews = tmpReviews();
+      if (c.edit) writeApprovalRecord(reviews, built, c.edit);
+      const fake = fakeWrangler();
+      const io = quiet();
+      expect(await runPublish({ mode: "local", outDir: out, reviewsDir: reviews, dryRun: c.dryRun }, { runWrangler: fake.runWrangler, ...io }), c.name).toBe(1);
+      expect(fake.calls, c.name).toEqual([]);
+      expect(io.lines, c.name).toContain(c.message);
+    }
+  });
+
+  it("runPublish checks the approval of a backdrop that is already published with equal bytes", async () => {
+    const meadow = backdrop();
+    const bytes = backdropBytes(meadow);
+    const built = local(meadow, bytes);
+    const out = tmpOut();
+    writeBuild(out, meadow, bytes);
+    const reviews = tmpReviews();
+    writeApprovalRecord(reviews, built, { templates: sha("other templates") });
+    const fake = fakeWrangler();
+    // The skip path: D1 holds meadow v1 with the same renderer, manifest and files.
+    seed(fake.db, [built]);
+    const io = quiet();
+    expect(await runPublish({ mode: "local", outDir: out, reviewsDir: reviews }, { runWrangler: fake.runWrangler, ...io })).toBe(1);
+    expect(fake.calls).toEqual([]);
+    expect(io.lines).toContain(OTHER_TEMPLATES);
+  });
+
+  it("R65 an approved backdrop does not replace the digest check", async () => {
+    const meadow = backdrop();
+    const bytes = backdropBytes(meadow);
+    const out = tmpOut();
+    writeBuild(out, meadow, bytes);
+    const reviews = tmpReviews();
+    writeApprovalRecord(reviews, local(meadow, bytes));
+    const fake = fakeWrangler();
+    seed(fake.db, [local(meadow, { "day.svg": "bytes of another build" })]);
+    const io = quiet();
+    expect(await runPublish({ mode: "local", outDir: out, reviewsDir: reviews }, { runWrangler: fake.runWrangler, ...io })).toBe(1);
+    expect(io.lines.join("\n")).toContain(`asset meadow v1 ${DIFFERS}`);
+    expect(io.lines).not.toContain(MISSING);
+    expect(fake.calls.filter(isPut)).toEqual([]);
+  });
+
+  it("runPublish --only checks the approval only for the backdrops in the set", async () => {
+    const out = tmpOut();
+    writeBuild(out, webp());
+    const meadow = backdrop();
+    writeBuild(out, meadow, backdropBytes(meadow));
+    const reviews = tmpReviews();
+    const fake = fakeWrangler();
+    expect(await runPublish({ mode: "local", outDir: out, only: ["pip@1"], reviewsDir: reviews }, { runWrangler: fake.runWrangler, ...quiet() })).toBe(0);
+    expect(rows(fake.db).map((r) => [r.key, r.version, r.active])).toEqual([["pip", 1, 1]]);
+    // The same folder without --only includes the unapproved meadow.
+    const all = quiet();
+    const second = fakeWrangler();
+    expect(await runPublish({ mode: "local", outDir: out, reviewsDir: reviews }, { runWrangler: second.runWrangler, ...all })).toBe(1);
+    expect(all.lines).toContain(MISSING);
+    expect(second.calls).toEqual([]);
   });
 
   it("publish needs exactly one of --local and --remote", async () => {

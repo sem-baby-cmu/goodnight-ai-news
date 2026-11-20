@@ -1,8 +1,8 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { isLayerManifest } from "@storybook/dsl";
+import { isLayerManifest, SKY_PALETTES } from "@storybook/dsl";
 import { AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
 import { buildSql, loadLocalBuilds, planPublish } from "../src/publish";
@@ -68,4 +68,20 @@ describe("registry", () => {
       expect(manifest.expressions.length, row.key).toBeGreaterThan(0);
     }
   });
+});
+
+describe("backdrop review", () => {
+  it("the review sheet of meadow draws the envelopes of the real assets", async () => {
+    // A copy: the shared folder must keep exactly the 55 board assets.
+    const copy = mkdtempSync(join(tmpdir(), "assets-review-"));
+    cpSync(out, copy, { recursive: true });
+    const quiet = { log: () => {}, error: () => {} };
+    expect(await main(["meadow", "--out", copy], quiet)).toBe(0);
+    expect(await main(["review", "meadow", "--version", "1", "--out", copy], quiet)).toBe(0);
+    const sheet = JSON.parse(readFileSync(join(copy, "review/meadow-v1-envelopes.json"), "utf8")) as { envelopes: Array<{ template: string; slot: string; boxes: unknown[] }> };
+    expect(sheet.envelopes).toHaveLength(47);
+    for (const e of sheet.envelopes) expect(e.boxes.length, `${e.template}/${e.slot}`).toBeGreaterThan(0);
+    for (const sky of SKY_PALETTES) expect(existsSync(join(copy, `review/meadow-v1-${sky}.png`)), sky).toBe(true);
+    expect(readdirSync(out).filter((d) => d !== "review" && existsSync(join(out, d, "v1", "asset.json")))).toHaveLength(55);
+  }, 120_000);
 });
