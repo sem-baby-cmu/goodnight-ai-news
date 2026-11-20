@@ -112,6 +112,12 @@ Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6.
 - Then the scene steps run in page order, and the prompt lists, for pages 1 to n-1, the template, sky, and scenery keys of the `ok` scene head, and "This page: n of N"
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
+### RUN-01.S18 The "Run" card at rest shows the latest run
+- Given a story whose latest run ended (`draft_ready`, `needs_review`, or `failed`), and a story view opened with no `runId`
+- When the operator opens the story view
+- Then the Studio sends one `GET /api/studio/runs/:id` for that run and no second one; the "Run" card has one row for each step kind of the answer, a failed step has a solid "failed" cell, and the card does not say "No run is in progress."
+- Test: spec (to implement)
+
 ## RUN-02 Start a full run from a URL
 
 As the operator, I want to give one URL instead of a pasted text, so that I
