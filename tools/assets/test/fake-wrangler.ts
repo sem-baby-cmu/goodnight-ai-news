@@ -1,6 +1,6 @@
 // A stand-in for `runWrangler`: D1 is an in-memory SQLite database with the
 // #16 migrations applied, R2 is a map. Tests never start the real wrangler.
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { REPO_ROOT } from "../src/paths";
@@ -34,6 +34,13 @@ export function fakeWrangler(opts: FakeOptions = {}) {
     if (opts.failOn?.(args, calls.length - 1)) throw new Error(`wrangler ${args.slice(0, 3).join(" ")} failed`);
     if (args[0] === "r2" && args[1] === "object" && args[2] === "put") {
       objects.set(args[3]!, readFileSync(args[args.indexOf("--file") + 1]!));
+      return "";
+    }
+    // `r2 object get <bucket>/<key> --file <path>` (#74): the real error text.
+    if (args[0] === "r2" && args[1] === "object" && args[2] === "get") {
+      const bytes = objects.get(args[3]!);
+      if (!bytes) throw new Error(`The specified key does not exist: ${args[3]}`);
+      writeFileSync(args[args.indexOf("--file") + 1]!, bytes);
       return "";
     }
     if (args[0] === "d1" && args[1] === "execute") {
