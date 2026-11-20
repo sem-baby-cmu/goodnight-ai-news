@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, type Locator, type Page, type Route, test } from "@playwright/test";
+import { expect, type Locator, type Page, type Response, type Route, test } from "@playwright/test";
 import { makeSilentWav } from "./wav";
 
 // Browser tests of the book route (#22 Part A). Every request under
@@ -778,14 +778,16 @@ test("PLY-07.S3 the Start gate of a Short viewport under 640 px wide is a stack"
 
 test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async ({ page }) => {
   const requests: { url: string; method: string; postData: string | null; type: string }[] = [];
-  const cookies: string[] = [];
+  // The handler has no await, so no promise can reject after the page closes (#112).
+  // The `headerValue` promises are awaited below, while the page is still open.
+  const pending: Promise<string | null>[] = [];
   page.on("request", (r) => {
     if (!r.url().startsWith("data:")) requests.push({ url: r.url(), method: r.method(), postData: r.postData(), type: r.resourceType() });
   });
-  page.on("response", async (r) => {
-    const cookie = await r.headerValue("set-cookie");
-    if (cookie !== null) cookies.push(cookie);
-  });
+  const onResponse = (r: Response) => {
+    pending.push(r.headerValue("set-cookie"));
+  };
+  page.on("response", onResponse);
   await setup(page);
   await open(page);
   await startBook(page);
@@ -795,6 +797,12 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
   await expect(narration(page)).toHaveText(pages[1]!.text);
   await previousButton(page).click();
   await expect(narration(page)).toHaveText(pages[0]!.text);
+
+  // Stop collecting, then read every `Set-Cookie` header. A `headerValue` that rejects
+  // here fails the test: nothing turns an error into "no cookie".
+  page.off("response", onResponse);
+  const values = await Promise.all(pending);
+  const cookies = values.filter((value): value is string => value !== null);
 
   expect(requests.length).toBeGreaterThan(0);
   for (const r of requests) {
