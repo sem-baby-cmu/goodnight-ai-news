@@ -141,7 +141,7 @@ Spec: requirements "Non-functional Requirements" · design "Error Handling"
 - Given a child who opens the shelf, with two books on it
 - When the Player sends `GET /api/shelf` and loads the covers
 - Then the shelf request has no parameter and no body; every other request of the shelf is a `GET` to the content route for a release file of a cover, with no parameter and no body; the shelf sends no personal data and no telemetry
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ## SYS-05 One model adapter, set by configuration
 
