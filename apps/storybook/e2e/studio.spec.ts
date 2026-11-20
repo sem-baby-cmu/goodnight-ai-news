@@ -126,6 +126,11 @@ function pageFrom(p: ReleasePage, number: number, stale?: number, review?: numbe
 
 const storyPages = buildPages(4, { stale: 2, review: 3 });
 
+// The run of `storyDetail.latestRun`. Every `storyWith` child shares it, and
+// the base table of `routeStudioApi` answers it: the Run card reads the latest
+// run at rest (#108).
+const REST_RUN = uuid(0x500);
+
 const storyDetail = {
   story: {
     id: STORY_ID,
@@ -145,7 +150,29 @@ const storyDetail = {
     { id: RELEASE_1, number: 1, createdAt: AT, withdrawn: true },
     { id: RELEASE_2, number: 2, createdAt: AT, withdrawn: false },
   ],
-  latestRun: { id: uuid(0x500), status: "draft_ready", scope: { kind: "full" }, error: null },
+  latestRun: { id: REST_RUN, status: "draft_ready", scope: { kind: "full" }, error: null },
+};
+
+// Implementation decision: `run.storyId` is the story of the page, but the
+// children of `storyWith` share this run; the client does not read `run.storyId`.
+const restRun = {
+  run: {
+    id: REST_RUN,
+    storyId: STORY_ID,
+    scope: { kind: "full" },
+    status: "draft_ready",
+    error: null,
+    createdAt: AT,
+    finishedAt: AT,
+    workflowStatus: null,
+  },
+  steps: [
+    { step: "script", state: "done" },
+    ...storyPages.flatMap((p) => [
+      { step: `scene:${p.pageId}`, state: "done" },
+      { step: `audio:${p.pageId}`, state: "done" },
+    ]),
+  ],
 };
 
 const PREVIEWS = storyPages.length;
@@ -170,6 +197,7 @@ async function routeStudioApi(page: Page, overrides: Record<string, Handler> = {
     "GET /api/studio/stories": jsonAnswer(storyList),
     [`GET /api/studio/stories/${STORY_ID}`]: jsonAnswer(storyDetail),
     "GET /api/studio/registry": jsonAnswer(registry),
+    [`GET /api/studio/runs/${REST_RUN}`]: jsonAnswer(restRun),
     ...overrides,
   };
   await page.route("**/api/studio/**", async (route) => {
@@ -200,6 +228,8 @@ async function settle(page: Page, previews = 0): Promise<void> {
   if (previews > 0) {
     await expect(page.locator('.sv-viewport[data-settled="true"]')).toHaveCount(previews);
   }
+  // The Run card grows when the run answer comes (#108): measure after it.
+  await expect(page.getByText("Loading the run.", { exact: true })).toHaveCount(0);
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
@@ -228,6 +258,7 @@ test("Studio screenshots: the stories list and a story view", async ({ page }, t
     await page.goto(`/studio/stories/${STORY_ID}`);
     await expect(page.getByRole("heading", { name: storyDetail.story.title })).toBeVisible();
     await settle(page, PREVIEWS);
+    await expect(region(page, "Run").getByRole("group", { name: "script: 1 of 1 done, 0 failed" })).toBeVisible();
     // Ghost "Stories" in the nav: 44 px high; 92 px wide = 20 + text + 20 (a wider tolerance: no fill to measure).
     const nav = page.getByRole("navigation", { name: "Studio" });
     await expect(nav).toBeVisible();
@@ -445,7 +476,7 @@ test("Studio frame 2: Start again at rest, focused, and pressed", async ({ page 
   const api = await routeStudioApi(page, {
     [`GET /api/studio/stories/${FAILED_ID}`]: jsonAnswer(failedStory),
     [`GET /api/studio/runs/${FAILED_RUN}`]: jsonAnswer(failedRun),
-    // The click at the end of the press: the server refuses, nothing else is requested.
+    // The click at the end of the press: the server refuses, and the story is fetched again (#108).
     [`POST /api/studio/stories/${FAILED_ID}/runs`]: jsonAnswer({ error: "full_run_not_allowed" }, 409),
   });
   await page.setViewportSize({ width: 1024, height: 768 });
@@ -664,6 +695,8 @@ test("Studio frame 8: the Publish card Blocked, Ready, Done, and with no answer"
   await page.goto(`/studio/stories/${STORY_ID}`);
   await settle(page, PREVIEWS);
   await expect(card.getByText("page 2: stale scene")).toBeVisible();
+  await expect(card.getByText("page 3: audio needs review")).toBeVisible();
+  await expect(card).not.toContainText("needs_review");
   await expect(card.getByRole("button", { name: /^Publish/ })).toBeDisabled();
   await shotOf(card, "studio-publish-blocked-1024x768");
 
@@ -1038,6 +1071,44 @@ test("Studio frame 14: failed take-offs", async ({ page }, testInfo) => {
   await expectTakeoffRows(card);
   await shotOf(card, "studio-takeoff-no-answer-1024x768");
   expect(takeoff.posts).toBe(2);
+
+  expect(api.unrouted).toEqual([]);
+  expect(api.missingFiles).toEqual([]);
+});
+
+test("Studio frame 15: the Run card at rest", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  // No request count here: `src/main.tsx` wraps the app in `StrictMode`, so under
+  // `vite dev` the effects run twice and the run GET can be sent twice. The unit
+  // test of RUN-01.S18 pins "one GET".
+  const api = await routeStudioApi(page, {
+    [`GET /api/studio/stories/${OUTLINE_FAILED_ID}`]: jsonAnswer(outlineFailedStory),
+    [`GET /api/studio/runs/${OUTLINE_FAILED_RUN}`]: jsonAnswer(outlineFailedRun),
+  });
+  await page.setViewportSize({ width: 1024, height: 768 });
+  const run = region(page, "Run");
+
+  // A ready run, opened with no `runId`: the rows of the latest run.
+  await page.goto(`/studio/stories/${STORY_ID}`);
+  await settle(page, PREVIEWS);
+  for (const name of ["script: 1 of 1 done, 0 failed", "scene: 4 of 4 done, 0 failed", "audio: 4 of 4 done, 0 failed"]) {
+    await expect(run.getByRole("group", { name })).toBeVisible();
+  }
+  for (const word of ["done", "waiting", "failed"]) {
+    await expect(run.getByText(word, { exact: true }).first()).toBeVisible();
+  }
+  await expect(page.getByText("No run is in progress.")).toHaveCount(0);
+  await shotOf(run, "studio-run-rest-1024x768");
+
+  // A failed run, opened with no `runId`: a solid failed cell and the failed notice.
+  await page.goto(`/studio/stories/${OUTLINE_FAILED_ID}`);
+  await settle(page, eightPages.length);
+  await expect(run.getByRole("group", { name: "scene: 6 of 8 done, 2 failed" })).toBeVisible();
+  const notice = page.getByRole("alert").filter({ hasText: "The run failed." });
+  await expect(notice).toHaveCount(1);
+  await expect(notice).toContainText("scene, page 3: The model refused.");
+  await expect(page.getByText("No run is in progress.")).toHaveCount(0);
+  await shotOf(run, "studio-run-rest-failed-1024x768");
 
   expect(api.unrouted).toEqual([]);
   expect(api.missingFiles).toEqual([]);

@@ -118,13 +118,102 @@ it("StoryPage polls latestRun when it is running and there is no runId", async (
   expect(screen.getAllByText("Running").length).toBeGreaterThan(0);
 });
 
-it("StoryPage does not poll a latestRun that has ended", async () => {
-  const { calls } = stubStory(
-    storyDetailFixture({ latestRun: { id: RUN_ID, status: "draft_ready", scope: { kind: "full" }, error: null } }),
+it("RUN-01.S18 Run card at rest shows the rows of the ended latest run from one GET and polls nothing", async () => {
+  const [p1, p2] = [pageId(1), pageId(2)];
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  try {
+    const { calls } = stubStory(
+      storyDetailFixture({ latestRun: { id: RUN_ID, status: "draft_ready", scope: { kind: "full" }, error: null } }),
+      {
+        [`GET ${runPath(RUN_ID)}`]: {
+          status: 200,
+          body: runFixture("draft_ready", [
+            { step: "script", state: "done" },
+            { step: `scene:${p1}`, state: "done" },
+            { step: `scene:${p2}`, state: "done" },
+            { step: `audio:${p1}`, state: "done" },
+            { step: `audio:${p2}`, state: "done" },
+          ]),
+        },
+      },
+    );
+    renderStory();
+    for (let i = 0; i < 10; i++) await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(screen.queryByLabelText("script: 1 of 1 done, 0 failed")).not.toBeNull();
+    expect(screen.queryByLabelText("scene: 2 of 2 done, 0 failed")).not.toBeNull();
+    expect(screen.queryByLabelText("audio: 2 of 2 done, 0 failed")).not.toBeNull();
+    expect(screen.queryByText("No run is in progress.")).toBeNull();
+    // One run GET: an ended run is read once. Two story GETs: the load, and the refetch at the run end.
+    expect(calls.filter((c) => c.method === "GET" && c.path === runPath(RUN_ID))).toHaveLength(1);
+    expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("Run card at rest shows a failed latest run with its solid failed cell and the failed notice", async () => {
+  const [p1, p2] = [pageId(1), pageId(2)];
+  stubStory(
+    storyDetailFixture({
+      latestRun: {
+        id: RUN_ID,
+        status: "failed",
+        scope: { kind: "full" },
+        error: {
+          errors: [
+            { runId: RUN_ID, storyId: STORY_ID, pageId: p2, step: `scene:${p2}`, providerStatus: 400, message: "The model refused." },
+          ],
+        },
+      },
+    }),
+    {
+      [`GET ${runPath(RUN_ID)}`]: {
+        status: 200,
+        body: runFixture("failed", [
+          { step: "script", state: "done" },
+          { step: `scene:${p1}`, state: "done" },
+          { step: `scene:${p2}`, state: "failed" },
+          { step: `audio:${p1}`, state: "done" },
+          { step: `audio:${p2}`, state: "pending" },
+        ]),
+      },
+    },
   );
   renderStory();
+
+  await waitFor(() => expect(screen.queryByLabelText("scene: 1 of 2 done, 1 failed")).not.toBeNull());
+  const row = screen.getByLabelText("scene: 1 of 2 done, 1 failed");
+  expect(row.querySelectorAll('[class*="bg-[var(--bad-chip)]"]')).toHaveLength(1);
+  const notice = alertWith("The run failed.") as HTMLElement;
+  expect(notice).toBeDefined();
+  expect(squash(notice.textContent)).toContain(squash("scene, page 2: The model refused."));
+  expect(squash(notice.textContent)).toContain(squash("Open a page to make its scene or audio again."));
+});
+
+it("Run card at rest says Loading the run. and then Lost contact when the run GET fails 5 times", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  try {
+    stubStory(
+      storyDetailFixture({ latestRun: { id: RUN_ID, status: "draft_ready", scope: { kind: "full" }, error: null } }),
+      { [`GET ${runPath(RUN_ID)}`]: { status: 500, body: { error: "internal" } } },
+    );
+    renderStory();
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(statusWith("Loading the run.")).toBeDefined();
+    // 5 failed polls, 2000 ms apart.
+    for (let i = 0; i < 13; i++) await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(alertWith("Lost contact with the run.")).toBeDefined();
+    expect(screen.queryByText("No run is in progress.")).toBeNull();
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("Run card with no latest run says No run is in progress. and sends no run GET", async () => {
+  const { calls } = stubStory(storyDetailFixture());
+  renderStory();
   await screen.findByText("The fox and the river");
-  expect((await screen.findAllByText("Ready")).length).toBeGreaterThan(0);
+  expect(screen.getByText("No run is in progress.")).toBeTruthy();
   await new Promise((resolve) => setTimeout(resolve, 50));
   expect(calls.some((c) => c.path.startsWith("/api/studio/runs/"))).toBe(false);
 });
@@ -322,6 +411,27 @@ it('Start again on 409 full_run_not_allowed shows "A full run is not allowed for
   fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
   await waitFor(() => expect(alertWith("A full run is not allowed for this story.")).toBeDefined());
   expect(searchOf(router).runId).toBeUndefined();
+});
+
+it("Start again on 409 full_run_not_allowed fetches the story again and follows its running latest run", async () => {
+  const activeRun = uuid(324);
+  let answers = 0;
+  const { calls } = stubStory(
+    () => {
+      answers += 1;
+      return answers === 1 ? failedWithoutOutline() : restarted(activeRun);
+    },
+    {
+      [`POST ${storyPath}/runs`]: { status: 409, body: { error: "full_run_not_allowed" } },
+      [`GET ${runPath(activeRun)}`]: { status: 200, body: runFixture("running", [], { id: activeRun }) },
+    },
+  );
+  renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(alertWith("A full run is not allowed for this story.")).toBeDefined());
+  await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
+  await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === runPath(activeRun))).toHaveLength(1));
 });
 
 it("Start again on 409 run_active navigates with the runId of the answer and polls that run", async () => {
