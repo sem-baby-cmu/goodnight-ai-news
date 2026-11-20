@@ -11,6 +11,8 @@ type Props = {
   state: LayerState;
   assets: AssetResolver;
   tappable: boolean;
+  // A layer with an enter fade-in waits hidden until enter starts (#68).
+  hidden: boolean;
   onTap(instanceId: string): void;
   register(instanceId: string, nodes: LayerNodes | null): void;
   // A new inlined SVG node (or null when it is removed). Inserting it makes
@@ -36,7 +38,7 @@ export function entryFor(asset: ResolvedAsset, state: LayerState): PoseEntry | u
 // .sv-layer > .sv-loop > .sv-once > .sv-asset > img | svg
 // SceneView keys it by instanceId and ref, so a new asset mounts a new view.
 export function LayerView(props: Props) {
-  const { layer, asset, state, assets, tappable, onTap, register, onSvg, onReady, onAssetFailed } = props;
+  const { layer, asset, state, assets, tappable, hidden, onTap, register, onSvg, onReady, onAssetFailed } = props;
   const { instanceId, ref, at } = layer;
   // Ids inside the SVG are unique per mount, also across two SceneViews of
   // one page in one document.
@@ -180,7 +182,7 @@ export function LayerView(props: Props) {
       }}
     >
       <div ref={loopRef} className="sv-loop" style={ORIGIN}>
-        <div ref={onceRef} className="sv-once" style={ORIGIN}>
+        <div ref={onceRef} className="sv-once" style={hidden ? { ...ORIGIN, opacity: 0 } : ORIGIN}>
           <div ref={assetRef} className="sv-asset" style={assetStyle} {...tapProps}>
             {imageUrl && failedImage !== imageUrl ? (
               <img

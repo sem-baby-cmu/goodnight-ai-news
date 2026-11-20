@@ -673,7 +673,7 @@ describe("SceneView", () => {
     expect(seen[0]?.origin).toBe("40px 12px");
   });
 
-  it("a repeated tap cancels the earlier animation of the same primitive", () => {
+  it("a repeated tap cancels the earlier animation of the same primitive", async () => {
     show({
       page: page(
         [layer(1, "bun")],
@@ -687,7 +687,7 @@ describe("SceneView", () => {
         ],
       ),
     });
-    loadImages();
+    await settle();
     fireEvent.click(assetOf(1));
     fireEvent.click(assetOf(1));
     const byProperty = (p: string) => callsOn(onceOf(1)).filter((c) => p in (c.keyframes as object));
@@ -1262,6 +1262,39 @@ describe("SceneView frame, fit, still mode, phases and load report (#68)", () =>
     expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
       { key: id(1), ref: "ghost", url: null, reason: 'has unknown ref "ghost"' },
     ]);
+  });
+
+  it("a new page object with the same layers carries the loaded and failed results (implementation decision ID12)", async () => {
+    const onAssetsSettled = vi.fn();
+    // flat: its svg has a zero-width viewBox, so the sanitiser refuses it.
+    const make = (first = "tree") => page([layer(1, first), layer(2, "bun"), layer(3, "flat")]);
+    const failed = [{ key: id(3), ref: "flat", url: "https://cdn.test/flat/flat.svg", reason: "is not a valid SVG" }];
+    const view = show({ page: make(), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0]).toEqual({ failed });
+    const treeCalls = () => view.svgText.mock.calls.filter(([ref]) => ref === "tree").length;
+    const before = treeCalls();
+
+    // A structurally equal new page object: reset on identity (invariant 9),
+    // settled again from the views that stay mounted, with no load event.
+    view.again({ page: make(), onAssetsSettled });
+    await act(async () => {});
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed });
+    expect(treeCalls()).toBe(before);
+
+    // Layer 1 changes its ref to another svg asset: its view mounts again, and
+    // the report waits until the new file loads.
+    const release = hold(view.svgText, "owl", "owl-happy.svg");
+    view.again({ page: make("owl"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    await release();
+    await settle();
+    expect(svgOf(1)).not.toBeNull();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(3);
+    expect(onAssetsSettled.mock.calls[2]?.[0]).toEqual({ failed });
   });
 
   it("a failed swap is not in the report", async () => {
