@@ -1,4 +1,4 @@
-import { type AssetManifest, ReleaseManifestSchema, ReleasePageSchema } from "@storybook/dsl";
+import { ReleaseManifestSchema, ReleasePageSchema, manifestFiles } from "@storybook/dsl";
 import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
@@ -73,10 +73,6 @@ function recordingEnv(onFirstPut?: () => Promise<void>) {
     },
   });
   return { env: { ...env, BUCKET: bucket } as Env, keys };
-}
-
-function manifestFiles(m: AssetManifest): string[] {
-  return m.kind === "sfx" ? [m.file] : [...new Set(m.poses.map((p) => p.file))];
 }
 
 // The blocked tests compare the `releases/` keys before and after, because
@@ -476,5 +472,38 @@ describe("publishStory: releases", () => {
     expect(page.assets["test-bear"]!.base).toBe("assets/test-bear/v1/");
     const page2 = ReleasePageSchema.parse(await readJson(`releases/${second.releaseId}/pages/${page1}.json`));
     expect(page2.assets["test-bear"]!.base).toBe("assets/test-bear/v2/");
+  });
+
+  it("PUB-01.S10 a release holds the backdrop of each page", async () => {
+    const db = getDb(env.DB);
+    const seeded = await seedPublishableStory(env);
+    const [page1, page2] = [seeded.pageIds[0]!, seeded.pageIds[1]!];
+    const saved = await saveHumanRevision(db, {
+      storyId: seeded.storyId,
+      kind: "scene",
+      pageId: page2,
+      content: { ...testScene(), backdrop: "riverbank" },
+      basis: { [`page_text:${page2}`]: seeded.text[page2]! },
+      assetVersions: { ...SCENE_ASSET_VERSIONS, riverbank: 1 },
+      basedOn: seeded.scene[page2]!,
+    });
+    expect(saved.status).toBe("moved");
+    const result = await publishStory(env, seeded.storyId);
+    if (!result.ok) throw new Error(`publish failed: ${JSON.stringify(result)}`);
+    const root = `releases/${result.releaseId}/`;
+
+    // The whole version: also `day` and `cloudy`, which no page uses (pages use `sky: "night"`).
+    const meadow = ["cloudy.svg", "day.svg", "dusk.svg", "night.svg"].map((f) => `${root}assets/meadow/v1/${f}`);
+    expect(await listKeys(`${root}assets/meadow/v1/`)).toEqual(meadow);
+    const riverbank = ["day.webp", "dusk.webp", "night.webp"].map((f) => `${root}assets/riverbank/v1/${f}`);
+    expect(await listKeys(`${root}assets/riverbank/v1/`)).toEqual(riverbank);
+
+    const p1 = ReleasePageSchema.parse(await readJson(`${root}pages/${page1}.json`));
+    expect(p1.scene.backdrop).toBe("meadow");
+    expect(p1.assets).toHaveProperty("meadow");
+    expect(p1.assets).not.toHaveProperty("riverbank");
+    const p2 = ReleasePageSchema.parse(await readJson(`${root}pages/${page2}.json`));
+    expect(p2.scene.backdrop).toBe("riverbank");
+    expect(p2.assets).toHaveProperty("riverbank");
   });
 });

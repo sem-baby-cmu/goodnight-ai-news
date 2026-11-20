@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type AssetManifest, AssetManifestSchema, selectPoseEntry } from "./registry";
+import { type AssetManifest, AssetManifestSchema, isLayerManifest, manifestFiles, selectPoseEntry } from "./registry";
 import { registry } from "./test/fixtures";
 
 const box = { x: 0, y: 0, w: 10, h: 10 };
@@ -39,7 +39,7 @@ describe("registry", () => {
 
   // A rect with no area gives layout scale Infinity and no issue (#47).
   function withRect(field: "box" | "face", rect: { x: number; y: number; w: number; h: number }) {
-    if (owl.kind === "sfx") throw new Error("owl is a visual asset");
+    if (!isLayerManifest(owl)) throw new Error("owl is a layer asset");
     const first = { ...owl.poses[0]!, [field]: rect };
     return { ...owl, poses: [first, ...owl.poses.slice(1)] };
   }
@@ -72,6 +72,60 @@ describe("registry", () => {
 
   it("AssetManifestSchema still accepts a small positive box and face", () => {
     expect(AssetManifestSchema.safeParse(withRect("face", { x: 1, y: 1, w: 0.5, h: 0.5 })).success).toBe(true);
+  });
+
+  // A backdrop manifest (ADR 0016, design.md "Data Models").
+  function meadow(): Record<string, unknown> {
+    return structuredClone(registry().assets.meadow!.manifest) as unknown as Record<string, unknown>;
+  }
+
+  // The unchanged manifest parses, so the change alone causes the rejection.
+  function rejectsBackdrop(change: Record<string, unknown>): void {
+    expect(AssetManifestSchema.safeParse(meadow()).success).toBe(true);
+    expect(AssetManifestSchema.safeParse({ ...meadow(), ...change }).success).toBe(false);
+  }
+
+  it("AssetManifestSchema accepts the meadow backdrop manifest", () => {
+    expect(AssetManifestSchema.safeParse(meadow()).success).toBe(true);
+  });
+
+  it("AssetManifestSchema rejects a backdrop with no variant", () => {
+    rejectsBackdrop({ variants: [] });
+  });
+
+  it("AssetManifestSchema rejects a backdrop with two variants for one sky", () => {
+    const variants = [
+      { sky: "day", file: "day.svg" },
+      { sky: "day", file: "day-2.svg" },
+    ];
+    rejectsBackdrop({ variants });
+  });
+
+  it("AssetManifestSchema rejects a backdrop that is not 2400 by 1200", () => {
+    rejectsBackdrop({ size: { width: 1600, height: 1200 } });
+  });
+
+  it("AssetManifestSchema rejects a backdrop with an unknown key", () => {
+    rejectsBackdrop({ extra: 1 });
+  });
+
+  it("AssetManifestSchema rejects a backdrop variant with an unknown sky", () => {
+    rejectsBackdrop({ variants: [{ sky: "storm", file: "storm.svg" }] });
+  });
+
+  it("manifestFiles returns every variant file of a backdrop", () => {
+    expect(manifestFiles(registry().assets.meadow!.manifest)).toEqual(["day.svg", "cloudy.svg", "dusk.svg", "night.svg"]);
+  });
+
+  it("isLayerManifest is true only for a character, prop, or scenery manifest", () => {
+    const assets = registry().assets;
+    expect(isLayerManifest(assets.meadow!.manifest)).toBe(false);
+    expect(isLayerManifest(assets.boing!.manifest)).toBe(false);
+    expect(isLayerManifest(assets.pip!.manifest)).toBe(true);
+  });
+
+  it("selectPoseEntry returns undefined for a backdrop", () => {
+    expect(selectPoseEntry(registry().assets.meadow!.manifest)).toBeUndefined();
   });
 
   it("selectPoseEntry picks the entry with pose and expression", () => {

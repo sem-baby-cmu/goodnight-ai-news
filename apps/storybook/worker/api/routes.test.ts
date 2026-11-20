@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { type AssetManifest, type Outline, type PageScene, PageSceneSchema } from "@storybook/dsl";
+import { type AssetManifest, type Outline, type PageScene, PageSceneSchema, isLayerManifest } from "@storybook/dsl";
 import { TEMPLATES } from "@storybook/layout";
 import { and, eq } from "drizzle-orm";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -775,6 +775,7 @@ describe("Studio API routes", () => {
     expect(a).toMatchObject({ ref: "test-bear", pose: "stand", expression: "happy" });
     const scene = {
       templateId: "two-friends",
+      backdrop: "meadow",
       sky: "night",
       layers: [
         { instanceId: a.instanceId, kind: "character", ref: "test-bunny", pose: "wave", expression: "calm", slot: "left", flip: false },
@@ -789,7 +790,7 @@ describe("Studio API routes", () => {
     const body = RevisionResponseSchema.parse(await res.json());
     expect(body.revision).toMatchObject({ kind: "scene", origin: "human", status: "ok" });
     expect(body.revision.basis).toEqual({ [`page_text:${p1}`]: await textHeadId(d.storyId, p1) });
-    expect(body.revision.assetVersions).toEqual({ "test-ball": 1, "test-bunny": 1 });
+    expect(body.revision.assetVersions).toEqual({ "test-ball": 1, "test-bunny": 1, meadow: 1 });
     const saved = PageSceneSchema.parse(body.revision.content);
     expect(saved.templateId).toBe("two-friends");
     expect(saved.layers.map((l) => l.ref)).toEqual(["test-bunny", "test-ball"]);
@@ -838,6 +839,7 @@ describe("Studio API routes", () => {
     // on top of the bear that the engine places and shrinks there.
     const scene = {
       templateId: "two-friends",
+      backdrop: "meadow",
       sky: "day",
       layers: [
         { instanceId: a.instanceId, kind: "character", ref: "test-bear", pose: "stand", expression: "happy", slot: "left" },
@@ -981,6 +983,7 @@ describe("Studio API routes", () => {
         renderer: "webp",
         base: "/api/studio/files/assets/test-bear/v1/",
       });
+      expect(body.assets.find((a) => a.key === "meadow")).toMatchObject({ kind: "backdrop", renderer: "svg" });
       expect(body.templates).toEqual(TEMPLATES);
     } finally {
       await restore();
@@ -1169,7 +1172,7 @@ describe("Studio API routes", () => {
     expect((await readStory(d.storyId)).head(`scene:${p1}`)!.assetVersions).toMatchObject({ "test-bear": 1 });
     // Version 2 adds a pose "sit" that version 1 does not have.
     const restore = await activateVersion2("test-bear", (m) => {
-      if (m.kind === "sfx") return m;
+      if (!isLayerManifest(m)) return m;
       const stand = m.poses.find((e) => e.id === "stand" && e.expression === "happy")!;
       return { ...m, poses: [...m.poses, { ...stand, id: "sit", file: "sit-happy.webp" }], legal: [...m.legal, { pose: "sit", expression: "happy" }] };
     });
@@ -1179,7 +1182,7 @@ describe("Studio API routes", () => {
       const res = await call(fakeEnv().env, "PUT", scenePath(d.storyId, p1), { scene, basedOn: current.id });
       expect(res.status).toBe(200);
       const body = RevisionResponseSchema.parse(await res.json());
-      expect(body.revision.assetVersions).toEqual({ "test-bear": 2, "test-pop": 1 });
+      expect(body.revision.assetVersions).toEqual({ "test-bear": 2, "test-pop": 1, meadow: 1 });
       expect(PageSceneSchema.parse(body.revision.content).layers[0]!.pose).toBe("sit");
     } finally {
       await restore();
@@ -1220,10 +1223,35 @@ describe("Studio API routes", () => {
       const body = RevisionResponseSchema.parse(await res.json());
       expect(body.revision.origin).toBe("human");
       expect(body.revision.content).toEqual(current.content);
-      expect(body.revision.assetVersions).toEqual({ "test-bear": 2, "test-pop": 1 });
+      expect(body.revision.assetVersions).toEqual({ "test-bear": 2, "test-pop": 1, meadow: 1 });
     } finally {
       await restore();
     }
+  });
+
+  it("EDT-03.S23 the operator changes the backdrop of a page", async () => {
+    const d = await draftStory();
+    const p1 = d.pageIds[0]!;
+    const current = await sceneHead(d.storyId, p1);
+    expect(current.content.backdrop).toBe("meadow");
+    const scene = { ...structuredClone(current.content), backdrop: "riverbank", sky: "day" as const };
+    const res = await call(fakeEnv().env, "PUT", scenePath(d.storyId, p1), { scene, basedOn: current.id });
+    expect(res.status).toBe(200);
+    const body = RevisionResponseSchema.parse(await res.json());
+    expect(body.revision).toMatchObject({ kind: "scene", origin: "human", status: "ok" });
+    expect(PageSceneSchema.parse(body.revision.content).backdrop).toBe("riverbank");
+    expect(body.revision.assetVersions!.riverbank).toBe(1);
+    expect(body.revision.assetVersions).not.toHaveProperty("meadow");
+
+    // `riverbank` has no `cloudy` variant.
+    const before = await revisionCount(d.storyId);
+    const cloudy = { ...scene, sky: "cloudy" as const };
+    const bad = await call(fakeEnv().env, "PUT", scenePath(d.storyId, p1), { scene: cloudy, basedOn: body.revision.id });
+    expect(bad.status).toBe(422);
+    const err = ErrorSchema.parse(await bad.json());
+    expect(err.error).toBe("invalid_scene");
+    expect((err.issues as Array<{ code: string }>).map((i) => i.code)).toContain("backdrop_sky_mismatch");
+    expect(await revisionCount(d.storyId)).toBe(before);
   });
 
   it("EDT-03.S20 PUT scene with a malformed layer ID returns 422 unknown_instance", async () => {

@@ -25,6 +25,17 @@ export function registry(): RegistrySnapshot {
     assets: {
       bear: { kind: "character", renderer: "webp", version: 1, manifest: character },
       bunny: { kind: "character", renderer: "webp", version: 1, manifest: character },
+      meadow: {
+        kind: "backdrop",
+        renderer: "svg",
+        version: 1,
+        manifest: {
+          kind: "backdrop",
+          description: "an open meadow with soft hills",
+          size: { width: 2400, height: 1200 },
+          variants: (["day", "cloudy", "dusk", "night"] as const).map((sky) => ({ sky, file: `${sky}.svg` })),
+        },
+      },
     },
   };
 }
@@ -32,6 +43,7 @@ export function registry(): RegistrySnapshot {
 export function okScene(): unknown {
   return {
     templateId: "two-friends",
+    backdrop: "meadow",
     sky: "day",
     layers: [
       { instanceId: BEAR, kind: "character", ref: "bear", pose: "stand", expression: "happy", slot: "left" },

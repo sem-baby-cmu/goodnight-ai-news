@@ -79,6 +79,38 @@ export function registry(): RegistrySnapshot {
         version: 1,
         manifest: { kind: "sfx", file: "boing.mp3", durationMs: 400 },
       },
+      // Backdrops (ADR 0016): `meadow` has every palette, `pond` only `day`
+      // and `night`.
+      meadow: {
+        kind: "backdrop",
+        renderer: "svg",
+        version: 1,
+        manifest: {
+          kind: "backdrop",
+          description: "an open meadow with soft hills",
+          size: { width: 2400, height: 1200 },
+          variants: [
+            { sky: "day", file: "day.svg" },
+            { sky: "cloudy", file: "cloudy.svg" },
+            { sky: "dusk", file: "dusk.svg" },
+            { sky: "night", file: "night.svg" },
+          ],
+        },
+      },
+      pond: {
+        kind: "backdrop",
+        renderer: "webp",
+        version: 1,
+        manifest: {
+          kind: "backdrop",
+          description: "a small pond in a field",
+          size: { width: 2400, height: 1200 },
+          variants: [
+            { sky: "day", file: "day.webp" },
+            { sky: "night", file: "night.webp" },
+          ],
+        },
+      },
     },
   };
 }
@@ -123,6 +155,7 @@ export function ctx(): { registry: RegistrySnapshot; templates: LayoutTemplate[]
 export function validScene(): PageScene {
   return {
     templateId: "two-friends",
+    backdrop: "meadow",
     sky: "day",
     layers: [
       { instanceId: PIP_ID, kind: "character", ref: "pip", pose: "stand", expression: "happy", slot: "left" },

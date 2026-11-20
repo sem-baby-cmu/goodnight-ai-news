@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFil
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { isLayerManifest, manifestFiles } from "@storybook/dsl";
 import { type AssetBuild, AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
 import { SOURCES_DIR } from "../src/paths";
@@ -38,7 +39,7 @@ function sfx(key = "sfx-pop"): AssetBuild {
 }
 const pipV2 = (): AssetBuild => AssetBuildSchema.parse(JSON.parse(readFileSync(join(SOURCES_DIR, "pip/v2/asset.json"), "utf8")));
 const pipSvg = () => readFileSync(join(SOURCES_DIR, "pip/v2/pip.svg"), "utf8");
-const names = (b: AssetBuild) => (b.manifest.kind === "sfx" ? [b.manifest.file] : [...new Set(b.manifest.poses.map((p) => p.file))]);
+const names = (b: AssetBuild) => manifestFiles(b.manifest);
 const defaultBytes = (b: AssetBuild, name: string) => `bytes of ${b.key} v${b.version} ${name}`;
 // A local build with the digests that writeBuild gives its files by default.
 const local = (b: AssetBuild, bytes: Record<string, string> = {}): LocalBuild => ({
@@ -79,7 +80,7 @@ describe("planPublish", () => {
   it("planPublish errors on an existing version with a different manifest and writes nothing", async () => {
     const out = tmpOut();
     const changed = webp();
-    if (changed.manifest.kind === "sfx") throw new Error("not sfx");
+    if (!isLayerManifest(changed.manifest)) throw new Error("not a layer asset");
     changed.manifest.flippable = false;
     writeBuild(out, changed);
     const fake = fakeWrangler();
@@ -254,7 +255,7 @@ describe("loadLocalBuilds", () => {
     writeFileSync(join(out, "ghost/v1/asset.json"), JSON.stringify(webp("ghost")));
     writeBuild(out, { ...sfx("sfx-pop"), renderer: "webp" });
     const badRig = pipV2();
-    if (badRig.manifest.kind === "sfx") throw new Error("not sfx");
+    if (!isLayerManifest(badRig.manifest)) throw new Error("not a layer asset");
     badRig.manifest.expressions.push("sleepy");
     writeBuild(out, badRig, { "pip.svg": sanitizeSvg(pipSvg()) });
     mkdirSync(join(out, "broken/v1"), { recursive: true });

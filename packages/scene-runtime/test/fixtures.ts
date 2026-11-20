@@ -213,5 +213,5 @@ export function page(
   interactions: Interaction[] = [],
   sky: PageScene["sky"] = "night",
 ): PageScene {
-  return { templateId: "t-1", sky, layers, animations, interactions };
+  return { templateId: "t-1", backdrop: "meadow", sky, layers, animations, interactions };
 }

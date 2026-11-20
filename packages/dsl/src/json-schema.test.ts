@@ -117,6 +117,20 @@ describe("json-schema", () => {
     expect(enumsOf(schema2, "slot")).toEqual([["bust", ...slots]]);
   });
 
+  it("buildSceneJsonSchema backdrop enum comes from the registry backdrops", () => {
+    const schema = buildSceneJsonSchema(ctx());
+    expect(enumsOf(schema, "backdrop")).toEqual([["meadow", "pond"]]);
+  });
+
+  it("buildSceneJsonSchema throws without backdrops", () => {
+    const reg = registry();
+    delete reg.assets.meadow;
+    delete reg.assets.pond;
+    expect(() => buildSceneJsonSchema({ registry: reg, templates: [twoFriends()] })).toThrow(
+      "cannot build the scene schema: no backdrop values",
+    );
+  });
+
   it("buildSceneJsonSchema omits play_sfx without sfx assets", () => {
     const reg = registry();
     delete reg.assets.boing;

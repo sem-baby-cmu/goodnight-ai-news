@@ -122,6 +122,41 @@ describe("validateScene", () => {
     expectIssue(issues, "asset_kind_mismatch", "layers.0.kind");
   });
 
+  // Backdrop checks (ADR 0016 section 1).
+
+  it("RUN-03.S15 a backdrop without a variant for the sky fails validation", () => {
+    const dusk = check((s) => {
+      s.backdrop = "pond";
+      s.sky = "dusk";
+    });
+    expect(dusk).toHaveLength(1);
+    expect(dusk[0]).toMatchObject({ path: "sky", code: "backdrop_sky_mismatch" });
+    const night = check((s) => {
+      s.backdrop = "pond";
+      s.sky = "night";
+    });
+    expect(night).toEqual([]);
+  });
+
+  it("schema: a scene without backdrop fails", () => {
+    expectIssue(check((s) => void delete raw(s).backdrop), "schema", "backdrop");
+  });
+
+  it("backdrop: an unknown asset fails", () => {
+    expectIssue(check((s) => void (s.backdrop = "ghost")), "unknown_asset", "backdrop");
+  });
+
+  it("backdrop: an asset that is not a backdrop fails, with no sky check", () => {
+    const issues = check((s) => void (s.backdrop = "tree"));
+    expectIssue(issues, "asset_kind_mismatch", "backdrop");
+    expect(issues.map((i) => i.code)).not.toContain("backdrop_sky_mismatch");
+  });
+
+  it("a layer that references a backdrop fails with asset_kind_mismatch", () => {
+    const issues = check((s) => void (s.layers[3]!.ref = "meadow"));
+    expectIssue(issues, "asset_kind_mismatch", "layers.3.kind");
+  });
+
   it("RUN-03.S5 layer kind must match slot accepts", () => {
     const issues = check((s) => {
       ball(s).slot = "left";

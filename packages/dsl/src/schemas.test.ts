@@ -63,6 +63,12 @@ describe("schemas", () => {
     expect(PageSceneSchema.safeParse({ ...validScene(), sky: "storm" }).success).toBe(false);
   });
 
+  it("PageSceneSchema rejects a scene without backdrop", () => {
+    const scene = validScene() as unknown as Record<string, unknown>;
+    delete scene.backdrop;
+    expect(PageSceneSchema.safeParse(scene).success).toBe(false);
+  });
+
   it("LayerSchema checks at", () => {
     const layer = validScene().layers[0]!;
     expect(LayerSchema.safeParse({ ...layer, at: { x: 1, y: 2, scale: 0.5, z: 3 } }).success).toBe(true);
@@ -97,6 +103,22 @@ describe("schemas", () => {
     placed.layers[3] = { ...placed.layers[3]! };
     delete placed.layers[3].at;
     expect(ReleasePageSchema.safeParse({ ...page, scene: placed }).success).toBe(false);
+  });
+
+  it("ReleasePageSchema rejects a scene without backdrop", () => {
+    const assets = Object.fromEntries(
+      Object.entries(registry().assets).map(([key, a]) => [
+        key,
+        { renderer: a.renderer, manifest: a.manifest, base: `assets/${key}/v${a.version}/` },
+      ]),
+    );
+    const placed = validScene();
+    placed.layers = placed.layers.map((l, z) => ({ ...l, at: { x: 100, y: 200, scale: 1, z } }));
+    const page = { pageId: id(1), text: "Pip waves.", audio: "audio/p1.mp3", scene: placed, assets };
+    expect(ReleasePageSchema.safeParse(page).success).toBe(true);
+    const scene = { ...placed } as Record<string, unknown>;
+    delete scene.backdrop;
+    expect(ReleasePageSchema.safeParse({ ...page, scene }).success).toBe(false);
   });
 
   it("ReleaseManifestSchema checks format, version, and number", () => {

@@ -1,4 +1,4 @@
-import { AssetManifestSchema, type AssetManifest } from "@storybook/dsl";
+import { AssetManifestSchema, type AssetManifest, manifestFiles } from "@storybook/dsl";
 import { type Db, getDb } from "../db/client";
 import { newId } from "../db/ids";
 import { asset, assetVersion } from "../db/schema";
@@ -22,7 +22,12 @@ function characterManifest(): AssetManifest {
   };
 }
 
-const SEED: Array<{ key: string; kind: "character" | "prop" | "scenery" | "sfx"; renderer: "webp" | "audio"; manifest: () => AssetManifest }> = [
+const SEED: Array<{
+  key: string;
+  kind: "character" | "prop" | "scenery" | "backdrop" | "sfx";
+  renderer: "webp" | "svg" | "audio";
+  manifest: () => AssetManifest;
+}> = [
   { key: "test-bear", kind: "character", renderer: "webp", manifest: characterManifest },
   { key: "test-bunny", kind: "character", renderer: "webp", manifest: characterManifest },
   {
@@ -38,11 +43,30 @@ const SEED: Array<{ key: string; kind: "character" | "prop" | "scenery" | "sfx";
     manifest: () => ({ kind: "scenery", poses: [{ id: "default", file: "default.webp", foot, box }], expressions: [], legal: [], flippable: false }),
   },
   { key: "test-pop", kind: "sfx", renderer: "audio", manifest: () => ({ kind: "sfx", file: "pop.mp3", durationMs: 300 }) },
+  // Hand-written backdrops (ADR 0016 "Decisions" A). #67 builds the real assets.
+  {
+    key: "meadow",
+    kind: "backdrop",
+    renderer: "svg",
+    manifest: () => ({
+      kind: "backdrop",
+      description: "an open meadow with soft hills",
+      size: { width: 2400, height: 1200 },
+      variants: (["day", "cloudy", "dusk", "night"] as const).map((sky) => ({ sky, file: `${sky}.svg` })),
+    }),
+  },
+  {
+    key: "riverbank",
+    kind: "backdrop",
+    renderer: "webp",
+    manifest: () => ({
+      kind: "backdrop",
+      description: "a grassy bank by a wide, slow river",
+      size: { width: 2400, height: 1200 },
+      variants: (["day", "dusk", "night"] as const).map((sky) => ({ sky, file: `${sky}.webp` })),
+    }),
+  },
 ];
-
-function manifestFiles(m: AssetManifest): string[] {
-  return m.kind === "sfx" ? [m.file] : [...new Set(m.poses.map((p) => p.file))];
-}
 
 // Inserts one active version of each test asset, and one small R2 object per
 // manifest file. Safe to call more than once.
