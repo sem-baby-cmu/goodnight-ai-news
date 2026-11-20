@@ -803,6 +803,7 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
     expect(r.postData, r.url).toBeNull();
     expect(url.origin, r.url).toBe("http://localhost:4317");
     expect(url.pathname.startsWith("/api/"), r.url).toBe(false);
+    expect(url.search, r.url).toBe("");
     if (url.pathname.startsWith("/content/")) expect(url.pathname.startsWith(ROOT), r.url).toBe(true);
   }
   expect(cookies).toEqual([]);
@@ -812,4 +813,41 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
     session: sessionStorage.length,
   }));
   expect(stored).toEqual({ cookie: "", local: 0, session: 0 });
+});
+
+// Screenshots of the Part A frames for the PR (#22, line 313). CI uploads
+// test-results/screenshots/ as the `player-screenshots` artifact. The
+// Chromium project only: one set of frames keeps the run short.
+const SHOTS = path.join(import.meta.dirname, "..", "test-results", "screenshots");
+const shot = (page: Page, name: string) =>
+  page.screenshot({ path: path.join(SHOTS, `${name}.png`), animations: "disabled" });
+
+test("Part A screenshots: Ready, reading page 1, and Resting", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  test.setTimeout(120_000);
+  await setup(page);
+  for (const [width, height] of [
+    [1194, 834],
+    [900, 600],
+    [390, 844],
+    [568, 320],
+    [667, 375],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await open(page);
+    await ready(page);
+    await shot(page, `ready-${width}x${height}`);
+    await startButton(page).click();
+    await expect(narration(page)).toHaveText(pages[0]!.text);
+    await shot(page, `reading-page-1-${width}x${height}`);
+  }
+  for (const [width, height] of [
+    [1194, 834],
+    [390, 844],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await open(page, MISSING_ID);
+    await expect(restingLine(page)).toBeVisible();
+    await shot(page, `resting-${width}x${height}`);
+  }
 });
