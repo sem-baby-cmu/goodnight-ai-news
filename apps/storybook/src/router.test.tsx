@@ -3,6 +3,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { createAppRouter } from "@/router";
 import { installBrowserStubs } from "@/player/testStubs";
+import { routes, storyListFixture, stubFetch } from "@/studio/fixtures";
 
 // Vitest globals are off, so Testing Library does not clean up by itself.
 afterEach(() => {
@@ -24,9 +25,10 @@ function renderAt(path: string) {
   return testRouter;
 }
 
-it("/studio renders the Studio placeholder", async () => {
+it("/studio renders the story list", async () => {
+  stubFetch(routes({ "GET /api/studio/stories": { status: 200, body: storyListFixture([]) } }));
   renderAt("/studio");
-  expect(await screen.findByTestId("studio-placeholder")).toBeTruthy();
+  expect(await screen.findByRole("button", { name: "Paste text" })).toBeTruthy();
 });
 
 it("/read/$releaseId passes the id", async () => {
@@ -43,7 +45,8 @@ it("/read/$releaseId passes the id", async () => {
 });
 
 it("/studio/abc puts /studio in the address", async () => {
+  stubFetch(routes({ "GET /api/studio/stories": { status: 200, body: storyListFixture([]) } }));
   const testRouter = renderAt("/studio/abc");
-  expect(await screen.findByTestId("studio-placeholder")).toBeTruthy();
+  expect(await screen.findByRole("button", { name: "Paste text" })).toBeTruthy();
   await waitFor(() => expect(testRouter.state.location.pathname).toBe("/studio"));
 });
