@@ -95,6 +95,17 @@ export const StoryListResponseSchema = z.object({
       onShelf: z.boolean(),
       // The number of the pointer's release; null for no pointer or a broken one.
       publishedReleaseNumber: z.number().int().nullable(),
+      // The status of the latest run, as `latestRun` of GET /stories/:id (#71).
+      latestRunStatus: RUN_STATUS.nullable(),
+      // The number of pages in each page state (design "Staleness").
+      pageCounts: z.object({
+        ok: z.number().int(),
+        stale: z.number().int(),
+        needs_review: z.number().int(),
+        missing: z.number().int(),
+      }),
+      // The time of the last change (design "6. API").
+      updatedAt: iso,
     }),
   ),
 });

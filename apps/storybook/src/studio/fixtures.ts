@@ -138,6 +138,9 @@ export function storyListItem(n: number, over: Partial<StoryListResponse["storie
     publishedReleaseId: null,
     onShelf: false,
     publishedReleaseNumber: null,
+    latestRunStatus: null,
+    pageCounts: { ok: 0, stale: 0, needs_review: 0, missing: 0 },
+    updatedAt: CREATED_AT,
     ...over,
   };
   return item;
