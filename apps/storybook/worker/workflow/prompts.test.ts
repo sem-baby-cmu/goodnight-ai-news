@@ -133,6 +133,21 @@ describe("prompts", () => {
     expect(user).toContain("A short news text.");
   });
 
+  it("scriptPrompt gives the poses, props, and scenery, and the script rules", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { system, user } = scriptPrompt({ sourceText: "A short news text.", registry });
+    expect(user).toContain("Characters (key: poses):\n- test-bear: stand, wave\n- test-bunny: stand, wave");
+    expect(user).toContain("Props (key):\n- test-ball");
+    expect(user).toContain("Scenery (key):\n- test-tree");
+    expect(system).toContain("at most 12 words");
+    expect(system).toContain("at most 2 real-world names");
+    expect(system).toContain("Leave out personal names, dates, and money.");
+    expect(system).toContain("outdoors");
+    expect(system).toContain("The last page");
+    expect(system).not.toContain("Keep the facts of the news");
+  });
+
   it("repairSuffix lists the previous answer and every issue", () => {
     const suffix = repairSuffix({ a: 1 }, [{ path: "interactions", code: "too_small", message: "Too small" }]);
     expect(suffix).toBe('\n\nYour previous answer:\n{"a":1}\n\nFix these problems and answer again:\n- interactions: Too small');

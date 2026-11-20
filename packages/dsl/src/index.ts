@@ -45,3 +45,4 @@ export {
 export { assignSceneIds, type SceneDraft, SceneDraftSchema, type ScriptDraft, ScriptDraftSchema } from "./draft";
 export { type Issue, validateScene } from "./validate";
 export { buildOutlineJsonSchema, buildSceneJsonSchema } from "./json-schema";
+export { SCRIPT_TEXT_LIMITS, scriptTextIssues } from "./script-text";
