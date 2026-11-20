@@ -94,6 +94,18 @@ Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6.
 - Then it reports `too_many_names` with the 3 names, and the repair rule applies
 - Test: @storybook/dsl · packages/dsl/src/script-text.test.ts
 
+### RUN-01.S15 The story view shows the note for a cut text
+- Given a story whose `source` revision has `truncated: true`, because the pasted text or the article had more than 2,000 words
+- When the operator opens the story view
+- Then the Studio shows the notice "The text had more than 2,000 words. Only the first 2,000 were used."; for a `source` revision with `truncated: false`, the notice is absent
+- Test: spec (to implement)
+
+### RUN-01.S16 The "Run" card shows the progress of each step kind
+- Given a run of a story with 2 pages, whose `script` step is done, whose `scene` steps are one done and one failed, and whose `audio` steps are one done and one pending
+- When the story view gets the run with `GET /api/studio/runs/:id`
+- Then the "Run" card has one row for each step kind; the `scene` row has one solid "failed" cell, the note "1 of 2 done, 1 failed", and the label "scene: 1 of 2 done, 1 failed"
+- Test: spec (to implement)
+
 ## RUN-02 Start a full run from a URL
 
 As the operator, I want to give one URL instead of a pasted text, so that I
@@ -142,6 +154,12 @@ Spec: requirements "Scope" · design "6. API" (URL input), "Error Handling", "Te
 - When the API handles the request
 - Then the text is cut at 2,000 words, and the Studio shows a note
 - Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
+
+### RUN-02.S8 The Studio asks for pasted text when a URL is refused
+- Given the "New story" form in "Article URL" mode with an `https` URL
+- When the operator selects "Make story", and the API answers 422 `source_rejected`
+- Then the form switches to "Paste text" and keeps the URL; a notice with `role="alert"` says "Could not read enough text from that page." and "No run was started. Paste the text instead."
+- Test: spec (to implement)
 
 ## RUN-03 A scene uses only what the registry holds
 
@@ -381,6 +399,18 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - When the operator sends `POST /api/studio/stories/:id/runs` with a page scope
 - Then the API returns 409 `run_active` with the `runId` of the active run, and no run starts
 - Test: @storybook/app · apps/storybook/worker/api/api.e2e.test.ts
+
+### RUN-05.S13 A failed run of a story with no outline offers "Start again"
+- Given a story with no `outline` head, whose latest run failed in the `script` step
+- When the operator opens the story view
+- Then the "Run" card has a notice "The run failed." with one line for each error, for example "script: <message>", and a "Start again" button that sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
+- Test: spec (to implement)
+
+### RUN-05.S14 A failed run of a story with an outline points to the pages
+- Given a story with an `outline` head, whose latest run failed in the `scene` step of page 2
+- When the operator opens the story view
+- Then the "Run" card has a notice "The run failed." with the line "scene, page 2: <message>" and the line "Open a page to make its scene or audio again."; the notice has no "Start again" button
+- Test: spec (to implement)
 
 ## RUN-06 The scene approach holds on real news
 
