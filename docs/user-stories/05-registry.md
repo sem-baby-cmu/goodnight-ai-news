@@ -95,7 +95,7 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline" (
 - Given a painting for each variant of a backdrop
 - When the painted backdrop step runs
 - Then each variant is a WebP of 2400 x 1200 px within the file budget, and a review sheet shows the slot envelopes of all templates over each variant; a slot envelope is the union of the boxes of every active asset of the slot's kind placed in that slot at scale 1, with and without flip
-- Test: spec (to implement)
+- Test: @storybook/assets-tools · tools/assets/test/painted.test.ts
 
 ### REG-02.S8 A backdrop without a matching approval is not published
 - Given a backdrop version whose approval file is missing, or lists a SHA-256 that does not match a variant file or the template list

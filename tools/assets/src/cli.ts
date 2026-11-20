@@ -5,12 +5,15 @@
 //   pnpm --filter @storybook/assets-tools run cli measure <board> | --all # write asset.json
 //   pnpm --filter @storybook/assets-tools run cli svg <key> --version <n> # sanitise and check an SVG asset
 //   pnpm --filter @storybook/assets-tools run cli meadow                  # write the code-made backdrop meadow v1
+//   pnpm --filter @storybook/assets-tools run cli backdrop <key> --version <n> --local|--remote  # build a painted backdrop
 //   pnpm --filter @storybook/assets-tools run cli review <key> --version <n>  # backdrop review sheets
 //   pnpm --filter @storybook/assets-tools run cli approve <key> --version <n> # a person approves the sheets
 //
 // `--out <dir>` writes the build output (and `review/`) there instead of
 // tools/assets/out. `--no-review` skips the review sheets. `--reviews <dir>`
 // replaces tools/assets/reviews (the approval records) for approve and publish.
+// `backdrop` reads the source list from tools/assets/paintings (`--paintings
+// <dir>`) and downloads the paintings from R2 into tools/assets/cache (`--cache <dir>`).
 // `publish` and `sfx` belong to #21.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -24,8 +27,9 @@ import { writeApproval } from "./approval";
 import { writeBackdropReview } from "./backdrop-review";
 import { readBoard } from "./io";
 import { MEADOW_VERSION, writeMeadowBuild } from "./meadow";
+import { buildPaintedBackdrop } from "./painted";
 import { cropMapPath, cutBoard, loadCropMap, measureBoard } from "./pipeline";
-import { OUT_DIR, REVIEWS_DIR, SOURCES_DIR } from "./paths";
+import { CACHE_DIR, OUT_DIR, PAINTINGS_DIR, REVIEWS_DIR, SOURCES_DIR } from "./paths";
 import { PublishInputError, runPublish } from "./publish";
 import { writeSfxBuilds } from "./sfx/synth";
 import { checkSvg, sanitizeSvg } from "./svg";
@@ -52,6 +56,8 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
         only: { type: "string" },
         "dry-run": { type: "boolean", default: false },
         reviews: { type: "string" },
+        paintings: { type: "string" },
+        cache: { type: "string" },
       },
     });
   } catch (e) {
@@ -82,6 +88,25 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
     io.log(`meadow v${MEADOW_VERSION}: wrote 4 SVG files to ${outDir}`);
     io.log(`next: cli review meadow --version ${MEADOW_VERSION}`);
     return 0;
+  }
+  if (command === "backdrop") {
+    const version = Number(values.version);
+    if (!board || !Number.isInteger(version) || version < 1) {
+      error("usage: cli backdrop <key> --version <n> --local|--remote [--out <dir>] [--paintings <dir>] [--cache <dir>]");
+      return 1;
+    }
+    // Never rely on the wrangler default, as publish.
+    if (values.local === values.remote) {
+      error("backdrop: pass exactly one of --local and --remote");
+      return 1;
+    }
+    const opts = { key: board, version, mode: values.local ? ("local" as const) : ("remote" as const), outDir, paintingsDir: values.paintings ?? PAINTINGS_DIR, cacheDir: values.cache ?? CACHE_DIR };
+    try {
+      return await buildPaintedBackdrop(opts, { runWrangler, log: io.log, error });
+    } catch (e) {
+      error(`backdrop ${board} v${version}: ${(e as Error).message}`);
+      return 1;
+    }
   }
   if (command === "review" || command === "approve") {
     const version = Number(values.version);
@@ -122,6 +147,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
     error("       cli svg <key> --version <n> [--src <dir>] [--out <dir>]");
     error("       cli sfx [--out <dir>]");
     error("       cli meadow [--out <dir>]");
+    error("       cli backdrop <key> --version <n> --local|--remote [--out <dir>] [--paintings <dir>] [--cache <dir>]");
     error("       cli review|approve <key> --version <n> [--out <dir>] [--reviews <dir>]");
     error("       cli publish --local|--remote [--only <key>@<n>,...] [--dry-run] [--out <dir>] [--reviews <dir>]");
     return 1;

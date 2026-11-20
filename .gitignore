@@ -23,6 +23,8 @@ playwright-report/
 
 # Asset pipeline build output (AGENTS.md section 9).
 tools/assets/out/
+# Painted backdrop sources downloaded from R2 (#74); the digests are in tools/assets/paintings.
+tools/assets/cache/
 
 # S2 input texts: full news articles, never committed (#26)
 apps/storybook/.s2/

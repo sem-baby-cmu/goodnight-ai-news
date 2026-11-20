@@ -15,7 +15,7 @@ import { manifestFiles as dslManifestFiles } from "@storybook/dsl";
 import { v7 } from "uuid";
 import { checkApprovals } from "./approval";
 import { type AssetBuild, AssetBuildSchema } from "./build";
-import { OUT_DIR, REVIEWS_DIR } from "./paths";
+import { OUT_DIR, PAINTINGS_DIR, REVIEWS_DIR } from "./paths";
 import { checkSvg, sanitizeSvg } from "./svg";
 
 // Names from apps/storybook/wrangler.jsonc (design, Deployment).
@@ -74,8 +74,9 @@ const dirs = (dir: string) =>
 const versionOf = (dir: string) => (/^v([1-9]\d*)$/.exec(dir) ? Number(dir.slice(1)) : undefined);
 
 // The build step that writes a missing asset.json.
-function missingStep(key: string, dir: string): string {
+function missingStep(key: string, dir: string, version: number): string {
   if (key === "meadow") return "meadow";
+  if (existsSync(join(PAINTINGS_DIR, `${key}-v${version}.json`))) return "backdrop";
   if (key.startsWith("sfx-")) return "sfx";
   return readdirSync(dir).some((f) => f.endsWith(".svg")) ? "svg" : "measure";
 }
@@ -111,7 +112,7 @@ export function loadLocalBuilds(opts: { outDir?: string; only?: string[] } = {})
       const dir = join(outDir, folder);
       if (wanted && !wanted.has(`${keyDir}@${versionOf(versionDir)}`)) continue;
       if (!existsSync(join(dir, "asset.json"))) {
-        errors.push(`${folder}: asset.json is missing; run ${missingStep(keyDir, dir)}`);
+        errors.push(`${folder}: asset.json is missing; run ${missingStep(keyDir, dir, versionOf(versionDir)!)}`);
         continue;
       }
       let build: AssetBuild;
