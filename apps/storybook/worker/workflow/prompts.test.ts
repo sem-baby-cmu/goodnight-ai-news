@@ -250,6 +250,7 @@ describe("prompts", () => {
     expect(system).toContain("Do not use the template of the page just before this one");
     expect(system).toContain("Change the sky only when the page text gives a reason");
     expect(system).toContain("choose `dusk` or `night`");
+    expect(system).toContain("even when the page text gives no reason for a change");
     expect(system.split("\n").at(-1)).toBe("Answer with JSON only.");
   });
 

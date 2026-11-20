@@ -110,7 +110,7 @@ export function scenePrompt(input: {
     "Never use `set_expression` with the expression that its target layer already has.",
     'Do not use the template of the page just before this one (the last line under "Story so far"). Do not use exactly the same set of scenery keys as that page either.',
     "Keep the sky of the page just before this one. Change the sky only when the page text gives a reason: a time of day, the weather, or the cast getting ready for sleep.",
-    'On the last page ("This page: N of N"), choose `dusk` or `night` when the backdrop has one.',
+    'On the last page ("This page: N of N"), choose `dusk` or `night` when the backdrop has one, even when the page text gives no reason for a change.',
     "A bubble (`show_bubble` text) is a short line that the character says: 2 to 6 words, at most 40 characters.",
     'A bubble ends with ".", "!", or "?". Use only English letters, digits, spaces, and plain ASCII punctuation: no long dashes, no ellipsis character, no curly quotes.',
     "A bubble does not repeat the page text.",
