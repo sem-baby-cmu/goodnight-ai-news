@@ -1,0 +1,124 @@
+{
+  "pageId": "01936b2a-0000-7000-8000-000000000014",
+  "text": "The pond friends waved goodnight, and Pip rolled home under the stars.",
+  "audio": "audio/01936b2a-0000-7000-8000-000000000014.wav",
+  "scene": {
+    "templateId": "solo-center",
+    "backdrop": "meadow",
+    "sky": "night",
+    "layers": [
+      {
+        "instanceId": "01936b2a-0000-7000-8000-000000000024",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "stand",
+        "expression": "calm",
+        "slot": "center",
+        "at": {
+          "x": 800,
+          "y": 1050,
+          "scale": 3,
+          "z": 2
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01936b2a-0000-7000-8000-000000000024",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.01,
+          "period": 4
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01936b2a-0000-7000-8000-000000000024"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01936b2a-0000-7000-8000-000000000024",
+            "text": "Hello!"
+          }
+        ]
+      }
+    ]
+  },
+  "assets": {
+    "meadow": {
+      "renderer": "svg",
+      "manifest": {
+        "kind": "backdrop",
+        "description": "an open meadow with soft hills",
+        "size": {
+          "width": 2400,
+          "height": 1200
+        },
+        "variants": [
+          {
+            "sky": "day",
+            "file": "day.svg"
+          },
+          {
+            "sky": "cloudy",
+            "file": "cloudy.svg"
+          },
+          {
+            "sky": "dusk",
+            "file": "dusk.svg"
+          },
+          {
+            "sky": "night",
+            "file": "night.svg"
+          }
+        ]
+      },
+      "base": "assets/meadow/v1/"
+    },
+    "pip": {
+      "renderer": "svg-rig",
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "stand",
+            "file": "stand.svg",
+            "foot": {
+              "x": 50,
+              "y": 200
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 100,
+              "h": 200
+            }
+          }
+        ],
+        "expressions": [
+          "calm",
+          "happy"
+        ],
+        "legal": [
+          {
+            "pose": "stand",
+            "expression": "calm"
+          },
+          {
+            "pose": "stand",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true,
+        "parts": [
+          "part-eyes"
+        ]
+      },
+      "base": "assets/pip/v1/"
+    }
+  }
+}

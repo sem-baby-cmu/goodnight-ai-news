@@ -44,3 +44,17 @@ jobs:
           name: scene-runtime-screenshots
           path: packages/scene-runtime/test/browser/__screenshots__
           if-no-files-found: error
+
+  # Browser tests of the Player (#22): vite dev with the Cloudflare plugin.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @storybook/app exec playwright install --with-deps webkit chromium
+      - run: pnpm --filter @storybook/app test:e2e

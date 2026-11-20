@@ -1,9 +1,10 @@
 {
-  // Build tools: vite.config.ts, vitest.config.ts, scripts/ and smoke/.
+  // Build tools: vite.config.ts, vitest.config.ts, scripts/, smoke/, and the
+  // Player browser tests (playwright.config.ts, e2e/).
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "smoke", "src/spike/assets.ts"]
+  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "smoke", "src/spike/assets.ts", "playwright.config.ts", "e2e"]
 }
