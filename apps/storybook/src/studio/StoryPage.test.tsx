@@ -258,6 +258,95 @@ it("RUN-05.S13 failed run without an outline head shows the error lines and Star
   expect(post[0].body).toEqual({ scope: { kind: "full" } });
 });
 
+// A story with no outline head whose latest run failed in the `script` step.
+function failedWithoutOutline(): StoryDetailResponse {
+  return storyDetailFixture({
+    heads: {},
+    pages: [],
+    latestRun: {
+      id: RUN_ID,
+      status: "failed",
+      scope: { kind: "full" },
+      error: {
+        errors: [
+          { runId: RUN_ID, storyId: STORY_ID, pageId: null, step: "script", providerStatus: null, message: "Bad outline." },
+        ],
+      },
+    },
+  });
+}
+
+// The same story after a new run started: its latest run is `id`, running.
+function restarted(id: string): StoryDetailResponse {
+  return { ...failedWithoutOutline(), latestRun: { id, status: "running", scope: { kind: "full" }, error: null } };
+}
+
+it("Start again on 202 fetches the story again, so the failed notice and Start again are gone", async () => {
+  const nextRun = uuid(321);
+  let answers = 0;
+  const { calls } = stubStory(
+    () => {
+      answers += 1;
+      return answers === 1 ? failedWithoutOutline() : restarted(nextRun);
+    },
+    {
+      [`POST ${storyPath}/runs`]: { status: 202, body: { runId: nextRun } },
+      [`GET ${runPath(nextRun)}`]: { status: 200, body: runFixture("running", [], { id: nextRun }) },
+    },
+  );
+  renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
+  await waitFor(() => expect(alertWith("The run failed.")).toBeUndefined());
+  expect(screen.queryByRole("button", { name: "Start again" })).toBeNull();
+  expect(screen.queryByText("Failed")).toBeNull();
+  expect(screen.getAllByText("Running").length).toBeGreaterThan(0);
+});
+
+it('Start again on 409 full_run_not_allowed shows "A full run is not allowed for this story."', async () => {
+  stubStory(failedWithoutOutline(), {
+    [`POST ${storyPath}/runs`]: { status: 409, body: { error: "full_run_not_allowed" } },
+  });
+  const { router } = renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(alertWith("A full run is not allowed for this story.")).toBeDefined());
+  expect(searchOf(router).runId).toBeUndefined();
+});
+
+it("Start again on 409 run_active navigates with the runId of the answer and polls that run", async () => {
+  const activeRun = uuid(322);
+  let answers = 0;
+  const { calls } = stubStory(
+    () => {
+      answers += 1;
+      return answers === 1 ? failedWithoutOutline() : restarted(activeRun);
+    },
+    {
+      [`POST ${storyPath}/runs`]: { status: 409, body: { error: "run_active", runId: activeRun } },
+      [`GET ${runPath(activeRun)}`]: { status: 200, body: runFixture("running", [], { id: activeRun }) },
+    },
+  );
+  const { router } = renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(searchOf(router).runId).toBe(activeRun));
+  await waitFor(() => expect(calls.some((c) => c.method === "GET" && c.path === runPath(activeRun))).toBe(true));
+});
+
+it('Start again on 503 shows "Could not start the run. Nothing was changed. Try again." and fetches the story again', async () => {
+  const { calls } = stubStory(failedWithoutOutline(), {
+    [`POST ${storyPath}/runs`]: { status: 503, body: { error: "workflow_unavailable", runId: uuid(323) } },
+  });
+  const { router } = renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(alertWith("Could not start the run. Nothing was changed. Try again.")).toBeDefined());
+  await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
+  expect(searchOf(router).runId).toBeUndefined();
+});
+
 it("RUN-05.S14 failed run with an outline head shows the error lines, no Start again, and the page-card line", async () => {
   const p2 = pageId(2);
   const failed = storyDetailFixture({

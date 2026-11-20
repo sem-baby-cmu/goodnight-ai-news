@@ -78,13 +78,17 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
     const r = await studioApi.startRun(storyId, { kind: "full" });
     setStarting(false);
     if (r.ok) {
+      // The view stays mounted (keyed by storyId): fetch the story again, so
+      // `latestRun` is the new run and the failed notice goes away.
       void navigate({ to: "/studio/stories/$storyId", params: { storyId }, search: { runId: r.data.runId } });
+      refetch();
       return;
     }
     const error = errorOf(r.body);
     const body = r.body as { runId?: unknown };
     if (r.status === 409 && error === "run_active" && typeof body.runId === "string") {
       void navigate({ to: "/studio/stories/$storyId", params: { storyId }, search: { runId: body.runId } });
+      refetch();
       return;
     }
     if (r.status === 409 && error === "full_run_not_allowed") {
