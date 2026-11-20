@@ -168,3 +168,11 @@ it("studioApi leaves no timer after an answer", async () => {
   await studioApi.listStories();
   expect(vi.getTimerCount()).toBe(0);
 });
+
+it("studioApi ends with status 0, not ok, when the body of a 2xx answer cannot be read", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({ ok: true, status: 200, json: () => Promise.reject(new Error("connection lost")) }) as unknown as Response),
+  );
+  expect(await studioApi.withdraw(STORY_ID, uuid(502))).toEqual(NO_ANSWER_RESULT);
+});
