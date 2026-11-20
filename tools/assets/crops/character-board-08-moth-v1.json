@@ -10,7 +10,8 @@
     "lumi": {
       "kind": "character",
       "name": "Lumi",
-      "version": 1,
+      "description": "a moth",
+      "version": 2,
       "flippable": true
     }
   },

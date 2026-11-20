@@ -31,6 +31,8 @@ export type PoseEntry = z.infer<typeof PoseEntrySchema>;
 export const AssetManifestSchema = z.union([
   z.strictObject({
     kind: z.enum(["character", "prop", "scenery"]),
+    // One line for the model (#84). Optional: releases made before #84 have none.
+    description: z.string().min(1).optional(),
     poses: z.array(PoseEntrySchema).min(1),
     expressions: z.array(z.string()),
     legal: z.array(z.strictObject({ pose: z.string(), expression: z.string() })),

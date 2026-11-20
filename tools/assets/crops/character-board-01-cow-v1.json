@@ -10,7 +10,8 @@
     "cow": {
       "kind": "character",
       "name": "Cow",
-      "version": 1,
+      "description": "a cow",
+      "version": 2,
       "flippable": true
     }
   },

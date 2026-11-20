@@ -10,7 +10,8 @@
     "cat": {
       "kind": "character",
       "name": "Cat",
-      "version": 1,
+      "description": "a cat",
+      "version": 2,
       "flippable": true
     }
   },

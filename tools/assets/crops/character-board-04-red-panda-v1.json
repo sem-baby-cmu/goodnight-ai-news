@@ -10,7 +10,8 @@
     "nori": {
       "kind": "character",
       "name": "Nori",
-      "version": 1,
+      "description": "a red panda",
+      "version": 2,
       "flippable": true
     }
   },

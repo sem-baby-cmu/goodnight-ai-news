@@ -10,61 +10,71 @@
     "tree": {
       "kind": "scenery",
       "name": "Tree",
-      "version": 1,
+      "description": "a round leafy tree with a brown trunk",
+      "version": 2,
       "flippable": true
     },
     "bush": {
       "kind": "scenery",
       "name": "Bush",
-      "version": 1,
+      "description": "a low round green bush",
+      "version": 2,
       "flippable": true
     },
     "grass": {
       "kind": "scenery",
       "name": "Grass",
-      "version": 1,
+      "description": "a tuft of tall grass",
+      "version": 2,
       "flippable": true
     },
     "flowers": {
       "kind": "scenery",
       "name": "Flowers",
-      "version": 1,
+      "description": "three bright flowers on green stems",
+      "version": 2,
       "flippable": true
     },
     "rocks": {
       "kind": "scenery",
       "name": "Rocks",
-      "version": 1,
+      "description": "a pile of three round rocks",
+      "version": 2,
       "flippable": true
     },
     "log": {
       "kind": "scenery",
       "name": "Log",
-      "version": 1,
+      "description": "a fallen log with a small twig and a leaf",
+      "version": 2,
       "flippable": true
     },
     "mushrooms": {
       "kind": "scenery",
       "name": "Mushrooms",
-      "version": 1,
+      "description": "two spotted mushrooms, one big and one small",
+      "version": 2,
       "flippable": true
     },
     "pond": {
       "kind": "scenery",
       "name": "Pond",
-      "version": 1,
+      "description": "a small blue pond on the ground",
+      "version": 2,
       "flippable": true
     },
     "clouds": {
       "kind": "scenery",
       "name": "Clouds",
-      "version": 1,
+      "description": "two soft cream clouds",
+      "version": 2,
       "flippable": true
     },
     "sun": {
       "kind": "scenery",
       "name": "Sun",
-      "version": 1,
+      "description": "a yellow sun with short rays",
+      "version": 2,
       "flippable": true
     }
   },

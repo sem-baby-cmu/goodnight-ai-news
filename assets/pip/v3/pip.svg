@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 416" width="232" height="416">
+  <title>Pip</title>
+  <!-- Back to front: legs, arms, body, head. Parts are selected by class.
+       Each arm bends under the head corner, so the visible arm is one straight bar. -->
+  <g class="part-leg-left" data-pivot="85.5 305">
+    <line x1="85.5" y1="305" x2="85.5" y2="385" stroke="#046267" stroke-width="28" stroke-linecap="round"/>
+    <path d="M43 415A34.5 39 0 0 1 112 415Z" fill="#1656c3"/>
+  </g>
+  <g class="part-leg-right" data-pivot="148.5 305">
+    <line x1="148.5" y1="305" x2="148.5" y2="385" stroke="#046267" stroke-width="28" stroke-linecap="round"/>
+    <path d="M120 415A36 39 0 0 1 192 415Z" fill="#1656c3"/>
+  </g>
+  <g class="part-arm-left" data-pivot="72 226">
+    <polyline points="72,226 61,210 33,299" fill="none" stroke="#046267" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="29" cy="306" r="20" fill="#fdb302"/>
+  </g>
+  <g class="part-arm-right" data-pivot="163 226">
+    <polyline points="163,226 174,210 202,299" fill="none" stroke="#046267" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="206" cy="306" r="20" fill="#fdb302"/>
+  </g>
+  <g class="part-body">
+    <path d="M80 205H155Q170 205 173 220L183 270V292A35 35 0 0 1 148 327H88A35 35 0 0 1 53 292V270L62 220Q65 205 80 205Z" fill="#02a093"/>
+    <circle cx="118" cy="250" r="19" fill="#f94f37"/>
+  </g>
+  <g class="part-head" data-pivot="117.5 210">
+    <g class="part-antenna" data-pivot="117.5 72">
+      <polygon points="110,46 125,46 128,76 107,76" fill="#62351d"/>
+      <circle cx="116.5" cy="23.5" r="23.5" fill="#fdb302"/>
+    </g>
+    <circle cx="33" cy="148" r="30" fill="#1656c3"/>
+    <circle cx="201" cy="148" r="30" fill="#1656c3"/>
+    <rect x="32" y="68" width="172" height="144" rx="48" fill="#02a093"/>
+    <g class="part-face">
+      <rect x="48" y="92" width="139" height="106" rx="28" fill="#fde1b8"/>
+    </g>
+    <g class="part-eyes" data-pivot="119.5 141">
+      <ellipse cx="81" cy="138.5" rx="14" ry="18.5" fill="#fdf7ef"/>
+      <ellipse cx="158" cy="138.5" rx="13" ry="18" fill="#fdf7ef"/>
+      <ellipse cx="87" cy="141" rx="7" ry="11" fill="#020100"/>
+      <ellipse cx="152" cy="141" rx="7" ry="11" fill="#020100"/>
+    </g>
+    <g class="expr-happy" fill="none" stroke="#020100" stroke-width="5" stroke-linecap="round">
+      <path d="M105 166Q118.5 180 132 166"/>
+    </g>
+    <g class="expr-sad" display="none" fill="none" stroke="#020100" stroke-width="5" stroke-linecap="round">
+      <path d="M70.5 116Q75.25 94.25 93 101.5"/>
+      <path d="M143.5 101Q160.5 93.75 167.5 115.5"/>
+      <path d="M105 175Q119.5 157 134 175"/>
+    </g>
+    <g class="expr-angry" display="none" fill="none" stroke="#020100" stroke-width="5" stroke-linecap="round">
+      <path d="M70.5 115.5Q84.25 118 95 128.5"/>
+      <path d="M131.5 128.5Q143.5 118 155.5 115.5"/>
+      <path d="M106 174Q119.5 156 133 174"/>
+    </g>
+    <g class="expr-surprised" display="none">
+      <path d="M65.5 109.5Q66.75 89.25 85 98" fill="none" stroke="#020100" stroke-width="5" stroke-linecap="round"/>
+      <path d="M150.5 98Q168 90 171.5 108" fill="none" stroke="#020100" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="120" cy="179" rx="8" ry="10.5" fill="#020100"/>
+    </g>
+    <g class="expr-worried" display="none" fill="none" stroke="#020100" stroke-width="5" stroke-linecap="round">
+      <path d="M70.5 117Q85.5 120.5 92.5 104"/>
+      <path d="M144 104Q152 120.5 166 117"/>
+      <path d="M99 175Q104.2 167 109.4 175T119.75 175T130.1 175T140.5 175"/>
+    </g>
+  </g>
+</svg>

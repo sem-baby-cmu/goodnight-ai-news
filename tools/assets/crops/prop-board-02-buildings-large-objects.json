@@ -10,49 +10,57 @@
     "cottage": {
       "kind": "scenery",
       "name": "Cottage",
-      "version": 1,
+      "description": "a small house with an orange roof, a door, and a window",
+      "version": 2,
       "flippable": true
     },
     "workshop": {
       "kind": "scenery",
       "name": "Workshop",
-      "version": 1,
+      "description": "a workshop with a chimney, a big garage door, and a gear sign",
+      "version": 2,
       "flippable": true
     },
     "barn": {
       "kind": "scenery",
       "name": "Barn",
-      "version": 1,
+      "description": "a red farm barn",
+      "version": 2,
       "flippable": true
     },
     "tent": {
       "kind": "scenery",
       "name": "Tent",
-      "version": 1,
+      "description": "a yellow camping tent",
+      "version": 2,
       "flippable": true
     },
     "bridge": {
       "kind": "scenery",
       "name": "Bridge",
-      "version": 1,
+      "description": "a small wooden footbridge",
+      "version": 2,
       "flippable": true
     },
     "door": {
       "kind": "scenery",
       "name": "Door",
-      "version": 1,
+      "description": "a single arched wooden door, with no wall",
+      "version": 2,
       "flippable": true
     },
     "window": {
       "kind": "scenery",
       "name": "Window",
-      "version": 1,
+      "description": "a single arched window, with no wall",
+      "version": 2,
       "flippable": true
     },
     "fence": {
       "kind": "scenery",
       "name": "Fence",
-      "version": 1,
+      "description": "a short wooden picket fence",
+      "version": 2,
       "flippable": true
     }
   },

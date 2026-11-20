@@ -10,49 +10,57 @@
     "ball": {
       "kind": "prop",
       "name": "Ball",
-      "version": 1,
+      "description": "a striped beach ball",
+      "version": 2,
       "flippable": true
     },
     "book": {
       "kind": "prop",
       "name": "Book",
-      "version": 1,
+      "description": "a closed picture book with a green cover",
+      "version": 2,
       "flippable": true
     },
     "blocks": {
       "kind": "prop",
       "name": "Blocks",
-      "version": 1,
+      "description": "three toy blocks",
+      "version": 2,
       "flippable": true
     },
     "backpack": {
       "kind": "prop",
       "name": "Backpack",
-      "version": 1,
+      "description": "a school backpack",
+      "version": 2,
       "flippable": true
     },
     "umbrella": {
       "kind": "prop",
       "name": "Umbrella",
-      "version": 1,
+      "description": "a closed green umbrella",
+      "version": 2,
       "flippable": true
     },
     "cup": {
       "kind": "prop",
       "name": "Cup",
-      "version": 1,
+      "description": "a cup with a handle",
+      "version": 2,
       "flippable": true
     },
     "basket": {
       "kind": "prop",
       "name": "Basket",
-      "version": 1,
+      "description": "a woven basket with a handle",
+      "version": 2,
       "flippable": true
     },
     "blanket": {
       "kind": "prop",
       "name": "Blanket",
-      "version": 1,
+      "description": "a folded checked blanket",
+      "version": 2,
       "flippable": true
     }
   },

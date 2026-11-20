@@ -1,0 +1,30 @@
+{
+  "key": "pip",
+  "kind": "character",
+  "name": "Pip",
+  "version": 3,
+  "renderer": "svg-rig",
+  "manifest": {
+    "kind": "character",
+    "description": "a robot",
+    "poses": [
+      {
+        "id": "front",
+        "file": "pip.svg",
+        "foot": { "x": 111, "y": 416 },
+        "box": { "x": 0, "y": 0, "w": 232, "h": 416 },
+        "face": { "x": 48, "y": 92, "w": 139, "h": 106 }
+      }
+    ],
+    "expressions": ["happy", "sad", "angry", "surprised", "worried"],
+    "legal": [
+      { "pose": "front", "expression": "happy" },
+      { "pose": "front", "expression": "sad" },
+      { "pose": "front", "expression": "angry" },
+      { "pose": "front", "expression": "surprised" },
+      { "pose": "front", "expression": "worried" }
+    ],
+    "flippable": true,
+    "parts": ["part-leg-left", "part-leg-right", "part-arm-left", "part-arm-right", "part-body", "part-head", "part-antenna", "part-face", "part-eyes"]
+  }
+}

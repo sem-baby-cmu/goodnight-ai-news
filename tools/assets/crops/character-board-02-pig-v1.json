@@ -10,7 +10,8 @@
     "pig": {
       "kind": "character",
       "name": "Pig",
-      "version": 1,
+      "description": "a pig",
+      "version": 2,
       "flippable": true
     }
   },

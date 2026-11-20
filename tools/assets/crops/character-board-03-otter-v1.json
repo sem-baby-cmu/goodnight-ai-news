@@ -10,7 +10,8 @@
     "bobo": {
       "kind": "character",
       "name": "Bobo",
-      "version": 1,
+      "description": "an otter",
+      "version": 2,
       "flippable": true
     }
   },
