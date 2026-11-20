@@ -165,6 +165,28 @@ async function box(locator: Locator): Promise<Box> {
   return b!;
 }
 
+// The page text fits in the narration panel: the panel (the element with
+// the set height) does not scroll, and the text box lies inside the content
+// box of the padded box that holds it. Edges are rounded to whole CSS px
+// (fractional device pixels at DPR 2.625), with no tolerance.
+async function textFitsPanel(page: Page): Promise<boolean> {
+  const panelScrolls = await narrationPanel(page).evaluate((el) => el.scrollHeight > el.clientHeight);
+  const inContent = await narration(page).evaluate((el) => {
+    const holder = el.parentElement!;
+    const style = getComputedStyle(holder);
+    const outer = holder.getBoundingClientRect();
+    const text = el.getBoundingClientRect();
+    const r = Math.round;
+    return (
+      r(text.top) >= r(outer.top + parseFloat(style.paddingTop)) &&
+      r(text.bottom) <= r(outer.bottom - parseFloat(style.paddingBottom)) &&
+      r(text.left) >= r(outer.left + parseFloat(style.paddingLeft)) &&
+      r(text.right) <= r(outer.right - parseFloat(style.paddingRight))
+    );
+  });
+  return !panelScrolls && inContent;
+}
+
 // `pip` has a `float` loop, so its box never stops moving and
 // `locator.click()` waits for a stable box until the timeout. A real
 // pointer tap on the middle of the box, as a child taps a moving picture.
@@ -511,8 +533,7 @@ test("PLY-04.S18 the panel has the height of the longest page before Ready", asy
     await expect(narration(page)).toHaveText(pages[i - 1]!.text);
     expect(Math.abs((await box(narrationPanel(page))).height - atReady), `page ${i}`).toBeLessThanOrEqual(0.5);
     if (i === 3) {
-      const fits = await narration(page).evaluate((el) => el.scrollHeight <= el.clientHeight);
-      expect(fits).toBe(true);
+      expect(await textFitsPanel(page)).toBe(true);
     }
   }
 });
@@ -736,7 +757,7 @@ test("PLY-07.S2 a 40-word page fits at 568 x 320", async ({ page }) => {
   await turnTo(page, 3);
   const size = await narration(page).evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
   expect(size).toBeGreaterThanOrEqual(18);
-  expect(await narration(page).evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+  expect(await textFitsPanel(page)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true);
   expect((await box(pictureArea(page))).height).toBeGreaterThanOrEqual(64);
 });
