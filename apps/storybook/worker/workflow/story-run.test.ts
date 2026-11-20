@@ -2,6 +2,7 @@ import { introspectWorkflowInstance } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import {
   type AssetManifest,
+  AssetManifestSchema,
   type Outline,
   type PageScene,
   PageTextSchema,
@@ -222,7 +223,49 @@ async function setWideCharacter(active: boolean) {
   await d.update(assetVersion).set({ active }).where(eq(assetVersion.assetId, a.id));
 }
 
-const firstKey = (registry: RegistrySnapshot, kind: string) =>
+// Two keys that the models must not see (`HIDDEN_FROM_MODEL`, #84), in the registry of a run:
+// `door` as scenery and `window` as a character. The script prompt and the outline schema list
+// characters only, so a hidden character is needed to see a script step that passes the frozen
+// registry. Neither key has a legal pose and expression pair that `stubScene` could pick.
+async function seedHiddenKeys() {
+  const d = db();
+  const createdAt = new Date().toISOString();
+  const doorManifest = AssetManifestSchema.parse({
+    kind: "scenery",
+    poses: [{ id: "default", file: "default.webp", foot: { x: 200, y: 800 }, box: { x: 0, y: 0, w: 400, h: 800 } }],
+    expressions: [],
+    legal: [],
+    flippable: false,
+  });
+  const windowManifest = AssetManifestSchema.parse({
+    kind: "character",
+    poses: [
+      {
+        id: "stand",
+        file: "stand.webp",
+        foot: { x: 200, y: 800 },
+        box: { x: 0, y: 0, w: 400, h: 800 },
+        face: { x: 120, y: 60, w: 160, h: 160 },
+        expression: "happy",
+      },
+    ],
+    expressions: ["happy"],
+    legal: [{ pose: "stand", expression: "happy" }],
+    flippable: true,
+  });
+  for (const h of [
+    { key: "door", kind: "scenery" as const, manifest: doorManifest },
+    { key: "window", kind: "character" as const, manifest: windowManifest },
+  ]) {
+    const assetId = newId();
+    await d.insert(asset).values({ id: assetId, key: h.key, kind: h.kind, name: h.key, createdAt });
+    await d
+      .insert(assetVersion)
+      .values({ id: newId(), assetId, version: 1, renderer: "webp", manifest: h.manifest, r2Prefix: `assets/${h.key}/v1/`, active: true, createdAt });
+  }
+}
+
+const firstKey =(registry: RegistrySnapshot, kind: string) =>
   Object.keys(registry.assets)
     .filter((k) => registry.assets[k]!.kind === kind)
     .sort()[0]!;
@@ -250,6 +293,22 @@ function capturePrompts(stub: StubModel, model: "script" | "scene"): string[] {
   return prompts;
 }
 const captureScenePrompts = (stub: StubModel) => capturePrompts(stub, "scene");
+
+type ModelRequest = Parameters<StubModel["client"]["generateJson"]>[0];
+
+// Captures every request (`system`, `user`, `schema`) of the script and the scene calls.
+function captureRequests(stub: StubModel): ModelRequest[] {
+  const requests: ModelRequest[] = [];
+  const client = {
+    ...stub.client,
+    generateJson: (req: ModelRequest) => {
+      requests.push(req);
+      return stub.client.generateJson(req);
+    },
+  };
+  seams.modelClient = () => client;
+  return requests;
+}
 
 // Turns every active asset version off; returns a function that restores them.
 async function deactivateRegistry(): Promise<() => Promise<void>> {
@@ -495,6 +554,40 @@ describe("StoryRunWorkflow", () => {
       expect(layerIds).toContain(t.on.tap);
       for (const a of t.do) if ("target" in a) expect(layerIds).toContain(a.target);
     }
+  });
+
+  it("the script and scene steps give the models the model view of the registry (#84)", async () => {
+    await seedRegistry(env);
+    await seedHiddenKeys();
+    const registry = await loadActiveRegistry(db());
+    // The registry of the run has the hidden keys; validation uses it whole.
+    expect(registry.assets.door?.kind).toBe("scenery");
+    expect(registry.assets.window?.kind).toBe("character");
+    const stub = useStub(registry);
+    const requests = captureRequests(stub);
+    const ids = await newStory(db());
+    await runWorkflow(ids.runId, ids.storyId);
+    const script = requests.filter((r) => r.model === "script");
+    const scene = requests.filter((r) => r.model === "scene");
+    expect(script.length).toBeGreaterThan(0);
+    expect(scene.length).toBeGreaterThan(0);
+    // One assertion per call site: scene prompt, scene schema, script prompt, script schema.
+    const hidden = /\b(door|window)\b/;
+    for (const [step, calls] of [
+      ["script", script],
+      ["scene", scene],
+    ] as const) {
+      for (const r of calls) {
+        expect(r.system, `${step} system`).not.toMatch(hidden);
+        expect(r.user, `${step} user`).not.toMatch(hidden);
+        expect(JSON.stringify(r.schema), `${step} schema`).not.toMatch(hidden);
+      }
+    }
+    // Control: the same requests name a visible key, so the checks read real prompts and schemas.
+    expect(script[0]!.user).toContain("test-bear");
+    expect(JSON.stringify(script[0]!.schema)).toContain("test-bear");
+    expect(scene[0]!.user).toContain("test-bear");
+    expect(JSON.stringify(scene[0]!.schema)).toContain("test-bear");
   });
 
   it("RUN-03.S13 a scene with no tap goes to repair", async () => {
