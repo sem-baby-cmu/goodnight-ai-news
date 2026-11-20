@@ -132,3 +132,21 @@ it("NewStoryForm on another status shows Request failed (<status>)", async () =>
   expect(squash(alert.textContent)).toContain(squash("Request failed (500). No run was started."));
   expect(router.state.location.pathname).toBe("/studio");
 });
+
+it("NewStoryForm with no answer says so and never prints (0)", async () => {
+  stubFetch(
+    routes({
+      "POST /api/studio/stories": () => {
+        throw new TypeError("Failed to fetch");
+      },
+    }),
+  );
+  const { router } = renderForm();
+  fireEvent.change(await screen.findByRole("textbox"), { target: { value: words(250) } });
+  fireEvent.click(makeStory());
+
+  const alert = await screen.findByRole("alert");
+  expect(squash(alert.textContent)).toContain(squash("No answer came from the server."));
+  expect(document.body.textContent).not.toContain("(0)");
+  expect(router.state.location.pathname).toBe("/studio");
+});

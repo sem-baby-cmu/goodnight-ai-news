@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { errorOf, type ReleaseCreated, type StoryDetailResponse, studioApi } from "./api";
 import { CrossIcon } from "./icons";
 import { Notice } from "./Notice";
-import { cardClass, cardTitleClass } from "./ui";
+import { cardClass, cardTitleClass, type Failure, NO_ANSWER } from "./ui";
 
 type Pages = StoryDetailResponse["pages"];
 
@@ -39,7 +40,7 @@ export function PublishPanel({
   const [serverRows, setServerRows] = useState<string[] | null>(null);
   const [seenPages, setSeenPages] = useState(pages);
   const [done, setDone] = useState<Done | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [failure, setFailure] = useState<Failure | null>(null);
   const [busy, setBusy] = useState(false);
 
   // New pages (a refetch) replace the server list of an earlier answer.
@@ -69,16 +70,28 @@ export function PublishPanel({
       return;
     }
     if (r.status === 409 && error === "publish_conflict") {
-      setFailure("Another publish ran at the same time.");
+      setFailure({ title: "Another publish ran at the same time.", body: "Nothing was published. Try again." });
       onPublished();
       return;
     }
-    setFailure(`Publishing failed (${r.status}).`);
+    if (r.status === 0) {
+      // No answer: the release can exist (publish makes it in its last batch),
+      // so the story is fetched again and a second click is not offered as safe.
+      setFailure({
+        title: NO_ANSWER,
+        body: "It is not known if the release was published. Check the Releases card before you try again.",
+      });
+      onPublished();
+      return;
+    }
+    setFailure({ title: `Publishing failed (${r.status}).`, body: "Nothing was published. Try again." });
   }
 
   return (
-    <Card className={cardClass}>
-      <CardTitle className={cardTitleClass}>Publish</CardTitle>
+    <Card role="region" aria-labelledby="publish-title" className={cn(cardClass, "gap-[14px]")}>
+      <h2 id="publish-title" className={cardTitleClass}>
+        Publish
+      </h2>
       {done !== null ? (
         <>
           <Notice
@@ -110,8 +123,8 @@ export function PublishPanel({
             <p>All pages are ready.</p>
           )}
           {failure !== null ? (
-            <Notice tone="bad" title={failure}>
-              Nothing was published. Try again.
+            <Notice tone="bad" title={failure.title}>
+              {failure.body}
             </Notice>
           ) : null}
           <div className="flex justify-end">

@@ -1,13 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { type StoryListResponse, studioApi } from "./api";
 import { NewStoryForm } from "./NewStoryForm";
 import { Notice } from "./Notice";
 import { StateChip } from "./StateChip";
-import { cardClass, cardTitleClass, formatTime, linkClass, noteClass } from "./ui";
+import { cardClass, cardTitleClass, formatTime, linkClass, NO_ANSWER, quietClass } from "./ui";
 
 type Story = StoryListResponse["stories"][number];
 type Load = { kind: "loading" } | { kind: "error"; status: number } | { kind: "ok"; stories: Story[] };
@@ -15,7 +15,9 @@ type Load = { kind: "loading" } | { kind: "error"; status: number } | { kind: "o
 const headClass = "h-auto px-3 pb-2 text-[14px] font-bold text-ink-3";
 const cellClass = "px-3 py-1 text-[16px]";
 
-// The stories list at /studio (#23, Exact changes 10; DESIGN.md 13.1).
+// The stories list at /studio (#23, Exact changes 10; DESIGN.md 13.1). The
+// two cards share the row by a flex rule (board 12): "New story" grows 1 and
+// stops at 440 px, "Stories" grows 2.
 export function StoryListPage() {
   const [load, setLoad] = useState<Load>({ kind: "loading" });
 
@@ -31,13 +33,27 @@ export function StoryListPage() {
   }, []);
 
   return (
-    <div className="grid items-start gap-[22px] lg:grid-cols-[440px_minmax(0,1fr)]">
+    <div className="flex flex-col gap-[22px] lg:flex-row lg:items-start">
       <NewStoryForm />
-      <Card className={cardClass}>
-        <CardTitle className={cardTitleClass}>Stories</CardTitle>
-        {load.kind === "loading" ? <p className={noteClass}>Loading the stories.</p> : null}
-        {load.kind === "error" ? <Notice tone="bad" title={`Could not load the stories (${load.status}).`} /> : null}
-        {load.kind === "ok" && load.stories.length === 0 ? <p className={noteClass}>No stories yet.</p> : null}
+      <Card role="region" aria-labelledby="stories-title" className={cn(cardClass, "min-w-0 lg:flex-[2_1_0]")}>
+        <h2 id="stories-title" className={cardTitleClass}>
+          Stories
+        </h2>
+        {load.kind === "loading" ? (
+          <p role="status" className={quietClass}>
+            Loading the stories.
+          </p>
+        ) : null}
+        {load.kind === "error" ? (
+          load.status === 0 ? (
+            <Notice tone="bad" title={NO_ANSWER}>
+              Reload to try again.
+            </Notice>
+          ) : (
+            <Notice tone="bad" title={`Could not load the stories (${load.status}).`} />
+          )
+        ) : null}
+        {load.kind === "ok" && load.stories.length === 0 ? <p className={quietClass}>No stories yet.</p> : null}
         {load.kind === "ok" && load.stories.length > 0 ? (
           <Table>
             <TableHeader className="[&_tr]:border-b [&_tr]:border-cream">
@@ -50,7 +66,7 @@ export function StoryListPage() {
             <TableBody>
               {load.stories.map((story) => (
                 <TableRow key={story.id} className="border-b border-cream last:border-0 hover:bg-paper">
-                  <TableCell className={cellClass}>
+                  <TableCell className={cn(cellClass, "whitespace-normal")}>
                     <Link to="/studio/stories/$storyId" params={{ storyId: story.id }} className={linkClass}>
                       {story.title ?? "Untitled"}
                     </Link>
