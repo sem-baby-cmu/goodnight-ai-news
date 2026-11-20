@@ -24,6 +24,14 @@ export type PublishResult =
 
 const LABEL = { page_text: "text", scene: "scene", audio: "audio" } as const;
 
+// The words of a blocking item (DESIGN.md 13.2 "Publish" card). The Studio
+// shows `message` as it is (PUB-02.S9) and mirrors these in PublishPanel.tsx.
+const PHRASE: Record<BlockingItem["reason"], (target: string) => string> = {
+  missing: (target) => `missing ${target}`,
+  stale: (target) => `stale ${target}`,
+  needs_review: (target) => `${target} needs review`,
+};
+
 // What stops a publish. It never reads revision content, so a provider-error
 // head (`needs_review`, content null) blocks like any other (R26).
 export function blockingItems(outline: Outline | null, states: PageState[]): BlockingItem[] {
@@ -39,7 +47,7 @@ export function blockingItems(outline: Outline | null, states: PageState[]): Blo
         page: s.number,
         target: p.target,
         reason: p.reason,
-        message: `page ${s.number}: ${p.reason} ${LABEL[p.target]}`,
+        message: `page ${s.number}: ${PHRASE[p.reason](LABEL[p.target])}`,
       })),
     );
 }
@@ -97,7 +105,7 @@ export async function publishStory(env: Env, storyId: string): Promise<PublishRe
   // An outline head that needs review has no usable page list (implementation
   // decision: it blocks as one outline item).
   if (outlineRev?.status === "needs_review") {
-    const message = "needs_review outline";
+    const message = PHRASE.needs_review("outline");
     return { ok: false, reason: "blocked", blocking: [{ pageId: null, page: null, target: "outline", reason: "needs_review", message }] };
   }
   const outline = (outlineRev?.content as Outline | undefined) ?? null;
