@@ -1,4 +1,12 @@
-import { type Issue, type LayoutTemplate, type RegistrySnapshot, isLayerManifest } from "@storybook/dsl";
+import {
+  type Issue,
+  type LayoutTemplate,
+  type RegistrySnapshot,
+  isLayerManifest,
+  PRIMITIVE_IDS,
+  PRIMITIVES,
+  primitiveAllows,
+} from "@storybook/dsl";
 
 // Prompts for the script and scene steps (#18, Exact changes 10). Never log a
 // prompt or an output.
@@ -39,6 +47,7 @@ export function scenePrompt(input: {
     "Put a registry key whose kind matches each slot's `accepts` into that slot.",
     "Use only legal pose and expression pairs.",
     "Include at least one character, one animation, and one tap interaction.",
+    'Use a primitive (in `animations` or in a `play_animation` action) only on a layer whose asset its line under "Animations" names; "all" means every asset.',
     "Name layers by slot ID: every `target` and `on.tap` is a slot ID.",
     'A `bust` pose goes only into a slot that lists it in `poses`.',
     "A bubble (`show_bubble` text) is a short line that the character says: 2 to 6 words, at most 40 characters.",
@@ -75,6 +84,15 @@ export function scenePrompt(input: {
   });
   // Props, scenery, and sounds, so the model can fill the other slots.
   const others = (["prop", "scenery", "sfx"] as const).map((kind) => `- ${kind}: ${JSON.stringify(keysOf(input.registry, kind))}`);
+  // Each primitive with the layer assets that it works on (#63).
+  const layerKeys = Object.keys(input.registry.assets)
+    .filter((key) => isLayerManifest(input.registry.assets[key]!.manifest))
+    .sort();
+  const animations = PRIMITIVE_IDS.map((id) =>
+    PRIMITIVES[id].renderers === "all"
+      ? `- ${id}: all`
+      : `- ${id}: ${JSON.stringify(layerKeys.filter((key) => primitiveAllows(id, input.registry.assets[key]!.renderer)))}`,
+  );
   const user = [
     "Templates:",
     ...templates,
@@ -87,6 +105,9 @@ export function scenePrompt(input: {
     "",
     "Other assets:",
     ...others,
+    "",
+    "Animations (primitive: the assets it works on):",
+    ...animations,
     "",
     "Beat:",
     input.beat,

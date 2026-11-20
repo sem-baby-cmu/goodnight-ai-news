@@ -1,4 +1,13 @@
-export { ACTIONS, type ActionId, PRIMITIVES, type PaletteId, type PrimitiveId, SKY_PALETTES } from "./primitives";
+export {
+  ACTIONS,
+  type ActionId,
+  PRIMITIVE_IDS,
+  PRIMITIVES,
+  type PaletteId,
+  primitiveAllows,
+  type PrimitiveId,
+  SKY_PALETTES,
+} from "./primitives";
 export {
   type AssetKind,
   type AssetManifest,
