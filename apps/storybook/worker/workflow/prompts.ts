@@ -41,6 +41,9 @@ export function scenePrompt(input: {
     "Include at least one character, one animation, and one tap interaction.",
     "Name layers by slot ID: every `target` and `on.tap` is a slot ID.",
     'A `bust` pose goes only into a slot that lists it in `poses`.',
+    "A bubble (`show_bubble` text) is a short line that the character says: 2 to 6 words, at most 40 characters.",
+    'A bubble ends with ".", "!", or "?". Use only English letters, digits, spaces, and plain ASCII punctuation: no long dashes, no ellipsis character, no curly quotes.',
+    "A bubble does not repeat the page text.",
     "Answer with JSON only.",
   ].join("\n");
 

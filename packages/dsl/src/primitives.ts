@@ -37,7 +37,7 @@ export type ActionSpec = { targetKinds: readonly TargetKind[]; maxTextLength?: n
 export const ACTIONS = {
   play_animation: { targetKinds: ["character", "prop", "scenery"] },
   play_sfx: { targetKinds: [] },
-  show_bubble: { targetKinds: ["character", "prop", "scenery"], maxTextLength: 60 },
+  show_bubble: { targetKinds: ["character", "prop", "scenery"], maxTextLength: 40 },
   // Props and scenery have no expressions, so they have no legal pairs.
   set_expression: { targetKinds: ["character"] },
   set_pose: { targetKinds: ["character"] },
