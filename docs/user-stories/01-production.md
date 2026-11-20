@@ -116,7 +116,7 @@ Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6.
 - Given a story whose latest run ended (`draft_ready`, `needs_review`, or `failed`), and a story view opened with no `runId`
 - When the operator opens the story view
 - Then the Studio sends one `GET /api/studio/runs/:id` for that run and no second one; the "Run" card has one row for each step kind of the answer, a failed step has a solid "failed" cell, and the card does not say "No run is in progress."
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ## RUN-02 Start a full run from a URL
 
