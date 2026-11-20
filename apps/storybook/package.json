@@ -8,7 +8,7 @@
     "preview": "vite build && vite preview",
     "types": "wrangler types --env-file /dev/null",
     "typecheck": "wrangler types --check --env-file /dev/null && tsc -b",
-    "test": "vitest run --project worker && vitest run --project ui && vitest run --project model-contract",
+    "test": "vitest run --project worker && vitest run --project ui && vitest run --project model-contract && vitest run --project scripts",
     "test:s2": "vitest run --config vitest.s2.config.ts",
     "test:e2e": "playwright test",
     "spike:build": "tsx scripts/make-texture.ts && VITE_SPIKE=1 vite build && tsx scripts/copy-spike-assets.ts",

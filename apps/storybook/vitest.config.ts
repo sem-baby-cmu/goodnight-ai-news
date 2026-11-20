@@ -61,6 +61,9 @@ export default defineConfig(async () => ({
           include: ["test/model-contract/fixtures.test.ts"],
         },
       },
+      {
+        test: { name: "scripts", environment: "node", include: ["scripts/**/*.test.ts"] },
+      },
     ],
   },
 }));
