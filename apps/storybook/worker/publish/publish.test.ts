@@ -267,6 +267,7 @@ describe("publishStory: releases", () => {
         id: competitorId,
         storyId: seeded.storyId,
         number: 1,
+        title: "Competitor",
         manifestKey: `releases/${competitorId}/manifest.json`,
         snapshot: { heads: {}, headsVersion: 0 },
         createdAt: new Date().toISOString(),
@@ -349,11 +350,22 @@ describe("publishStory: releases", () => {
     expect(row!.storyId).toBe(seeded.storyId);
     await expect(
       env.DB.prepare(
-        "INSERT INTO release (id, story_id, number, manifest_key, snapshot, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO release (id, story_id, number, title, manifest_key, snapshot, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
       )
-        .bind(newId(), seeded.storyId, result.number, "x", "{}", new Date().toISOString())
+        .bind(newId(), seeded.storyId, result.number, "x", "x", "{}", new Date().toISOString())
         .run(),
     ).rejects.toThrow("UNIQUE constraint failed: release.story_id, release.number");
+  });
+
+  it("PUB-01.S11 the release row keeps the title of the manifest", async () => {
+    const db = getDb(env.DB);
+    const seeded = await seedPublishableStory(env);
+    const result = await publishStory(env, seeded.storyId);
+    if (!result.ok) throw new Error(`publish failed: ${JSON.stringify(result)}`);
+    const manifest = ReleaseManifestSchema.parse(await readJson(`releases/${result.releaseId}/manifest.json`));
+    const [row] = await db.select().from(release).where(eq(release.id, result.releaseId));
+    expect(row!.title).toBe(manifest.title);
+    expect(row!.title).toBe("The Little Test");
   });
 
   it("PUB-01.S7 manifest and page JSON carry the format fields, relative paths, final positions, and assets", async () => {
