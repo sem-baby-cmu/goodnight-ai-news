@@ -40,6 +40,18 @@ Spec: requirements "Core Features" 4 · design "6. API", "Staleness"
 - Then the card has the chips "Text ok", "Scene stale", and "Audio needs review"
 - Test: @storybook/app · apps/storybook/src/studio/PageCard.test.tsx
 
+### EDT-01.S6 The story list gives the run status, the page states, and the last change of each story
+- Given a story with no `outline` head, a story whose four pages are `ok`, `stale`, `needs_review`, and `missing`, and a story with a release
+- When the Studio sends `GET /api/studio/stories`
+- Then each story has `latestRunStatus`, `pageCounts` with the number of its pages in each state (all 0 for the story with no `outline` head), and `updatedAt`, the latest time of the story, its revisions that are not `superseded`, its runs, and its releases
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
+
+### EDT-01.S7 The story list and the story view name the same latest run
+- Given a story whose two latest runs have the same `created_at`
+- When the Studio sends `GET /api/studio/stories` and `GET /api/studio/stories/:id`
+- Then `latestRunStatus` in the list is the `status` of `latestRun` in the story view, the run with the higher `id`
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
+
 ## EDT-02 Change a page text and regenerate only its audio
 
 As the operator, I want to change the text of one page and regenerate only
