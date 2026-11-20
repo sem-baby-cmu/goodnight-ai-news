@@ -13,6 +13,21 @@ export function gateClass(layout: LayoutName, w: number): string {
 
 const WAIT_DELAYS = [0, 300, 600];
 
+// The three waiting dots of Loading and of the shelf in Waiting.
+export function WaitingDots() {
+  return (
+    <div className="flex gap-2" aria-hidden="true">
+      {WAIT_DELAYS.map((delay) => (
+        <span
+          key={delay}
+          className="size-[10px] rounded-full bg-teal-deep opacity-30 motion-safe:animate-[player-wait_1.8s_ease-in-out_infinite]"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 type StartGateProps = {
   layout: LayoutName;
   w: number;
@@ -30,15 +45,7 @@ export function StartGate({ layout, w, title, onStart, startRef }: StartGateProp
       {title === null ? (
         <div className={cn("flex flex-col items-center", short ? "gap-2" : "gap-3")}>
           <p className={cn("leading-[1.3] font-semibold text-ink", short ? "text-[22px]" : "text-[28px]")}>Opening the book</p>
-          <div className="flex gap-2" aria-hidden="true">
-            {WAIT_DELAYS.map((delay) => (
-              <span
-                key={delay}
-                className="size-[10px] rounded-full bg-teal-deep opacity-30 motion-safe:animate-[player-wait_1.8s_ease-in-out_infinite]"
-                style={{ animationDelay: `${delay}ms` }}
-              />
-            ))}
-          </div>
+          <WaitingDots />
         </div>
       ) : (
         <h1

@@ -64,8 +64,7 @@ function checkPage(page: ReleasePage, url: string): void {
 
 // The manifest is the enforcement point (ADR 0017): it is fetched with
 // `no-cache`, and no other release file is requested before it is parsed.
-// Every page JSON is loaded before the book can be Ready.
-export async function loadRelease(releaseId: string, fetchImpl: typeof fetch = fetch): Promise<LoadedRelease> {
+async function loadManifest(releaseId: string, fetchImpl: typeof fetch): Promise<{ root: string; manifest: ReleaseManifest }> {
   if (!RELEASE_ID_RE.test(releaseId)) throw new ReleaseUnavailableError("not a release ID");
   const root = releaseRoot(releaseId);
   const manifestUrl = root + "manifest.json";
@@ -74,14 +73,31 @@ export async function loadRelease(releaseId: string, fetchImpl: typeof fetch = f
   for (const entry of manifest.pages) {
     if (!isSafeRelativePath(entry.json)) throw new ReleaseUnavailableError(`${manifestUrl}: page path`);
   }
-  const pages = await Promise.all(
-    manifest.pages.map(async (entry) => {
-      const url = root + entry.json;
-      const page = parse(ReleasePageSchema, await getJson(fetchImpl, url), url);
-      if (page.pageId !== entry.pageId) throw new ReleaseUnavailableError(`${url}: another page`);
-      checkPage(page, url);
-      return page;
-    }),
-  );
+  return { root, manifest };
+}
+
+async function loadPage(fetchImpl: typeof fetch, root: string, entry: { pageId: string; json: string }): Promise<ReleasePage> {
+  const url = root + entry.json;
+  const page = parse(ReleasePageSchema, await getJson(fetchImpl, url), url);
+  if (page.pageId !== entry.pageId) throw new ReleaseUnavailableError(`${url}: another page`);
+  checkPage(page, url);
+  return page;
+}
+
+// Every page JSON is loaded before the book can be Ready.
+export async function loadRelease(releaseId: string, fetchImpl: typeof fetch = fetch): Promise<LoadedRelease> {
+  const { root, manifest } = await loadManifest(releaseId, fetchImpl);
+  const pages = await Promise.all(manifest.pages.map((entry) => loadPage(fetchImpl, root, entry)));
   return { root, manifest, pages };
+}
+
+export type LoadedCover = { root: string; page: ReleasePage };
+
+// The cover of a book on the shelf: the manifest, then page 1 JSON only
+// (ADR 0017 decision 20, PLY-05.S19).
+export async function loadCover(releaseId: string, fetchImpl: typeof fetch = fetch): Promise<LoadedCover> {
+  const { root, manifest } = await loadManifest(releaseId, fetchImpl);
+  const first = manifest.pages[0];
+  if (!first) throw new ReleaseUnavailableError(`${root}manifest.json: no page`);
+  return { root, page: await loadPage(fetchImpl, root, first) };
 }
