@@ -1,0 +1,11 @@
+{
+  "key": "meadow",
+  "version": 1,
+  "templates": "2f5534cb20d2bbe96dd425b9a0a4b59bc56d0a7cd9c89d251828b5dd342562f5",
+  "files": {
+    "cloudy.svg": "544922fa231ea23929d327d65bc2a8c0c842e05d63a3588a46c4b4a367aeebf5",
+    "day.svg": "0580fb6d55802723d370b227439c81cf6ad922916783b69d014a818101dcdb35",
+    "dusk.svg": "c8139ad598ec516fabd085e05b45d59327652aeb41c1546ee2022731e0a3c16d",
+    "night.svg": "82351d6544a2ed3c00c10320e4c169a613c315965a8a39056f3847e083b1442e"
+  }
+}
