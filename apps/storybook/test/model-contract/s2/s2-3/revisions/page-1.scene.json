@@ -1,0 +1,144 @@
+{
+  "id": "01a1f647-7ffa-72fc-a64f-7f538b29b77b",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "three-friends",
+    "sky": "night",
+    "layers": [
+      {
+        "instanceId": "01a1f647-7ff8-743c-a56c-1a9f0e3bf061",
+        "kind": "scenery",
+        "ref": "grass",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 260,
+          "y": 820,
+          "scale": 2,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f647-7ff9-7663-ab40-a8124463d83e",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1340,
+          "y": 820,
+          "scale": 1.2121,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f647-7ff9-7663-ab40-aef0248786bf",
+        "kind": "scenery",
+        "ref": "stars",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 260,
+          "scale": 0.8811,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f647-7ff9-7663-ab40-b2573dbab232",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "sit",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1100,
+          "scale": 1.791,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f647-7ff9-7663-ab40-b75418336334",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "surprised",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 380,
+          "y": 1010,
+          "scale": 1.1538,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f647-7ff9-7663-ab40-b904486dbbfc",
+        "kind": "character",
+        "ref": "cat",
+        "pose": "sit",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1220,
+          "y": 1010,
+          "scale": 1.4815,
+          "z": 51
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f647-7ff9-7663-ab40-aef0248786bf",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.025,
+          "period": 5
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f647-7ff9-7663-ab40-b2573dbab232"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-7ff9-7663-ab40-b2573dbab232",
+            "text": "Scientists want to connect three giant telescopes into one!"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f647-7ff9-7663-ab40-b75418336334"
+        },
+        "do": [
+          {
+            "action": "set_expression",
+            "target": "01a1f647-7ff9-7663-ab40-b75418336334",
+            "expression": "surprised"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-7ff9-7663-ab40-b75418336334",
+            "text": "One supertelescope!"
+          }
+        ]
+      }
+    ]
+  }
+}

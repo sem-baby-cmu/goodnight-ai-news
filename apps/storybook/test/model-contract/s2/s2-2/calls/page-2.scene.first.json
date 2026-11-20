@@ -1,0 +1,105 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "angle": 2,
+            "period": 5
+          },
+          "primitive": "sway",
+          "target": "hero",
+          "trigger": "loop"
+        },
+        {
+          "params": {
+            "delay": 0.3
+          },
+          "primitive": "fade-in",
+          "target": "prop-front",
+          "trigger": "enter"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "pop",
+              "target": "prop-front"
+            },
+            {
+              "action": "show_bubble",
+              "target": "prop-front",
+              "text": "Movement noticed. Picture saved, quietly!"
+            }
+          ],
+          "on": {
+            "tap": "hero"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "show_bubble",
+              "target": "prop-front",
+              "text": "August to November: waiting quietly for wild animals to pass"
+            }
+          ],
+          "on": {
+            "tap": "prop-front"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "tree",
+          "slot": "place"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "bush",
+          "slot": "side"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "clouds",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "walk",
+          "ref": "rabbit",
+          "slot": "hero"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "prop",
+          "pose": "default",
+          "ref": "machine",
+          "slot": "prop-front"
+        }
+      ],
+      "sky": "day",
+      "templateId": "landscape"
+    }
+  },
+  "usage": {
+    "inputTokens": 7318,
+    "outputTokens": 621
+  }
+}

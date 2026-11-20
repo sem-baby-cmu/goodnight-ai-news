@@ -1,0 +1,101 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "count": 2
+          },
+          "primitive": "wave",
+          "target": "center",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "angle": 3,
+            "period": 4
+          },
+          "primitive": "sway",
+          "target": "back-right",
+          "trigger": "loop"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "wave",
+              "target": "center"
+            },
+            {
+              "action": "show_bubble",
+              "target": "center",
+              "text": "Thank you, families, donors, and the New Hope-Solebury (NHS)"
+            }
+          ],
+          "on": {
+            "tap": "center"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "lumi",
+          "slot": "center"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "kiki",
+          "slot": "left"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "pip",
+          "slot": "right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "cottage",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "tree",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "sun",
+          "slot": "sky-1"
+        }
+      ],
+      "sky": "day",
+      "templateId": "three-friends"
+    }
+  },
+  "usage": {
+    "inputTokens": 7337,
+    "outputTokens": 537
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "title": "Smile for Snapshot Europe!",
+      "cast": [
+        "lumi",
+        "pip",
+        "rabbit"
+      ],
+      "pages": [
+        {
+          "beat": "Autumn cameras across Europe",
+          "text": "Every autumn, Lumi and Pip watch helpers place little knee-high cameras in forests, mountains, farms, and beaches. Together, scientists and volunteers across twenty-two European countries run a big project called Snapshot Europe.",
+          "pageId": "01a1f645-8123-7334-87b0-f1591f497bc0"
+        },
+        {
+          "beat": "Gentle motion-triggered photos",
+          "text": "The cameras wait quietly from August to November. Whenever a wild animal walks past, a sensor notices the movement and snaps pictures without bothering anyone.",
+          "pageId": "01a1f645-8124-7096-bc05-1d3f1fd4ddce"
+        },
+        {
+          "beat": "Rabbit poses for the camera",
+          "text": "In Belgium, Rabbit loves to hop right past the lens! Snapshot Europe cameras snapped European rabbits up to ten times in a single day. Pip giggles at Rabbit's funny poses.",
+          "pageId": "01a1f645-8124-7096-bc05-22ca4cc53863"
+        },
+        {
+          "beat": "Wildlife from Sweden to Spain",
+          "text": "The first two years gathered one hundred thousand animal pictures in over one thousand places! Cameras spotted tall moose in Swedish forests and red deer strolling on sunny Spanish beaches.",
+          "pageId": "01a1f645-8124-7096-bc05-26b9b62d72fa"
+        },
+        {
+          "beat": "So many woodland neighbors",
+          "text": "Red deer and roe deer appeared most often, alongside foxes, wild boars, and badgers. One forest park in Italy captured fifteen kinds of animals, and cameras even spotted raccoons exploring new homes.",
+          "pageId": "01a1f645-8124-7096-bc05-29fc6e7ac8c5"
+        },
+        {
+          "beat": "Smart computers and scientists check labels",
+          "text": "After autumn ends, volunteers collect every camera and upload the photos online. A smart computer guesses each animal's name, and real scientists check every label to make sure it is right.",
+          "pageId": "01a1f645-8124-7096-bc05-2f0cb1efe004"
+        },
+        {
+          "beat": "Sharing nature with the whole world",
+          "text": "Now everyone can see the pictures for free to help protect wildlife across borders. Lumi, Pip, and Rabbit cheer as Japan, Brazil, Chile, and Paraguay join Snapshot Global next!",
+          "pageId": "01a1f645-8124-7096-bc05-32d64bcf99cd"
+        }
+      ]
+    }
+  },
+  "usage": {
+    "inputTokens": 3979,
+    "outputTokens": 2992
+  }
+}

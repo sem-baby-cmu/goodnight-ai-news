@@ -1,0 +1,158 @@
+{
+  "result": {
+    "kind": "answer",
+    "value": {
+      "animations": [
+        {
+          "params": {
+            "count": 3,
+            "height": 0.045
+          },
+          "primitive": "bounce",
+          "target": "center",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "count": 3,
+            "height": 0.035
+          },
+          "primitive": "bounce",
+          "target": "left",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "count": 3,
+            "height": 0.04
+          },
+          "primitive": "bounce",
+          "target": "right",
+          "trigger": "enter"
+        },
+        {
+          "params": {
+            "angle": 3,
+            "period": 4
+          },
+          "primitive": "sway",
+          "target": "back-left",
+          "trigger": "loop"
+        }
+      ],
+      "interactions": [
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "wave",
+              "target": "center"
+            },
+            {
+              "action": "show_bubble",
+              "target": "center",
+              "text": "Pictures for everyone, everywhere—for free!"
+            }
+          ],
+          "on": {
+            "tap": "center"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "bounce",
+              "target": "left"
+            },
+            {
+              "action": "play_sfx",
+              "sfx": "sfx-tada"
+            },
+            {
+              "action": "show_bubble",
+              "target": "left",
+              "text": "Japan, Brazil, Chile, and Paraguay are joining Snapshot ..."
+            }
+          ],
+          "on": {
+            "tap": "left"
+          }
+        },
+        {
+          "do": [
+            {
+              "action": "play_animation",
+              "primitive": "wave",
+              "target": "right"
+            },
+            {
+              "action": "show_bubble",
+              "target": "right",
+              "text": "Together, we can protect wildlife across borders!"
+            }
+          ],
+          "on": {
+            "tap": "right"
+          }
+        }
+      ],
+      "layers": [
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "tree",
+          "slot": "back-left"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "flowers",
+          "slot": "back-right"
+        },
+        {
+          "expression": null,
+          "flip": false,
+          "kind": "scenery",
+          "pose": "default",
+          "ref": "sun",
+          "slot": "sky-1"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "lumi",
+          "slot": "center"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "pip",
+          "slot": "left"
+        },
+        {
+          "expression": "happy",
+          "flip": false,
+          "kind": "character",
+          "pose": "front",
+          "ref": "rabbit",
+          "slot": "right"
+        }
+      ],
+      "sky": "day",
+      "templateId": "three-friends"
+    }
+  },
+  "usage": {
+    "inputTokens": 7326,
+    "outputTokens": 707
+  }
+}

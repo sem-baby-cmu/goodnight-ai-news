@@ -1,0 +1,157 @@
+{
+  "id": "01a1f648-1451-722a-9d69-b61a4f56e316",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "circle-around-object",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f648-1450-7476-9089-d34f830ff38a",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 230,
+          "y": 760,
+          "scale": 1.0973,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f648-1450-7476-9089-d7aaa8a13b3d",
+        "kind": "scenery",
+        "ref": "window",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1370,
+          "y": 760,
+          "scale": 1.6923,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f648-1450-7476-9089-da71fdf11759",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "back",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 960,
+          "scale": 1.1735,
+          "z": 45
+        }
+      },
+      {
+        "instanceId": "01a1f648-1450-7476-9089-dcd69ea9ff62",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 360,
+          "y": 1060,
+          "scale": 1.25,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f648-1450-7476-9089-e11e3e9a3dd5",
+        "kind": "character",
+        "ref": "cat",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1240,
+          "y": 1060,
+          "scale": 1.3333,
+          "z": 51
+        }
+      },
+      {
+        "instanceId": "01a1f648-1450-7476-9089-e78e7538d35c",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "object",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1150,
+          "scale": 0.6933,
+          "z": 60
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f648-1450-7476-9089-e78e7538d35c",
+        "primitive": "fade-in",
+        "params": {
+          "delay": 0.3
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f648-1450-7476-9089-da71fdf11759",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.04,
+          "count": 2
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f648-1450-7476-9089-e78e7538d35c"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f648-1450-7476-9089-e78e7538d35c",
+            "primitive": "pop"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-tada"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f648-1450-7476-9089-da71fdf11759",
+            "text": "When everyone shares their view, we see so much more!"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f648-1450-7476-9089-dcd69ea9ff62"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f648-1450-7476-9089-dcd69ea9ff62",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f648-1450-7476-9089-dcd69ea9ff62",
+            "text": "We did it together, Cat!"
+          }
+        ]
+      }
+    ]
+  }
+}

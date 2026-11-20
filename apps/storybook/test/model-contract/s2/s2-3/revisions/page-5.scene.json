@@ -1,0 +1,141 @@
+{
+  "id": "01a1f648-1528-71b5-b46a-8c97a395c166",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "hero-and-object",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f648-1527-746f-b466-a2fce649321f",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 230,
+          "y": 860,
+          "scale": 1.2968,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f648-1528-71b5-b46a-7c97d78763a4",
+        "kind": "scenery",
+        "ref": "window",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1360,
+          "y": 820,
+          "scale": 2,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f648-1528-71b5-b46a-820675e866c7",
+        "kind": "scenery",
+        "ref": "burst",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 300,
+          "y": 300,
+          "scale": 1.0929,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f648-1528-71b5-b46a-8729c5d21a1d",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "hero",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1090,
+          "scale": 1.5776,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f648-1528-71b5-b46a-8abf96dfac2c",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "object",
+        "flip": false,
+        "at": {
+          "x": 1120,
+          "y": 1090,
+          "scale": 1.3867,
+          "z": 40
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f648-1528-71b5-b46a-8abf96dfac2c",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.08
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f648-1528-71b5-b46a-820675e866c7",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.03,
+          "period": 3
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f648-1528-71b5-b46a-8abf96dfac2c"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f648-1528-71b5-b46a-8abf96dfac2c",
+            "primitive": "pop"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f648-1528-71b5-b46a-8abf96dfac2c",
+            "text": "Three views blend into one super-clear picture!"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f648-1528-71b5-b46a-8729c5d21a1d"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f648-1528-71b5-b46a-8729c5d21a1d",
+            "text": "AI helps scientists blend more photos than people could sort"
+          },
+          {
+            "action": "play_animation",
+            "target": "01a1f648-1528-71b5-b46a-8729c5d21a1d",
+            "primitive": "pop"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "id": "01a1f645-c6a7-72a6-a1e0-a0eb97f8c284",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "two-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f645-c6a7-72a6-a1e0-8a199b7f5bcb",
+        "kind": "character",
+        "ref": "rabbit",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1080,
+          "scale": 1.3667,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f645-c6a7-72a6-a1e0-8d2d0af9bc11",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1080,
+          "y": 1080,
+          "scale": 1.4423,
+          "z": 51
+        }
+      },
+      {
+        "instanceId": "01a1f645-c6a7-72a6-a1e0-920184a8a7b4",
+        "kind": "prop",
+        "ref": "backpack",
+        "pose": "default",
+        "slot": "prop-center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1110,
+          "scale": 0.5405,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f645-c6a7-72a6-a1e0-95dbcd0bdfe8",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 300,
+          "y": 880,
+          "scale": 1.4141,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f645-c6a7-72a6-a1e0-9a130bd943f9",
+        "kind": "scenery",
+        "ref": "flowers",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1300,
+          "y": 880,
+          "scale": 2.2581,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f645-c6a7-72a6-a1e0-9cf903573efa",
+        "kind": "scenery",
+        "ref": "sun",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 300,
+          "scale": 0.6667,
+          "z": 5
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f645-c6a7-72a6-a1e0-8a199b7f5bcb",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.01,
+          "count": 3
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f645-c6a7-72a6-a1e0-8d2d0af9bc11",
+        "primitive": "sway",
+        "params": {
+          "angle": 6,
+          "period": 2
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f645-c6a7-72a6-a1e0-8a199b7f5bcb"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f645-c6a7-72a6-a1e0-8a199b7f5bcb",
+            "primitive": "bounce"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-boing"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f645-c6a7-72a6-a1e0-8a199b7f5bcb",
+            "text": "How about a hopping pose?"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f645-c6a7-72a6-a1e0-8d2d0af9bc11"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f645-c6a7-72a6-a1e0-8d2d0af9bc11",
+            "primitive": "wave"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f645-c6a7-72a6-a1e0-8d2d0af9bc11",
+            "text": "Hee-hee! Hold still, Rabbit!"
+          }
+        ]
+      }
+    ]
+  }
+}

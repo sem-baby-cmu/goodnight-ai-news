@@ -1,0 +1,5669 @@
+{
+  "assets": {
+    "backpack": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 225,
+              "y": 407
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 416,
+              "h": 407
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "ball": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 136,
+              "y": 289
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 278,
+              "h": 289
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "barn": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 175,
+              "y": 346
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 399,
+              "h": 346
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "basket": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 153,
+              "y": 386
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 374,
+              "h": 386
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "battery": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 105,
+              "y": 319
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 210,
+              "h": 319
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "blanket": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 326,
+              "y": 308
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 484,
+              "h": 308
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "blocks": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 224,
+              "y": 293
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 294,
+              "h": 293
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "bobo": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 124,
+              "y": 379
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 232,
+              "h": 379
+            },
+            "face": {
+              "x": 35,
+              "y": 30,
+              "w": 163,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 78,
+              "y": 380
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 229,
+              "h": 380
+            },
+            "face": {
+              "x": 35,
+              "y": 30,
+              "w": 161,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 126,
+              "y": 377
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 209,
+              "h": 377
+            },
+            "face": {
+              "x": 31,
+              "y": 30,
+              "w": 178,
+              "h": 151
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 96,
+              "y": 380
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 215,
+              "h": 379
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 92,
+              "y": 184
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 181,
+              "h": 184
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 146,
+              "h": 120
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 87,
+              "y": 184
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 178,
+              "h": 184
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 143,
+              "h": 120
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 86,
+              "y": 185
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 178,
+              "h": 185
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 143,
+              "h": 120
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 87,
+              "y": 185
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 176,
+              "h": 185
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 142,
+              "h": 120
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 94,
+              "y": 186
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 176,
+              "h": 186
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 142,
+              "h": 121
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 111,
+              "y": 186
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 180,
+              "h": 186
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 145,
+              "h": 121
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 134,
+              "y": 370
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 249,
+              "h": 370
+            },
+            "face": {
+              "x": 37,
+              "y": 30,
+              "w": 174,
+              "h": 148
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 188,
+              "y": 360
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 259,
+              "h": 360
+            },
+            "face": {
+              "x": 39,
+              "y": 29,
+              "w": 182,
+              "h": 144
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 120,
+              "y": 313
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 247,
+              "h": 313
+            },
+            "face": {
+              "x": 37,
+              "y": 25,
+              "w": 173,
+              "h": 125
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 122,
+              "y": 376
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 216,
+              "h": 376
+            },
+            "face": {
+              "x": 32,
+              "y": 30,
+              "w": 151,
+              "h": 150
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "book": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 72,
+              "y": 325
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 332,
+              "h": 325
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "bridge": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 226,
+              "y": 257
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 453,
+              "h": 257
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "burst": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 152,
+              "y": 183
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 303,
+              "h": 183
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "bush": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 292,
+              "y": 230
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 355,
+              "h": 230
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "cat": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 87,
+              "y": 384
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 232,
+              "h": 384
+            },
+            "face": {
+              "x": 35,
+              "y": 31,
+              "w": 163,
+              "h": 154
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 100,
+              "y": 390
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 230,
+              "h": 390
+            },
+            "face": {
+              "x": 35,
+              "y": 31,
+              "w": 162,
+              "h": 156
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 128,
+              "y": 391
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 202,
+              "h": 391
+            },
+            "face": {
+              "x": 30,
+              "y": 31,
+              "w": 172,
+              "h": 156
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 107,
+              "y": 382
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 216,
+              "h": 381
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 103,
+              "y": 214
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 178,
+              "h": 214
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 142,
+              "h": 139
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 103,
+              "y": 215
+            },
+            "box": {
+              "x": 1,
+              "y": 1,
+              "w": 178,
+              "h": 214
+            },
+            "face": {
+              "x": 19,
+              "y": 12,
+              "w": 142,
+              "h": 139
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 88,
+              "y": 215
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 177,
+              "h": 215
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 142,
+              "h": 139
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 104,
+              "y": 215
+            },
+            "box": {
+              "x": 1,
+              "y": 1,
+              "w": 178,
+              "h": 214
+            },
+            "face": {
+              "x": 19,
+              "y": 11,
+              "w": 142,
+              "h": 140
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 103,
+              "y": 215
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 175,
+              "h": 215
+            },
+            "face": {
+              "x": 19,
+              "y": 11,
+              "w": 140,
+              "h": 139
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 89,
+              "y": 217
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 179,
+              "h": 217
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 144,
+              "h": 141
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 133,
+              "y": 380
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 257,
+              "h": 380
+            },
+            "face": {
+              "x": 39,
+              "y": 30,
+              "w": 180,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 194,
+              "y": 374
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 255,
+              "h": 374
+            },
+            "face": {
+              "x": 38,
+              "y": 30,
+              "w": 179,
+              "h": 150
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 75,
+              "y": 325
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 231,
+              "h": 324
+            },
+            "face": {
+              "x": 35,
+              "y": 26,
+              "w": 162,
+              "h": 130
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 74,
+              "y": 382
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 208,
+              "h": 381
+            },
+            "face": {
+              "x": 31,
+              "y": 31,
+              "w": 146,
+              "h": 153
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "clouds": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 318,
+              "y": 256
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 433,
+              "h": 256
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "cottage": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 315,
+              "y": 382
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 399,
+              "h": 382
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "cow": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 146,
+              "y": 394
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 279,
+              "h": 394
+            },
+            "face": {
+              "x": 43,
+              "y": 32,
+              "w": 195,
+              "h": 158
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 106,
+              "y": 396
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 248,
+              "h": 396
+            },
+            "face": {
+              "x": 38,
+              "y": 32,
+              "w": 172,
+              "h": 158
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 102,
+              "y": 397
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 197,
+              "h": 396
+            },
+            "face": {
+              "x": 30,
+              "y": 33,
+              "w": 167,
+              "h": 158
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 99,
+              "y": 390
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 271,
+              "h": 390
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 81,
+              "y": 194
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 199,
+              "h": 194
+            },
+            "face": {
+              "x": 21,
+              "y": 10,
+              "w": 158,
+              "h": 125
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 93,
+              "y": 188
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 185,
+              "h": 188
+            },
+            "face": {
+              "x": 19,
+              "y": 9,
+              "w": 147,
+              "h": 122
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 96,
+              "y": 192
+            },
+            "box": {
+              "x": 2,
+              "y": 1,
+              "w": 191,
+              "h": 191
+            },
+            "face": {
+              "x": 21,
+              "y": 11,
+              "w": 153,
+              "h": 124
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 97,
+              "y": 193
+            },
+            "box": {
+              "x": 3,
+              "y": 0,
+              "w": 191,
+              "h": 193
+            },
+            "face": {
+              "x": 23,
+              "y": 10,
+              "w": 151,
+              "h": 125
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 90,
+              "y": 193
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 191,
+              "h": 192
+            },
+            "face": {
+              "x": 19,
+              "y": 11,
+              "w": 152,
+              "h": 124
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 128,
+              "y": 194
+            },
+            "box": {
+              "x": 6,
+              "y": 0,
+              "w": 195,
+              "h": 194
+            },
+            "face": {
+              "x": 26,
+              "y": 10,
+              "w": 155,
+              "h": 126
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 177,
+              "y": 373
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 249,
+              "h": 373
+            },
+            "face": {
+              "x": 38,
+              "y": 30,
+              "w": 174,
+              "h": 149
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 206,
+              "y": 350
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 265,
+              "h": 350
+            },
+            "face": {
+              "x": 40,
+              "y": 28,
+              "w": 185,
+              "h": 140
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 54,
+              "y": 300
+            },
+            "box": {
+              "x": 1,
+              "y": 1,
+              "w": 245,
+              "h": 299
+            },
+            "face": {
+              "x": 38,
+              "y": 25,
+              "w": 172,
+              "h": 119
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 85,
+              "y": 369
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 238,
+              "h": 369
+            },
+            "face": {
+              "x": 37,
+              "y": 30,
+              "w": 166,
+              "h": 148
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "cup": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 113,
+              "y": 252
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 301,
+              "h": 252
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "dog": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 96,
+              "y": 377
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 265,
+              "h": 377
+            },
+            "face": {
+              "x": 40,
+              "y": 30,
+              "w": 186,
+              "h": 151
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 95,
+              "y": 380
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 235,
+              "h": 379
+            },
+            "face": {
+              "x": 35,
+              "y": 31,
+              "w": 165,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 94,
+              "y": 379
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 187,
+              "h": 379
+            },
+            "face": {
+              "x": 29,
+              "y": 30,
+              "w": 158,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 73,
+              "y": 378
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 254,
+              "h": 378
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 107,
+              "y": 180
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 186,
+              "h": 180
+            },
+            "face": {
+              "x": 20,
+              "y": 9,
+              "w": 149,
+              "h": 117
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 103,
+              "y": 179
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 183,
+              "h": 179
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 146,
+              "h": 116
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 106,
+              "y": 180
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 176,
+              "h": 180
+            },
+            "face": {
+              "x": 19,
+              "y": 9,
+              "w": 140,
+              "h": 117
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 103,
+              "y": 179
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 177,
+              "h": 179
+            },
+            "face": {
+              "x": 19,
+              "y": 9,
+              "w": 141,
+              "h": 116
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 111,
+              "y": 179
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 178,
+              "h": 179
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 142,
+              "h": 116
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 108,
+              "y": 180
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 188,
+              "h": 180
+            },
+            "face": {
+              "x": 19,
+              "y": 9,
+              "w": 150,
+              "h": 117
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 105,
+              "y": 372
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 231,
+              "h": 372
+            },
+            "face": {
+              "x": 35,
+              "y": 30,
+              "w": 162,
+              "h": 149
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 20,
+              "y": 345
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 250,
+              "h": 345
+            },
+            "face": {
+              "x": 38,
+              "y": 29,
+              "w": 174,
+              "h": 138
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 43,
+              "y": 297
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 238,
+              "h": 297
+            },
+            "face": {
+              "x": 36,
+              "y": 24,
+              "w": 166,
+              "h": 119
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 91,
+              "y": 379
+            },
+            "box": {
+              "x": 2,
+              "y": 0,
+              "w": 244,
+              "h": 379
+            },
+            "face": {
+              "x": 39,
+              "y": 30,
+              "w": 171,
+              "h": 152
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "door": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 21,
+              "y": 307
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 240,
+              "h": 307
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "fence": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 363,
+              "y": 229
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 422,
+              "h": 229
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "flowers": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 180,
+              "y": 248
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 299,
+              "h": 248
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "gears": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 96,
+              "y": 346
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 335,
+              "h": 346
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "grass": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 154,
+              "y": 228
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 271,
+              "h": 228
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "grass-patch": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 161,
+              "y": 173
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 332,
+              "h": 173
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "kiki": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 106,
+              "y": 400
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 210,
+              "h": 400
+            },
+            "face": {
+              "x": 32,
+              "y": 0,
+              "w": 146,
+              "h": 192
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 69,
+              "y": 405
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 210,
+              "h": 405
+            },
+            "face": {
+              "x": 31,
+              "y": 0,
+              "w": 172,
+              "h": 194
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 115,
+              "y": 404
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 176,
+              "h": 403
+            },
+            "face": {
+              "x": 27,
+              "y": 0,
+              "w": 149,
+              "h": 194
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 106,
+              "y": 403
+            },
+            "box": {
+              "x": 2,
+              "y": 0,
+              "w": 205,
+              "h": 403
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 84,
+              "y": 165
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 165,
+              "h": 165
+            },
+            "face": {
+              "x": 17,
+              "y": 9,
+              "w": 131,
+              "h": 106
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 83,
+              "y": 164
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 163,
+              "h": 164
+            },
+            "face": {
+              "x": 17,
+              "y": 9,
+              "w": 130,
+              "h": 105
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 86,
+              "y": 164
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 158,
+              "h": 164
+            },
+            "face": {
+              "x": 17,
+              "y": 9,
+              "w": 126,
+              "h": 105
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 76,
+              "y": 164
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 164
+            },
+            "face": {
+              "x": 17,
+              "y": 9,
+              "w": 126,
+              "h": 105
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 68,
+              "y": 164
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 160,
+              "h": 163
+            },
+            "face": {
+              "x": 17,
+              "y": 10,
+              "w": 126,
+              "h": 105
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 89,
+              "y": 164
+            },
+            "box": {
+              "x": 1,
+              "y": 1,
+              "w": 158,
+              "h": 163
+            },
+            "face": {
+              "x": 18,
+              "y": 9,
+              "w": 126,
+              "h": 105
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 36,
+              "y": 372
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 221,
+              "h": 372
+            },
+            "face": {
+              "x": 34,
+              "y": 0,
+              "w": 154,
+              "h": 179
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 211,
+              "y": 355
+            },
+            "box": {
+              "x": 1,
+              "y": 1,
+              "w": 266,
+              "h": 354
+            },
+            "face": {
+              "x": 41,
+              "y": 0,
+              "w": 186,
+              "h": 170
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 65,
+              "y": 304
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 214,
+              "h": 303
+            },
+            "face": {
+              "x": 33,
+              "y": 25,
+              "w": 149,
+              "h": 121
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 97,
+              "y": 372
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 193,
+              "h": 372
+            },
+            "face": {
+              "x": 30,
+              "y": 31,
+              "w": 134,
+              "h": 148
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "leaves": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 184,
+              "y": 298
+            },
+            "box": {
+              "x": 0,
+              "y": 2,
+              "w": 343,
+              "h": 296
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "light-bulb": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 122,
+              "y": 363
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 243,
+              "h": 363
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "log": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 315,
+              "y": 241
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 390,
+              "h": 241
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "lumi": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 128,
+              "y": 392
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 256,
+              "h": 392
+            },
+            "face": {
+              "x": 39,
+              "y": 31,
+              "w": 179,
+              "h": 157
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 103,
+              "y": 393
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 222,
+              "h": 393
+            },
+            "face": {
+              "x": 33,
+              "y": 31,
+              "w": 155,
+              "h": 157
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 101,
+              "y": 395
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 166,
+              "h": 395
+            },
+            "face": {
+              "x": 25,
+              "y": 32,
+              "w": 131,
+              "h": 158
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 117,
+              "y": 393
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 247,
+              "h": 393
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 93,
+              "y": 218
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 175,
+              "h": 218
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 140,
+              "h": 142
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 85,
+              "y": 217
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 165,
+              "h": 217
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 132,
+              "h": 141
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 79,
+              "y": 217
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 166,
+              "h": 217
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 133,
+              "h": 141
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 89,
+              "y": 218
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 169,
+              "h": 218
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 135,
+              "h": 142
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 89,
+              "y": 217
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 175,
+              "h": 217
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 140,
+              "h": 141
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 107,
+              "y": 218
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 174,
+              "h": 218
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 139,
+              "h": 142
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 178,
+              "y": 385
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 233,
+              "h": 385
+            },
+            "face": {
+              "x": 35,
+              "y": 32,
+              "w": 162,
+              "h": 154
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 182,
+              "y": 384
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 255,
+              "h": 384
+            },
+            "face": {
+              "x": 38,
+              "y": 31,
+              "w": 179,
+              "h": 154
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 142,
+              "y": 335
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 264,
+              "h": 335
+            },
+            "face": {
+              "x": 40,
+              "y": 28,
+              "w": 185,
+              "h": 134
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 123,
+              "y": 384
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 245,
+              "h": 384
+            },
+            "face": {
+              "x": 37,
+              "y": 32,
+              "w": 172,
+              "h": 153
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "machine": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 192,
+              "y": 375
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 388,
+              "h": 375
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "mushrooms": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 238,
+              "y": 235
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 311,
+              "h": 235
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "nori": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 102,
+              "y": 424
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 250,
+              "h": 424
+            },
+            "face": {
+              "x": 38,
+              "y": 34,
+              "w": 176,
+              "h": 169
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 112,
+              "y": 427
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 239,
+              "h": 427
+            },
+            "face": {
+              "x": 36,
+              "y": 34,
+              "w": 203,
+              "h": 171
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 140,
+              "y": 423
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 220,
+              "h": 422
+            },
+            "face": {
+              "x": 33,
+              "y": 35,
+              "w": 187,
+              "h": 169
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 118,
+              "y": 424
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 217,
+              "h": 424
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 65,
+              "y": 225
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 178,
+              "h": 225
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 142,
+              "h": 146
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 61,
+              "y": 221
+            },
+            "box": {
+              "x": 5,
+              "y": 0,
+              "w": 171,
+              "h": 221
+            },
+            "face": {
+              "x": 22,
+              "y": 11,
+              "w": 137,
+              "h": 144
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 63,
+              "y": 222
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 167,
+              "h": 222
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 134,
+              "h": 144
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 64,
+              "y": 224
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 170,
+              "h": 224
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 137,
+              "h": 146
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 61,
+              "y": 222
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 170,
+              "h": 222
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 136,
+              "h": 144
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 59,
+              "y": 227
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 173,
+              "h": 227
+            },
+            "face": {
+              "x": 17,
+              "y": 11,
+              "w": 138,
+              "h": 148
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 99,
+              "y": 399
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 246,
+              "h": 399
+            },
+            "face": {
+              "x": 37,
+              "y": 32,
+              "w": 172,
+              "h": 160
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 202,
+              "y": 392
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 265,
+              "h": 392
+            },
+            "face": {
+              "x": 40,
+              "y": 31,
+              "w": 185,
+              "h": 157
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 85,
+              "y": 331
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 249,
+              "h": 331
+            },
+            "face": {
+              "x": 37,
+              "y": 26,
+              "w": 174,
+              "h": 132
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 85,
+              "y": 396
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 223,
+              "h": 396
+            },
+            "face": {
+              "x": 33,
+              "y": 32,
+              "w": 156,
+              "h": 158
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "pig": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 82,
+              "y": 381
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 228,
+              "h": 381
+            },
+            "face": {
+              "x": 34,
+              "y": 30,
+              "w": 160,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 78,
+              "y": 383
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 214,
+              "h": 383
+            },
+            "face": {
+              "x": 32,
+              "y": 31,
+              "w": 174,
+              "h": 153
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 107,
+              "y": 384
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 188,
+              "h": 384
+            },
+            "face": {
+              "x": 28,
+              "y": 31,
+              "w": 160,
+              "h": 154
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 104,
+              "y": 384
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 220,
+              "h": 384
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 121,
+              "y": 209
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 183,
+              "h": 209
+            },
+            "face": {
+              "x": 19,
+              "y": 11,
+              "w": 146,
+              "h": 135
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 95,
+              "y": 206
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 181,
+              "h": 206
+            },
+            "face": {
+              "x": 18,
+              "y": 10,
+              "w": 145,
+              "h": 134
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 101,
+              "y": 205
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 180,
+              "h": 205
+            },
+            "face": {
+              "x": 18,
+              "y": 10,
+              "w": 144,
+              "h": 133
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 102,
+              "y": 209
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 181,
+              "h": 209
+            },
+            "face": {
+              "x": 18,
+              "y": 13,
+              "w": 144,
+              "h": 134
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 121,
+              "y": 206
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 178,
+              "h": 205
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 142,
+              "h": 133
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 91,
+              "y": 206
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 180,
+              "h": 206
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 144,
+              "h": 133
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 46,
+              "y": 381
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 225,
+              "h": 381
+            },
+            "face": {
+              "x": 34,
+              "y": 30,
+              "w": 158,
+              "h": 152
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 187,
+              "y": 371
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 265,
+              "h": 371
+            },
+            "face": {
+              "x": 40,
+              "y": 30,
+              "w": 186,
+              "h": 148
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 61,
+              "y": 326
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 244,
+              "h": 325
+            },
+            "face": {
+              "x": 37,
+              "y": 27,
+              "w": 171,
+              "h": 130
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 118,
+              "y": 383
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 219,
+              "h": 383
+            },
+            "face": {
+              "x": 33,
+              "y": 31,
+              "w": 153,
+              "h": 153
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "pip": {
+      "kind": "character",
+      "renderer": "svg-rig",
+      "version": 2,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "pip.svg",
+            "foot": {
+              "x": 111,
+              "y": 416
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 232,
+              "h": 416
+            },
+            "face": {
+              "x": 48,
+              "y": 92,
+              "w": 139,
+              "h": 106
+            }
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "front",
+            "expression": "sad"
+          },
+          {
+            "pose": "front",
+            "expression": "angry"
+          },
+          {
+            "pose": "front",
+            "expression": "surprised"
+          },
+          {
+            "pose": "front",
+            "expression": "worried"
+          }
+        ],
+        "flippable": true,
+        "parts": [
+          "part-leg-left",
+          "part-leg-right",
+          "part-arm-left",
+          "part-arm-right",
+          "part-body",
+          "part-head",
+          "part-antenna",
+          "part-face",
+          "part-eyes"
+        ]
+      }
+    },
+    "pond": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 178,
+              "y": 155
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 366,
+              "h": 155
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "puck": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 59,
+              "y": 430
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 217,
+              "h": 430
+            },
+            "face": {
+              "x": 33,
+              "y": 34,
+              "w": 152,
+              "h": 172
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 80,
+              "y": 429
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 207,
+              "h": 429
+            },
+            "face": {
+              "x": 31,
+              "y": 34,
+              "w": 169,
+              "h": 172
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 104,
+              "y": 429
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 198,
+              "h": 429
+            },
+            "face": {
+              "x": 30,
+              "y": 34,
+              "w": 168,
+              "h": 172
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 117,
+              "y": 427
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 235,
+              "h": 427
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 87,
+              "y": 255
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 180,
+              "h": 255
+            },
+            "face": {
+              "x": 18,
+              "y": 13,
+              "w": 144,
+              "h": 166
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 80,
+              "y": 252
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 172,
+              "h": 252
+            },
+            "face": {
+              "x": 17,
+              "y": 13,
+              "w": 138,
+              "h": 164
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 76,
+              "y": 253
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 174,
+              "h": 253
+            },
+            "face": {
+              "x": 17,
+              "y": 13,
+              "w": 139,
+              "h": 164
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 83,
+              "y": 253
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 179,
+              "h": 253
+            },
+            "face": {
+              "x": 19,
+              "y": 13,
+              "w": 143,
+              "h": 164
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 86,
+              "y": 252
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 178,
+              "h": 252
+            },
+            "face": {
+              "x": 19,
+              "y": 13,
+              "w": 142,
+              "h": 164
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 88,
+              "y": 253
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 179,
+              "h": 253
+            },
+            "face": {
+              "x": 18,
+              "y": 13,
+              "w": 143,
+              "h": 164
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 62,
+              "y": 404
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 247,
+              "h": 404
+            },
+            "face": {
+              "x": 37,
+              "y": 32,
+              "w": 173,
+              "h": 162
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 170,
+              "y": 397
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 262,
+              "h": 397
+            },
+            "face": {
+              "x": 39,
+              "y": 32,
+              "w": 183,
+              "h": 159
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 69,
+              "y": 359
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 230,
+              "h": 359
+            },
+            "face": {
+              "x": 35,
+              "y": 29,
+              "w": 161,
+              "h": 144
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 49,
+              "y": 403
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 208,
+              "h": 403
+            },
+            "face": {
+              "x": 31,
+              "y": 32,
+              "w": 145,
+              "h": 161
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "rabbit": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 85,
+              "y": 429
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 172,
+              "h": 429
+            },
+            "face": {
+              "x": 26,
+              "y": 34,
+              "w": 120,
+              "h": 172
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 67,
+              "y": 439
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 171,
+              "h": 439
+            },
+            "face": {
+              "x": 26,
+              "y": 35,
+              "w": 145,
+              "h": 176
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 79,
+              "y": 435
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 156,
+              "h": 434
+            },
+            "face": {
+              "x": 23,
+              "y": 36,
+              "w": 133,
+              "h": 174
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 54,
+              "y": 430
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 171,
+              "h": 430
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 82,
+              "y": 259
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 161,
+              "h": 259
+            },
+            "face": {
+              "x": 16,
+              "y": 13,
+              "w": 129,
+              "h": 193
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 78,
+              "y": 258
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 159,
+              "h": 258
+            },
+            "face": {
+              "x": 17,
+              "y": 13,
+              "w": 126,
+              "h": 168
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 80,
+              "y": 258
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 161,
+              "h": 258
+            },
+            "face": {
+              "x": 17,
+              "y": 13,
+              "w": 128,
+              "h": 168
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 79,
+              "y": 258
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 258
+            },
+            "face": {
+              "x": 17,
+              "y": 13,
+              "w": 127,
+              "h": 193
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 78,
+              "y": 258
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 158,
+              "h": 258
+            },
+            "face": {
+              "x": 16,
+              "y": 13,
+              "w": 126,
+              "h": 193
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 83,
+              "y": 259
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 162,
+              "h": 259
+            },
+            "face": {
+              "x": 16,
+              "y": 13,
+              "w": 130,
+              "h": 193
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 94,
+              "y": 410
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 191,
+              "h": 410
+            },
+            "face": {
+              "x": 29,
+              "y": 33,
+              "w": 134,
+              "h": 164
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 183,
+              "y": 402
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 234,
+              "h": 402
+            },
+            "face": {
+              "x": 36,
+              "y": 32,
+              "w": 192,
+              "h": 161
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 87,
+              "y": 355
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 183,
+              "h": 355
+            },
+            "face": {
+              "x": 27,
+              "y": 28,
+              "w": 128,
+              "h": 163
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 43,
+              "y": 409
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 166,
+              "h": 409
+            },
+            "face": {
+              "x": 25,
+              "y": 33,
+              "w": 116,
+              "h": 164
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "raindrops": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 199,
+              "y": 243
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 230,
+              "h": 243
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "ripples": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 150,
+              "y": 154
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 306,
+              "h": 154
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "robot-parts": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 95,
+              "y": 303
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 369,
+              "h": 303
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "rocks": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 74,
+              "y": 224
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 343,
+              "h": 224
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "screws": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 224,
+              "y": 299
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 319,
+              "h": 299
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "sfx-bell": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-bell.wav",
+        "durationMs": 1200
+      }
+    },
+    "sfx-boing": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-boing.wav",
+        "durationMs": 450
+      }
+    },
+    "sfx-chime": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-chime.wav",
+        "durationMs": 900
+      }
+    },
+    "sfx-pop": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-pop.wav",
+        "durationMs": 120
+      }
+    },
+    "sfx-splash": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-splash.wav",
+        "durationMs": 500
+      }
+    },
+    "sfx-tada": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-tada.wav",
+        "durationMs": 600
+      }
+    },
+    "sfx-tick": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-tick.wav",
+        "durationMs": 60
+      }
+    },
+    "sfx-whoosh": {
+      "kind": "sfx",
+      "renderer": "audio",
+      "version": 1,
+      "manifest": {
+        "kind": "sfx",
+        "file": "sfx-whoosh.wav",
+        "durationMs": 600
+      }
+    },
+    "sola": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 79,
+              "y": 407
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 255,
+              "h": 406
+            },
+            "face": {
+              "x": 38,
+              "y": 33,
+              "w": 179,
+              "h": 162
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 84,
+              "y": 408
+            },
+            "box": {
+              "x": 1,
+              "y": 1,
+              "w": 224,
+              "h": 407
+            },
+            "face": {
+              "x": 35,
+              "y": 34,
+              "w": 183,
+              "h": 163
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 147,
+              "y": 404
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 239,
+              "h": 404
+            },
+            "face": {
+              "x": 36,
+              "y": 32,
+              "w": 203,
+              "h": 162
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 112,
+              "y": 404
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 233,
+              "h": 403
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 104,
+              "y": 209
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 174,
+              "h": 209
+            },
+            "face": {
+              "x": 19,
+              "y": 11,
+              "w": 140,
+              "h": 135
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 109,
+              "y": 207
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 173,
+              "h": 207
+            },
+            "face": {
+              "x": 17,
+              "y": 10,
+              "w": 138,
+              "h": 135
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 116,
+              "y": 209
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 180,
+              "h": 209
+            },
+            "face": {
+              "x": 19,
+              "y": 11,
+              "w": 144,
+              "h": 135
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 112,
+              "y": 209
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 182,
+              "h": 209
+            },
+            "face": {
+              "x": 18,
+              "y": 10,
+              "w": 146,
+              "h": 136
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 117,
+              "y": 209
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 182,
+              "h": 209
+            },
+            "face": {
+              "x": 18,
+              "y": 11,
+              "w": 146,
+              "h": 135
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 116,
+              "y": 208
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 183,
+              "h": 208
+            },
+            "face": {
+              "x": 18,
+              "y": 10,
+              "w": 147,
+              "h": 135
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 68,
+              "y": 374
+            },
+            "box": {
+              "x": 0,
+              "y": 2,
+              "w": 240,
+              "h": 372
+            },
+            "face": {
+              "x": 36,
+              "y": 32,
+              "w": 168,
+              "h": 149
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 198,
+              "y": 345
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 273,
+              "h": 345
+            },
+            "face": {
+              "x": 41,
+              "y": 28,
+              "w": 191,
+              "h": 138
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 120,
+              "y": 321
+            },
+            "box": {
+              "x": 0,
+              "y": 2,
+              "w": 249,
+              "h": 319
+            },
+            "face": {
+              "x": 37,
+              "y": 28,
+              "w": 174,
+              "h": 128
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 49,
+              "y": 372
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 210,
+              "h": 372
+            },
+            "face": {
+              "x": 32,
+              "y": 30,
+              "w": 147,
+              "h": 149
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "stars": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 198,
+              "y": 227
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 300,
+              "h": 227
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "stone-patch": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 130,
+              "y": 90
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 264,
+              "h": 90
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "sun": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 156,
+              "y": 300
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 310,
+              "h": 300
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "tent": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 190,
+              "y": 319
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 385,
+              "h": 319
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "toma": {
+      "kind": "character",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "front",
+            "file": "front-happy.webp",
+            "foot": {
+              "x": 119,
+              "y": 399
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 235,
+              "h": 399
+            },
+            "face": {
+              "x": 35,
+              "y": 32,
+              "w": 165,
+              "h": 160
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "three-quarter",
+            "file": "three-quarter-happy.webp",
+            "foot": {
+              "x": 86,
+              "y": 397
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 229,
+              "h": 397
+            },
+            "face": {
+              "x": 34,
+              "y": 32,
+              "w": 184,
+              "h": 159
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "side",
+            "file": "side-happy.webp",
+            "foot": {
+              "x": 124,
+              "y": 394
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 215,
+              "h": 394
+            },
+            "face": {
+              "x": 32,
+              "y": 32,
+              "w": 174,
+              "h": 158
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "back",
+            "file": "back-happy.webp",
+            "foot": {
+              "x": 107,
+              "y": 398
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 224,
+              "h": 398
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-happy.webp",
+            "foot": {
+              "x": 95,
+              "y": 208
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 199,
+              "h": 208
+            },
+            "face": {
+              "x": 20,
+              "y": 10,
+              "w": 160,
+              "h": 135
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "bust",
+            "file": "bust-sad.webp",
+            "foot": {
+              "x": 77,
+              "y": 206
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 196,
+              "h": 206
+            },
+            "face": {
+              "x": 20,
+              "y": 10,
+              "w": 157,
+              "h": 134
+            },
+            "expression": "sad"
+          },
+          {
+            "id": "bust",
+            "file": "bust-angry.webp",
+            "foot": {
+              "x": 72,
+              "y": 204
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 196,
+              "h": 204
+            },
+            "face": {
+              "x": 20,
+              "y": 10,
+              "w": 157,
+              "h": 133
+            },
+            "expression": "angry"
+          },
+          {
+            "id": "bust",
+            "file": "bust-surprised.webp",
+            "foot": {
+              "x": 78,
+              "y": 207
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 195,
+              "h": 207
+            },
+            "face": {
+              "x": 20,
+              "y": 10,
+              "w": 156,
+              "h": 135
+            },
+            "expression": "surprised"
+          },
+          {
+            "id": "bust",
+            "file": "bust-worried.webp",
+            "foot": {
+              "x": 85,
+              "y": 206
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 196,
+              "h": 206
+            },
+            "face": {
+              "x": 21,
+              "y": 10,
+              "w": 157,
+              "h": 134
+            },
+            "expression": "worried"
+          },
+          {
+            "id": "bust",
+            "file": "bust-thinking.webp",
+            "foot": {
+              "x": 101,
+              "y": 205
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 199,
+              "h": 205
+            },
+            "face": {
+              "x": 20,
+              "y": 10,
+              "w": 159,
+              "h": 133
+            },
+            "expression": "thinking"
+          },
+          {
+            "id": "walk",
+            "file": "walk-happy.webp",
+            "foot": {
+              "x": 60,
+              "y": 397
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 245,
+              "h": 397
+            },
+            "face": {
+              "x": 38,
+              "y": 32,
+              "w": 172,
+              "h": 159
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "run",
+            "file": "run-happy.webp",
+            "foot": {
+              "x": 197,
+              "y": 391
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 266,
+              "h": 391
+            },
+            "face": {
+              "x": 40,
+              "y": 31,
+              "w": 223,
+              "h": 156
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "sit",
+            "file": "sit-happy.webp",
+            "foot": {
+              "x": 132,
+              "y": 359
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 244,
+              "h": 359
+            },
+            "face": {
+              "x": 37,
+              "y": 29,
+              "w": 171,
+              "h": 143
+            },
+            "expression": "happy"
+          },
+          {
+            "id": "read",
+            "file": "read-happy.webp",
+            "foot": {
+              "x": 67,
+              "y": 394
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 220,
+              "h": 394
+            },
+            "face": {
+              "x": 33,
+              "y": 32,
+              "w": 155,
+              "h": 158
+            },
+            "expression": "happy"
+          }
+        ],
+        "expressions": [
+          "happy",
+          "sad",
+          "angry",
+          "surprised",
+          "worried",
+          "thinking"
+        ],
+        "legal": [
+          {
+            "pose": "front",
+            "expression": "happy"
+          },
+          {
+            "pose": "three-quarter",
+            "expression": "happy"
+          },
+          {
+            "pose": "side",
+            "expression": "happy"
+          },
+          {
+            "pose": "back",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "happy"
+          },
+          {
+            "pose": "bust",
+            "expression": "sad"
+          },
+          {
+            "pose": "bust",
+            "expression": "angry"
+          },
+          {
+            "pose": "bust",
+            "expression": "surprised"
+          },
+          {
+            "pose": "bust",
+            "expression": "worried"
+          },
+          {
+            "pose": "bust",
+            "expression": "thinking"
+          },
+          {
+            "pose": "walk",
+            "expression": "happy"
+          },
+          {
+            "pose": "run",
+            "expression": "happy"
+          },
+          {
+            "pose": "sit",
+            "expression": "happy"
+          },
+          {
+            "pose": "read",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true
+      }
+    },
+    "toolbox": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 169,
+              "y": 297
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 340,
+              "h": 297
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "tree": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 173,
+              "y": 396
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 331,
+              "h": 396
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "umbrella": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 62,
+              "y": 462
+            },
+            "box": {
+              "x": 0,
+              "y": 1,
+              "w": 173,
+              "h": 461
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "wagon": {
+      "kind": "prop",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "prop",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 159,
+              "y": 358
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 387,
+              "h": 358
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "wind": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 28,
+              "y": 217
+            },
+            "box": {
+              "x": 1,
+              "y": 0,
+              "w": 324,
+              "h": 217
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "window": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 140,
+              "y": 260
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 281,
+              "h": 260
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    },
+    "workshop": {
+      "kind": "scenery",
+      "renderer": "webp",
+      "version": 1,
+      "manifest": {
+        "kind": "scenery",
+        "poses": [
+          {
+            "id": "default",
+            "file": "default.webp",
+            "foot": {
+              "x": 99,
+              "y": 401
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 475,
+              "h": 401
+            }
+          }
+        ],
+        "expressions": [],
+        "legal": [],
+        "flippable": true
+      }
+    }
+  }
+}

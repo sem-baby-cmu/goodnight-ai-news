@@ -1,0 +1,171 @@
+{
+  "id": "01a1f644-108e-70dd-9def-4f54ee9dca94",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "three-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f644-108e-70dd-9def-34e8bf607bdf",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 260,
+          "y": 820,
+          "scale": 1.197,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f644-108e-70dd-9def-3951d771a7e9",
+        "kind": "scenery",
+        "ref": "door",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1340,
+          "y": 820,
+          "scale": 1.2508,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f644-108e-70dd-9def-3f09a65c5040",
+        "kind": "scenery",
+        "ref": "sun",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 260,
+          "scale": 0.6667,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f644-108e-70dd-9def-40b5a23aae88",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1100,
+          "scale": 1.4423,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f644-108e-70dd-9def-45fd73a22641",
+        "kind": "character",
+        "ref": "kiki",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 380,
+          "y": 1010,
+          "scale": 1.1852,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f644-108e-70dd-9def-482df61728c7",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1220,
+          "y": 1010,
+          "scale": 1.2214,
+          "z": 51
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f644-108e-70dd-9def-40b5a23aae88",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.05,
+          "count": 3
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f644-108e-70dd-9def-45fd73a22641",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.03,
+          "count": 2
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f644-108e-70dd-9def-482df61728c7",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.03,
+          "count": 2
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f644-108e-70dd-9def-40b5a23aae88"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f644-108e-70dd-9def-40b5a23aae88",
+            "primitive": "bounce"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-tada"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-108e-70dd-9def-40b5a23aae88",
+            "text": "Hooray! I can't wait to look inside!"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f644-108e-70dd-9def-45fd73a22641"
+        },
+        "do": [
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-108e-70dd-9def-45fd73a22641",
+            "text": "STEAM stands for Science, Technology, Engineering, Arts, and"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-108e-70dd-9def-482df61728c7",
+            "text": "Mathematics!"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "id": "01a1f647-827e-706c-829a-ad6934f8afe1",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "three-friends",
+    "sky": "night",
+    "layers": [
+      {
+        "instanceId": "01a1f647-827d-7586-bf87-dfe870cea9d0",
+        "kind": "scenery",
+        "ref": "grass-patch",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 260,
+          "y": 820,
+          "scale": 1.9422,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f647-827d-7586-bf87-e01c181a1b50",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1340,
+          "y": 820,
+          "scale": 1.2121,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f647-827d-7586-bf87-e6e7b69e66eb",
+        "kind": "scenery",
+        "ref": "stars",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 260,
+          "scale": 0.8811,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f647-827d-7586-bf87-ebc507bfbff0",
+        "kind": "character",
+        "ref": "cat",
+        "pose": "sit",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 380,
+          "y": 1010,
+          "scale": 1.4815,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f647-827d-7586-bf87-efb6cf3bfc28",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1100,
+          "scale": 1.4423,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f647-827d-7586-bf87-f199c425b9ac",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1220,
+          "y": 1010,
+          "scale": 1.2214,
+          "z": 51
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f647-827d-7586-bf87-e6e7b69e66eb",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.025,
+          "period": 4
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f647-827d-7586-bf87-ebc507bfbff0",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.04,
+          "count": 1
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f647-827d-7586-bf87-efb6cf3bfc28"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-827d-7586-bf87-efb6cf3bfc28",
+            "text": "Print just one night of our space photos, and the stack of紙会"
+          }
+        ]
+      }
+    ]
+  }
+}

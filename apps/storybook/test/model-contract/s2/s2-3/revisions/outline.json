@@ -1,0 +1,44 @@
+{
+  "id": "01a1f647-41d3-7210-8a12-2e018e617552",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "title": "Three Telescopes, One Super View",
+    "ageBand": "5-7",
+    "cast": [
+      "lumi",
+      "pip",
+      "cat"
+    ],
+    "pages": [
+      {
+        "pageId": "01a1f647-4195-767d-a9eb-5da5295af44a",
+        "beat": "Stargazing on the hill"
+      },
+      {
+        "pageId": "01a1f647-41a2-713e-924a-16d1443cde5e",
+        "beat": "Rubin on Earth"
+      },
+      {
+        "pageId": "01a1f647-41a2-713e-924a-185f3764eaac",
+        "beat": "Euclid and Roman in space"
+      },
+      {
+        "pageId": "01a1f647-41a2-713e-924a-1d1e62d4e724",
+        "beat": "A giant stack of space photos"
+      },
+      {
+        "pageId": "01a1f647-41a2-713e-924a-234c4b89cbc8",
+        "beat": "AI blends the pictures"
+      },
+      {
+        "pageId": "01a1f647-41a2-713e-924a-27595b24422e",
+        "beat": "Discovering cosmic treasures"
+      },
+      {
+        "pageId": "01a1f647-41a2-713e-924a-2a07ae0f6ead",
+        "beat": "Working together to switch it on"
+      }
+    ]
+  }
+}

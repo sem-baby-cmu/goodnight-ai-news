@@ -1,0 +1,118 @@
+{
+  "id": "01a1f645-e550-7367-972b-22276f37e48f",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "landscape",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f645-e54f-7287-bbcc-36e1448ef177",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "place",
+        "flip": false,
+        "at": {
+          "x": 1050,
+          "y": 1000,
+          "scale": 1.9192,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f645-e54f-7287-bbcc-3a1221f18e5c",
+        "kind": "scenery",
+        "ref": "clouds",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 400,
+          "y": 300,
+          "scale": 0.7813,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f645-e54f-7287-bbcc-3dfbc88c07fc",
+        "kind": "character",
+        "ref": "rabbit",
+        "pose": "walk",
+        "expression": "happy",
+        "slot": "hero",
+        "flip": false,
+        "at": {
+          "x": 420,
+          "y": 1100,
+          "scale": 1.0732,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f645-e54f-7287-bbcc-428762991c7c",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "prop-front",
+        "flip": false,
+        "at": {
+          "x": 1350,
+          "y": 1140,
+          "scale": 0.5333,
+          "z": 40
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f645-e54f-7287-bbcc-3dfbc88c07fc",
+        "primitive": "sway",
+        "params": {
+          "angle": 2,
+          "period": 5
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f645-e54f-7287-bbcc-428762991c7c",
+        "primitive": "fade-in",
+        "params": {
+          "delay": 0.3
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f645-e54f-7287-bbcc-3dfbc88c07fc"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f645-e54f-7287-bbcc-428762991c7c",
+            "primitive": "pop"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f645-e54f-7287-bbcc-428762991c7c",
+            "text": "Movement noticed. Picture saved, quietly!"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f645-e54f-7287-bbcc-428762991c7c"
+        },
+        "do": [
+          {
+            "action": "show_bubble",
+            "target": "01a1f645-e54f-7287-bbcc-428762991c7c",
+            "text": "August to November: waiting quietly for wild animals to pass"
+          }
+        ]
+      }
+    ]
+  }
+}

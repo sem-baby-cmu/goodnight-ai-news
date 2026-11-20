@@ -1,0 +1,110 @@
+{
+  "id": "01a1f648-0cab-76c5-bf40-f0a3bf9c8be2",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "hero-and-object",
+    "sky": "night",
+    "layers": [
+      {
+        "instanceId": "01a1f648-0ca8-7534-9595-b3fa62ee8b44",
+        "kind": "scenery",
+        "ref": "stars",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 300,
+          "y": 300,
+          "scale": 0.8811,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f648-0ca9-726b-9a9f-d7fd41f412bc",
+        "kind": "scenery",
+        "ref": "rocks",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 230,
+          "y": 860,
+          "scale": 2.3214,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f648-0ca9-726b-9a9f-d8e3367673de",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "hero",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1090,
+          "scale": 1.5776,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f648-0ca9-726b-9a9f-ddcac7a90920",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "object",
+        "flip": false,
+        "at": {
+          "x": 1120,
+          "y": 1090,
+          "scale": 1.3867,
+          "z": 40
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f648-0ca8-7534-9595-b3fa62ee8b44",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.025,
+          "period": 4
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f648-0ca9-726b-9a9f-ddcac7a90920",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.08
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f648-0ca9-726b-9a9f-ddcac7a90920"
+        },
+        "do": [
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "play_animation",
+            "target": "01a1f648-0ca8-7534-9595-b3fa62ee8b44",
+            "primitive": "pop"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f648-0ca9-726b-9a9f-d8e3367673de",
+            "text": "A tiny dwarf planet? A hidden moon? What will we discover?"
+          }
+        ]
+      }
+    ]
+  }
+}

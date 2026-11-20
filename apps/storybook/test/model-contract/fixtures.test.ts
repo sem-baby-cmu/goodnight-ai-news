@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -9,11 +9,7 @@ import { OTHER_RUN_CALL, PAGE, badScene, fakeRun, okScene } from "./fake-run";
 
 const ROOT = path.join(import.meta.dirname, "s2");
 const slugs = (JSON.parse(readFileSync(path.join(ROOT, "inputs.json"), "utf8")) as Array<{ slug: string }>).map((i) => i.slug);
-// Before the S2 run no slug has a folder, and this test reports itself as
-// skipped. The commit that records the run removes this condition.
-const recorded = slugs.some((slug) => existsSync(path.join(ROOT, slug)));
-
-it.skipIf(!recorded)("RUN-06.S2 recorded S2 outputs stay valid against the current schemas", () => {
+it("RUN-06.S2 recorded S2 outputs stay valid against the current schemas", () => {
   for (const slug of slugs) expect([slug, fixtureProblems(path.join(ROOT, slug))]).toEqual([slug, []]);
 });
 

@@ -1,0 +1,126 @@
+{
+  "id": "01a1f644-03cc-736a-91d3-e0a7ed3be2c7",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "hero-and-object",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f644-03c9-7154-9228-15d3f7f0ee00",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 230,
+          "y": 860,
+          "scale": 1.2968,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f644-03c9-7154-9228-1979667638b6",
+        "kind": "scenery",
+        "ref": "window",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1360,
+          "y": 820,
+          "scale": 2,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f644-03c9-7154-9228-1c82af20a99a",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "object",
+        "flip": false,
+        "at": {
+          "x": 1120,
+          "y": 1090,
+          "scale": 1.3867,
+          "z": 40
+        }
+      },
+      {
+        "instanceId": "01a1f644-03c9-7154-9228-20c708ab0cc4",
+        "kind": "character",
+        "ref": "kiki",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "hero",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1090,
+          "scale": 1.5309,
+          "z": 50
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f644-03c9-7154-9228-20c708ab0cc4",
+        "primitive": "fade-in",
+        "params": {
+          "delay": 0.2
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f644-03c9-7154-9228-1c82af20a99a",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.08
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f644-03c9-7154-9228-1c82af20a99a"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f644-03c9-7154-9228-1c82af20a99a",
+            "primitive": "pop"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-03c9-7154-9228-20c708ab0cc4",
+            "text": "Engineering, robotics, and manufacturing—so much to explore!"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f644-03c9-7154-9228-20c708ab0cc4"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f644-03c9-7154-9228-20c708ab0cc4",
+            "primitive": "pop"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-03c9-7154-9228-20c708ab0cc4",
+            "text": "Look at this bright workspace! It's ready for hands-on تعلم!"
+          }
+        ]
+      }
+    ]
+  }
+}

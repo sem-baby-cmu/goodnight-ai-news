@@ -1,0 +1,44 @@
+{
+  "id": "01a1f643-937b-728c-a8cf-0b1deebef2e3",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "title": "The Big Ribbon Cutting at the STEAM Lab",
+    "ageBand": "5-7",
+    "cast": [
+      "pip",
+      "kiki",
+      "lumi"
+    ],
+    "pages": [
+      {
+        "pageId": "01a1f643-8fc9-74cf-bf30-db423ff63340",
+        "beat": "Arriving for the celebration"
+      },
+      {
+        "pageId": "01a1f643-8fcb-70cb-a61b-c8f76027eb48",
+        "beat": "Cutting the ribbon"
+      },
+      {
+        "pageId": "01a1f643-8fcc-7556-8f4b-415a9998293f",
+        "beat": "Touring the hands-on space"
+      },
+      {
+        "pageId": "01a1f643-8fcc-7556-8f4b-47426323a174",
+        "beat": "Watching the robotics showcase"
+      },
+      {
+        "pageId": "01a1f643-8fcc-7556-8f4b-4a6baeb887d0",
+        "beat": "Learning about the Navy partnership"
+      },
+      {
+        "pageId": "01a1f643-8fcc-7556-8f4b-4e1b5d3e1eef",
+        "beat": "Thanking the community"
+      },
+      {
+        "pageId": "01a1f643-8fcc-7556-8f4b-500882d65d2d",
+        "beat": "Dreaming of a world of possibilities"
+      }
+    ]
+  }
+}

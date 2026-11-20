@@ -1,0 +1,18 @@
+{
+  "runId": "01a1f642-5525-7449-b5f2-efee593bc376",
+  "storyId": "01a1f642-54d5-7096-9f9f-8a6713b22990",
+  "status": "draft_ready",
+  "createdAt": "2026-11-20T00:01:44.745Z",
+  "finishedAt": "2026-11-20T00:04:13.335Z",
+  "models": {
+    "audio": [
+      "gemini-3.8-flash-tts"
+    ],
+    "scene": [
+      "group/auto-gpt-6-1-sol"
+    ],
+    "script": [
+      "agy-cli/gemini-4-neon"
+    ]
+  }
+}

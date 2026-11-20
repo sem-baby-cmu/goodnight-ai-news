@@ -1,0 +1,130 @@
+{
+  "id": "01a1f646-7856-72de-8c35-39234183f81d",
+  "status": "needs_review",
+  "error": {
+    "issues": [
+      {
+        "path": "layers.1",
+        "code": "layout.bounds",
+        "message": "back-right is 32.1% outside the stage (limit 10%)"
+      }
+    ]
+  },
+  "content": {
+    "templateId": "three-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f646-7855-741a-9ce4-f522d30d21c0",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false
+      },
+      {
+        "instanceId": "01a1f646-7855-741a-9ce4-f812a2b953c5",
+        "kind": "scenery",
+        "ref": "bush",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": true
+      },
+      {
+        "instanceId": "01a1f646-7855-741a-9ce4-fca768d44259",
+        "kind": "scenery",
+        "ref": "clouds",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false
+      },
+      {
+        "instanceId": "01a1f646-7855-741a-9ce5-018e4e3c97f5",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false
+      },
+      {
+        "instanceId": "01a1f646-7855-741a-9ce5-06824c0ecf69",
+        "kind": "character",
+        "ref": "rabbit",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false
+      },
+      {
+        "instanceId": "01a1f646-7855-741a-9ce5-080b0e3cde2a",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "right",
+        "flip": false
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f646-7855-741a-9ce5-018e4e3c97f5",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.04,
+          "count": 2
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f646-7855-741a-9ce4-f522d30d21c0",
+        "primitive": "sway",
+        "params": {
+          "angle": 3,
+          "period": 5
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f646-7855-741a-9ce5-06824c0ecf69"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f646-7855-741a-9ce5-06824c0ecf69",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-7855-741a-9ce5-06824c0ecf69",
+            "text": "So many woodland neighbors!"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f646-7855-741a-9ce5-080b0e3cde2a"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f646-7855-741a-9ce5-080b0e3cde2a",
+            "primitive": "wave"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f646-7855-741a-9ce5-080b0e3cde2a",
+            "text": "Who else lives in the forest?"
+          }
+        ]
+      }
+    ]
+  }
+}

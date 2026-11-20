@@ -1,0 +1,140 @@
+{
+  "id": "01a1f647-a34e-73db-9ed7-71930390ee71",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "landscape",
+    "sky": "night",
+    "layers": [
+      {
+        "instanceId": "01a1f647-a34d-741c-866e-c59a5b1280dd",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "place",
+        "flip": false,
+        "at": {
+          "x": 1050,
+          "y": 1000,
+          "scale": 1.611,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f647-a34d-741c-866e-ca298e4675d8",
+        "kind": "scenery",
+        "ref": "rocks",
+        "pose": "default",
+        "slot": "side",
+        "flip": false,
+        "at": {
+          "x": 180,
+          "y": 1000,
+          "scale": 1.6071,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f647-a34d-741c-866e-cf10f24d448b",
+        "kind": "scenery",
+        "ref": "stars",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 400,
+          "y": 300,
+          "scale": 0.8811,
+          "z": 5
+        }
+      },
+      {
+        "instanceId": "01a1f647-a34d-741c-866e-d015914cb065",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "hero",
+        "flip": false,
+        "at": {
+          "x": 420,
+          "y": 1100,
+          "scale": 1.1196,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f647-a34d-741c-866e-d7bd5a7a9c0b",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "prop-front",
+        "flip": false,
+        "at": {
+          "x": 1350,
+          "y": 1140,
+          "scale": 0.5333,
+          "z": 40
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f647-a34d-741c-866e-cf10f24d448b",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.03,
+          "period": 6
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01a1f647-a34d-741c-866e-d7bd5a7a9c0b",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.05
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f647-a34d-741c-866e-d7bd5a7a9c0b"
+        },
+        "do": [
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-tick"
+          },
+          {
+            "action": "play_animation",
+            "target": "01a1f647-a34d-741c-866e-d7bd5a7a9c0b",
+            "primitive": "pop"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-a34d-741c-866e-d7bd5a7a9c0b",
+            "text": "Snap! From the ground in Chile, Rubin takes fast photos of a"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f647-a34d-741c-866e-d015914cb065"
+        },
+        "do": [
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f647-a34d-741c-866e-d015914cb065",
+            "text": "Over ten years, Rubin will picture billions of galaxies!"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "id": "01a1f644-81b1-74d1-b514-a1dfa30898a9",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "three-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f644-81af-7286-b139-45741262b4ba",
+        "kind": "character",
+        "ref": "lumi",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1100,
+          "scale": 1.5306,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f644-81af-7286-b139-48b364d89baf",
+        "kind": "character",
+        "ref": "kiki",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 380,
+          "y": 1010,
+          "scale": 1.2,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f644-81af-7286-b139-4d154187253c",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "happy",
+        "slot": "right",
+        "flip": false,
+        "at": {
+          "x": 1220,
+          "y": 1010,
+          "scale": 1.1538,
+          "z": 51
+        }
+      },
+      {
+        "instanceId": "01a1f644-81af-7286-b139-5091546d52d4",
+        "kind": "scenery",
+        "ref": "cottage",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 260,
+          "y": 820,
+          "scale": 0.9424,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f644-81af-7286-b139-54b4db971b3f",
+        "kind": "scenery",
+        "ref": "tree",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1340,
+          "y": 820,
+          "scale": 1.2121,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f644-81af-7286-b139-5b3d4ec4159b",
+        "kind": "scenery",
+        "ref": "sun",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 260,
+          "scale": 0.6667,
+          "z": 5
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f644-81af-7286-b139-45741262b4ba",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.05,
+          "count": 2
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f644-81af-7286-b139-54b4db971b3f",
+        "primitive": "sway",
+        "params": {
+          "angle": 3,
+          "period": 4
+        },
+        "trigger": "loop"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f644-81af-7286-b139-45741262b4ba"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01a1f644-81af-7286-b139-45741262b4ba",
+            "primitive": "bounce"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-81af-7286-b139-45741262b4ba",
+            "text": "Thank you, families, local donors, and the New Hope-Solebury"
+          }
+        ]
+      }
+    ]
+  }
+}

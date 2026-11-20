@@ -370,10 +370,10 @@ Spec: design "Testing Strategy"
 - Given 3 real news texts and the real models
 - When each text runs through the outline, the page texts, and the scenes
 - Then at least 90% of the pages pass validation and layout with at most one repair
-- Test: spec (to implement)
+- Test: manual · docs/specs/storybook-mvp/results/s2.md
 
 ### RUN-06.S2 Real model outputs stay valid as fixtures
 - Given the model outputs recorded in S2, kept as fixtures
 - When a schema changes
 - Then the fixtures stay valid, or they are updated on purpose
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/test/model-contract/fixtures.test.ts

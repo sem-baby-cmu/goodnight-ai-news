@@ -1,0 +1,156 @@
+{
+  "id": "01a1f644-6e90-73e9-a8ee-9431c4e9b3ca",
+  "status": "ok",
+  "error": null,
+  "content": {
+    "templateId": "two-friends",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01a1f644-6e61-722c-b124-1cf5dae0674d",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "front",
+        "expression": "surprised",
+        "slot": "left",
+        "flip": false,
+        "at": {
+          "x": 520,
+          "y": 1080,
+          "scale": 1.4423,
+          "z": 50
+        }
+      },
+      {
+        "instanceId": "01a1f644-6e61-722c-b124-20621bc49324",
+        "kind": "character",
+        "ref": "kiki",
+        "pose": "three-quarter",
+        "expression": "happy",
+        "slot": "right",
+        "flip": true,
+        "at": {
+          "x": 1080,
+          "y": 1080,
+          "scale": 1.4815,
+          "z": 51
+        }
+      },
+      {
+        "instanceId": "01a1f644-6e61-722c-b124-26a10434ea05",
+        "kind": "prop",
+        "ref": "machine",
+        "pose": "default",
+        "slot": "prop-center",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 1110,
+          "scale": 0.5867,
+          "z": 52
+        }
+      },
+      {
+        "instanceId": "01a1f644-6e61-722c-b124-2b65b180d57b",
+        "kind": "scenery",
+        "ref": "workshop",
+        "pose": "default",
+        "slot": "back-left",
+        "flip": false,
+        "at": {
+          "x": 300,
+          "y": 880,
+          "scale": 1.3965,
+          "z": 10
+        }
+      },
+      {
+        "instanceId": "01a1f644-6e61-722c-b124-2f0b0d542aaa",
+        "kind": "scenery",
+        "ref": "window",
+        "pose": "default",
+        "slot": "back-right",
+        "flip": false,
+        "at": {
+          "x": 1300,
+          "y": 880,
+          "scale": 2.1538,
+          "z": 11
+        }
+      },
+      {
+        "instanceId": "01a1f644-6e61-722c-b124-30f8ef68e0bd",
+        "kind": "scenery",
+        "ref": "sun",
+        "pose": "default",
+        "slot": "sky-1",
+        "flip": false,
+        "at": {
+          "x": 800,
+          "y": 300,
+          "scale": 0.6667,
+          "z": 5
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01a1f644-6e61-722c-b124-26a10434ea05",
+        "primitive": "pop",
+        "params": {
+          "scale": 1.08
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01a1f644-6e61-722c-b124-1cf5dae0674d",
+        "primitive": "bounce",
+        "params": {
+          "height": 0.04,
+          "count": 1
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01a1f644-6e61-722c-b124-26a10434ea05"
+        },
+        "do": [
+          {
+            "action": "play_sfx",
+            "sfx": "sfx-chime"
+          },
+          {
+            "action": "play_animation",
+            "target": "01a1f644-6e61-722c-b124-26a10434ea05",
+            "primitive": "pop"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-6e61-722c-b124-20621bc49324",
+            "text": "The United States Navy and the STEM+M Program helped bringne"
+          }
+        ]
+      },
+      {
+        "on": {
+          "tap": "01a1f644-6e61-722c-b124-1cf5dae0674d"
+        },
+        "do": [
+          {
+            "action": "set_expression",
+            "target": "01a1f644-6e61-722c-b124-1cf5dae0674d",
+            "expression": "surprised"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01a1f644-6e61-722c-b124-1cf5dae0674d",
+            "text": "Nearly $1 million in equipment for our middle and high schoo"
+          }
+        ]
+      }
+    ]
+  }
+}
