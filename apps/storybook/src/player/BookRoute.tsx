@@ -1,6 +1,6 @@
 import { isLayerManifest, type ReleasePage, selectPoseEntry } from "@storybook/dsl";
 import { type AssetResolver, type AssetsSettledReport, resolveBackdrop, SceneView } from "@storybook/scene-runtime";
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,16 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
   const probeRef = useRef<HTMLDivElement>(null);
   const previousRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
+  // A book opened from the shelf: the first screen focuses its Home control
+  // (DESIGN.md 14, P77-6). A direct link keeps the focus where it is.
+  const fromShelf = useLocation({ select: (l) => (l.state as { fromShelf?: boolean } | undefined)?.fromShelf === true });
+  const homeRef = useRef<HTMLButtonElement>(null);
+  const homeFocused = useRef(false);
+  useLayoutEffect(() => {
+    if (!fromShelf || homeFocused.current || !homeRef.current) return;
+    homeFocused.current = true;
+    homeRef.current.focus();
+  });
 
   // Only inside a click or key handler, so play() runs in the user gesture.
   const audio = () => (audioRef.current ??= new PlayerAudio(narrationRef.current!, sfxRef.current!));
@@ -209,7 +219,7 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
   if (metrics) {
     const { layout, w } = metrics;
     const homeRound = (
-      <Button variant="round" size="child-icon" aria-label="Home" onClick={onHome}>
+      <Button ref={homeRef} variant="round" size="child-icon" aria-label="Home" onClick={onHome}>
         <HouseIcon />
       </Button>
     );
@@ -218,7 +228,7 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
         <Frame
           metrics={metrics}
           picture={<NightPicture />}
-          panel={<Resting layout={layout} w={w} onHome={onHome} />}
+          panel={<Resting layout={layout} w={w} onHome={onHome} homeRef={homeRef} />}
           home={null}
           previous={null}
           next={null}

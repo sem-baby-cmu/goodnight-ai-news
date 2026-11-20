@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HouseIcon } from "./icons";
@@ -37,16 +38,16 @@ export function NightPicture() {
   );
 }
 
-type RestingProps = { layout: LayoutName; w: number; onHome: () => void };
+type RestingProps = { layout: LayoutName; w: number; onHome: () => void; homeRef?: Ref<HTMLButtonElement> };
 
 // The panel of the Resting state (DESIGN.md 12.2): the line and Home.
-export function Resting({ layout, w, onHome }: RestingProps) {
+export function Resting({ layout, w, onHome, homeRef }: RestingProps) {
   return (
     <div className={gateClass(layout, w)}>
       <p className={cn("leading-[1.3] font-semibold text-ink", layout === "short" ? "text-[22px]" : "text-[28px]")}>
         This book is sleeping. Come back soon.
       </p>
-      <Button size="child" onClick={onHome}>
+      <Button ref={homeRef} size="child" onClick={onHome}>
         <HouseIcon />
         Home
       </Button>

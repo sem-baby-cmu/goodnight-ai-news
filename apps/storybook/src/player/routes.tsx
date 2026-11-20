@@ -1,20 +1,13 @@
 import { createRoute } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
 import { rootRoute } from "../router";
 import { BookRoute } from "./BookRoute";
+import { Shelf } from "./Shelf";
 
-// Placeholder. #77 replaces the component with the shelf.
 const shelfRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: ShelfPlaceholder,
+  component: Shelf,
 });
-
-function ShelfPlaceholder() {
-  const ref = useRef<HTMLElement>(null);
-  useEffect(() => ref.current?.focus(), []);
-  return <main ref={ref} tabIndex={-1} data-testid="shelf-placeholder" className="min-h-dvh bg-desk" />;
-}
 
 const readRoute = createRoute({
   getParentRoute: () => rootRoute,
