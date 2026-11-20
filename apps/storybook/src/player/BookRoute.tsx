@@ -69,12 +69,28 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
   // A book opened from the shelf: the first screen focuses its Home control
   // (DESIGN.md 14, P77-6). A direct link keeps the focus where it is.
   const fromShelf = useLocation({ select: (l) => (l.state as { fromShelf?: boolean } | undefined)?.fromShelf === true });
+  // Also when the Home control that had the focus goes away (Loading to
+  // Resting) and the focus fell to `body`: the new Home control takes it.
   const homeRef = useRef<HTMLButtonElement>(null);
-  const homeFocused = useRef(false);
+  const homeSeen = useRef<{ el: HTMLButtonElement | null; focused: boolean; done: boolean }>({
+    el: null,
+    focused: false,
+    done: false,
+  });
   useLayoutEffect(() => {
-    if (!fromShelf || homeFocused.current || !homeRef.current) return;
-    homeFocused.current = true;
-    homeRef.current.focus();
+    if (!fromShelf) return;
+    const el = homeRef.current;
+    const seen = homeSeen.current;
+    if (el && el !== seen.el) {
+      const active = document.activeElement;
+      const lost = seen.focused && (active === null || active === document.body);
+      if (!seen.done || lost) {
+        el.focus();
+        seen.done = true;
+      }
+    }
+    seen.el = el;
+    seen.focused = el !== null && document.activeElement === el;
   });
 
   // Only inside a click or key handler, so play() runs in the user gesture.

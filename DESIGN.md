@@ -666,10 +666,11 @@ books on a board.
   (12 px in Short). Width: its content, at most 440 px, and at most the
   viewport width less 32 px (in Short: the width between the arrow zones
   less 24 px). The sign, the line, and the button are 12 px apart. The
-  plate is centred on the shelf. Where it is higher than the shelf, it is
-  centred between the name band and the arrow row (Narrow) or the bottom
-  (Wide, Short), with 8 px or more to each. A plate that does not fit
-  there uncut is a reason for the Small screen state (section 12.6).
+  message is centred, with `text-wrap: balance`. The plate is centred on
+  the shelf. Where it is higher than the shelf, it is centred between the
+  name band and the arrow row (Narrow) or the bottom (Wide, Short), with
+  8 px or more to each. A plate that does not fit there uncut is a reason
+  for the Small screen state (section 12.6).
 - **The highest plate** is that of Failed. Estimates, by the method of
   section 12.3, and starting values: 263 px in Wide; 300 px at 320 px
   wide in Narrow, where the line has 3 rows; 170 px at 568 x 320 in

@@ -49,10 +49,11 @@ export function ShelfBook({ book, slot, at, size, window, cover }: ShelfBookProp
       className="absolute block origin-bottom rounded-[6px_13px_13px_6px] [box-shadow:0_4px_0_var(--book-edge)] transition-transform duration-160 hover:-translate-y-[6px] active:-translate-y-[2px] active:scale-[0.97] motion-reduce:transition-none focus-visible:z-1 focus-visible:outline-solid focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ink focus-visible:[box-shadow:0_0_0_3px_var(--card),0_4px_0_var(--book-edge)] focus-visible:after:pointer-events-none focus-visible:after:absolute focus-visible:after:-inset-[9px] focus-visible:after:rounded-[15px_22px_22px_15px] focus-visible:after:border-3 focus-visible:after:border-sun"
       style={style}
     >
-      {/* Page edges on the open side, behind the cover. */}
+      {/* Page edges on the open side, behind the cover and under the
+          focus outline of the link (the link is a stacking context). */}
       <span
         aria-hidden="true"
-        className="absolute rounded-r-[4px]"
+        className="absolute -z-1 rounded-r-[4px]"
         style={{
           right: -5 * s,
           top: 9 * s,

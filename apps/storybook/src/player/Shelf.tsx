@@ -88,8 +88,9 @@ function ShelfWood({ layout }: { layout: ShelfLayout }) {
           <path key={d} d={d} fill="none" stroke={GRAIN} strokeWidth={2} strokeLinecap="round" />
         ))}
       </svg>
-      <div className="absolute bottom-0 left-[4px] h-[12px] w-[44px] bg-wood-deep" />
-      <div className="absolute right-[4px] bottom-0 h-[12px] w-[44px] bg-wood-deep" />
+      {[side + 4, shelf.w - side - 4 - 44].map((x) => (
+        <div key={x} data-testid="shelf-foot" className="absolute bottom-0 h-[12px] w-[44px] bg-wood-deep" style={{ left: x }} />
+      ))}
     </div>
   );
 }
@@ -103,6 +104,10 @@ export function Shelf() {
   const plateRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   const leavingRef = useRef<HTMLDivElement>(null);
+  const previousRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  // An arrow had the focus when the viewport last changed.
+  const arrowFocusRef = useRef(false);
   const [viewport, setViewport] = useState<{ w: number; h: number } | null>(null);
   const [state, setState] = useState<ShelfState>({ kind: "waiting" });
   const [attempt, setAttempt] = useState(0);
@@ -125,10 +130,13 @@ export function Shelf() {
   // The viewport (100dvw x 100dvh), read once at mount and on every resize.
   useLayoutEffect(() => {
     const probe = probeRef.current!;
-    const read = () =>
+    const read = () => {
+      const active = document.activeElement;
+      arrowFocusRef.current = active !== null && (active === previousRef.current || active === nextRef.current);
       setViewport((v) =>
         v && v.w === probe.clientWidth && v.h === probe.clientHeight ? v : { w: probe.clientWidth, h: probe.clientHeight },
       );
+    };
     read();
     const observer = new ResizeObserver(read);
     observer.observe(probe);
@@ -157,6 +165,29 @@ export function Shelf() {
   const page = Math.floor(first / perPage);
   const lastPage = Math.max(0, Math.ceil(books.length / perPage) - 1);
   const shownPage = Math.min(page, lastPage);
+  const arrows = books.length > perPage;
+
+  const cancelFade = () => {
+    for (const a of fadeRef.current) a.cancel();
+    fadeRef.current = [];
+  };
+
+  // A viewport change can show the leaving page again: no fade, no ghost.
+  useLayoutEffect(() => {
+    if (leaving && leaving.page === shownPage) {
+      cancelFade();
+      setLeaving(null);
+    }
+  }, [leaving, shownPage]);
+
+  // A focused arrow that goes away (a larger viewport) gives the focus to
+  // the shelf.
+  useLayoutEffect(() => {
+    if (arrows || !arrowFocusRef.current) return;
+    arrowFocusRef.current = false;
+    const active = document.activeElement;
+    if (active === null || active === document.body) mainRef.current?.focus();
+  }, [arrows]);
 
   // The cross-fade of a page change: only opacity, 200 ms, linear.
   useLayoutEffect(() => {
@@ -180,11 +211,21 @@ export function Shelf() {
     );
   }, [first, leaving]);
 
-  // The plate height, for its place (it can be higher than the shelf).
-  useLayoutEffect(() => {
+  // The plate height, for its place (it can be higher than the shelf). The
+  // observer follows a change with no render (the font arrives).
+  const readPlate = () => {
     const h = plateRef.current?.offsetHeight ?? 0;
     setPlateH((prev) => (prev === h ? prev : h));
-  });
+  };
+  useLayoutEffect(readPlate);
+  const plateShown = layout !== null && state.kind !== "books";
+  useLayoutEffect(() => {
+    const plateEl = plateRef.current;
+    if (!plateShown || !plateEl) return;
+    const observer = new ResizeObserver(readPlate);
+    observer.observe(plateEl);
+    return () => observer.disconnect();
+  }, [plateShown, state.kind]);
 
   const coverFor = (id: string): Promise<CoverData> => {
     const cache = coversRef.current;
@@ -196,9 +237,10 @@ export function Shelf() {
     return load;
   };
 
+  // A running fade is cancelled, not finished: a finished outgoing fade
+  // keeps `opacity: 0` on a page node that React shows again.
   const turn = (delta: number) => {
-    for (const a of fadeRef.current) a.finish();
-    fadeRef.current = [];
+    cancelFade();
     setLeaving({ page: shownPage, books: books.slice(shownPage * perPage, shownPage * perPage + perPage) });
     setFirst((shownPage + delta) * perPage);
   };
@@ -236,7 +278,7 @@ export function Shelf() {
       const maxW = short ? Math.min(440, viewport.w - 176 - 24) : Math.min(440, viewport.w - 32);
       const bottom = layout.layout === "narrow" ? viewport.h - 88 : viewport.h;
       const top = plateH <= shelf.h ? shelf.y + (shelf.h - plateH) / 2 : 64 + (bottom - 64 - plateH) / 2;
-      const line = cn("leading-[1.3] font-semibold text-ink", short ? "text-[22px]" : "text-[28px]");
+      const line = cn("font-semibold text-balance text-ink", short ? "text-[22px]/[1.3]" : "text-[28px]/[1.3]");
       // The sign above the line; in Short, left of it.
       const signed = (kind: "day" | "night", text: string) =>
         short ? (
@@ -255,8 +297,8 @@ export function Shelf() {
           ref={plateRef}
           data-testid="shelf-plate"
           className={cn(
-            "absolute flex w-max flex-col items-center gap-3 bg-paper shadow-[0_2px_0_var(--edge)]",
-            short ? "p-[12px] text-left" : "p-[16px] text-center",
+            "absolute flex w-max flex-col items-center gap-3 rounded-[24px] bg-paper shadow-[0_2px_0_var(--edge)]",
+            short ? "p-[12px] text-center" : "p-[16px] text-center",
           )}
           style={{ left: shelf.x + shelf.w / 2, top, maxWidth: maxW, translate: "-50% 0" }}
         >
@@ -275,10 +317,9 @@ export function Shelf() {
       );
     }
 
-    const arrows = books.length > perPage;
     content = (
       <>
-        <div className="absolute" style={{ left: shelf.x, top: shelf.y, width: shelf.w, height: shelf.h }}>
+        <div data-testid="shelf-box" className="absolute" style={{ left: shelf.x, top: shelf.y, width: shelf.w, height: shelf.h }}>
           <ShelfWood layout={layout} />
           {leavingBooks ? (
             <div
@@ -303,6 +344,7 @@ export function Shelf() {
           <>
             <div className="absolute" style={{ left: layout.previous.x, top: layout.previous.y }}>
               <Button
+                ref={previousRef}
                 variant="round"
                 size="child-icon"
                 aria-label="Previous books"
@@ -315,6 +357,7 @@ export function Shelf() {
             </div>
             <div className="absolute" style={{ left: layout.next.x, top: layout.next.y }}>
               <Button
+                ref={nextRef}
                 variant="round"
                 size="child-icon"
                 aria-label="Next books"
