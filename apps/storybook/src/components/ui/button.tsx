@@ -3,35 +3,42 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button relative inline-flex shrink-0 items-center justify-center rounded-full border-0 whitespace-nowrap select-none transition-[translate,scale,box-shadow,background-color] duration-160 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none focus-visible:outline-solid focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ink focus-visible:after:pointer-events-none focus-visible:after:absolute focus-visible:after:-inset-[9px] focus-visible:after:rounded-full focus-visible:after:border-3 focus-visible:after:border-sun [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
-        outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        default:
+          "bg-primary text-primary-foreground shadow-[0_4px_0_var(--teal-edge)] active:not-data-disabled:translate-y-[2px] active:not-data-disabled:shadow-[0_2px_0_var(--teal-edge)]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
-        ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
-        destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground shadow-[0_3px_0_var(--soft-edge)] active:not-data-disabled:translate-y-[2px] active:not-data-disabled:shadow-[0_1px_0_var(--soft-edge)]",
+        ghost: "bg-transparent text-teal-text hover:not-data-disabled:bg-soft",
+        round:
+          "bg-card text-teal-deep shadow-[0_3px_0_var(--edge)] active:not-data-disabled:scale-[0.94]",
+        link: "bg-transparent text-teal-text underline-offset-3 hover:underline",
       },
       size: {
+        "child-start":
+          "h-[76px] pr-[46px] pl-[34px] gap-3 text-[32px] leading-none font-extrabold [&_svg]:size-[34px] data-disabled:opacity-35",
+        child:
+          "h-[68px] pr-[38px] pl-[30px] gap-3 text-[28px] leading-[1.3] font-extrabold [&_svg]:size-[30px] data-disabled:opacity-35",
+        "child-icon":
+          "size-[64px] [&_svg]:size-[28px] [&_svg]:stroke-3 data-disabled:opacity-35",
+        lg: "h-[52px] px-[28px] gap-2 text-[16px] leading-none font-extrabold [&_svg]:size-[20px] data-disabled:cursor-not-allowed data-disabled:bg-cream data-disabled:text-ink-2 data-disabled:shadow-[0_3px_0_var(--disabled-edge)]",
         default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        icon: "size-8",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
+          "h-[44px] px-[20px] gap-2 text-[16px] leading-none font-bold [&_svg]:size-[20px] data-disabled:cursor-not-allowed data-disabled:bg-cream data-disabled:text-ink-2 data-disabled:shadow-[0_3px_0_var(--disabled-edge)]",
+        icon: "size-[44px] [&_svg]:size-[20px] data-disabled:cursor-not-allowed data-disabled:bg-cream data-disabled:text-ink-2 data-disabled:shadow-[0_3px_0_var(--disabled-edge)]",
       },
     },
+    compoundVariants: [
+      { variant: "default", class: "font-extrabold" },
+      {
+        variant: "default",
+        size: ["child-start", "child", "child-icon"],
+        class:
+          "shadow-[0_5px_0_var(--teal-edge)] active:not-data-disabled:translate-y-[3px]",
+      },
+      { variant: "link", class: "px-0" },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",

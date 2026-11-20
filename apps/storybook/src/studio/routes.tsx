@@ -11,7 +11,7 @@ const studioIndexRoute = createRoute({
 function StudioPlaceholder() {
   return (
     <main data-testid="studio-placeholder" className="p-4">
-      <h1 className="font-display text-2xl">Studio</h1>
+      <h1 className="text-2xl">Studio</h1>
     </main>
   );
 }

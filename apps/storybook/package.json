@@ -16,8 +16,7 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@fontsource/kiwi-maru": "catalog:",
-    "@fontsource/nunito": "catalog:",
+    "@fontsource/baloo-2": "catalog:",
     "@hono/zod-validator": "catalog:",
     "@storybook/dsl": "workspace:*",
     "@storybook/layout": "workspace:*",
