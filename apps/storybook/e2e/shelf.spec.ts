@@ -63,13 +63,14 @@ class ShelfNet {
     return [...new Set(this.requests.map((r) => r.id))].sort();
   }
 
-  async release(): Promise<void> {
+  // `files` answers the held release files instead of the fixture.
+  async release(files?: Fulfil): Promise<void> {
     const shelf = this.heldShelf;
-    const files = this.heldFiles;
+    const held = this.heldFiles;
     this.heldShelf = [];
     this.heldFiles = [];
     for (const route of shelf) await route.fulfill(this.shelfBody());
-    for (const { route, id, rel } of files) await route.fulfill(fileAnswer(id, rel));
+    for (const { route, id, rel } of held) await route.fulfill(files ?? fileAnswer(id, rel));
   }
 
   shelfBody(): Fulfil {
@@ -712,6 +713,196 @@ test("Look again fits the plate at 320 x 480", async ({ page }) => {
   expect(fit.button!.right).toBeLessThanOrEqual(fit.content.right + 0.5);
   expect(fit.button!.top).toBeGreaterThanOrEqual(fit.content.top - 0.5);
   expect(fit.button!.bottom).toBeLessThanOrEqual(fit.content.bottom + 0.5);
+});
+
+// Planner rulings of the PR #116 review (fix round 1). These tests are
+// outside the frozen RED list.
+
+// The `shelfLayout(w, h)` table of the approved mock: shelf x, y, w, h;
+// previous x, y; next x, y.
+const SHELF_TABLE: [number, number, number, number, number, number, number, number, number, number][] = [
+  [1194, 834, 267, 175, 660, 532, 16, 409, 1114, 409],
+  [900, 600, 127.5, 64, 645, 520, 16, 292, 820, 292],
+  [390, 844, 0, 159, 390, 490, 16, 768, 310, 768],
+  [375, 553, 0.5, 134, 374, 249, 16, 477, 295, 477],
+  [320, 480, 0, 114.5, 320, 215, 16, 404, 240, 404],
+  [667, 375, 89, 97, 489, 229, 12, 299, 591, 299],
+  [568, 320, 107, 64.5, 354, 239, 12, 244, 492, 244],
+];
+
+// Differences larger than `tol` between a box and its expected values.
+function misses(name: string, b: Box, expected: Partial<Box>, tol: Partial<Record<keyof Box, number>> = {}): string[] {
+  const out: string[] = [];
+  for (const key of ["x", "y", "width", "height"] as const) {
+    const want = expected[key];
+    if (want === undefined) continue;
+    if (Math.abs(b[key] - want) > (tol[key] ?? 1)) out.push(`${name} ${key} ${b[key]} (want ${want})`);
+  }
+  return out;
+}
+
+const fontsReady = (page: Page) => page.evaluate(() => document.fonts.ready.then(() => undefined));
+
+test("the shelf and the arrows match the shelfLayout table", async ({ page }) => {
+  await shelfSetup(page, { books: range(1, 7) });
+  for (const [w, h, sx, sy, sw, sh, px, py, nx, ny] of SHELF_TABLE) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/");
+    await expect(nextBooks(page)).toBeVisible();
+    const name = `${w}x${h}`;
+    expect([
+      ...misses(`${name} shelf`, await box(page.getByTestId("shelf-box")), { x: sx, y: sy, width: sw, height: sh }),
+      ...misses(`${name} previous`, await box(previousBooks(page)), { x: px, y: py, width: 64, height: 64 }),
+      ...misses(`${name} next`, await box(nextBooks(page)), { x: nx, y: ny, width: 64, height: 64 }),
+    ]).toEqual([]);
+  }
+});
+
+test("the feet stand 4 px inside the sides", async ({ page }) => {
+  await shelfSetup(page, { books: [] });
+  for (const [w, h, side] of [
+    [1194, 834, 16],
+    [390, 844, 12],
+    [568, 320, 12],
+  ] as const) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/");
+    await expect(page.getByText("New stories are coming soon.")).toBeVisible();
+    const shelf = await box(page.getByTestId("shelf-box"));
+    const feet = (await Promise.all((await page.getByTestId("shelf-foot").all()).map(box))).sort((a, b) => a.x - b.x);
+    expect(feet).toHaveLength(2);
+    expect([
+      ...misses(`${w}x${h} left foot`, feet[0]!, { x: shelf.x + side + 4, width: 44, height: 12 }),
+      ...misses(`${w}x${h} right foot`, feet[1]!, { x: shelf.x + shelf.width - side - 48, width: 44, height: 12 }),
+    ]).toEqual([]);
+  }
+});
+
+// [state, w, h, plate w, plate h, plate x, plate y]
+const PLATE_TABLE: [string, number, number, number, number, number, number][] = [
+  ["waiting", 1194, 834, 78, 42, 558, 420],
+  ["empty", 1194, 834, 392.6, 144.4, 400.7, 368.8],
+  ["failed", 1194, 834, 440, 260.8, 377, 310.6],
+  ["waiting", 390, 844, 78, 42, 156, 383],
+  ["empty", 390, 844, 358, 180.8, 16, 313.6],
+  ["failed", 390, 844, 358, 260.8, 16, 273.6],
+  ["failed", 320, 480, 288, 297.2, 16, 79.4],
+  ["waiting", 568, 320, 70, 34, 249, 167],
+  ["empty", 568, 320, 368, 88, 100, 140],
+  ["failed", 568, 320, 368, 168, 100, 100],
+];
+
+test("the plates match the boxes of the review", async ({ page }) => {
+  const net = await shelfSetup(page, { books: [] });
+  const answers: Record<string, () => Answer | undefined> = {
+    waiting: () => "hang",
+    empty: () => undefined,
+    failed: () => ({ status: 500 }),
+  };
+  for (const [state, w, h, pw, ph, px, py] of PLATE_TABLE) {
+    net.shelf = answers[state]!;
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/");
+    await expect(plate(page)).toBeVisible();
+    if (state === "empty") await expect(page.getByText("New stories are coming soon.")).toBeVisible();
+    if (state === "failed") await expect(lookAgain(page)).toBeVisible();
+    await fontsReady(page);
+    // The plate follows its height after the font arrives, with no render.
+    const tol = state === "empty" && w === 1194 ? { width: 3, x: 1.5 } : {};
+    await expect
+      .poll(async () => misses(`${state} ${w}x${h}`, await box(plate(page)), { x: px, y: py, width: pw, height: ph }, tol))
+      .toEqual([]);
+  }
+});
+
+test("the plate message has line height 1.3", async ({ page }) => {
+  await shelfSetup(page, { books: [] });
+  for (const [w, h, lh] of [
+    [1194, 834, 36.4],
+    [568, 320, 28.6],
+  ] as const) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/");
+    const line = page.getByText("New stories are coming soon.");
+    await expect(line).toBeVisible();
+    // WebKit prints 36.399998px for 36.4px: compare the number.
+    const px = await line.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
+    expect(Math.abs(px - lh)).toBeLessThan(0.01);
+  }
+});
+
+test("Next then Previous within the fade shows the books again", async ({ page }) => {
+  await shelfSetup(page, { books: range(1, 7) });
+  await wide(page);
+  await page.goto("/");
+  await expect(bookLinks(page)).toHaveCount(6);
+  await page.evaluate(async () => {
+    const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+    document.querySelector<HTMLElement>('[aria-label="Next books"]')!.click();
+    await tick();
+    document.querySelector<HTMLElement>('[aria-label="Previous books"]')!.click();
+    await tick();
+  });
+  await page.waitForTimeout(300);
+  await expect(bookLinks(page)).toHaveCount(6);
+  const opacities = await page
+    .locator('[data-testid="shelf-page"]:not([inert])')
+    .evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+  expect(opacities).toEqual(["1"]);
+});
+
+test("a second Next within the fade starts a second fade", async ({ page }) => {
+  await shelfSetup(page, { books: range(1, 7) });
+  await page.setViewportSize({ width: 568, height: 320 });
+  await page.goto("/");
+  await expect(bookLinks(page)).toHaveCount(2);
+  const after = await page.evaluate(async () => {
+    const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+    const next = document.querySelector<HTMLElement>('[aria-label="Next books"]')!;
+    next.click();
+    await tick();
+    next.click();
+    await tick();
+    const pages = [...document.querySelectorAll<HTMLElement>('[data-testid="shelf-page"]')];
+    const running = document
+      .getAnimations()
+      .filter((a) => a.playState === "running" && a.effect instanceof KeyframeEffect && pages.includes(a.effect.target as HTMLElement));
+    return { pages: pages.length, leaving: pages.filter((p) => p.hasAttribute("inert")).length, running: running.length };
+  });
+  expect(after).toEqual({ pages: 2, leaving: 1, running: 2 });
+  await expect(bookLinks(page)).toHaveCount(2);
+  await expect(bookLink(page, 5)).toBeVisible();
+});
+
+test("a focused arrow that goes away gives the focus to the shelf", async ({ page }) => {
+  await shelfSetup(page, { books: range(1, 3) });
+  await page.setViewportSize({ width: 568, height: 320 });
+  await page.goto("/");
+  await expect(nextBooks(page)).toBeVisible();
+  await nextBooks(page).focus();
+  await expect(nextBooks(page)).toBeFocused();
+  await wide(page);
+  await expect(nextBooks(page)).toHaveCount(0);
+  await expect(shelfMain(page)).toBeFocused();
+});
+
+test("a book from the shelf that rests puts the focus on the Resting Home", async ({ page }) => {
+  // The first manifest request of book 1 is the cover; the second is the book.
+  let manifests = 0;
+  const net = await shelfSetup(page, {
+    books: [1],
+    file: (id, rel) => (id === idOf(1) && rel === "manifest.json" && ++manifests > 1 ? "hold" : undefined),
+  });
+  await page.goto("/");
+  await expect(windowOf(page, 1)).toHaveAttribute("data-cover", "drawn");
+  await bookLink(page, 1).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => pathname(page)).toBe(`/read/${idOf(1)}`);
+  await expect(homeButton(page)).toBeFocused();
+  await expect.poll(() => net.held).toBe(1);
+  await net.release({ status: 404, body: "" });
+  await expect(page.getByText("This book is sleeping. Come back soon.")).toBeVisible();
+  await expect(homeButton(page)).toBeFocused();
 });
 
 // Screenshots of the shelf for the PR (#77). CI uploads test-results/screenshots/
