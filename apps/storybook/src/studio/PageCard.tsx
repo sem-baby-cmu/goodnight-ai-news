@@ -69,7 +69,11 @@ export function PageCard({ page, registry }: { page: Page; registry: RegistryRes
 
   return (
     <article className="flex flex-col gap-3 rounded-[18px] bg-card p-3 shadow-[0_3px_0_var(--edge)]">
-      <div style={{ position: "relative", aspectRatio: "1002 / 610", borderRadius: "10px", overflow: "hidden" }} className="bg-paper">
+      <div
+        data-testid="page-preview"
+        style={{ position: "relative", aspectRatio: "1002 / 610", borderRadius: "10px", overflow: "hidden" }}
+        className="bg-paper"
+      >
         {resolver !== null && preview !== null ? (
           <div style={{ position: "absolute", inset: 0 }}>
             <SceneView page={preview} assets={resolver} mode="still" />
