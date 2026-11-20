@@ -149,7 +149,7 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - Given a draft whose page 3 has a scene and an audio that need review
 - When the operator opens the story view
 - Then the "Publish" card has the rows "page 3: scene needs review" and "page 3: audio needs review", and no text of the card has `needs_review`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/PublishPanel.test.tsx
 
 ## PUB-03 A published story is a book on the shelf
 

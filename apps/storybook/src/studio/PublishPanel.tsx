@@ -5,20 +5,28 @@ import { cn } from "@/lib/utils";
 import { errorOf, type ReleaseCreated, type StoryDetailResponse, studioApi } from "./api";
 import { CrossIcon } from "./icons";
 import { Notice } from "./Notice";
+import { PAGE_STATE_CHIP } from "./StateChip";
 import { cardClass, cardTitleClass, type Failure, NO_ANSWER } from "./ui";
 
 type Pages = StoryDetailResponse["pages"];
 
 const LABEL = { page_text: "text", scene: "scene", audio: "audio" } as const;
 
-// The client list of blocking pages, in the words of `publish.ts`. It only
-// disables the button: the server decides (Key invariants).
+// The words of a blocking item (DESIGN.md 13.2 "Publish" card), the same as
+// `PHRASE` in worker/publish/publish.ts. It only disables the button: the
+// server decides (Key invariants).
+const PHRASE = {
+  missing: (target: string) => `missing ${target}`,
+  stale: (target: string) => `stale ${target}`,
+  needs_review: (target: string) => `${target} needs review`,
+} as const;
+
 function blockingRows(pages: Pages): string[] {
   if (pages.length === 0) return ["missing outline"];
   return pages.flatMap((page) => {
     if (page.state === "ok") return [];
-    if (page.problems.length === 0) return [`page ${page.number}: ${page.state}`];
-    return page.problems.map((p) => `page ${page.number}: ${p.reason} ${LABEL[p.target]}`);
+    if (page.problems.length === 0) return [`page ${page.number}: ${PAGE_STATE_CHIP[page.state].word}`];
+    return page.problems.map((p) => `page ${page.number}: ${PHRASE[p.reason](LABEL[p.target])}`);
   });
 }
 
