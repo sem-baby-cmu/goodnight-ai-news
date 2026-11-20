@@ -17,8 +17,10 @@ export const linkClass =
   "inline-flex min-h-11 items-center font-bold text-teal-text underline-offset-3 hover:underline rounded-[4px] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink focus-visible:shadow-[0_0_0_9px_var(--sun)]";
 
 // Field: Paper fill, 2 px border, radius 14 px, padding 8 px 12 px, at least 44 px high.
+// Focus: the Ink outline 3 px away, and the Sun ring as a 3 px shadow in the
+// gap (an <input> or <textarea> has no ::after for the ring of `Button`).
 export const fieldClass =
-  "min-h-11 rounded-[14px] border-2 border-field-border bg-paper px-3 py-2 text-[16px] font-medium text-ink shadow-none focus-visible:border-field-border focus-visible:ring-0 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink md:text-[16px]";
+  "min-h-11 rounded-[14px] border-2 border-field-border bg-paper px-3 py-2 text-[16px] font-medium text-ink shadow-none focus-visible:border-field-border focus-visible:ring-0 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink focus-visible:shadow-[0_0_0_3px_var(--sun)] md:text-[16px]";
 
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleString();

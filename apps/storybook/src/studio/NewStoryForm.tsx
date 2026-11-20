@@ -30,7 +30,7 @@ function isHttpUrl(value: string): boolean {
 }
 
 const segmentClass =
-  "h-11 min-w-0 rounded-full px-[14px] text-[16px] font-bold text-ink-2 hover:bg-transparent hover:text-ink-2 aria-pressed:bg-card aria-pressed:text-teal-text aria-pressed:shadow-[0_2px_0_var(--seg-edge)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink focus-visible:ring-0";
+  "h-11 min-w-0 rounded-full px-[14px] text-[16px] font-bold text-ink-2 hover:bg-transparent hover:text-ink-2 aria-pressed:bg-card aria-pressed:text-teal-text aria-pressed:shadow-[0_2px_0_var(--seg-edge)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink focus-visible:ring-0 relative focus-visible:after:pointer-events-none focus-visible:after:absolute focus-visible:after:-inset-[9px] focus-visible:after:rounded-full focus-visible:after:border-3 focus-visible:after:border-sun";
 
 // The "New story" card (#23, Exact changes 9; DESIGN.md 13.1).
 export function NewStoryForm() {
