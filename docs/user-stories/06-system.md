@@ -110,7 +110,7 @@ Spec: requirements AC-15 · design "Deployment", "Testing Strategy", "9. Player 
 - Given the Studio in a browser with an Access session
 - When the operator opens `/studio/abc/def`, a path that matches no Studio route
 - Then the Studio shows its stories list, and the address is `/studio`; no Player screen is shown
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/routes.test.tsx
 
 ## SYS-04 No child data, and no full text in logs
 

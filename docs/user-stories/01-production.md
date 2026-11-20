@@ -98,13 +98,13 @@ Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6.
 - Given a story whose `source` revision has `truncated: true`, because the pasted text or the article had more than 2,000 words
 - When the operator opens the story view
 - Then the Studio shows the notice "The text had more than 2,000 words. Only the first 2,000 were used."; for a `source` revision with `truncated: false`, the notice is absent
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ### RUN-01.S16 The "Run" card shows the progress of each step kind
 - Given a run of a story with 2 pages, whose `script` step is done, whose `scene` steps are one done and one failed, and whose `audio` steps are one done and one pending
 - When the story view gets the run with `GET /api/studio/runs/:id`
 - Then the "Run" card has one row for each step kind; the `scene` row has one solid "failed" cell, the note "1 of 2 done, 1 failed", and the label "scene: 1 of 2 done, 1 failed"
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ## RUN-02 Start a full run from a URL
 
@@ -159,7 +159,7 @@ Spec: requirements "Scope" · design "6. API" (URL input), "Error Handling", "Te
 - Given the "New story" form in "Article URL" mode with an `https` URL
 - When the operator selects "Make story", and the API answers 422 `source_rejected`
 - Then the form switches to "Paste text" and keeps the URL; a notice with `role="alert"` says "Could not read enough text from that page." and "No run was started. Paste the text instead."
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/NewStoryForm.test.tsx
 
 ## RUN-03 A scene uses only what the registry holds
 
@@ -404,13 +404,13 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Given a story with no `outline` head, whose latest run failed in the `script` step
 - When the operator opens the story view
 - Then the "Run" card has a notice "The run failed." with one line for each error, for example "script: <message>", and a "Start again" button that sends `POST /api/studio/stories/:id/runs` with `{ scope: { kind: "full" } }`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ### RUN-05.S14 A failed run of a story with an outline points to the pages
 - Given a story with an `outline` head, whose latest run failed in the `scene` step of page 2
 - When the operator opens the story view
 - Then the "Run" card has a notice "The run failed." with the line "scene, page 2: <message>" and the line "Open a page to make its scene or audio again."; the notice has no "Start again" button
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ## RUN-06 The scene approach holds on real news
 
