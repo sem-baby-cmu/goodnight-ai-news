@@ -1268,7 +1268,7 @@ describe("StoryRunWorkflow", () => {
     expect(st.head(`scene:${p1}`)!.error).toMatchObject({ providerStatus: 400 });
   });
 
-  it("SYS-05.S6 every call row names the configured model", async () => {
+  it("SYS-05.S7 every call row names the configured model", async () => {
     const s = await fullRun();
     const rows = await callColumns(s.ids.runId);
     expect(rows.length).toBeGreaterThan(0);
