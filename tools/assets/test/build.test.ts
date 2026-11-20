@@ -13,6 +13,8 @@ import { migratedDb } from "./fake-wrangler";
 // the test does not need the untracked tools/assets/out/ (implementation decision R50).
 // REG-01.S1 (#21) reuses this output, so CI cuts the boards once (implementation decision).
 let out = "";
+// pip on the robot board stays v1; every other board asset is v2 (#84).
+const versionOf = (key: string) => (key === "pip" ? "v1" : "v2");
 
 beforeAll(async () => {
   out = mkdtempSync(join(tmpdir(), "assets-build-"));
@@ -23,14 +25,14 @@ beforeAll(async () => {
 
 describe("build output", () => {
   it("measure output validates for all boards", () => {
-    const keys = readdirSync(out).filter((d) => d !== "review" && existsSync(join(out, d, "v1", "asset.json")));
+    const keys = readdirSync(out).filter((d) => d !== "review" && existsSync(join(out, d, versionOf(d), "asset.json")));
     expect(keys).toHaveLength(55);
     let characters = 0;
     for (const key of keys) {
-      const build = AssetBuildSchema.parse(JSON.parse(readFileSync(join(out, key, "v1", "asset.json"), "utf8")));
+      const build = AssetBuildSchema.parse(JSON.parse(readFileSync(join(out, key, versionOf(key), "asset.json"), "utf8")));
       expect(build.key).toBe(key);
       expect(build.renderer).toBe("webp");
-      const webps = readdirSync(join(out, key, "v1")).filter((f) => f.endsWith(".webp"));
+      const webps = readdirSync(join(out, key, versionOf(key))).filter((f) => f.endsWith(".webp"));
       if (build.kind === "character") {
         characters++;
         expect(webps, key).toHaveLength(14);
@@ -38,6 +40,7 @@ describe("build output", () => {
         expect(webps, key).toEqual(["default.webp"]);
       }
       if (!isLayerManifest(build.manifest)) throw new Error(`${key} is not a layer asset`);
+      if (key !== "pip") expect((build.manifest as { description?: string }).description, key).toMatch(/^[a-z]/);
       expect(build.manifest.poses.map((p) => p.file).sort(), key).toEqual([...webps].sort());
     }
     expect(characters).toBe(13);
@@ -82,6 +85,6 @@ describe("backdrop review", () => {
     expect(sheet.envelopes).toHaveLength(47);
     for (const e of sheet.envelopes) expect(e.boxes.length, `${e.template}/${e.slot}`).toBeGreaterThan(0);
     for (const sky of SKY_PALETTES) expect(existsSync(join(copy, `review/meadow-v1-${sky}.png`)), sky).toBe(true);
-    expect(readdirSync(out).filter((d) => d !== "review" && existsSync(join(out, d, "v1", "asset.json")))).toHaveLength(55);
+    expect(readdirSync(out).filter((d) => d !== "review" && existsSync(join(out, d, versionOf(d), "asset.json")))).toHaveLength(55);
   }, 120_000);
 });

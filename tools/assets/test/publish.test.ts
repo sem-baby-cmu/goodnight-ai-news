@@ -256,6 +256,17 @@ describe("buildSql", () => {
   });
 });
 
+describe("pip source", () => {
+  it("pip v3 is pip v2 with a description", () => {
+    const v3 = AssetBuildSchema.parse(JSON.parse(readFileSync(join(SOURCES_DIR, "pip/v3/asset.json"), "utf8")));
+    expect(v3.version).toBe(3);
+    const { description, ...rest } = v3.manifest as { description?: string };
+    expect(rest).toEqual(pipV2().manifest);
+    expect(description).toBe("a robot");
+    expect(readFileSync(join(SOURCES_DIR, "pip/v3/pip.svg")).equals(readFileSync(join(SOURCES_DIR, "pip/v2/pip.svg")))).toBe(true);
+  });
+});
+
 describe("loadLocalBuilds", () => {
   it("loadLocalBuilds rejects an svg that sanitizeSvg would change", () => {
     const out = tmpOut();

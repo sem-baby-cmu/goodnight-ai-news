@@ -27,4 +27,25 @@ describe("committed crop maps", () => {
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys).toHaveLength(55);
   });
+
+  it("every crop map asset has a one-line description and version 2, except pip on the robot board", () => {
+    let described = 0;
+    for (const file of readdirSync(CROPS_DIR).filter((f) => f.endsWith(".json")).sort()) {
+      const raw = JSON.parse(readFileSync(join(CROPS_DIR, file), "utf8")) as {
+        assets: Record<string, { description?: string; version: number }>;
+      };
+      for (const [key, asset] of Object.entries(raw.assets)) {
+        if (file === "character-board-00-robot.json" && key === "pip") {
+          expect(asset.description, `${file} ${key}`).toBeUndefined();
+          expect(asset.version, `${file} ${key}`).toBe(1);
+          continue;
+        }
+        expect(asset.description, `${file} ${key}`).toMatch(/^[a-z][^\n]{0,79}$/);
+        expect(asset.description!.endsWith("."), `${file} ${key}`).toBe(false);
+        expect(asset.version, `${file} ${key}`).toBe(2);
+        if (asset.description !== undefined) described++;
+      }
+    }
+    expect(described).toBe(54);
+  });
 });

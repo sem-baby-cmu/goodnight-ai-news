@@ -1,11 +1,11 @@
 import { env } from "cloudflare:workers";
 import { buildSceneJsonSchema } from "@storybook/dsl";
 import type { RegistrySnapshot } from "@storybook/dsl";
-import { TEMPLATES } from "@storybook/layout";
+import { TEMPLATE_DESCRIPTIONS, TEMPLATES } from "@storybook/layout";
 import { describe, expect, it } from "vitest";
 import { getDb, loadActiveRegistry } from "../db";
 import { seedRegistry } from "../test/fixtures";
-import { repairSuffix, scenePrompt, scriptPrompt } from "./prompts";
+import { modelRegistry, repairSuffix, scenePrompt, scriptPrompt } from "./prompts";
 
 // The `enum` values of every schema node under a property with this name.
 function enumsOf(schema: unknown, name: string): unknown[][] {
@@ -91,7 +91,7 @@ describe("prompts", () => {
       [
         "Animations (primitive: the assets it works on):",
         "- float: all",
-        "- sway: all",
+        '- sway: ["tree"]',
         "- bounce: all",
         "- pop: all",
         "- fade-in: all",
@@ -121,7 +121,75 @@ describe("prompts", () => {
     const registry = await loadActiveRegistry(getDb(env.DB));
     const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny", "ghost-key"], registry, templates: TEMPLATES });
     expect(user).toContain("- ghost-key: unknown");
-    expect(user).toMatch(/- test-bunny: poses/);
+    expect(user).toMatch(/- test-bunny: no description; poses/);
+  });
+
+  it("scenePrompt gives each template its description", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    for (const t of TEMPLATES) expect(user).toContain(`Template "${t.id}": ${TEMPLATE_DESCRIPTIONS[t.id]}`);
+  });
+
+  it("scenePrompt gives each layer asset its description", () => {
+    const layer = (kind: "character" | "prop" | "scenery", description?: string) => ({
+      kind,
+      ...(description === undefined ? {} : { description }),
+      poses: [{ id: "stand", file: "stand.webp", foot: { x: 0, y: 0 }, box: { x: 0, y: 0, w: 1, h: 1 } }],
+      expressions: [],
+      legal: [],
+      flippable: false,
+    });
+    const registry = {
+      assets: {
+        bear: { kind: "character", renderer: "webp", version: 1, manifest: layer("character", "a brown bear") },
+        ball: { kind: "prop", renderer: "webp", version: 1, manifest: layer("prop", "a red ball") },
+        tree: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery", "a tall tree") },
+        nodesc: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
+        chime: { kind: "sfx", renderer: "audio", version: 1, manifest: { kind: "sfx", file: "chime.mp3", durationMs: 300 } },
+      },
+    } as RegistrySnapshot;
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry, templates: TEMPLATES });
+    expect(user).toContain('- bear: "a brown bear"; poses ["stand"]; expressions []; legal pairs []');
+    expect(user).toContain(
+      'Other assets:\n- ball (prop): "a red ball"\n- nodesc (scenery): no description\n- tree (scenery): "a tall tree"\n- sfx: ["chime"]',
+    );
+  });
+
+  it("scenePrompt states the tap and expression rules", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    expect(system).toContain("whose descriptions fit the page text");
+    expect(system).toContain("Give every character layer a tap");
+    expect(system).toContain("from the feeling words of the page text");
+    expect(system).toContain("Never use `set_expression` with the expression that its target layer already has.");
+    expect(system.split("\n").at(-1)).toBe("Answer with JSON only.");
+  });
+
+  it("the models do not see door and window", () => {
+    const layer = (kind: "character" | "scenery") => ({
+      kind,
+      poses: [{ id: "stand", file: "stand.webp", foot: { x: 0, y: 0 }, box: { x: 0, y: 0, w: 1, h: 1 } }],
+      expressions: [],
+      legal: [],
+      flippable: false,
+    });
+    const r: RegistrySnapshot = {
+      assets: {
+        bear: { kind: "character", renderer: "webp", version: 1, manifest: layer("character") },
+        tree: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
+        door: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
+        window: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
+        chime: { kind: "sfx", renderer: "audio", version: 1, manifest: { kind: "sfx", file: "chime.mp3", durationMs: 300 } },
+      },
+    };
+    expect(Object.keys(modelRegistry(r).assets).sort()).toEqual(["bear", "chime", "tree"]);
+    expect(Object.keys(r.assets)).toHaveLength(5);
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry: modelRegistry(r), templates: TEMPLATES });
+    expect(user).not.toMatch(/\b(door|window)\b/);
+    expect(user).toContain('- sway: ["tree"]');
+    expect(enumsOf(buildSceneJsonSchema({ registry: modelRegistry(r), templates: TEMPLATES }), "ref")).toEqual([["bear", "tree"]]);
   });
 
   it("scriptPrompt states the reader age, the page count, and the cast rule", () => {
