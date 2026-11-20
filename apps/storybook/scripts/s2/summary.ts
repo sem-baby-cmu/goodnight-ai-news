@@ -72,6 +72,8 @@ export function summarize(rows: S2Rows): Summary {
   }
   s.audioOk = rows.revisions.filter((r) => r.kind === "audio" && r.status === "ok" && stepOf(r.call_id)?.startsWith("audio:")).length;
   for (const c of rows.calls) {
+    // Text tokens only: TTS tokens have other prices (#65).
+    if (c.step.startsWith("audio:")) continue;
     const u = json(c.usage) as { inputTokens?: unknown; outputTokens?: unknown } | null;
     if (typeof u?.inputTokens === "number") s.inputTokens += u.inputTokens;
     if (typeof u?.outputTokens === "number") s.outputTokens += u.outputTokens;

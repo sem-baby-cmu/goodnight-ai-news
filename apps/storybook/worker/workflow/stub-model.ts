@@ -161,10 +161,12 @@ export function createStubModel(opts: { registry: RegistrySnapshot; plan?: StubP
     },
     async synthesizeSpeech(req) {
       const key = `audio:${pageNumber(req.text)}`;
-      return answer<Speech>(key, true, stubSpeech, (a) => {
+      const speech = await answer<Speech>(key, true, stubSpeech, (a) => {
         if (!("speech" in a)) throw new Error(`stub: plan for ${key} is not a speech result`);
         return a.speech;
       });
+      // A stub call costs nothing, the same as the stub generateJson (#65).
+      return { ...speech, usage: { inputTokens: 0, outputTokens: 0 } };
     },
   };
 

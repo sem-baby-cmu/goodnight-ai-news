@@ -1,5 +1,6 @@
 // Internal: the Gemini generateContent request for TTS, and the decoding of its
 // answer. Not exported from index.ts. scripts/probe.ts imports it directly.
+import type { Usage } from "./client";
 import type { ModelConfig } from "./config";
 import { ModelOutputError, UnsupportedAudioFormatError } from "./errors";
 import { isWav, pcmToWav, wavDurationMs, wavInfo } from "./wav";
@@ -38,6 +39,18 @@ export function findInlineData(json: unknown): InlineData | undefined {
     ?.candidates?.[0]?.content?.parts;
   if (!Array.isArray(parts)) return undefined;
   return parts.find((part) => part?.inlineData !== undefined)?.inlineData;
+}
+
+const isCount = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
+
+// The token counts of a generateContent answer (#65): `promptTokenCount` is
+// the input, `candidatesTokenCount` the output. Null unless both are integers
+// of 0 or more. A missing count is never read as 0.
+export function speechUsage(json: unknown): Usage | null {
+  const meta = (json as { usageMetadata?: { promptTokenCount?: unknown; candidatesTokenCount?: unknown } } | null)?.usageMetadata;
+  const input = meta?.promptTokenCount;
+  const output = meta?.candidatesTokenCount;
+  return isCount(input) && isCount(output) ? { inputTokens: input, outputTokens: output } : null;
 }
 
 // Throws ModelOutputError (not a bare DOMException) for invalid base64.
