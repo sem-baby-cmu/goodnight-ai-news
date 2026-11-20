@@ -1,8 +1,12 @@
 // A release never changes, so its files are cached for a year.
 export const IMMUTABLE = "public, max-age=31536000, immutable";
 
+// The same answer for a release that does not exist and for a withdrawn one.
 export function notFound(): Response {
-  return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+  return new Response(JSON.stringify({ error: "not_found" }), {
+    status: 404,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
 }
 
 function unsatisfiable(size: number): Response {

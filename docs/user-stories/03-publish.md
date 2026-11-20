@@ -223,94 +223,94 @@ Spec: requirements US-9, AC-20, AC-10 · design "6. API" (Taking a book off the 
 - Given a story with releases 1 and 2, where `published_release_id` names release 2 and `withdrawn_through` is 0
 - When the operator sends `POST /api/studio/stories/:id/withdrawal` with `{ releaseId }` of release 2
 - Then the response is 200 with `{ storyId, releaseId, withdrawnThrough: 2 }`, and `story.withdrawn_through` is 2
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S2 A story that was taken off is not in the shelf list
 - Given a published story A, and a published story B that was taken off the shelf
 - When a client sends `GET /api/shelf`
 - Then the response is 200 with the entry of A only, and the route writes no log line for B
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-04.S3 The content route does not serve a withdrawn release
 - Given a story with releases 1 and 2 and `withdrawn_through` = 2
 - When a client sends `GET /content/releases/<id>/manifest.json` for release 1 and for release 2
 - Then each response is 404 with `{ error: "not_found" }`, the same answer as for a release that does not exist
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/content.test.ts
 
 ### PUB-04.S4 A take-off changes no release
 - Given a story with releases 1 and 2, and a list of every `release` row and of every object under the two release prefixes, with their digests
 - When the operator takes the story off the shelf
 - Then every `release` row and every object is unchanged; `story.published_release_id`, `story.status`, `heads`, and `heads_version` are unchanged
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S5 The same take-off again changes nothing
 - Given a story that was taken off the shelf with release 2
 - When the operator sends the same request again
 - Then the response is 200 with the same body, and `withdrawn_through` is still 2
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S6 A take-off of a release that is not the published one is refused
 - Given a story whose `published_release_id` names release 2
 - When the operator sends the take-off with the ID of release 1
 - Then the response is 409 with `{ error: "release_moved", current }`, where `current` is the ID of release 2; `withdrawn_through` is unchanged, and the story is in the shelf list
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S7 A take-off of a story with no release is refused
 - Given a draft story with no release
 - When the operator sends the take-off with a UUID as `releaseId`
 - Then the response is 409 with `{ error: "not_published" }`, and no row changes
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S8 A take-off of an unknown story gives 404
 - Given no story with the ID in the path
 - When the operator sends the take-off
 - Then the response is 404 with `{ error: "not_found" }`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S9 A take-off with a bad body gives 400
 - Given a published story
 - When the operator sends the take-off with a body that has no `releaseId`, or a `releaseId` that is not a UUID
 - Then the response is 400 with `{ error: "bad_request", issues }`, and no row changes
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S10 A new release puts the story back on the shelf
 - Given story A and then story B, each published; story A has releases 1 and 2 and was taken off the shelf with release 2
 - When the operator publishes story A again
 - Then release 3 is in the shelf list, after the entry of B (the old place of A); the content route serves release 3; releases 1 and 2 still give 404, and `withdrawn_through` is still 2
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-04.S11 A take-off writes one log line with no title
 - Given a published story
 - When the operator takes it off the shelf
 - Then the route writes one log line with the story ID, the release ID, and the release number; the line has no title and no text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S12 The Studio routes say what is on the shelf
 - Given a story with releases 1, 2, and 3 and `withdrawn_through` = 2
 - When the operator sends `GET /api/studio/stories/:id`, and `GET /api/studio/stories`
 - Then the story has `onShelf: true` in both responses; in the first, releases 1 and 2 have `withdrawn: true` and release 3 has `withdrawn: false`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/withdrawal.test.ts
 
 ### PUB-04.S13 A page JSON of a withdrawn release gives 404
 - Given a story with releases 1 and 2 and `withdrawn_through` = 2
 - When a client sends `GET /content/releases/<id>/pages/<pageId>.json` for a page of release 1 and for a page of release 2
 - Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response has a part of the page JSON
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/content.test.ts
 
 ### PUB-04.S14 An image of a withdrawn release gives 404
 - Given a story with releases 1 and 2 and `withdrawn_through` = 2
 - When a client sends `GET /content/releases/<id>/assets/<key>/v<n>/<file>` for an image of release 1 and for an image of release 2
 - Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response has a byte of the image
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/content.test.ts
 
 ### PUB-04.S15 A `Range` request for an audio file of a withdrawn release gives 404
 - Given a story with releases 1 and 2 and `withdrawn_through` = 2
 - When a client sends `GET /content/releases/<id>/audio/<file>` with `Range: bytes=0-` for an audio file of release 1 and for one of release 2
 - Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response is 206, and none has a `Content-Range` header or a byte of the file
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/content.test.ts
 
 ### PUB-04.S16 A conditional request for a file of a withdrawn release gives 404
 - Given a story with releases 1 and 2, and the `ETag` that the content route gave for the manifest, a page JSON, an image, and an audio file of each release; the story was then taken off the shelf with release 2
 - When a client requests each of these files again with `If-None-Match` and its `ETag`
 - Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response is 304
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/content.test.ts
