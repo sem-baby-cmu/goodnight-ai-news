@@ -22,11 +22,11 @@ afterEach(() => {
 const publishPath = `/api/studio/stories/${STORY_ID}/releases`;
 const readyPages = () => [pageFixture(1), pageFixture(2), pageFixture(3)];
 
-type PanelProps = { pages?: StoryDetailResponse["pages"]; releases?: StoryDetailResponse["releases"] };
+type PanelProps = { pages?: StoryDetailResponse["pages"]; releases?: StoryDetailResponse["releases"]; offShelf?: boolean };
 
 function renderPanel(props: PanelProps = {}) {
   const onPublished = vi.fn<() => void>();
-  render(<PublishPanel storyId={STORY_ID} pages={readyPages()} releases={[]} onPublished={onPublished} {...props} />);
+  render(<PublishPanel storyId={STORY_ID} pages={readyPages()} releases={[]} onPublished={onPublished} offShelf={false} {...props} />);
   return { onPublished };
 }
 

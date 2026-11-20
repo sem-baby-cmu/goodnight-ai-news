@@ -1,5 +1,5 @@
 import type { SceneViewProps } from "@storybook/scene-runtime";
-import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { StoryDetailResponse } from "./api";
 import {
@@ -8,6 +8,7 @@ import {
   pageFixture,
   pageId,
   registryFixture,
+  releaseCreatedFixture,
   releaseFixture,
   renderInRouter,
   type Reply,
@@ -607,4 +608,298 @@ it("Publish with no answer fetches the story again and never prints (0)", async 
   );
   await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
   expect(document.body.textContent).not.toContain("(0)");
+});
+
+// ---- Take off the shelf (#89; DESIGN.md 13.2). While the dialog is open,
+// the content outside it is aria-hidden, so every dialog query is scoped.
+
+type Release = StoryDetailResponse["releases"][number];
+
+const withdrawalPath = `${storyPath}/withdrawal`;
+const DIALOG_TITLE = "Take this book off the shelf?";
+const dialogText = (n: number) =>
+  `Children will no longer see this book on the shelf. Every link to release ${n} and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release.`;
+const OFF_NOTICE = "This book is off the shelf. Publish a new release to put it back.";
+const MOVED = "Another release was published after you opened this page. Nothing was changed.";
+const NOT_PUBLISHED = "This story has no release on the shelf. Nothing was changed.";
+const NO_ANSWER_TAKEOFF = "No answer came from the server. It is not known if this book is still on the shelf. Try again.";
+
+// A published story whose last release in `releases` is on the shelf.
+function onShelfStory(
+  releases: Release[] = [releaseFixture(1), releaseFixture(2)],
+  over: Partial<StoryDetailResponse> = {},
+): StoryDetailResponse {
+  const base = storyDetailFixture();
+  const shelf = releases[releases.length - 1];
+  return {
+    ...base,
+    story: { ...base.story, status: "published", publishedReleaseId: shelf.id, onShelf: true },
+    releases,
+    ...over,
+  };
+}
+
+const withdrawn = (releaseId: string, withdrawnThrough: number): Reply => ({
+  status: 200,
+  body: { storyId: STORY_ID, releaseId, withdrawnThrough },
+});
+
+const rowButton = () => screen.getByRole("button", { name: "Take off the shelf" });
+const releasesHeading = () => screen.getByRole("heading", { name: "Releases" });
+const posts = (calls: FetchCall[]) => calls.filter((c) => c.method === "POST");
+const storyGets = (calls: FetchCall[]) => calls.filter((c) => c.method === "GET" && c.path === storyPath);
+const settled = () => new Promise((resolve) => setTimeout(resolve, 50));
+
+// Clicks the row button and returns the open dialog.
+async function openDialog(): Promise<HTMLElement> {
+  fireEvent.click(await screen.findByRole("button", { name: "Take off the shelf" }));
+  return screen.findByRole("dialog", { name: DIALOG_TITLE });
+}
+
+// Opens the dialog and clicks its "Take off the shelf" button.
+async function confirmTakeOff(): Promise<HTMLElement> {
+  const dialog = await openDialog();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Take off the shelf" }));
+  return dialog;
+}
+
+async function dialogClosed() {
+  await waitFor(() => expect(screen.queryByRole("dialog", { hidden: true })).toBeNull());
+}
+
+// The rows of `onShelfStory()` as loaded: release 2 on the shelf, release 1 with Open.
+function expectRowsAsLoaded() {
+  expect(screen.getAllByText("On the shelf")).toHaveLength(1);
+  expect(screen.getByText("On the shelf").closest("li")).toBe(screen.getByText("Release 2").closest("li"));
+  expect(screen.queryByText("Off the shelf")).toBeNull();
+  expect(screen.getByLabelText("Open release 1")).toBeTruthy();
+  expect(screen.getByLabelText("Open release 2")).toBeTruthy();
+}
+
+it("EDT-05.S2 Take off the shelf opens a dialog that names the result, sends no request, and Keep on the shelf and Escape close it with no change", async () => {
+  const { calls } = stubStory(onShelfStory());
+  renderStory();
+
+  let dialog = await openDialog();
+  expect(within(dialog).getByText(dialogText(2))).toBeTruthy();
+  const keep = within(dialog).getByRole("button", { name: "Keep on the shelf" });
+  await waitFor(() => expect(document.activeElement).toBe(keep));
+  expect(posts(calls)).toHaveLength(0);
+
+  fireEvent.click(keep);
+  await dialogClosed();
+  await waitFor(() => expect(document.activeElement).toBe(rowButton()));
+  expect(posts(calls)).toHaveLength(0);
+  expectRowsAsLoaded();
+
+  dialog = await openDialog();
+  const keepAgain = within(dialog).getByRole("button", { name: "Keep on the shelf" });
+  await waitFor(() => expect(document.activeElement).toBe(keepAgain));
+  fireEvent.keyDown(document.activeElement as Element, { key: "Escape" });
+  await dialogClosed();
+  await waitFor(() => expect(document.activeElement).toBe(rowButton()));
+  expect(posts(calls)).toHaveLength(0);
+  expectRowsAsLoaded();
+});
+
+it("EDT-05.S3 a confirmed take-off posts the release ID and, after 200, marks releases 1 and 2 Off the shelf with no Open and no take-off button", async () => {
+  const r2 = releaseFixture(2);
+  const { calls } = stubStory(onShelfStory(), { [`POST ${withdrawalPath}`]: withdrawn(r2.id, 2) });
+  renderStory();
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(screen.getAllByText("Off the shelf")).toHaveLength(2));
+  const post = posts(calls);
+  expect(post).toHaveLength(1);
+  expect(post[0].path).toBe(withdrawalPath);
+  expect(post[0].body).toEqual({ releaseId: r2.id });
+  expect(screen.queryByText("On the shelf")).toBeNull();
+  expect(screen.queryAllByText("Open")).toHaveLength(0);
+  expect(screen.queryByText("Take off the shelf")).toBeNull();
+  expect(statusWith(OFF_NOTICE)).toBeDefined();
+  await waitFor(() => expect(document.activeElement).toBe(releasesHeading()));
+  // No refetch: the rows come from the answer.
+  expect(storyGets(calls)).toHaveLength(1);
+});
+
+it("EDT-05.S4 a take-off refused with 409 release_moved shows the notice with Load the latest and changes no row", async () => {
+  const [r1, r2, r3] = [releaseFixture(1), releaseFixture(2), releaseFixture(3)];
+  let latest = onShelfStory([r1, r2]);
+  stubStory(() => latest, {
+    [`POST ${withdrawalPath}`]: { status: 409, body: { error: "release_moved", current: r3.id } },
+  });
+  renderStory();
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(alertWith(MOVED)).toBeDefined());
+  expectRowsAsLoaded();
+  const reload = within(alertWith(MOVED) as HTMLElement).getByRole("button", { name: "Load the latest" });
+  await waitFor(() => expect(document.activeElement).toBe(reload));
+
+  latest = onShelfStory([r1, r2, r3]);
+  fireEvent.click(reload);
+  await waitFor(() => expect(alertWith(MOVED)).toBeUndefined());
+  await waitFor(() => expect(document.activeElement).toBe(releasesHeading()));
+  const row3 = screen.getByText("Release 3").closest("li") as HTMLElement;
+  expect(row3).not.toBeNull();
+  expect(within(row3).getByText("On the shelf")).toBeTruthy();
+});
+
+it("A take-off refused with 409 not_published shows This story has no release on the shelf. with Load the latest", async () => {
+  stubStory(onShelfStory(), { [`POST ${withdrawalPath}`]: { status: 409, body: { error: "not_published" } } });
+  renderStory();
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(alertWith(NOT_PUBLISHED)).toBeDefined());
+  const reload = within(alertWith(NOT_PUBLISHED) as HTMLElement).getByRole("button", { name: "Load the latest" });
+  await waitFor(() => expect(document.activeElement).toBe(reload));
+  expectRowsAsLoaded();
+});
+
+it.each([400, 404, 500])(
+  "A take-off that fails with 400, 404 or 500 shows The server did not confirm the take-off. with the status, no action, the rows as loaded, and the focus on the row button",
+  async (status) => {
+    const error = status === 400 ? "bad_request" : status === 404 ? "not_found" : "internal";
+    stubStory(onShelfStory(), { [`POST ${withdrawalPath}`]: { status, body: { error } } });
+    renderStory();
+
+    await confirmTakeOff();
+    await dialogClosed();
+    const text = `The server did not confirm the take-off. It answered with an error (${status}). Try again.`;
+    await waitFor(() => expect(alertWith(text)).toBeDefined());
+    const alerts = screen
+      .queryAllByRole("alert")
+      .filter((a) => squash(a.textContent).includes(squash("The server did not confirm the take-off.")));
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].querySelectorAll("button, [role=button]")).toHaveLength(0);
+    expect(screen.queryByText("Load the latest")).toBeNull();
+    expectRowsAsLoaded();
+    await waitFor(() => expect(document.activeElement).toBe(rowButton()));
+  },
+);
+
+it("A take-off with no answer shows that it is not known if the book is still on the shelf, never (0)", async () => {
+  stubStory(onShelfStory(), { [`POST ${withdrawalPath}`]: noAnswer });
+  const { container } = renderStory();
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(alertWith(NO_ANSWER_TAKEOFF)).toBeDefined());
+  expect(squash(container.textContent)).not.toContain("(0)");
+  expect(screen.queryByText("Load the latest")).toBeNull();
+  expectRowsAsLoaded();
+  await waitFor(() => expect(document.activeElement).toBe(rowButton()));
+});
+
+it("The dialog buttons are disabled while the take-off request runs, and Escape does not close it", async () => {
+  const r2 = releaseFixture(2);
+  let answer: (reply: Reply) => void = () => {};
+  const held = new Promise<Reply>((resolve) => {
+    answer = resolve;
+  });
+  stubStory(onShelfStory(), { [`POST ${withdrawalPath}`]: () => held });
+  renderStory();
+
+  const dialog = await confirmTakeOff();
+  const keep = within(dialog).getByRole("button", { name: "Keep on the shelf" });
+  const take = within(dialog).getByRole("button", { name: "Take off the shelf" });
+  await waitFor(() => {
+    expect(isDisabled(keep)).toBe(true);
+    expect(isDisabled(take)).toBe(true);
+  });
+  fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+  await settled();
+  expect(screen.queryByRole("dialog", { name: DIALOG_TITLE })).not.toBeNull();
+
+  answer(withdrawn(r2.id, 2));
+  await dialogClosed();
+  await waitFor(() => expect(screen.getAllByText("Off the shelf")).toHaveLength(2));
+});
+
+it("Load the latest that does not load keeps the notice and the focus", async () => {
+  let gets = 0;
+  const { calls } = stubStory(onShelfStory(), {
+    [`GET ${storyPath}`]: () => {
+      gets += 1;
+      return gets === 1 ? { status: 200, body: onShelfStory() } : { status: 500, body: { error: "internal" } };
+    },
+    [`POST ${withdrawalPath}`]: { status: 409, body: { error: "release_moved", current: releaseFixture(3).id } },
+  });
+  renderStory();
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(alertWith(MOVED)).toBeDefined());
+  const reload = within(alertWith(MOVED) as HTMLElement).getByRole("button", { name: "Load the latest" });
+  await waitFor(() => expect(document.activeElement).toBe(reload));
+
+  fireEvent.click(reload);
+  await waitFor(() => expect(storyGets(calls)).toHaveLength(2));
+  await settled();
+  expect(alertWith(MOVED)).toBeDefined();
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: "Load the latest" }));
+  expectRowsAsLoaded();
+});
+
+it("A story GET in flight when the take-off answer lands does not bring back the old rows", async () => {
+  const r2 = releaseFixture(2);
+  const old = onShelfStory(undefined, { latestRun: { id: RUN_ID, status: "running", scope: { kind: "full" }, error: null } });
+  let release: (reply: Reply) => void = () => {};
+  const held = new Promise<Reply>((resolve) => {
+    release = resolve;
+  });
+  let gets = 0;
+  const { calls } = stubStory(old, {
+    [`GET ${storyPath}`]: () => {
+      gets += 1;
+      return gets === 1 ? { status: 200, body: old } : held;
+    },
+    // The run has ended at the first poll, so `useRunPoll` fetches the story again.
+    [`GET ${runPath(RUN_ID)}`]: { status: 200, body: runFixture("draft_ready") },
+    [`POST ${withdrawalPath}`]: withdrawn(r2.id, 2),
+  });
+  renderStory();
+
+  await waitFor(() => expect(storyGets(calls)).toHaveLength(2));
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(screen.getAllByText("Off the shelf")).toHaveLength(2));
+
+  release({ status: 200, body: old });
+  await settled();
+  expect(screen.getAllByText("Off the shelf")).toHaveLength(2);
+  expect(screen.queryByText("On the shelf")).toBeNull();
+  expect(screen.queryAllByText("Open")).toHaveLength(0);
+});
+
+it("After Publish and a take-off in the same view, the Publish card leaves Done and offers the next release", async () => {
+  const [r1, r2, r3] = [releaseFixture(1), releaseFixture(2), releaseFixture(3)];
+  let gets = 0;
+  const { calls } = stubStory(
+    () => {
+      gets += 1;
+      return gets === 1 ? onShelfStory([r1, r2]) : onShelfStory([r1, r2, r3]);
+    },
+    {
+      [`POST ${storyPath}/releases`]: { status: 201, body: releaseCreatedFixture(3) },
+      [`POST ${withdrawalPath}`]: withdrawn(r3.id, 3),
+    },
+  );
+  renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Publish release 3" }));
+  expect(await screen.findByText("Release 3 published.")).toBeTruthy();
+  // The refetch after the 201 puts release 3 on the shelf.
+  await waitFor(() => expect(rowButton().closest("li")).toBe(screen.getByText("Release 3").closest("li")));
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(screen.getAllByText("Off the shelf")).toHaveLength(3));
+  expect(posts(calls).filter((c) => c.path === withdrawalPath).map((c) => c.body)).toEqual([{ releaseId: r3.id }]);
+  expect(screen.queryByText("Release 3 published.")).toBeNull();
+  expect(screen.queryByText(/in the Player$/)).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish release 4" })).toBeTruthy();
 });

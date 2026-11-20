@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { studioApi } from "./api";
-import { pageId, releaseCreatedFixture, routes, RUN_ID, runFixture, STORY_ID, storyListFixture, stubFetch } from "./fixtures";
+import { pageId, releaseCreatedFixture, routes, RUN_ID, runFixture, STORY_ID, storyListFixture, stubFetch, uuid } from "./fixtures";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -79,4 +79,17 @@ it("studioApi returns the data of a 201 answer", async () => {
   );
   expect(await studioApi.publish(STORY_ID)).toEqual({ ok: true, data: created });
   expect(await studioApi.getRun(RUN_ID)).toEqual({ ok: true, data: runFixture("queued") });
+});
+
+it("studioApi.withdraw posts { releaseId } to /api/studio/stories/:id/withdrawal", async () => {
+  const releaseId = uuid(502);
+  const answer = { storyId: STORY_ID, releaseId, withdrawnThrough: 2 };
+  const { calls } = stubFetch(
+    routes({ [`POST /api/studio/stories/${STORY_ID}/withdrawal`]: { status: 200, body: answer } }),
+  );
+  expect(await studioApi.withdraw(STORY_ID, releaseId)).toEqual({ ok: true, data: answer });
+  expect(calls).toHaveLength(1);
+  expect(`${calls[0].method} ${calls[0].path}`).toBe(`POST /api/studio/stories/${STORY_ID}/withdrawal`);
+  expect(calls[0].body).toEqual({ releaseId });
+  expect(calls[0].headers.get("content-type")).toContain("application/json");
 });
