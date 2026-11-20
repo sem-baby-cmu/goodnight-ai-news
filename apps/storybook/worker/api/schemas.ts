@@ -39,11 +39,11 @@ export const StartRunRequestSchema = z
 // `PageSceneSchema` with an optional `instanceId` (R41). The ID is any
 // string here: an ID that is not a layer of the `basedOn` revision, a
 // malformed one included, is refused as `unknown_instance` (EDT-03.S20).
-// POST /api/studio/stories/:id/withdrawal (ADR 0017 decision 20).
-export const WithdrawalRequestSchema = z.object({ releaseId: uuid }).strict();
-
 export const OperatorLayerSchema = LayerSchema.extend({ instanceId: z.string().optional() });
 export const OperatorSceneSchema = PageSceneSchema.extend({ layers: z.array(OperatorLayerSchema).min(1) });
+
+// POST /api/studio/stories/:id/withdrawal (ADR 0017 decision 20).
+export const WithdrawalRequestSchema = z.object({ releaseId: uuid }).strict();
 
 // ---- Responses ----
 

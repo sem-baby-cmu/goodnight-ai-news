@@ -6,7 +6,13 @@ import { publishStory } from "../publish/publish";
 import { seedPublishableStory } from "../publish/test/fixtures";
 import { newStory } from "../test/fixtures";
 import { app } from "./app";
-import { StoryDetailResponseSchema, StoryListResponseSchema } from "./schemas";
+import {
+  NotPublishedSchema,
+  ReleaseMovedSchema,
+  StoryDetailResponseSchema,
+  StoryListResponseSchema,
+  WithdrawalResponseSchema,
+} from "./schemas";
 
 // POST /api/studio/stories/:id/withdrawal (ADR 0017 decision 20). Other tests
 // can write to the same database and bucket, so each test reads only the
@@ -46,6 +52,21 @@ async function storyRow(storyId: string) {
   return row;
 }
 
+// Same as `point` in shelf.test.ts: the pointer is written without a check.
+async function point(storyId: string, releaseId: string): Promise<void> {
+  await env.DB.prepare("UPDATE story SET published_release_id = ?, status = 'published' WHERE id = ?")
+    .bind(releaseId, storyId)
+    .run();
+}
+
+// A story whose pointer names a release of ANOTHER story (a broken pointer).
+async function brokenPointer(): Promise<{ storyId: string; foreignReleaseId: string }> {
+  const broken = await twoReleases();
+  const other = await twoReleases();
+  await point(broken.storyId, other.r2);
+  return { storyId: broken.storyId, foreignReleaseId: other.r2 };
+}
+
 async function objects(releaseId: string): Promise<Array<{ key: string; etag: string }>> {
   const listed = await env.BUCKET.list({ prefix: `releases/${releaseId}/` });
   return listed.objects.map((o) => ({ key: o.key, etag: o.etag })).sort((a, b) => a.key.localeCompare(b.key));
@@ -71,7 +92,7 @@ describe("POST /api/studio/stories/:id/withdrawal", () => {
 
     const res = await withdraw(s.storyId, { releaseId: s.r2 });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ storyId: s.storyId, releaseId: s.r2, withdrawnThrough: 2 });
+    expect(WithdrawalResponseSchema.parse(await res.json())).toEqual({ storyId: s.storyId, releaseId: s.r2, withdrawnThrough: 2 });
     expect((await storyRow(s.storyId)).withdrawnThrough).toBe(2);
   });
 
@@ -114,7 +135,7 @@ describe("POST /api/studio/stories/:id/withdrawal", () => {
     const s = await twoReleases();
     const res = await withdraw(s.storyId, { releaseId: s.r1 });
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: "release_moved", current: s.r2 });
+    expect(ReleaseMovedSchema.parse(await res.json())).toEqual({ error: "release_moved", current: s.r2 });
     expect((await storyRow(s.storyId)).withdrawnThrough).toBe(0);
 
     const shelf = await call("GET", "/api/shelf");
@@ -128,7 +149,7 @@ describe("POST /api/studio/stories/:id/withdrawal", () => {
     const before = await storyRow(draft.storyId);
     const res = await withdraw(draft.storyId, { releaseId: newId() });
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: "not_published" });
+    expect(NotPublishedSchema.parse(await res.json())).toEqual({ error: "not_published" });
     expect(await storyRow(draft.storyId)).toEqual(before);
   });
 
@@ -203,5 +224,26 @@ describe("POST /api/studio/stories/:id/withdrawal", () => {
       [s.r2, 2, true],
       [r3, 3, false],
     ]);
+  });
+
+  // Not a spec scenario: it guards the same-story check of the list query.
+  it("a broken pointer (another story's release) gives no release number and is not on the shelf in the list", async () => {
+    const b = await brokenPointer();
+    const list = StoryListResponseSchema.parse(await (await call("GET", "/api/studio/stories")).json());
+    expect(list.stories.find((x) => x.id === b.storyId)).toMatchObject({
+      publishedReleaseId: b.foreignReleaseId,
+      onShelf: false,
+      publishedReleaseNumber: null,
+    });
+  });
+
+  // Not a spec scenario: it guards step 3 of the take-off route.
+  it("a take-off of a story with a broken pointer is refused as not_published", async () => {
+    const b = await brokenPointer();
+    const before = await storyRow(b.storyId);
+    const res = await withdraw(b.storyId, { releaseId: b.foreignReleaseId });
+    expect(res.status).toBe(409);
+    expect(NotPublishedSchema.parse(await res.json())).toEqual({ error: "not_published" });
+    expect(await storyRow(b.storyId)).toEqual(before);
   });
 });
