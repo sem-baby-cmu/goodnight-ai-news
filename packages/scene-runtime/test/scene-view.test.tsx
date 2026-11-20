@@ -1306,6 +1306,48 @@ describe("SceneView frame, fit, still mode, phases and load report (#68)", () =>
     expect(onAssetsSettled.mock.calls[2]?.[0]).toEqual({ failed });
   });
 
+  // Planner ruling on ID12: a result is carried only when the file is unchanged.
+  it("a new page object whose layer starts on another file waits for that file (ID12 ruling)", async () => {
+    const onAssetsSettled = vi.fn();
+    // owlx: stand/sad names owl-sad.svg, which does not load; stand/happy names owl-happy.svg.
+    const make = (expression: string) => page([layer(1, "owlx", { pose: "stand", expression }), layer(2, "tree")]);
+    const view = show({ page: make("sad"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
+      { key: id(1), ref: "owlx", url: "https://cdn.test/owlx/owl-sad.svg", reason: "could not be loaded" },
+    ]);
+
+    const release = hold(view.svgText, "owlx", "owl-happy.svg");
+    view.again({ page: make("happy"), onAssetsSettled });
+    await settle();
+    // Same ref, other file: the old result is not carried; the page waits.
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    await release();
+    await settle();
+    expect(layerEl(1).querySelector(".owl-happy")).not.toBeNull();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed: [] });
+  });
+
+  it("a new page object whose backdrop names another variant file waits for that file (ID12 ruling)", async () => {
+    const onAssetsSettled = vi.fn();
+    const make = (sky: "night" | "day") => page([layer(1, "tree")], [], [], sky);
+    const view = show({ page: make("night"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+
+    const release = hold(view.svgText, "meadow", "day.svg");
+    view.again({ page: make("day"), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(viewportEl().getAttribute("data-settled")).toBe("false");
+    await release();
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(2);
+    expect(onAssetsSettled.mock.calls[1]?.[0]).toEqual({ failed: [] });
+  });
+
   it("a failed swap is not in the report", async () => {
     const onAssetsSettled = vi.fn();
     show({
