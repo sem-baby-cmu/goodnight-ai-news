@@ -831,6 +831,45 @@ test("the plate message has line height 1.3", async ({ page }) => {
   }
 });
 
+test("the Short plate message is left-aligned beside the sign", async ({ page }) => {
+  const net = await shelfSetup(page, { books: [] });
+  const cases: [string, string, number, number, () => Answer | undefined][] = [
+    ["empty", "New stories are coming soon.", 568, 320, () => undefined],
+    ["failed", "The books are sleeping. Come back soon.", 568, 320, () => ({ status: 500 })],
+    ["empty", "New stories are coming soon.", 1194, 834, () => undefined],
+    ["failed", "The books are sleeping. Come back soon.", 390, 844, () => ({ status: 500 })],
+  ];
+  for (const [state, text, w, h, answer] of cases) {
+    net.shelf = answer;
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/");
+    const line = plate(page).getByText(text);
+    await expect(line).toBeVisible();
+    await fontsReady(page);
+    const name = `${state} ${w}x${h}`;
+    const align = await line.evaluate((el) => getComputedStyle(el).textAlign);
+    if (w === 568) {
+      expect(["left", "start"], name).toContain(align);
+      // The words start 12 px right of the sign, on every row.
+      const words = await line.evaluate((el) => {
+        const sign = el.previousElementSibling!.getBoundingClientRect();
+        const lefts: number[] = [];
+        for (const node of el.childNodes) {
+          if (node.nodeType !== Node.TEXT_NODE) continue;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          for (const rect of range.getClientRects()) lefts.push(rect.left);
+        }
+        return { want: sign.right + 12, lefts };
+      });
+      expect(words.lefts.length, name).toBeGreaterThan(0);
+      for (const left of words.lefts) expect(Math.abs(left - words.want), `${name} row left ${left}`).toBeLessThanOrEqual(1);
+    } else {
+      expect(align, name).toBe("center");
+    }
+  }
+});
+
 test("Next then Previous within the fade shows the books again", async ({ page }) => {
   await shelfSetup(page, { books: range(1, 7) });
   await wide(page);

@@ -298,7 +298,7 @@ export function Shelf() {
           data-testid="shelf-plate"
           className={cn(
             "absolute flex w-max flex-col items-center gap-3 rounded-[24px] bg-paper shadow-[0_2px_0_var(--edge)]",
-            short ? "p-[12px] text-center" : "p-[16px] text-center",
+            short ? "p-[12px] text-left" : "p-[16px] text-center",
           )}
           style={{ left: shelf.x + shelf.w / 2, top, maxWidth: maxW, translate: "-50% 0" }}
         >
