@@ -9,7 +9,7 @@ The owner fills those.
 
 | Field | Value |
 | :-- | :-- |
-| Date | 2026-11-19 (US time); `results.json` `measuredAt` 2026-11-20T01:23:45Z, WebKit smoke 2026-11-20T01:27:44Z |
+| Date | 2026-11-19 (US time); `results.json` `measuredAt` 2026-11-20T01:23:45Z, WebKit smoke 2026-11-20T02:09:33Z (re-run after the control rule moved into `smoke/teardown.ts`; same values as the 01:27:44Z run) |
 | Commit SHA | `8ccedc0`, the harness commit in `results.json` `commit`. After the rebase on `origin/main` it is `eaf06f6`; `git diff 8ccedc0 eaf06f6 -- tools/mp3-spike` is empty |
 | Machine | Apple M4, macOS 26.5.2 |
 | Node | v22.17.1 (supporting numbers only) |
@@ -73,7 +73,12 @@ tracked.
    serves each file with `page.route` (byte ranges answered with 206), then
    runs the checks of exact change 7. The WAV control runs first.
 5. Output: `tools/mp3-spike/out/results.json` (24 entries plus the WebKit
-   records) and `tools/mp3-spike/out/bundle.json`.
+   records), `out/bundle.json`, and for the deploy `out/deploy-*.log`,
+   `out/tail.jsonl` and `out/delete.log`.
+
+Values marked † were read from the terminal output of a command in this
+session and were not saved to a file. They cannot be measured again: the
+earlier run was overwritten, and the deployed Worker is deleted.
 
 ### Implementation decisions
 
@@ -84,6 +89,8 @@ tracked.
 | Adapters take an optional 4th argument `onChunk` | The Node harness samples memory after each chunk. The Worker does not pass it. |
 | Node memory runs in a new process for each configuration | In one process, the memory of an earlier Wasm instance was not always released by `gc()`. The baseline was then too high, and several peaks were 0. |
 | `shine.js` is not a dependency | It has no PCM-to-MP3 API (see Candidates). Its 6 entries are in `results.json` with the error text. |
+| One file per adapter in `src/enc/*.ts` and the candidate list in `src/candidates.ts`, not one `src/encoders.ts` | Each bundle entry in `worker/bundle/` must import exactly one encoder, so that its `Total Upload` delta is that encoder's cost. |
+| The WAV control rule is applied in `smoke/teardown.ts` | It rewrites the candidate records of a profile to "not measured: harness (<check>)" when the control fails there. |
 
 ## Candidates
 
@@ -113,7 +120,7 @@ Local workerd, 20 timed runs. Node p95 is the supporting number.
 | `@breezystack/lamejs` | 48 | 60 | 1197 | 1455 | 1563 | 24.2 | 1106.1 |
 | `@breezystack/lamejs` | 64 | 60 | 1089 | 1317 | 1456 | 21.9 | 1122.1 |
 
-- Run-to-run spread: an earlier run of the same code (2026-11-20T01:12Z,
+- Run-to-run spread †: an earlier run of the same code (2026-11-20T01:12Z,
   before the commit) gave `wasm-media-encoders` 15 s p95 of 99, 113 and 122
   ms. So a p95 can move by about 2 times between runs on this laptop. Every
   `wasm-media-encoders` value stays at least 14 times below the T2 limits
@@ -261,7 +268,7 @@ Only `wasm-media-encoders`, the candidate that passes locally. The Worker
 `mp3-spike` was on `workers.dev` only, with no route and no bindings. The
 credentials came from the main checkout's `apps/storybook/.dev.vars` and were
 not printed. Before the deploy, `GET
-/accounts/<id>/workers/scripts/mp3-spike` returned 404.
+/accounts/<id>/workers/scripts/mp3-spike` returned 404 †.
 
 | Step (UTC, 2026-11-20) | Command | Result |
 | :-- | :-- | :-- |
@@ -269,12 +276,12 @@ not printed. Before the deploy, `GET
 | 01:56:14 | `wrangler deploy worker/bundle/wasm-media-encoders.ts --name mp3-spike` | Total Upload 143.87 KiB; Worker Startup Time 2 ms; version `552d8e3c` |
 | 01:56:43 to 01:57:23 | `wrangler tail mp3-spike --format json`, 30 requests to `/encode` | 30 events, all `outcome` `ok`, each with `cpuTime` |
 | 01:57:47 | `wrangler delete --name mp3-spike --force` | "Successfully deleted mp3-spike" |
-| 01:57:54 | `GET /accounts/<id>/workers/scripts/mp3-spike`; `GET .../workers/scripts`; `wrangler deployments list --name mp3-spike`; the `workers.dev` URL | 404; not in the list of 36 scripts; error code 10007 "This Worker does not exist on your account"; 404 |
+| 01:57:54 | `GET /accounts/<id>/workers/scripts/mp3-spike`; `GET .../workers/scripts`; `wrangler deployments list --name mp3-spike`; the `workers.dev` URL | 404 †; not in the list of 36 scripts †; error code 10007 "This Worker does not exist on your account" (`out/deployments-after.log`); 404 † |
 
 CPU time per request from the `cpuTime` field of the tail events, in ms.
 `runs=0` generates the fixture only. `runs=1` generates the fixture and
 encodes once. The deployed Worker cannot time the encode alone: its
-`performance.now()` returned 0 for every run, as the performance page says.
+`performance.now()` returned 0 for every run †, as the performance page says.
 
 | kbps | Audio s | `runs=0` (n) | `runs=1` (n) | `runs=1` median minus `runs=0` median |
 | --: | --: | :-- | :-- | --: |
@@ -286,8 +293,9 @@ encodes once. The deployed Worker cannot time the encode alone: its
 - T2 on Cloudflare, with the whole request as an upper bound (fixture
   included): 15 s, highest 916 ms (limit 3,000 ms). 60 s, highest 2,108 ms,
   that is 35.1 ms per audio second (limit 200). Pass.
-- The deployed files have the same SHA-256 as the local workerd files (15 s,
-  all 3 bitrates).
+- The deployed `/encode` responses for 15 s gave the same byte counts and the
+  same first 12 hex characters of the SHA-256 as the local workerd files, at
+  all 3 bitrates †.
 - The values spread widely: n is small, and each request can run on a
   different machine.
 
