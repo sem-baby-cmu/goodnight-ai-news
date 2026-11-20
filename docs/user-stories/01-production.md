@@ -40,10 +40,10 @@ Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6.
 - Then code gives each page a new UUID v7 `pageId`; no `pageId` comes from the model; the step names `scene:<pageId>` and `audio:<pageId>` are unique
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
-### RUN-01.S6 Page steps run at most 4 pages at a time
+### RUN-01.S6 Scene steps run one at a time, audio steps at most 4 pages at a time
 - Given a full run with 6 to 8 pages
 - When the `scene:*` and `audio:*` steps run
-- Then they run in parallel, and at most 4 pages run at the same time
+- Then the `scene:*` steps run one at a time in page order; then the `audio:*` steps run in parallel, and at most 4 pages run at the same time
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### RUN-01.S7 The Studio shows the progress of a run
@@ -105,6 +105,12 @@ Spec: requirements US-1, AC-1, AC-2, AC-23 · design "2. StoryRun Workflow", "6.
 - When the story view gets the run with `GET /api/studio/runs/:id`
 - Then the "Run" card has one row for each step kind; the `scene` row has one solid "failed" cell, the note "1 of 2 done, 1 failed", and the label "scene: 1 of 2 done, 1 failed"
 - Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
+
+### RUN-01.S17 Each scene step sees the scenes of the earlier pages
+- Given a full run
+- When the `scene:<pageId>` step of page n calls the model
+- Then the scene steps run in page order, and the prompt lists, for pages 1 to n-1, the template, sky, and scenery keys of the `ok` scene head, and "This page: n of N"
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ## RUN-02 Start a full run from a URL
 
