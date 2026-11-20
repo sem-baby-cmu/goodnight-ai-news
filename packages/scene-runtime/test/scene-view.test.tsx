@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { StrictMode } from "react";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sanitizeSvg } from "../src/sanitizeSvg";
@@ -9,7 +10,9 @@ import { ASSETS, type Animation, type Interaction, SVG_TEXT, id, layer, makeReso
 import { type AnimateCall, animateCalls, setReducedMotion } from "./setup";
 
 // Expected values come from #14 "Implementation refinement" (invariants and
-// Exact changes) and design "5. Scene runtime".
+// Exact changes) and design "5. Scene runtime". The tests after the marker
+// "#68" come from #68 "Implementation refinement" (Acceptance, Exact changes)
+// and DESIGN.md 2, 8 and 12.3.
 
 let warn: MockInstance<typeof console.warn>;
 
@@ -26,10 +29,11 @@ afterEach(() => {
 });
 
 // jsdom never loads an image. Review item 6 starts `enter` animations only
-// after the asset is ready, so the tests fire `load` on each asset image once.
+// after the asset is ready, so the tests fire `load` on each asset image once
+// (and on a WebP backdrop image, #68).
 const loadedImages = new WeakSet<HTMLImageElement>();
 function loadImages(): void {
-  for (const img of document.querySelectorAll<HTMLImageElement>(".sv-asset img")) {
+  for (const img of document.querySelectorAll<HTMLImageElement>(".sv-asset img, .sv-backdrop img")) {
     if (loadedImages.has(img)) continue;
     loadedImages.add(img);
     fireEvent.load(img);
@@ -47,8 +51,12 @@ async function settle(): Promise<void> {
 
 type Props = Partial<SceneViewProps> & { page: SceneViewProps["page"] };
 
-function show(props: Props) {
+type SvgText = ReturnType<typeof makeResolver>["svgText"];
+
+// `prepare` runs before the first render, for example to hold a file.
+function show(props: Props, prepare?: (svgText: SvgText) => void) {
   const { resolver, svgText } = makeResolver();
+  prepare?.(svgText);
   const view = render(<SceneView assets={resolver} mode="play" {...props} />);
   const again = (next: Props) => view.rerender(<SceneView assets={resolver} mode="play" {...next} />);
   return { ...view, svgText, resolver, again };
@@ -67,6 +75,44 @@ function localRefsResolve(svg: SVGSVGElement): boolean {
   }
   return true;
 }
+
+// Holds the svgText promise of one (ref, file) until the returned function is
+// called; every other file resolves as before (#68: hold by file, not by call
+// order, because the backdrop is also loaded through svgText).
+function hold(svgText: SvgText, ref: string, file: string): (text?: string) => Promise<void> {
+  let release: (text: string) => void = () => {};
+  const pending = new Promise<string>((resolve) => (release = resolve));
+  svgText.mockImplementation((r: string, f: string) =>
+    r === ref && f === file ? pending : Promise.resolve().then(() => SVG_TEXT(r, f)),
+  );
+  return async (text?: string) => {
+    await act(async () => release(text ?? SVG_TEXT(ref, file)));
+  };
+}
+
+// Replaces the text of one (ref, file); every other file resolves as before.
+function replaceText(svgText: SvgText, ref: string, file: string, result: () => Promise<string>): void {
+  svgText.mockImplementation(async (r: string, f: string) => (r === ref && f === file ? result() : SVG_TEXT(r, f)));
+}
+
+// jsdom has no layout: clientWidth and clientHeight are 0 unless stubbed.
+function stubClientSize(width: number, height: number): void {
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(width);
+  vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(height);
+}
+
+const viewportEl = () => document.querySelector(".sv-viewport") as HTMLElement;
+const frameEl = () => document.querySelector(".sv-frame") as HTMLElement;
+const backdropEl = () => document.querySelector(".sv-backdrop") as HTMLElement;
+// The number in `scale(<k>)` of a style transform.
+function scaleOf(el: HTMLElement | null): number {
+  const match = /scale\(([^)]+)\)/.exec(el?.style.transform ?? "");
+  return match ? Number(match[1]) : Number.NaN;
+}
+// The root svg elements that are direct children of `el` (a child selector on
+// svg is not reliable in jsdom).
+const childSvgs = (el: Element | null) =>
+  Array.from(el?.children ?? []).filter((c) => c.localName === "svg") as SVGSVGElement[];
 
 function layerEl(n: number): HTMLElement {
   const el = document.querySelector<HTMLElement>(`.sv-layer[data-instance-id="${id(n)}"]`);
@@ -163,22 +209,42 @@ describe("SceneView", () => {
   it("an unknown ref is skipped and warns", () => {
     show({ page: page([layer(1, "bun"), layer(2, "ghost")]) });
     expect(assetOf(1).querySelector("img")).not.toBeNull();
-    expect(document.querySelectorAll("img[src*='ghost'], svg")).toHaveLength(0);
+    expect(document.querySelectorAll(".sv-stage img[src*='ghost'], .sv-stage svg")).toHaveLength(0);
     expect(warnedAbout(id(2))).toBe(true);
   });
 
-  // Extra: Exact change 5 and 7 (stage size, viewport ratio, sky colour).
-  it("the stage is 1600 by 1200 units with the sky colour of the page", () => {
+  // #68 replaces "the stage is 1600 by 1200 units with the sky colour of the
+  // page" (Tests that break): no sky colour; the paper colour shows instead.
+  it("frame, stage, and paper colour", () => {
     expect(SKY_COLORS).toEqual({ day: "#7EBDE6", cloudy: "#E3ECF6", dusk: "#F3ECDD", night: "#1B2440" });
-    show({ page: page([layer(1, "bun")], [], [], "night") });
-    const viewport = document.querySelector(".sv-viewport") as HTMLElement;
-    const stage = viewport.querySelector(":scope > .sv-stage") as HTMLElement;
-    expect(viewport.style.aspectRatio).toBe("4 / 3");
-    expect(viewport.style.overflow).toBe("hidden");
-    expect(stage.style.width).toBe("1600px");
-    expect(stage.style.height).toBe("1200px");
-    // #1B2440 as jsdom serialises it.
-    expect(stage.style.backgroundColor).toBe("rgb(27, 36, 64)");
+    // The four SKY_COLORS values as hex and as jsdom serialises them.
+    const skyValues = [
+      "#7ebde6",
+      "#e3ecf6",
+      "#f3ecdd",
+      "#1b2440",
+      "rgb(126, 189, 230)",
+      "rgb(227, 236, 246)",
+      "rgb(243, 236, 221)",
+      "rgb(27, 36, 64)",
+    ];
+    for (const mode of ["play", "still", "edit"] as const) {
+      for (const sky of ["day", "cloudy", "dusk", "night"] as const) {
+        const view = show({ page: page([layer(1, "bun")], [], [], sky), mode });
+        const viewport = viewportEl();
+        expect(viewport.style.backgroundColor, mode).toBe("var(--paper, #FFF8EC)");
+        expect(viewport.style.width, mode).toBe("100%");
+        expect(viewport.style.height, mode).toBe(mode === "edit" ? "auto" : "100%");
+        expect(viewport.style.aspectRatio, mode).toBe("4 / 3");
+        expect(viewport.style.overflow, mode).toBe("hidden");
+        expect(document.querySelector<HTMLElement>(".sv-overlay")?.style.overflow, mode).toBe("");
+        for (const el of document.querySelectorAll<HTMLElement>("*")) {
+          const background = `${el.style?.backgroundColor ?? ""} ${el.style?.background ?? ""}`.toLowerCase();
+          for (const value of skyValues) expect(background, `${mode} ${sky} ${el.className}`).not.toContain(value);
+        }
+        view.unmount();
+      }
+    }
   });
 
   it("PLY-01.S3 starts enter and loop animations on mount on the right elements", async () => {
@@ -319,7 +385,8 @@ describe("SceneView", () => {
     expect(bubble).toBeInstanceOf(HTMLElement);
     expect(bubble.closest("svg")).toBeNull();
     expect(bubble.closest(".sv-layer")).toBeNull();
-    expect(bubble.closest(".sv-stage")).not.toBeNull();
+    expect(bubble.closest(".sv-overlay")).not.toBeNull();
+    expect(bubble.closest(".sv-stage")).toBeNull();
     act(() => vi.advanceTimersByTime(2999));
     expect(screen.queryByText("Good night, moon")).not.toBeNull();
     act(() => vi.advanceTimersByTime(1));
@@ -657,29 +724,35 @@ describe("SceneView", () => {
     expect(onSfx).toHaveBeenCalledTimes(2);
   });
 
-  it("paper texture renders only with textureUrl, as one full-stage img above all layers with mix-blend-mode multiply", () => {
+  it("paper texture: one tiled element over the frame, above the layers and below the overlay", () => {
     const p = page([layer(1, "bun", { at: { x: 500, y: 600, scale: 0.5, z: 40 } }), layer(2, "tree")]);
     const first = show({ page: p });
     expect(document.querySelector(".sv-paper")).toBeNull();
     first.unmount();
 
     show({ page: p, textureUrl: "https://cdn.test/paper.webp" });
-    const papers = document.querySelectorAll<HTMLImageElement>(".sv-paper");
+    const papers = document.querySelectorAll<HTMLElement>(".sv-paper");
     expect(papers).toHaveLength(1);
-    const paper = papers[0] as HTMLImageElement;
-    expect(paper.tagName).toBe("IMG");
-    expect(paper.getAttribute("src")).toBe("https://cdn.test/paper.webp");
-    expect(paper.getAttribute("alt")).toBe("");
-    expect(paper.parentElement?.classList.contains("sv-stage")).toBe(true);
+    const paper = papers[0] as HTMLElement;
+    expect(paper.tagName).toBe("DIV");
+    expect(paper.parentElement?.classList.contains("sv-frame")).toBe(true);
+    expect(paper.getAttribute("aria-hidden")).toBe("true");
+    expect(paper.style.backgroundImage).toBe('url("https://cdn.test/paper.webp")');
+    expect(paper.style.backgroundSize).toBe("480px 480px");
+    expect(paper.style.backgroundRepeat).toBe("repeat");
+    expect(paper.style.opacity).toBe("0.32");
     expect(paper.style.mixBlendMode).toBe("multiply");
     expect(paper.style.pointerEvents).toBe("none");
-    expect(paper.style.width).toBe("1600px");
+    expect(paper.style.width).toBe("2400px");
     expect(paper.style.height).toBe("1200px");
-    const z = Number(paper.style.zIndex);
+    expect(paper.style.zIndex).toBe("");
+    // Above the layers by DOM order (invariant 5), below the overlay.
     for (const el of document.querySelectorAll<HTMLElement>(".sv-layer")) {
-      expect(z).toBeGreaterThan(Number(el.style.zIndex));
       expect(el.compareDocumentPosition(paper) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
+    const overlay = document.querySelector(".sv-overlay");
+    expect(overlay).not.toBeNull();
+    expect(paper.compareDocumentPosition(overlay as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("unmount cancels every started animation", async () => {
@@ -801,25 +874,6 @@ describe("SceneView", () => {
     expect(onAssetError).toHaveBeenCalledWith(id(1), "https://cdn.test/rigone/sit.svg");
   });
 
-  it("enter animations start only after the layer's asset is ready", async () => {
-    const { resolver, svgText } = makeResolver();
-    let release: (text: string) => void = () => {};
-    svgText.mockImplementationOnce(() => new Promise<string>((resolve) => (release = resolve)));
-    render(<SceneView page={page([layer(1, "tree"), layer(2, "bun")], [FADE(1), FADE(2)])} assets={resolver} mode="play" />);
-    await act(async () => {});
-    // Neither asset is ready: the svg text is pending, the image has not loaded.
-    expect(callsOn(onceOf(1))).toHaveLength(0);
-    expect(callsOn(onceOf(2))).toHaveLength(0);
-    fireEvent.load(assetOf(2).querySelector("img") as HTMLImageElement);
-    expect(callsOn(onceOf(2))).toHaveLength(1);
-    expect(callsOn(onceOf(1))).toHaveLength(0);
-    await act(async () => release(SVG_TEXT("tree", "tree.svg")));
-    await settle();
-    expect(svgOf(1)).not.toBeNull();
-    expect(callsOn(onceOf(1))).toHaveLength(1);
-    expect(callsOn(onceOf(2))).toHaveLength(1);
-  });
-
   it("switching a layer's renderer clears the old svg", async () => {
     const view = show({ page: page([layer(1, "tree")]) });
     await settle();
@@ -935,7 +989,8 @@ describe("SceneView", () => {
   it("set_expression to a missing group before the rig svg is inserted warns and never hides every group", async () => {
     const { resolver, svgText } = makeResolver();
     let release: (text: string) => void = () => {};
-    svgText.mockImplementationOnce(() => new Promise<string>((resolve) => (release = resolve)));
+    const pending = new Promise<string>((resolve) => (release = resolve));
+    svgText.mockImplementation((ref, file) => (ref === "rigone" ? pending : Promise.resolve(SVG_TEXT(ref, file))));
     render(
       <SceneView
         page={page(
@@ -1003,5 +1058,495 @@ describe("SceneView", () => {
     expect(warn.mock.calls.filter((args) => args.map(String).join(" ").includes(id(1)))).toHaveLength(1);
     expect(onAssetError).toHaveBeenCalledTimes(1);
     expect(onAssetError).toHaveBeenCalledWith(id(1), "https://cdn.test/bun/bun-sad.webp");
+  });
+});
+
+// ---- #68: backdrop frame, fit, still mode, page phases, load report.
+
+describe("SceneView frame, fit, still mode, phases and load report (#68)", () => {
+  const PAPER_URL = "https://cdn.test/paper.webp";
+  const opacityCalls = (el: Element) => callsOn(el).filter((c) => "opacity" in (c.keyframes as object));
+
+  it("PLY-01.S2 a page draws its backdrop in a 2400 x 1200 frame, its layers in a 1600 x 1200 clipping stage, and one tiled paper texture with multiply", async () => {
+    stubClientSize(1002, 578);
+    show({
+      page: page([layer(1, "pip", { pose: "stand", expression: "happy" }), layer(2, "tree"), layer(3, "bun")]),
+      textureUrl: PAPER_URL,
+    });
+    await settle();
+    for (const n of [1, 2]) {
+      expect(assetOf(n).querySelectorAll("svg"), `layer ${n}`).toHaveLength(1);
+      expect(assetOf(n).querySelectorAll("img"), `layer ${n}`).toHaveLength(0);
+    }
+    expect(assetOf(3).querySelectorAll("img")).toHaveLength(1);
+    expect(assetOf(3).querySelectorAll("svg")).toHaveLength(0);
+
+    // Invariant 3, contain: k = min(W / 1600, H / 1200), x = (W - 2400k) / 2, y = (H - 1200k) / 2.
+    const k = Math.min(1002 / 1600, 578 / 1200);
+    const frame = frameEl();
+    expect(frame).not.toBeNull();
+    expect(frame.style.width).toBe("2400px");
+    expect(frame.style.height).toBe("1200px");
+    // jsdom 31 serialises "0 0" as "0px 0px" (measured 2026-11-19).
+    expect(["0 0", "0px 0px"]).toContain(frame.style.transformOrigin);
+    expect(scaleOf(frame)).toBeCloseTo(k, 3);
+    expect(parseFloat(frame.style.left)).toBeCloseTo((1002 - 2400 * k) / 2, 3);
+    expect(parseFloat(frame.style.top)).toBeCloseTo((578 - 1200 * k) / 2, 3);
+
+    const children = Array.from(frame.children) as HTMLElement[];
+    expect(children.map((c) => c.className)).toEqual(["sv-backdrop", "sv-stage", "sv-paper", "sv-overlay"]);
+    for (const child of children) expect(child.style.zIndex, child.className).toBe("");
+
+    const stage = frame.querySelector(":scope > .sv-stage") as HTMLElement;
+    expect(stage.style.left).toBe("400px");
+    expect(stage.style.width).toBe("1600px");
+    expect(stage.style.height).toBe("1200px");
+    expect(stage.style.overflow).toBe("hidden");
+    expect(stage.style.isolation).toBe("isolate");
+    expect(stage.style.pointerEvents).toBe("none");
+    expect(stage.style.backgroundColor).toBe("");
+    expect(stage.style.transform).toBe("");
+    expect(stage.style.zIndex).toBe("");
+    const layers = Array.from(document.querySelectorAll(".sv-layer"));
+    expect(layers).toHaveLength(3);
+    for (const el of layers) expect(stage.contains(el)).toBe(true);
+
+    const [backdropSvg, ...more] = childSvgs(backdropEl());
+    expect(more).toHaveLength(0);
+    expect(backdropSvg?.getAttribute("width")).toBe("2400");
+    expect(backdropSvg?.getAttribute("height")).toBe("1200");
+    expect(localRefsResolve(backdropSvg as SVGSVGElement)).toBe(true);
+
+    const papers = document.querySelectorAll<HTMLElement>(".sv-paper");
+    expect(papers).toHaveLength(1);
+    const paper = papers[0] as HTMLElement;
+    expect(paper.style.backgroundImage).toBe('url("https://cdn.test/paper.webp")');
+    expect(paper.style.backgroundSize).toBe("480px 480px");
+    expect(paper.style.backgroundRepeat).toBe("repeat");
+    expect(paper.style.opacity).toBe("0.32");
+    expect(paper.style.mixBlendMode).toBe("multiply");
+    expect(paper.style.pointerEvents).toBe("none");
+    expect(paper.style.width).toBe("2400px");
+
+    // No per-layer SVG filters (design "5").
+    expect(document.querySelectorAll("[filter]")).toHaveLength(0);
+    for (const el of document.querySelectorAll<HTMLElement>("*")) expect(el.style?.filter ?? "").toBe("");
+  });
+
+  it("fit cover scales by the larger factor", () => {
+    stubClientSize(151, 148);
+    const p = page([layer(1, "bun")]);
+    const view = show({ page: p, mode: "still", fit: "cover" });
+    const k = 148 / 1200;
+    expect(scaleOf(frameEl())).toBeCloseTo(k, 4);
+    expect(parseFloat(frameEl().style.left)).toBeCloseTo((151 - 2400 * k) / 2, 4);
+    view.again({ page: p, mode: "still", fit: "contain" });
+    expect(scaleOf(frameEl())).toBeCloseTo(151 / 1600, 4);
+  });
+
+  it("until the backdrop loads, only the paper colour shows", async () => {
+    let release: (text?: string) => Promise<void> = async () => {};
+    show({ page: page([layer(1, "bun")]) }, (svgText) => (release = hold(svgText, "meadow", "night.svg")));
+    await settle();
+    expect(backdropEl()).not.toBeNull();
+    expect(backdropEl().childElementCount).toBe(0);
+    await release();
+    await settle();
+    expect(childSvgs(backdropEl())).toHaveLength(1);
+  });
+
+  it("a webp backdrop is an img with the resolver url", () => {
+    show({ page: page([layer(1, "tree")], [], [], "night", "pond") });
+    const img = document.querySelector(".sv-backdrop img") as HTMLImageElement | null;
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe("https://cdn.test/pond/night.webp");
+    expect(img?.getAttribute("alt")).toBe("");
+    expect(img?.getAttribute("width")).toBe("2400");
+    expect(img?.getAttribute("height")).toBe("1200");
+  });
+
+  it("the scale comes from clientWidth and clientHeight, not getBoundingClientRect", () => {
+    stubClientSize(800, 600);
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 400,
+      bottom: 300,
+      width: 400,
+      height: 300,
+      toJSON: () => ({}),
+    } as DOMRect);
+    show({ page: page([layer(1, "bun")]) });
+    expect(scaleOf(frameEl())).toBeCloseTo(0.5, 6);
+  });
+
+  it("onAssetsSettled reports no failure when every file loads", async () => {
+    const onAssetsSettled = vi.fn();
+    show({ page: page([layer(1, "tree"), layer(2, "bun")]), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled).toHaveBeenCalledWith({ failed: [] });
+    expect(viewportEl().getAttribute("data-settled")).toBe("true");
+  });
+
+  it("a layer svg that the sanitiser refuses is a reported failure", async () => {
+    const onAssetsSettled = vi.fn();
+    const onAssetError = vi.fn();
+    show({ page: page([layer(1, "tree")]), onAssetsSettled, onAssetError }, (svgText) =>
+      replaceText(svgText, "tree", "tree.svg", async () => '<svg viewBox="0 0 0 1200"/>'),
+    );
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
+      { key: id(1), ref: "tree", url: "https://cdn.test/tree/tree.svg", reason: "is not a valid SVG" },
+    ]);
+    expect(onAssetError).toHaveBeenCalledTimes(1);
+    expect(onAssetError).toHaveBeenCalledWith(id(1), "https://cdn.test/tree/tree.svg");
+  });
+
+  it("a rejected svg load and a webp error are reported failures", async () => {
+    const onAssetsSettled = vi.fn();
+    show({ page: page([layer(1, "tree"), layer(2, "bun")]), onAssetsSettled }, (svgText) =>
+      replaceText(svgText, "tree", "tree.svg", () => Promise.reject(new Error("network"))),
+    );
+    // The tree rejects first; then the bun image fails.
+    for (let i = 0; i < 3; i++) await act(async () => {});
+    fireEvent.error(assetOf(2).querySelector("img") as HTMLImageElement);
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
+      { key: id(1), ref: "tree", url: "https://cdn.test/tree/tree.svg", reason: "could not be loaded" },
+      { key: id(2), ref: "bun", url: "https://cdn.test/bun/bun-happy.webp", reason: "could not be loaded" },
+    ]);
+  });
+
+  it("an invalid backdrop svg is reported and shows paper", async () => {
+    const onAssetsSettled = vi.fn();
+    const onAssetError = vi.fn();
+    show({ page: page([layer(1, "tree")]), onAssetsSettled, onAssetError }, (svgText) =>
+      replaceText(svgText, "meadow", "night.svg", async () => '<svg viewBox="0 0 0 1200"/>'),
+    );
+    await settle();
+    expect(backdropEl().childElementCount).toBe(0);
+    const warnings = warn.mock.calls.map((args) => args.map(String).join(" "));
+    expect(warnings.filter((w) => w.includes("meadow") && w.includes("is not a valid SVG"))).toHaveLength(1);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
+      { key: "backdrop", ref: "meadow", url: "https://cdn.test/meadow/night.svg", reason: "is not a valid SVG" },
+    ]);
+    expect(onAssetError).not.toHaveBeenCalled();
+  });
+
+  it("a backdrop without a variant for the sky shows paper, warns once and is reported", async () => {
+    const onAssetsSettled = vi.fn();
+    show({ page: page([layer(1, "bun")], [FADE(1)], [], "dusk", "pond"), onAssetsSettled });
+    await settle();
+    expect(backdropEl()).not.toBeNull();
+    expect(backdropEl().childElementCount).toBe(0);
+    const warnings = warn.mock.calls.map((args) => args.map(String).join(" "));
+    expect(warnings.filter((w) => w.includes('no variant for sky "dusk"'))).toHaveLength(1);
+    expect(opacityCalls(onceOf(1)).filter(running)).toHaveLength(1);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
+      { key: "backdrop", ref: "pond", url: null, reason: 'backdrop "pond" has no variant for sky "dusk"' },
+    ]);
+  });
+
+  it("an unknown ref is a reported failure", async () => {
+    const onAssetsSettled = vi.fn();
+    show({ page: page([layer(1, "ghost")]), onAssetsSettled });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled.mock.calls[0]?.[0].failed).toEqual([
+      { key: id(1), ref: "ghost", url: null, reason: 'has unknown ref "ghost"' },
+    ]);
+  });
+
+  it("a failed swap is not in the report", async () => {
+    const onAssetsSettled = vi.fn();
+    show({
+      page: page(
+        [layer(1, "owlx", { pose: "stand", expression: "happy" })],
+        [],
+        [tap(1, { action: "set_expression", target: id(1), expression: "sad" })],
+      ),
+      onAssetsSettled,
+    });
+    await settle();
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(onAssetsSettled).toHaveBeenCalledWith({ failed: [] });
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(warnedAbout(id(1))).toBe(true);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+  });
+
+  // Replaces "enter animations start only after the layer's asset is ready"
+  // (Tests that break): one gate per page.
+  it("enter animations start only when every asset of the page is settled", async () => {
+    let release: (text?: string) => Promise<void> = async () => {};
+    show({ page: page([layer(1, "tree"), layer(2, "bun")], [FADE(1), FADE(2)]) }, (svgText) => {
+      release = hold(svgText, "tree", "tree.svg");
+    });
+    await settle();
+    // bun loaded (settle fires its load), the backdrop is in; tree is held.
+    expect(callsOn(onceOf(2))).toHaveLength(0);
+    expect(callsOn(onceOf(1))).toHaveLength(0);
+    await release();
+    await settle();
+    expect(svgOf(1)).not.toBeNull();
+    expect(callsOn(onceOf(1))).toHaveLength(1);
+    expect(callsOn(onceOf(2))).toHaveLength(1);
+  });
+
+  it("a layer with an enter fade-in is hidden until enter starts", async () => {
+    const p = page([layer(1, "bun"), layer(2, "bun")], [FADE(2)]);
+    show({ page: p });
+    expect(onceOf(2).style.opacity).toBe("0");
+    expect(onceOf(1).style.opacity).toBe("");
+    await settle();
+    expect(onceOf(2).style.opacity).toBe("");
+    cleanup();
+    for (const mode of ["edit", "still"] as const) {
+      show({ page: p, mode });
+      expect(onceOf(2).style.opacity, mode).toBe("");
+      await settle();
+      expect(onceOf(2).style.opacity, mode).toBe("");
+      cleanup();
+    }
+  });
+
+  it("phase incoming runs loops, starts no enter, and has no tappable layer", async () => {
+    const onAssetsSettled = vi.fn();
+    const p = page([layer(1, "bun"), layer(2, "bun")], [FLOAT, FADE(2)], [tap(1, { action: "play_sfx", sfx: "chime" })]);
+    const view = show({ page: p, phase: "incoming", onAssetsSettled });
+    await settle();
+    expect(animateCalls.filter(isLoop).filter(running)).toHaveLength(1);
+    expect(animateCalls.filter((c) => !isLoop(c))).toHaveLength(0);
+    expect(document.querySelectorAll("[role='button']")).toHaveLength(0);
+    expect(document.querySelectorAll(".sv-hitbox")).toHaveLength(0);
+    expect(document.querySelector(".sv-hits")).toBeNull();
+    expect(assetOf(1).hasAttribute("tabindex")).toBe(false);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(viewportEl().getAttribute("data-phase")).toBe("incoming");
+
+    view.again({ page: p, phase: "current", onAssetsSettled });
+    await settle();
+    expect(opacityCalls(onceOf(2)).filter(running)).toHaveLength(1);
+    expect(assetOf(1).getAttribute("role")).toBe("button");
+    expect(assetOf(1).tabIndex).toBe(0);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(viewportEl().getAttribute("data-phase")).toBe("current");
+  });
+
+  it("phase outgoing cancels loops and removes the bubble; taps do nothing", async () => {
+    const onSfx = vi.fn();
+    const p = page(
+      [layer(1, "bun")],
+      [FLOAT],
+      [
+        tap(
+          1,
+          { action: "play_sfx", sfx: "chime" },
+          { action: "show_bubble", target: id(1), text: "Hi" },
+          { action: "play_animation", target: id(1), primitive: "bounce" },
+        ),
+      ],
+    );
+    const view = show({ page: p, phase: "current", onSfx });
+    await settle();
+    fireEvent.click(assetOf(1));
+    expect(onSfx).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Hi")).not.toBeNull();
+    const [float] = callsOn(loopOf(1));
+    const [bounce] = callsOn(onceOf(1)).filter((c) => "translate" in (c.keyframes as object));
+    expect(float).toBeDefined();
+    expect(bounce).toBeDefined();
+
+    view.again({ page: p, phase: "outgoing", onSfx });
+    await settle();
+    expect(float?.canceled).toBe(true);
+    expect(screen.queryByText("Hi")).toBeNull();
+    const before = animateCalls.length;
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(onSfx).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Hi")).toBeNull();
+    expect(animateCalls).toHaveLength(before);
+    expect(bounce?.canceled).toBe(false);
+  });
+
+  it("a load in outgoing starts nothing, and is kept for a later current", async () => {
+    const onAssetsSettled = vi.fn();
+    let release: (text?: string) => Promise<void> = async () => {};
+    const p = page([layer(1, "tree")], [FADE(1)]);
+    const view = show({ page: p, phase: "outgoing", onAssetsSettled }, (svgText) => {
+      release = hold(svgText, "tree", "tree.svg");
+    });
+    await settle();
+    await release();
+    await settle();
+    expect(svgOf(1)).not.toBeNull();
+    expect(animateCalls).toHaveLength(0);
+    expect(onAssetsSettled).not.toHaveBeenCalled();
+
+    view.again({ page: p, phase: "current", onAssetsSettled });
+    await settle();
+    expect(opacityCalls(onceOf(1)).filter(running)).toHaveLength(1);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it("enter runs once per mount and page", async () => {
+    const p = page([layer(1, "bun")], [FADE(1)]);
+    const view = show({ page: p, phase: "current" });
+    await settle();
+    expect(opacityCalls(onceOf(1))).toHaveLength(1);
+    view.again({ page: p, phase: "outgoing" });
+    await settle();
+    view.again({ page: p, phase: "current" });
+    await settle();
+    expect(opacityCalls(onceOf(1))).toHaveLength(1);
+  });
+
+  it("under StrictMode, enter runs and onAssetsSettled fires once", async () => {
+    const onAssetsSettled = vi.fn();
+    const { resolver } = makeResolver();
+    render(
+      <StrictMode>
+        <SceneView
+          page={page([layer(1, "tree"), layer(2, "bun")], [FADE(2)])}
+          assets={resolver}
+          mode="play"
+          onAssetsSettled={onAssetsSettled}
+        />
+      </StrictMode>,
+    );
+    await settle();
+    expect(opacityCalls(onceOf(2)).filter(running)).toHaveLength(1);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it("a failed layer asset does not block enter", async () => {
+    const onAssetsSettled = vi.fn();
+    // owlx: stand/sad is legal but owl-sad.svg does not load.
+    show({
+      page: page([layer(1, "owlx", { pose: "stand", expression: "sad" }), layer(2, "bun")], [FADE(2)]),
+      onAssetsSettled,
+    });
+    await settle();
+    expect(opacityCalls(onceOf(2)).filter(running)).toHaveLength(1);
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    const failed = onAssetsSettled.mock.calls[0]?.[0].failed as { key: string }[];
+    expect(failed).toHaveLength(1);
+    expect(failed[0]?.key).toBe(id(1));
+  });
+
+  it("a late image fades in for 200 ms only after a turn to current", async () => {
+    // Mount with `mount` phase, then (optionally) turn to current, then release.
+    async function lateCase(options: {
+      held: [string, string];
+      layers: Parameters<typeof page>[0];
+      animations?: Animation[];
+      mount: "incoming" | "current";
+      reducedMotion?: boolean;
+    }): Promise<void> {
+      cleanup();
+      animateCalls.length = 0;
+      let release: (text?: string) => Promise<void> = async () => {};
+      const p = page(options.layers, options.animations ?? []);
+      const props = { page: p, reducedMotion: options.reducedMotion };
+      const view = show({ ...props, phase: options.mount }, (svgText) => {
+        release = hold(svgText, ...options.held);
+      });
+      await settle();
+      if (options.mount === "incoming") view.again({ ...props, phase: "current" });
+      await settle();
+      await release();
+      await settle();
+    }
+    const lateFades = (el: Element) =>
+      opacityCalls(el).filter((c) => (c.options as KeyframeAnimationOptions | undefined)?.duration === 200);
+
+    // A layer image after a turn to current: one 200 ms fade on .sv-layer.
+    await lateCase({ held: ["tree", "tree.svg"], layers: [layer(1, "tree")], mount: "incoming" });
+    expect(callsOn(layerEl(1))).toHaveLength(1);
+    expect(callsOn(layerEl(1))[0]?.keyframes).toEqual({ opacity: ["0", "1"] });
+    expect(callsOn(layerEl(1))[0]?.options).toMatchObject({ duration: 200 });
+
+    // With reduced motion: no fade.
+    await lateCase({ held: ["tree", "tree.svg"], layers: [layer(1, "tree")], mount: "incoming", reducedMotion: true });
+    expect(callsOn(layerEl(1))).toHaveLength(0);
+
+    // On a mount as current: no fade.
+    await lateCase({ held: ["tree", "tree.svg"], layers: [layer(1, "tree")], mount: "current" });
+    expect(callsOn(layerEl(1))).toHaveLength(0);
+
+    // A layer with an enter fade-in: only its own 600 ms call.
+    await lateCase({ held: ["tree", "tree.svg"], layers: [layer(1, "tree")], animations: [FADE(1)], mount: "incoming" });
+    expect(callsOn(layerEl(1))).toHaveLength(0);
+    expect(opacityCalls(onceOf(1))).toHaveLength(1);
+    expect(opacityCalls(onceOf(1))[0]?.options).toMatchObject({ duration: 600 });
+
+    // The backdrop: the same rule, on .sv-backdrop.
+    await lateCase({ held: ["meadow", "night.svg"], layers: [layer(1, "tree")], mount: "incoming" });
+    expect(lateFades(backdropEl())).toHaveLength(1);
+    expect(callsOn(backdropEl())).toHaveLength(1);
+    expect(callsOn(backdropEl())[0]?.keyframes).toEqual({ opacity: ["0", "1"] });
+    await lateCase({ held: ["meadow", "night.svg"], layers: [layer(1, "tree")], mount: "current" });
+    expect(callsOn(backdropEl())).toHaveLength(0);
+  });
+
+  it("still mode draws the picture and nothing else", async () => {
+    const onSfx = vi.fn();
+    const onAssetsSettled = vi.fn();
+    const p = page(
+      [layer(1, "pip", { pose: "stand", expression: "happy" }), layer(2, "bun")],
+      [FLOAT, FADE(2)],
+      [tap(1, { action: "set_pose", target: id(1), pose: "sit" }, { action: "play_sfx", sfx: "chime" })],
+    );
+    const still = show({ page: p, mode: "still", phase: "incoming", onSfx, onAssetsSettled, textureUrl: PAPER_URL });
+    await settle();
+    expect(animateCalls).toHaveLength(0);
+    expect(onceOf(2).style.opacity).toBe("");
+    expect(document.querySelectorAll("[role]")).toHaveLength(0);
+    expect(document.querySelectorAll("[tabindex]")).toHaveLength(0);
+    expect(document.querySelectorAll(".sv-hitbox")).toHaveLength(0);
+    expect(document.querySelector(".sv-hits")).toBeNull();
+    fireEvent.click(assetOf(1));
+    await settle();
+    expect(onSfx).not.toHaveBeenCalled();
+    expect(document.querySelector(".sv-bubble")).toBeNull();
+    expect(still.svgText).not.toHaveBeenCalledWith("pip", "sit.svg");
+    expect(onAssetsSettled).toHaveBeenCalledTimes(1);
+    expect(viewportEl().getAttribute("data-phase")).toBe("current");
+    expect(document.querySelector(".sv-paper")).not.toBeNull();
+    cleanup();
+
+    // In play mode the same page preloads the swap file.
+    const played = show({ page: p, mode: "play" });
+    await settle();
+    expect(played.svgText).toHaveBeenCalledWith("pip", "sit.svg");
+  });
+
+  it("a bubble stays inside the stage vertically", () => {
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(400);
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(300);
+    show({
+      page: page(
+        [layer(1, "bun", { at: { x: 500, y: 200, scale: 0.5, z: 1 } })],
+        [],
+        [tap(1, { action: "show_bubble", target: id(1), text: "Up here" })],
+      ),
+    });
+    fireEvent.click(assetOf(1));
+    const bubble = screen.getByText("Up here");
+    // Bottom edge = clamp(bottom, h, 1200) with h = 300 (Exact changes 7).
+    expect(1200 - parseFloat(bubble.style.bottom)).toBe(300);
+    expect(bubble.getAttribute("role")).toBe("status");
+    expect(bubble.style.maxWidth).toBe("960px");
+    expect(["", "none"]).toContain(bubble.style.borderStyle);
+    expect(bubble.style.boxShadow).toBe("0 6px 0 var(--edge, #E6D5BC)");
   });
 });
