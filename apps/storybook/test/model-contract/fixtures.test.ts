@@ -1,16 +1,21 @@
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixtureFiles, fixtureProblems, missingFixtureFiles, writeFixtures } from "../../scripts/s2/fixtures";
 import { formatRate, summarize, verdict } from "../../scripts/s2/summary";
-import { type Deps, checkInputs, rowQueries, runOne, sha256 } from "../../scripts/s2-run";
+import { type Deps, checkInputs, refuseExistingFixtures, rowQueries, runOne, sha256 } from "../../scripts/s2-run";
 import { OTHER_RUN_CALL, PAGE, badScene, fakeRun, okScene } from "./fake-run";
 
 const ROOT = path.join(import.meta.dirname, "s2");
 const slugs = (JSON.parse(readFileSync(path.join(ROOT, "inputs.json"), "utf8")) as Array<{ slug: string }>).map((i) => i.slug);
 it("RUN-06.S2 recorded S2 outputs stay valid against the current schemas", () => {
-  for (const slug of slugs) expect([slug, fixtureProblems(path.join(ROOT, slug))]).toEqual([slug, []]);
+  // Every recorded story is present and complete, so a deleted fixture fails.
+  expect(slugs).toHaveLength(3);
+  for (const slug of slugs) {
+    const dir = path.join(ROOT, slug);
+    expect([slug, missingFixtureFiles(dir), fixtureProblems(dir)]).toEqual([slug, [], []]);
+  }
 });
 
 function written(rows = fakeRun()): string {
@@ -215,6 +220,15 @@ describe("S2 driver", () => {
     const out = await runOne(input, d);
     expect(out.outcome).toBe("timeout");
     expect(out.rows.calls).toHaveLength(fakeRun().calls.length);
+  });
+
+  it("refuses to start when a fixture folder exists, unless --no-fixtures is set", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "s2-root-"));
+    const inputs = [input, { ...input, slug: "s2-2" }];
+    expect(() => refuseExistingFixtures(inputs, root, true)).not.toThrow();
+    mkdirSync(path.join(root, "s2-2"));
+    expect(() => refuseExistingFixtures(inputs, root, true)).toThrow(`fixture folder ${path.join(root, "s2-2")} already exists`);
+    expect(() => refuseExistingFixtures(inputs, root, false)).not.toThrow();
   });
 
   it("refuses an answer that is not 202 or an ID that is not a UUID before any SQL", async () => {
