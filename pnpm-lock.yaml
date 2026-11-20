@@ -182,10 +182,7 @@ catalogs:
     '@cloudflare/vitest-plugin':
       specifier: ^1.8.5
       version: 1.8.5
-    '@fontsource/kiwi-maru':
-      specifier: ^5.3.1
-      version: 5.3.1
-    '@fontsource/nunito':
+    '@fontsource/baloo-2':
       specifier: ^5.3.0
       version: 5.3.0
     '@hono/zod-validator':
@@ -288,10 +285,7 @@ importers:
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@fontsource/kiwi-maru':
-        specifier: 'catalog:'
-        version: 5.3.1
-      '@fontsource/nunito':
+      '@fontsource/baloo-2':
         specifier: 'catalog:'
         version: 5.3.0
       '@hono/zod-validator':
@@ -1305,11 +1299,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fontsource/kiwi-maru@5.3.1':
-    resolution: {integrity: sha512-FTup3q1lifmroaQUMC1BC2HwFG0X7jSO80PlqTQUIYIYRag0setwHTsIQsRzxNZUwfrlK8pNyEdQ8A1mPoLuYw==}
-
-  '@fontsource/nunito@5.3.0':
-    resolution: {integrity: sha512-vw9TaTQJ/zpEpKrsODuPmOvaVjXgdda6B+xXA4YqjrdeJ62MLgVoDerdRXFQHyBnSCt2yQ2nHKCHPP/Pv7Xq4Q==}
+  '@fontsource/baloo-2@5.3.0':
+    resolution: {integrity: sha512-CBuxZ27jvMmD5+KaaPkMWv/yjdRNppVAd5/002yAyvyQyLNL3aZCbkx6gbAT/bjxPd1A0VMdDQjfcELI8chccQ==}
 
   '@hono/zod-validator@0.9.1':
     resolution: {integrity: sha512-iiv6w0qrIc0arfvCtUqBWsvl4fXjzaTcQcCJTTtCnkawF9HHGE+KjEl0ox3gQJ6rKZEgE3mLExlQCF72M+mNuw==}
@@ -4099,9 +4090,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource/kiwi-maru@5.3.1': {}
-
-  '@fontsource/nunito@5.3.0': {}
+  '@fontsource/baloo-2@5.3.0': {}
 
   '@hono/zod-validator@0.9.1(hono@4.13.19)(zod@4.6.7)':
     dependencies:
