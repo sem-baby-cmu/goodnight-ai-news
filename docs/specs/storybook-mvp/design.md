@@ -403,6 +403,7 @@ Q14).
   page={PageScene}
   assets={AssetResolver}          // key + version -> URL or SVG text
   mode="play" | "edit" | "still"
+  fit?="contain" | "cover"        // default "contain"
   phase?="incoming" | "current" | "outgoing"   // Player only; default "current"
   onSelectLayer?={(instanceId) => void}
   onMoveLayer?={(instanceId, at) => void}
@@ -415,8 +416,8 @@ Q14).
   on each side. Layers are drawn in a separate stage container of
   1600 × 1200 units that clips them, so no layer shows in the bleed.
 - **Picture area.** The Player sizes the picture area from the space above
-  the narration (portrait and landscape, ADR 0016). The stage keeps 4:3 and
-  is never cropped:
+  the narration (portrait and landscape, ADR 0016). It uses
+  `fit="contain"`, the default: the stage keeps 4:3 and is never cropped:
   - an area between 4:3 and 2:1 shows as much bleed as fits;
   - an area wider than 2:1 shows the whole frame and the paper colour beyond it;
   - an area narrower than 4:3 shows the stage at full width and the paper
@@ -424,12 +425,26 @@ Q14).
   - On a short landscape screen (for example a phone), the narration keeps
     its minimum font size of 18 px and the stage gets the remaining height.
 - In edit mode, the Studio shows the stage only.
+- **Fit** (ADR 0017). `fit` says how the backdrop frame is scaled into a box
+  of `W` x `H` CSS px. `k` is the size of one stage unit in CSS px. In both
+  cases the frame is centred in the box.
+
+  | `fit` | `k` | Result | Used by |
+  | :-- | :-- | :-- | :-- |
+  | `contain` (default) | `min(W / 1600, H / 1200)` | The whole stage shows. Bleed shows as far as the box is wider than the stage. The paper colour shows where the box is larger than the frame. These are the three cases of "Picture area" | The picture area of a page; the Studio |
+  | `cover` | `max(H / 1200, W / 2400)` | The frame covers the whole box, and the box cuts what is outside it. No paper colour shows. In a box narrower than 4:3, the stage is cut at the left and the right: stage x `800 - W / (2k)` to `800 + W / (2k)` shows. In a box from 4:3 to 2:1, the whole stage shows with bleed beside it. In a box wider than 2:1, the frame is cut above and below | A cover on the shelf |
 - **Still mode** (ADR 0017). `mode="still"` draws the backdrop variant and
   every layer at its `at`, with the paper texture. No animation runs, of
   either trigger, and a layer with an `enter` `fade-in` is visible. It has
-  no tap handling, no bubble, and no sound. No layer has a role or is in
-  the tab order. `phase` is ignored. A cover on the shelf uses this mode
-  ("9. Player screens").
+  no tap handling, no hit layer, no bubble, no focus ring, and no sound. No
+  layer has a role or is in the tab order. `phase` is ignored.
+  - It loads only the files of the picture: the backdrop variant, and for
+    each layer the file of its starting pose and expression. It does not
+    load a file that only a `set_pose` or `set_expression` tap would show,
+    and it loads no `sfx` file. Play mode loads those swap files ahead
+    (`packages/scene-runtime/src/SceneView.tsx:238`); still mode does not.
+  - A cover on the shelf uses this mode with `fit="cover"`
+    ("9. Player screens").
 - Until the backdrop file is loaded, the paper colour shows behind the stage,
   not a sky colour.
 - `svg` and `svg-rig` assets are inlined. `webp` assets are `<img>` elements.
@@ -444,10 +459,33 @@ Q14).
   iOS Safari blocks `play()` outside a user gesture. Sound effects use a
   second shared element, unlocked the same way.
 - **Loading.** "Start" is enabled only when the manifest, every page JSON,
-  and the assets of page 1 are loaded. After a page is shown, the Player
-  loads the assets of the next and the previous page. If one of the files
-  that "Start" waits for fails to load, the Player shows the Resting state
-  ("9. Player screens").
+  and the first-page files are loaded.
+  - The **first-page files** are the backdrop variant of page 1, the file
+    of the starting pose and expression of each layer of page 1, and the
+    paper texture. The paper texture is a file of the app, not of a release
+    (implementation decision: "Release layout" has no texture file).
+  - A file is **loaded** when its request ended with a 2xx status and the
+    browser can draw it: a WebP is decoded, and an SVG is parsed and passes
+    the sanitiser. A response with status 200 that cannot be decoded, or
+    that the sanitiser refuses, is a failed file. The manifest and a page
+    JSON are loaded when they pass their release schema.
+  - "Start" does not wait for a narration audio file, an `sfx` file, a
+    swap file of a tap, or a file of another page. iOS Safari loads no
+    audio before a user gesture, so a wait for the `<audio>` element would
+    not end.
+  - If the manifest, a page JSON, or a first-page file fails before
+    "Start", the Player shows the Resting state ("9. Player screens").
+  - After a page is shown, the Player loads the files of the next and the
+    previous page.
+- **Narration that fails** (ADR 0017). After "Start", the narration of a
+  page can fail: a network error, a status that is not 2xx, a file that
+  cannot be decoded, or a `play()` that is rejected. Then the page stays as
+  it is, with its picture, its text, and its controls. The Player plays no
+  sound for that page, shows no fault sign, and does not try again by
+  itself. It handles the error, so no error is thrown. The next tap on
+  "next", "previous", or "Read again" sets a `src` and calls `play()` as
+  usual, so a turn away and back requests the file again. The Player does
+  not change to Resting.
 - **Page turn** (ADR 0016). A tap on "next" or "previous" turns the page:
   - The page sheet (backdrop frame, stage, and narration on an opaque paper
     background) turns about the left edge of the page panel. A forward turn
@@ -478,29 +516,62 @@ Q14).
   all its assets are loaded. A layer with an `enter` `fade-in` is hidden
   until then. A load callback for a page that is no longer `incoming` or
   `current` is ignored.
+- **Start gate** (ADR 0017). In Ready, the Start gate shows page 1 with
+  `mode="play"` and `phase="incoming"`. Its `loop` animations run. No
+  `enter` animation runs, and a layer with an `enter` `fade-in` is hidden.
+  No layer takes a tap or the focus. The tap on "Start" makes page 1
+  `current`: its `enter` animations play once, and tap handling starts.
+  The picture keeps its size and its place.
 - **Late images.** If a page becomes `current` before an image is loaded, the
   narration and the paper colour show at once, and the image fades in
   (200 ms) when it is loaded. A layer with an `enter` `fade-in` uses its own
   animation instead. With `prefers-reduced-motion`, a late image appears
   without a fade.
-- **Hit area** (ADR 0017). In play mode, a layer that has a tap interaction
-  has a hit area:
-  - It is the drawn box of the layer. On an axis where the box is less than
-    64 CSS px on the screen, the hit area is 64 CSS px, centred on the box.
-    The part beyond the box is the margin.
-  - A hit area that would go outside the stage is moved along that axis
-    until it is inside the stage. It is not cut.
-  - A point inside the drawn box of one or more tappable layers belongs to
-    the one with the highest `z`.
+- **Hit area** (ADR 0017). In play mode, on the `current` page, a layer
+  that has a tap interaction has a hit area:
+  - The **drawn box** is the layout box of the layer (the box of the layout
+    checks, "4. Layout engine"), cut at the stage edge. A layout box can be
+    larger than the stage, because the bounds check lets a box go outside
+    the stage by up to 10%.
+  - On an axis where the drawn box is less than 64 CSS px on the screen,
+    the hit area is 64 CSS px on that axis, centred on the drawn box. The
+    part beyond the drawn box is the **margin**.
+  - The hit area is cut at the stage edge. It is never moved. So a small
+    layer at the stage edge has a hit area of less than 64 CSS px on that
+    axis.
+  - The margins are in one **hit layer** below every drawn layer. Each
+    tappable layer has one element there. The element has the box of the
+    hit area and the `z` of its layer.
+  - So a point inside the drawn box of one or more tappable layers belongs
+    to the one with the highest `z`. The margin of another layer never wins
+    there, whatever its `z`.
   - A point that is in no such box, and inside one or more margins, belongs
     to the layer with the highest `z` among them.
   - A layer without a tap interaction takes no tap and blocks none.
-  - The size is computed from the stage scale, and again after a resize.
+  - A margin element is for a pointer only. It has no role, it is not in
+    the tab order, and assistive technology does not read it. The keyboard
+    focus and a screen reader use the layer element.
+  - The sizes are in CSS px. They are computed from `k`, and again after a
+    resize.
   - This is a rule of the runtime. It is not a validation rule, and the
-    layout checks do not change. Edit mode has no margin.
+    layout checks do not change. Edit mode, still mode, and a page that is
+    not `current` have no hit layer.
+- **Stage overlay** (ADR 0017). The runtime has one overlay above the stage
+  container. It has the box of the stage. The clip of the stage container
+  does not cut it, and it takes no tap. It is part of the page sheet and
+  turns with it. It holds two things:
+  - A bubble. It is sized in stage units (the bubble is scaled by `k`) and
+    is placed inside the stage area: 0 to 1600 across, 0 to 1200 down. So
+    the bubble of a layer at the stage edge is not cut.
+  - The focus ring of a tappable layer. It is sized in CSS px, not in stage
+    units, so it is not thinner on a small stage. It follows the drawn box
+    of the layer and stays inside the stage area.
 - **Frame parts.** No control and no status of the Player frame lies over
   the picture area, in any layout (ADR 0017). A bubble is part of the
-  stage, not of the frame.
+  page, not of the frame. The frame controls are above the page sheets in
+  the stacking order. The page panel is a stacking context of its own, so
+  a sheet that turns never lies over a frame control, and Home,
+  "previous", and "next" take a tap during a turn.
 - Edit mode adds selection boxes and drag handles. Play mode adds tap handling.
 
 Animation primitives (closed list). Validation rejects a primitive on a layer
@@ -585,10 +656,11 @@ type ShelfResponse = {
 
 | Topic | Rule |
 | :-- | :-- |
-| Content | One entry for each story whose `published_release_id` is set. The pointer moves only to a higher release number ("7. Publish"), so the entry is the latest release of the story |
+| Content | One entry for each story whose `published_release_id` names a `release` row of that story. The pointer moves only to a higher release number ("7. Publish"), so the entry is the latest release of the story |
+| Broken pointer | `story.published_release_id` has no foreign key (`apps/storybook/worker/db/schema.ts:84`). If it names no `release` row, or a row whose `story_id` is another story, that story has no entry. The route writes one log line with the story ID, the release ID, and the reason (`missing_release` or `wrong_story`). The line has no title and no text. The other books are returned with 200. The route never reads `story.title` or another draft value, and it never picks another release |
 | Left out | A story with no release, the prefix of a failed publish, and every earlier release of a story |
 | Fields | The three fields above, and no other: no story ID, no revision ID, no run, no head, no status, no source |
-| Order | By the `created_at` of the first release of the story, newest first. Ties are in story ID order. A new release of a story does not move its entry |
+| Order | By the first release time of the story, newest first. The first release time is the least `created_at` of the `release` rows of the story: an aggregate on `release`, with no new column. `created_at` is ISO 8601 UTC text of one fixed form (`Date.prototype.toISOString()`), so its text order is its time order. Stories with the same first release time are in descending story ID order. A new release of a story does not move its entry |
 | Size | Every book in one response. No paging on the server, and no cap |
 | Empty | 200 with `{ "books": [] }` |
 | Errors | A database failure gives 500 `{ error: "internal" }`. Another method gives 404 `{ error: "not_found" }` |
@@ -707,49 +779,59 @@ route is shown.
 - The shelf opens on its first shelf page every time.
 - The shelf has at most 2 controls. It has no Home control, no link out of
   the product, and no navigation that is text only.
-- The shelf sends no data to a server except that request, which has no
-  parameter. It stores nothing on a server.
+- The shelf sends no personal data and no telemetry. Its shelf request has
+  no parameter and no body. The content requests for the covers are
+  allowed: they are `GET` requests to the content route, they have no
+  parameter, and they name release files only. The shelf stores nothing on
+  a server.
 
 **Cover.** A cover is the scene of the first page of the release as a still
 picture. No asset is made for it.
 
 - The Player reads `manifest.json` of the release, then the page JSON of the
-  first entry of `pages`, then the backdrop variant and the layer files of
-  that page. All come from the content route, so the browser caches them as
-  immutable files.
-- The scene is drawn with `mode="still"` ("5. Scene runtime"). The picture
-  window of a book shows a part of the stage; the crop is a value of the
-  look. The rule "the stage is never cropped" is for the picture area of a
-  page, not for a cover.
+  first entry of `pages`, then the files of the picture: the backdrop
+  variant, and the file of the starting pose and expression of each layer.
+  It requests no other page JSON, no audio file, no `sfx` file, and no swap
+  file of a tap ("5. Scene runtime", "Still mode"). All come from the
+  content route, so the browser caches them as immutable files.
+- The scene is drawn with `mode="still"` and `fit="cover"` ("5. Scene
+  runtime"). On a book of full size the picture window is narrower than
+  4:3, so the stage is cut at the left and the right. The size of the
+  window is a value of the look (root `DESIGN.md` section 12.1). The rule
+  "the stage is never cropped" is for `fit="contain"`, the picture area of
+  a page.
 - Only the covers of the shelf page that is shown are loaded. The covers of
   another shelf page load when that shelf page is shown.
 - A book shows at once, before its cover is loaded: its title, and a
   picture window in the paper colour. The book can be opened at once.
-- The picture appears when every file of the cover is loaded, as a whole,
+- The picture appears when every file of the cover is loaded ("5. Scene
+  runtime", "Loading": requested, and decoded or sanitised), as a whole,
   with a 200 ms fade. With `prefers-reduced-motion` it appears without a
   fade.
-- A cover whose files fail to load keeps the paper colour. It shows no
+- A cover with a file that fails keeps the paper colour. It shows no
   fault sign, and the book still opens.
 - Caching of covers (implementation decision): the immutable cache of the
   content route only. The Player keeps a loaded cover while the shelf is
   shown.
 
-**Shelf load check.** The device test ("Testing Strategy") measures the
-shelf on the throttled 4G profile of the page load test.
+**Shelf load check.** This check is a gate. The device test ("Testing
+Strategy") does it before the shelf goes public, on the throttled 4G
+profile of the page load test.
 
 | Part | Value |
 | :-- | :-- |
 | Fixture | 6 books, each a different release. Page 1 of each uses a painted backdrop at full size |
+| Viewports | The Wide layout with a shelf page of 6 drawn covers. A real phone in portrait and in landscape, each with the shelf page of its own layout |
 | Cache | Empty |
 | Start | The browser sends `GET /api/shelf` |
 | End | The last cover of the first shelf page is drawn |
-| Pass | 2 s or less |
+| Pass | 2 s or less in each viewport. On the phone, the browser does not reload the tab while the shelf shows its covers |
+| Record | For each viewport: the time, the number of requests, and the bytes |
 
-If the check fails, the rule of ADR 0017 applies: publish stores one cover
-image in the release, the shelf entry gets a `cover` field with its path,
-and the shelf shows that image instead of the still scene. A release that
-was published before that change has no cover image, and the shelf draws
-its page 1 scene as before. That change is not part of this design.
+If the check fails, the shelf does not go public, and the way a cover is
+made is a new decision for the owner (ADR 0017, "Still open"). This design
+defines no other cover method and builds none. The shelf response keeps
+its three fields.
 
 **Home.** A Home control shows the shelf.
 
@@ -772,7 +854,11 @@ one of these is true:
 | Trigger | Detail |
 | :-- | :-- |
 | The release does not exist | `releaseId` is not a lower-case UUID version 7, or the request for `manifest.json` gives 404 |
-| The release fails to load before "Start" | A request for the manifest, a page JSON, or an asset of page 1 ends with a network error or a status that is not 2xx; or the manifest or a page JSON does not pass the release schema (`ReleaseManifest`, `ReleasePage`) |
+| A request fails before "Start" | A request for the manifest, a page JSON, or a first-page file ends with a network error or a status that is not 2xx |
+| A file cannot be used before "Start" | The manifest or a page JSON does not pass the release schema (`ReleaseManifest`, `ReleasePage`). Or a first-page file cannot be decoded (WebP), cannot be parsed, or does not pass the sanitiser (SVG). The status of the response can be 200 |
+
+The first-page files are defined in "5. Scene runtime", "Loading". No audio
+file is one of them.
 
 - Resting shows the Player frame, a night picture that is part of the app
   bundle, the line "This book is sleeping. Come back soon.", and the Home
@@ -785,7 +871,8 @@ one of these is true:
 - There is no automatic retry. The address stays `/read/:releaseId`, so a
   reload tries again.
 - After "Start", the Player never changes to Resting. An image that fails
-  to load then follows the "Late images" rule ("5. Scene runtime").
+  to load then follows the "Late images" rule, and a narration that fails
+  follows the "Narration that fails" rule ("5. Scene runtime").
 
 ## Data Models
 
@@ -980,10 +1067,12 @@ type ReleasePage = {
 | Publish blocked | API | 409 with the list of pages and reasons. |
 | Run fails | Workflow | `run.status = failed` with the error. The Studio shows it. A run whose `script` step failed restarts as a full run; a run whose page step failed restarts that page with a page run. |
 | Database fails in `GET /api/shelf` | API | 500 `{ error: "internal" }`. The log has the method, the path, and the error name only. |
+| A release pointer names no `release` row, or a release of another story | API, `GET /api/shelf` | That story has no entry. One log line with the story ID, the release ID, and the reason; no title. The other books are returned with 200. No draft value is read ("6. API", "Shelf"). |
 | The shelf request fails: a network error, a status that is not 200, or a body that does not pass the shelf schema | Player | The shelf shows no book, a quiet line, and "Look again", which sends the request again. No fault wording ("9. Player screens"). |
 | A cover fails to load | Player | The book keeps its picture window in the paper colour. It shows no fault sign and still opens. |
-| A release does not exist, or a file that "Start" waits for fails to load | Player | The Resting state, with Home to the shelf ("9. Player screens"). |
+| A release does not exist; or the manifest, a page JSON, or a first-page file fails before "Start" (a failed request, a file that fails its schema, or a file that cannot be decoded or sanitised) | Player | The Resting state, with Home to the shelf ("9. Player screens"). |
 | An image fails to load after "Start" | Player | The "Late images" rule: the narration and the paper colour show. The Player does not change to Resting. |
+| The narration of a page cannot be loaded or played after "Start" | Player | The page stays, with its picture, its text, and its controls. No sound, no fault sign, no automatic retry. The Player does not change to Resting ("5. Scene runtime", "Narration that fails"). |
 
 Every error record has `runId`, `storyId`, `pageId`, `step`, and the provider
 status. Logs do not contain the full news text or model output.
@@ -996,8 +1085,8 @@ status. Logs do not contain the full news text or model output.
 | Worker integration | Vitest with `@cloudflare/vitest-plugin` (the new name of `@cloudflare/vitest-pool-workers`), local D1 and R2, stub model adapter that counts calls | See the sequences below. |
 | Model contract | Recorded model outputs as fixtures | Real outputs from S2 stay as fixtures; schema changes must keep them valid or update them on purpose. |
 | Product premise (S2) | Real models, 3 real news texts | At least 90% of pages pass validation and layout with at most one repair. This is the test that a stub cannot replace. The backdrop choice is tested only with at least 3 backdrops, 1 of them with only some palettes (ADR 0016). |
-| Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render with their backdrop and the narration below the stage; taps fire actions; reduced motion stops loops and makes the page turn a cross-fade; audio starts on "Start" and continues on each page turn; a tap during a turn starts the next turn. The shelf shows the books of a fixture shelf response in order, changes shelf pages, and shows its empty and failed states; a cover is a still scene; each book screen has one Home control; a release that does not exist shows the Resting state; a small tappable layer has a hit area of 64 x 64 CSS px; no frame part lies over the picture area (ADR 0017). |
-| Device | Manual, on a real phone and tablet, with painted WebP backdrops at full size | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. The shelf load check ("9. Player screens"): the first shelf page of 6 books shows its covers in 2 s or less on the same profile. Recorded in the S1 and TB3 results. |
+| Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render with their backdrop and the narration below the stage; taps fire actions; reduced motion stops loops and makes the page turn a cross-fade; audio starts on "Start" and continues on each page turn; a tap during a turn starts the next turn. The shelf shows the books of a fixture shelf response in order, changes shelf pages, and shows its empty and failed states; a cover is a still scene; each book screen has one Home control; a release that does not exist shows the Resting state; a file of page 1 that cannot be decoded shows the Resting state; a small tappable layer has a hit area of 64 x 64 CSS px, cut at the stage edge; a drawn box wins over a margin; no frame part lies over the picture area (ADR 0017). |
+| Device | Manual, on a real phone and tablet, with painted WebP backdrops at full size | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. The shelf load check ("9. Player screens"), a gate before the shelf goes public: the first shelf page shows its covers in 2 s or less on the same profile, in the Wide layout with 6 covers and on a phone in portrait and in landscape. Recorded in the S1 and TB3 results. |
 
 Integration sequences (each asserts both the revisions and `story.heads`):
 
@@ -1019,6 +1108,7 @@ Integration sequences (each asserts both the revisions and `story.heads`):
 | Shelf | Two published stories and one draft: `GET /api/shelf` returns two entries with `releaseId`, `title`, and `publishedAt` only, newest story first, with `Cache-Control: no-store`. Each `title` is the `title` in the manifest of that release. |
 | Shelf after a second release | The entry of that story has the new `releaseId` and the new `publishedAt`, and keeps its place. |
 | Shelf on an empty database | 200 with `{ "books": [] }`. |
+| Shelf with a broken pointer | One story whose pointer names no `release` row, one story whose pointer names a release of another story, and one sound story: the response is 200 with the sound story only. One log line for each broken pointer, with no title. |
 
 Acceptance criteria to tests:
 
@@ -1041,8 +1131,8 @@ Acceptance criteria to tests:
 | The shelf API lists only the latest release of each published story | Integration, the three shelf sequences |
 | The shelf screen: books, covers, shelf pages, empty shelf | Renderer test |
 | One Home control on each book screen; the Resting state | Renderer test |
-| Hit area of 64 x 64 CSS px for a tappable layer | Unit (scene-runtime) and renderer test |
-| The first shelf page loads in 2 s on 4G | Device test (shelf load check) |
+| Hit area of 64 x 64 CSS px for a tappable layer, cut at the stage edge | Unit (scene-runtime) and renderer test |
+| The first shelf page loads in 2 s on 4G | Device test (shelf load check), done before the shelf goes public |
 
 ## Review record
 
@@ -1173,5 +1263,24 @@ checked against the source.
 | 8 | Scenario counts in the README table | Codex | 28 Player, 168 total |
 | 9 | `DESIGN.md` contradictions and gaps (Home rule, contrast, bubble units, focus, editor y, progress dots, Start gate controls) | both | Fixed in `DESIGN.md` |
 | 10 | The second audio element for `play_sfx` cannot be unlocked by a "Start" tap with no `src` | Gemini | Kept open: rule from before this change; for #22 |
+
+Review of ADR 0017, the shelf, Home, and the Player states (PR #72, 2026-11-19).
+Codex and Gemini; findings merged as a union, each single-reviewer finding
+checked against the source.
+
+| # | Finding | Reviewer | Result |
+| :-- | :-- | :-- | :-- |
+| 1 | Six still covers per shelf page against the 4G target and iPhone memory; the cover-image fallback was undefined and left earlier releases unchanged | both | Fallback removed; load check is a gate before the shelf goes public (PLY-05.S16 to S18); still mode loads only first files |
+| 2 | "A drawn box beats a margin" is not possible with per-layer z-index; a margin cannot always move inside the stage | both | One hit layer below all drawn layers; boxes and margins cut at the stage edge |
+| 3 | First-page files undefined; audio readiness would hang on iOS; corrupt files with HTTP 200 | both | First-page files defined without audio; decode, parse, and sanitiser failures give Resting |
+| 4 | Book title plate does not fit the book | Gemini | Book geometry recomputed; book scales below `h` 612 |
+| 5 | Cover crop cuts more templates than stated | Gemini | Crop widened to stage x 188 to 1412 |
+| 6 | No height-fit mode for the cover | Gemini | `fit: "contain" \| "cover"` |
+| 7 | Focus ring sizes inside the scaled, clipped stage | Gemini | Ring in an unclipped stage overlay |
+| 8 | Wide frame offsets and the 900 x 600 stage size | Gemini | Offsets given; stage 405 x 304 at 900 x 600 |
+| 9 | Narrow and Short Start gate and Resting overflow | Gemini | 28 px titles; frame parts keep their space |
+| 10 | Empty and failed shelf look the same; focus on Home while Waiting; Home during a turn; order tie-break | Gemini | Signs, focus to `main`, controls above the sheet, descending story ID |
+| 11 | A dangling `published_release_id` (no foreign key) | Codex | Story skipped and logged; no draft data |
+| 12 | Privacy wording forbade the cover requests | Codex | Reworded: no personal data, telemetry, or parameters |
 
 The end of the book is ADR 0016 decision B ("5. Scene runtime", "End page").

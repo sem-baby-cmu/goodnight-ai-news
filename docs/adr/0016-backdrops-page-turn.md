@@ -219,6 +219,6 @@ Settled by [ADR 0017](0017-shelf-home-player-states.md) (2026-11-19, #70):
 | :-- | :-- | :-- |
 | The shelf | In the spec: the route `/` and the public `GET /api/shelf` | Decisions 1 to 7 |
 | The "resting" state | Defined: its triggers, what it shows, and Home | Decision 9 |
-| A minimum hit area for a tappable layer | 64 x 64 CSS px, with rules for overlap and the stage edge | Decision 10 |
+| A minimum hit area for a tappable layer | 64 x 64 CSS px or more, cut at the stage edge, with one hit layer for the margins | Decision 10 |
 | A night tint for cut-outs | Rejected for the MVP. Decision C stays | Decision 11 |
 | A moon asset | Not needed in the MVP | Decision 12 |

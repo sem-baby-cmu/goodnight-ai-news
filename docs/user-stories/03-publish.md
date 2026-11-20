@@ -187,3 +187,21 @@ Spec: requirements AC-16 · design "6. API" (Shelf), "7. Publish", "D1 tables"
 - When a client sends `POST /api/shelf`
 - Then the response is 404 with `{ error: "not_found" }`, and no row changes
 - Test: spec (to implement)
+
+### PUB-03.S10 Stories with the same first release time are in descending story ID order
+- Given story A and story B whose first releases have the same `created_at`, and the ID of B is greater than the ID of A
+- When a client sends `GET /api/shelf`
+- Then the entry of B is before the entry of A
+- Test: spec (to implement)
+
+### PUB-03.S11 A pointer to a missing release gives no entry
+- Given a sound published story A, and a story B whose `published_release_id` names no `release` row
+- When a client sends `GET /api/shelf`
+- Then the response is 200 with the entry of A only; the route writes one log line with the ID of B, the release ID, and the reason `missing_release`, with no title and no text; no draft value of B is read
+- Test: spec (to implement)
+
+### PUB-03.S12 A pointer to a release of another story gives no entry
+- Given a sound published story A, and a story B whose `published_release_id` names a `release` row of story A
+- When a client sends `GET /api/shelf`
+- Then the response is 200 with one entry, the entry of A; the route writes one log line with the ID of B, the release ID, and the reason `wrong_story`, with no title and no text
+- Test: spec (to implement)
