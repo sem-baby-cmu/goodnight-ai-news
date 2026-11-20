@@ -6,6 +6,7 @@ import {
   type RouterHistory,
   useLocation,
 } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { playerRoutes } from "./player/routes";
 import { spikeRoutes } from "./spike/routes";
 import { studioRoutes } from "./studio/routes";
@@ -20,10 +21,19 @@ function RootLayout() {
 }
 
 // A path that matches no route: under /studio/ to the Studio, else to the
-// shelf, with the history entry replaced (design "9", Unknown path).
+// shelf, with the history entry replaced (design "9", Unknown path). Null
+// when the path is already the target.
+function redirectTarget(pathname: string): "/" | "/studio" | null {
+  if (pathname === "/" || pathname === "/studio") return null;
+  return pathname.startsWith("/studio/") ? "/studio" : "/";
+}
+
+// `<Navigate>` navigates again each time it renders with new props, and this
+// component renders again (or mounts again) while the redirect loads. One
+// element per target, and none at the target, give one navigation.
 function NotFound() {
-  const { pathname } = useLocation();
-  return pathname.startsWith("/studio/") ? <Navigate to="/studio" replace /> : <Navigate to="/" replace />;
+  const to = useLocation({ select: (location) => redirectTarget(location.pathname) });
+  return useMemo(() => (to === null ? null : <Navigate to={to} replace />), [to]);
 }
 
 export const rootRoute = createRootRoute({ component: RootLayout, notFoundComponent: NotFound });
