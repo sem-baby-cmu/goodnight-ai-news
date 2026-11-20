@@ -2,8 +2,27 @@ import { afterEach, expect, it, vi } from "vitest";
 import { studioApi } from "./api";
 import { pageId, releaseCreatedFixture, routes, RUN_ID, runFixture, STORY_ID, storyListFixture, stubFetch, uuid } from "./fixtures";
 
+// design.md "Error Handling": no full answer in 20 s ends the request.
+const LIMIT_MS = 20_000;
+const NO_ANSWER_RESULT = { ok: false, status: 0, body: null };
+
+// A fetch that never answers and does not look at the signal.
+const hang = () => vi.fn((_input: RequestInfo | URL, _init?: RequestInit) => new Promise<Response>(() => {}));
+
+// The result of a call once it settles. The test never awaits a call that can hang.
+function watch<T>(p: Promise<T>): { value?: T } {
+  const box: { value?: T } = {};
+  void p.then((v) => {
+    box.value = v;
+  });
+  return box;
+}
+
+const fakeTimers = () => vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 it("studioApi returns ok with the data on a 2xx answer", async () => {
@@ -92,4 +111,60 @@ it("studioApi.withdraw posts { releaseId } to /api/studio/stories/:id/withdrawal
   expect(`${calls[0].method} ${calls[0].path}`).toBe(`POST /api/studio/stories/${STORY_ID}/withdrawal`);
   expect(calls[0].body).toEqual({ releaseId });
   expect(calls[0].headers.get("content-type")).toContain("application/json");
+});
+
+it("studioApi.getRun ends with status 0 when no answer comes in 20 000 ms", async () => {
+  fakeTimers();
+  vi.stubGlobal("fetch", hang());
+  const r = watch(studioApi.getRun(RUN_ID));
+  await vi.advanceTimersByTimeAsync(LIMIT_MS - 1);
+  expect(r.value).toBeUndefined();
+  await vi.advanceTimersByTimeAsync(1);
+  expect(r.value).toEqual(NO_ANSWER_RESULT);
+});
+
+it.each<[string, () => Promise<unknown>]>([
+  ["createStory", () => studioApi.createStory({ text: "A text." })],
+  ["startRun", () => studioApi.startRun(STORY_ID, { kind: "full" })],
+  ["publish", () => studioApi.publish(STORY_ID)],
+  ["withdraw", () => studioApi.withdraw(STORY_ID, uuid(502))],
+])("studioApi.%s ends with status 0 when no answer comes in 20 000 ms", async (_name, start) => {
+  fakeTimers();
+  vi.stubGlobal("fetch", hang());
+  const r = watch(start());
+  await vi.advanceTimersByTimeAsync(LIMIT_MS - 1);
+  expect(r.value).toBeUndefined();
+  await vi.advanceTimersByTimeAsync(1);
+  expect(r.value).toEqual(NO_ANSWER_RESULT);
+});
+
+it("studioApi ends with status 0, not ok, when the body of a 2xx answer does not come in 20 000 ms", async () => {
+  fakeTimers();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({ ok: true, status: 201, json: () => new Promise(() => {}) }) as unknown as Response),
+  );
+  const r = watch(studioApi.publish(STORY_ID));
+  await vi.advanceTimersByTimeAsync(LIMIT_MS);
+  expect(r.value).toEqual(NO_ANSWER_RESULT);
+});
+
+it("studioApi aborts a GET at 20 000 ms and sends a POST with no signal", async () => {
+  fakeTimers();
+  const fn = hang();
+  vi.stubGlobal("fetch", fn);
+  watch(studioApi.getStory(STORY_ID));
+  watch(studioApi.publish(STORY_ID));
+  await vi.advanceTimersByTimeAsync(LIMIT_MS - 1);
+  expect(fn.mock.calls[0]![1]?.signal?.aborted).toBe(false);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(fn.mock.calls[0]![1]?.signal?.aborted).toBe(true);
+  expect(fn.mock.calls[1]![1]?.signal).toBeUndefined();
+});
+
+it("studioApi leaves no timer after an answer", async () => {
+  fakeTimers();
+  stubFetch(routes({ "GET /api/studio/stories": { status: 200, body: storyListFixture([]) } }));
+  await studioApi.listStories();
+  expect(vi.getTimerCount()).toBe(0);
 });
