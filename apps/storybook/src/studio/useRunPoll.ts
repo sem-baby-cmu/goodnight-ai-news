@@ -7,6 +7,14 @@ const ENDED = new Set<RunResponse["run"]["status"]>(["draft_ready", "needs_revie
 
 type PollState = { runId: string; latest: RunResponse | undefined; lost: boolean };
 
+// A 2xx answer that is not a run (for example a body that is not JSON)
+// counts as a failed request (#108, comment item 3).
+function isRun(data: unknown): data is RunResponse {
+  if (typeof data !== "object" || data === null) return false;
+  const { run, steps } = data as { run?: unknown; steps?: unknown };
+  return typeof run === "object" && run !== null && typeof (run as { status?: unknown }).status === "string" && Array.isArray(steps);
+}
+
 // Polls `GET /api/studio/runs/:id` (#23, Exact changes 6). A `setTimeout`
 // chain: the next request starts 2000 ms after the previous one settled, so
 // two requests are never in flight. A reply after unmount or after `runId`
@@ -33,7 +41,7 @@ export function useRunPoll(
     const poll = async () => {
       const r = await studioApi.getRun(runId);
       if (!active) return;
-      if (r.ok) {
+      if (r.ok && isRun(r.data)) {
         failures = 0;
         setState({ runId, latest: r.data, lost: false });
         if (ENDED.has(r.data.run.status)) {
