@@ -462,6 +462,13 @@ Q14).
   is a tap; its handler sets the new `src` and calls `play()` in the same
   handler, because iOS Safari blocks `play()` outside a user gesture. Sound
   effects use a second shared element.
+  - Both `<audio>` elements are made one time for the book route. They are
+    mounted above the switch between the Start gate, the reading page, the
+    end page, and the Small screen state ("9. Player screens").
+  - A change of screen, a page turn, and "Read again" never remove an
+    element and never make it again. An element that is made again is
+    locked again, and no tap unlocks it at that time.
+  - The elements are removed when the route changes, for example at Home.
 - **Sound-effect unlock** (ADR 0017, decision 25). The handler of the
   "Start" tap does two things in this order, both before it returns:
   1. It sets the narration `src` of page 1 and calls `play()` on the
@@ -472,6 +479,11 @@ Q14).
     is not a release file. No request is sent for it (implementation
     decision: a `data:` URL in the bundle), so "Start" does not wait for
     it.
+  - The format of the clip (implementation decision): a WAV file with PCM
+    audio, 1 channel, and 1 sample or more, every sample at the zero
+    level, as `data:audio/wav;base64,...`. Safari plays PCM in a WAV file.
+    A clip with no sample is not used: it has nothing to play. The device
+    test (PLY-03.S5) checks the unlock; it is not run yet.
   - A `play_sfx` action then sets the `src` of the `sfx` file and calls
     `play()` on the same element.
   - If the `play()` of the silent clip is rejected, the Player handles the
@@ -496,6 +508,13 @@ Q14).
     not end.
   - If the manifest, a page JSON, or a first-page file fails before
     "Start", the Player shows the Resting state ("9. Player screens").
+  - The Start gate also stays in Loading until the Player has measured the
+    height of the narration panel (implementation decision; root
+    `DESIGN.md` section 12.3, "How the panel gets its height"). The
+    measurement waits for the narration font, which is a file of the app.
+    It is not a Resting trigger. From Ready on the panel keeps its height,
+    so the picture does not change its size at "Start", and no legal page
+    text is cut.
   - After a page is shown, the Player loads the files of the next and the
     previous page.
 - **Narration that fails** (ADR 0017). After "Start", the narration of a
@@ -630,7 +649,7 @@ Studio routes are behind Cloudflare Access. The content route and
 | Method and route | Does |
 | :-- | :-- |
 | `POST /api/studio/stories` | Body `{ text }` or `{ url }`. Creates a story, a source revision, and a full run. Returns 202 with `{ storyId, runId }`. |
-| `GET /api/studio/stories` | Lists stories. Each story has `onShelf`: true when the release that its pointer names is not withdrawn ("Taking a book off the shelf" below). |
+| `GET /api/studio/stories` | Lists stories. Each story has `onShelf`: true when the release that its pointer names is not withdrawn ("Taking a book off the shelf" below). It is false for a story with no release. So the Studio shows "Off the shelf" only for a story that has a release and `onShelf: false`. A story with no release shows "None". |
 | `GET /api/studio/stories/:id` | Heads with content, page states (`ok`, `stale`, `missing`, `needs_review`), and releases. The story has `onShelf`, and each release has `withdrawn`. |
 | `GET /api/studio/runs/:id` | Run status and step progress. |
 | `PUT /api/studio/stories/:id/pages/:pageId/text` | Body `{ text, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the text is not validated. Then validated as `PageText` (1 to 3 sentences, at most 40 words). 422 with the error list if it fails validation; nothing is saved. Otherwise saved as a new human `page_text` revision (owner decision Q15). |
@@ -711,10 +730,11 @@ names is not withdrawn.
 | Write | One statement, a compare-and-set on the pointer: `UPDATE story SET withdrawn_through = :n WHERE id = :id AND published_release_id = :releaseId AND withdrawn_through < :n`. `:n` is the `number` of the `release` row, which never changes. The statement does not read or write `heads` and `heads_version` |
 | What does not change | Every `release` row, every object of a release prefix, the pointer, `story.status`, and every head. Releases never change |
 | All releases up to the number | Every release of the story with a number up to `withdrawn_through` is withdrawn, not only the published one. The operator has no list of the links that adults keep |
-| Content route | A file of a withdrawn release gives 404 `{ error: "not_found" }`, the same answer as for a release that does not exist. The route makes this check before it reads the object and before any conditional answer (304). The 404 has `Cache-Control: no-store` |
+| Content route | A file of a withdrawn release gives 404 `{ error: "not_found" }`, the same answer as for a release that does not exist. That holds for every file of the prefix: the manifest, a page JSON, an image, and an audio file. The route makes this check before it reads the object, and before any conditional answer (304) and any range answer (206). The 404 has `Cache-Control: no-store` |
+| Browser cache | The enforcement point is `manifest.json`. The Player requests it with the fetch cache mode `no-cache`, so that request reaches the route each time ("9. Player screens"). Every other release file keeps the immutable cache header: a browser that holds such a file can show it again and sends no request, so the route cannot refuse it. The limit: a withdrawn book cannot be opened through the Player, from the shelf or at `/read/<releaseId>`. A file that a browser cached before the take-off stays in that browser, and its address can still load there. The cache header does not change |
 | Shelf | The story has no entry |
 | A publish at the same time | Safe in both orders. Publish first: the pointer moved, and the take-off gets 409. Take-off first: the new release has a higher number, so it is on the shelf |
-| The way back | No undo, and no route lowers the number. The operator publishes again ("7. Publish"). The new release is on the shelf, and the withdrawn releases stay withdrawn |
+| The way back | No undo, and no route lowers the number. The operator publishes again ("7. Publish"). The new release is on the shelf, and the withdrawn releases stay withdrawn. In the Studio, the "Publish" card of a story that is off the shelf has no "done" state and no link to a withdrawn release. It offers "Publish release <n+1>" when no page blocks, and it shows the blocking pages when one blocks (root `DESIGN.md` section 13.2). Publish needs no change of a page |
 | Log | One line with the story ID, the release ID, and the number. No title |
 | Files | The objects of a withdrawn release stay in R2. No route of the MVP reads or deletes them |
 
@@ -823,6 +843,13 @@ before that check fails.
   names ("7. Publish", step 4). So a cover file is in the release prefix,
   beside its variant. Publish gets no new step, and the release layout
   gets no new path.
+- One helper lists the files of a manifest: `manifestFiles` in
+  `packages/dsl` (`src/registry.ts`). The registry upload, the approval
+  digests, and the release copy all use it. Today it returns only
+  `variants[].file` for a backdrop. The cover file step makes it return
+  each `coverFile` too, so all three get the cover files with no list of
+  their own. The test is `manifestFiles returns the cover files of a
+  backdrop`, in `packages/dsl/src/registry.test.ts`.
 - A release page holds a copy of the asset manifest of its backdrop
   (`ReleasePage.assets`, "Release layout (R2)"). So the page 1 JSON names
   the cover file, and a cover needs no other request to find it.
@@ -963,21 +990,36 @@ file is one of them.
   round button is present.
 - There is no automatic retry. The address stays `/read/:releaseId`, so a
   reload tries again.
-- After "Start", the Player never changes to Resting. An image that fails
-  to load then follows the "Late images" rule, and a narration that fails
-  follows the "Narration that fails" rule ("5. Scene runtime").
+- From Ready on, the Player never changes to Resting: every file that
+  "Start" waits for is loaded. After "Start", an image that fails to load
+  follows the "Late images" rule, and a narration that fails follows the
+  "Narration that fails" rule ("5. Scene runtime").
 
 **A book that was taken off the shelf** (ADR 0017, decision 20).
 
 - `/read/<releaseId>` of a withdrawn release shows the Resting state: the
   request for `manifest.json` gives 404.
-- The Player requests `manifest.json` with the fetch cache mode `no-cache`,
-  for a cover and for a book. So that request reaches the content route
-  each time, also when the browser holds the files of the book from an
-  earlier visit. Every other release file uses the default cache mode.
-  The cache header of the content route does not change.
-- A book that is open after "Start" stays open. A file that then gives 404
-  follows the "Late images" rule or the "Narration that fails" rule.
+- **The enforcement point is `manifest.json`.** The Player requests it
+  with the fetch cache mode `no-cache`, for a cover and for a book. So
+  that request reaches the content route each time, also when the browser
+  holds the files of the book from an earlier visit. A book and a cover
+  request no other file before their manifest is loaded.
+- Every other release file uses the default cache mode and keeps the
+  immutable cache header. The cache header of the content route does not
+  change.
+- **The limit.** A file that a browser cached before the take-off stays in
+  that browser. The browser can show it and sends no request, so the
+  content route cannot answer 404 for it. A withdrawn book is not
+  reachable through the Player: the shelf does not list it, and
+  `/read/<releaseId>` shows the Resting state. The address of a cached
+  file can still load in that browser. This limit is accepted.
+- **A book that is open stays open.** A book is open from Ready on: its
+  manifest, every page JSON, and its first-page files are loaded. A
+  take-off after that does not close it, before "Start" and after it. In
+  Ready, a tap on "Start" starts the book, and the Player sends no new
+  request for the manifest. A file that then gives 404 follows the "Late
+  images" rule or the "Narration that fails" rule. A book in Loading is
+  not open: a request that fails there gives the Resting state.
 - A shelf that is shown keeps the book until its next load. A tap on that
   book shows the Resting state.
 
@@ -992,18 +1034,25 @@ file is one of them.
 
 **Small screen** (ADR 0017, decision 18). Every viewport has one layout
 (root `DESIGN.md` section 12.3). A layout has fixed parts. For a screen of
-a book they are the frame parts and the narration panel. For the shelf
-they are the name, one board with one book of the smallest size, and the
-arrows.
+a book they are the frame parts, the narration panel, and a picture area
+of 64 CSS px in height. For the shelf they are the name band, one board
+with one book of the smallest size, the arrows, and, in Waiting, Empty,
+and Failed, the plate of that state.
 
 - The Player shows the Small screen state when the viewport cannot hold
   the fixed parts of the screen of the route, uncut. The test uses the
-  sizes of the layout. It runs when the screen is shown and after each
-  resize.
+  sizes of the layout and the measured height of the narration panel
+  (root `DESIGN.md` section 12.3). It runs when the screen is shown, after
+  each resize, when the panel height of a book is set, and when the state
+  of the shelf changes (for example from Waiting to Failed), because the
+  plates differ in height.
 - The state shows the paper colour, a sign that the Player draws, and the
   line "This screen is too small for the book." The sign is a book in a
   frame with four arrows that point outward. It is part of the app and
-  needs no request. The state makes no sound.
+  needs no request. The state makes no sound. The sign is a drawing and
+  not a control: it takes no tap and no focus. The sign and the line
+  never lie over Home (root `DESIGN.md` section 12.6). The sign was not
+  tested with children (root `DESIGN.md` section 16, open item 14).
 - On a book route the state has one control, the Home round button. So
   every screen of a book has exactly one Home control. A tap on it stops
   the narration and any sound effect and shows the shelf, as on every
@@ -1018,13 +1067,22 @@ arrows.
   on to its end, or until Home.
 - No part of the state is cut. If the viewport cannot hold the parts of
   the state itself, the line is left out first, and then the sign. Home
-  is shown while the viewport has 64 x 64 CSS px.
+  is shown while the viewport has 64 x 64 CSS px. It keeps its 16 CSS px
+  offsets while the viewport has 80 x 80 CSS px. In a smaller viewport
+  the offsets get smaller, down to 0.
 - When the viewport can hold the fixed parts again, the screen shows as it
   was. There is no time limit and no request.
 - The focus goes to the state itself (`main`, `tabindex="-1"`). When the
   state ends, the focus goes to the `main` of the screen.
-- A layout that fits with a small picture area is not a Small screen. The
-  picture area has no smallest size.
+- **The smallest picture.** The picture area of a book screen is at least
+  64 CSS px high. That is the height of one hit area of a tappable layer
+  ("5. Scene runtime", "Hit area"), and every page has a tap. A layout
+  that leaves less shows the Small screen state. For example, at
+  500 x 365 the Narrow frame and the lowest panel take 365 CSS px and
+  leave 0. The layout rule does not change: a Narrow viewport from 365 to
+  428 CSS px high shows the Small screen state.
+- A layout that leaves a picture area of 64 CSS px or more is not a Small
+  screen, however small the picture is.
 
 ## Data Models
 
@@ -1228,7 +1286,7 @@ type ReleasePage = {
 | The narration of a page cannot be loaded or played after "Start" | Player | The page stays, with its picture, its text, and its controls. No sound, no fault sign, no automatic retry. The Player does not change to Resting ("5. Scene runtime", "Narration that fails"). |
 | A take-off names a release that is not the published one | API | 409 `release_moved` with the ID of the published release. Nothing changes. |
 | A take-off of a story with no published release | API | 409 `not_published`. Nothing changes. |
-| A file of a withdrawn release is requested | Content route | 404 `{ error: "not_found" }`, as for a release that does not exist. Before "Start", the Player shows the Resting state. |
+| A file of a withdrawn release is requested | Content route | 404 `{ error: "not_found" }`, as for a release that does not exist, also for a `Range` request and for a conditional request. A book in Loading shows the Resting state. A book in Ready, or one that was started, stays open ("9. Player screens"). |
 | A path matches no route | Player | The shelf at `/`. A path under `/studio/` shows the stories list of the Studio ("9. Player screens", "Unknown path"). |
 | The viewport cannot hold the fixed parts of a screen | Player | The Small screen state: a sign, one line, and on a book route the Home control. The Player keeps the state of the screen ("9. Player screens"). |
 | The silent clip or a sound effect cannot be played | Player | No sound for it, no fault sign, and no retry. The other actions of the tap run ("5. Scene runtime", "Sound-effect unlock"). |
@@ -1268,7 +1326,7 @@ Integration sequences (each asserts both the revisions and `story.heads`):
 | Shelf after a second release | The entry of that story has the new `releaseId` and the new `publishedAt`, and keeps its place. |
 | Shelf on an empty database | 200 with `{ "books": [] }`. |
 | Shelf with a broken pointer | One story whose pointer names no `release` row, one story whose pointer names a release of another story, and one sound story: the response is 200 with the sound story only. One log line for each broken pointer, with no title. |
-| Take-off | A story with releases 1 and 2, and the take-off of release 2: `withdrawn_through` is 2. `GET /api/shelf` has no entry for the story and writes no log line for it. The content route gives 404 for a file of release 1 and for a file of release 2. Every `release` row and every object of the two prefixes is unchanged. |
+| Take-off | A story with releases 1 and 2, and the take-off of release 2: `withdrawn_through` is 2. `GET /api/shelf` has no entry for the story and writes no log line for it. The content route gives 404 for the manifest, a page JSON, an image, and an audio file of release 1 and of release 2, also for a `Range` request and for a request with `If-None-Match`: no 206 and no 304. Every `release` row and every object of the two prefixes is unchanged. |
 | Take-off of a release that is not the published one | The body names release 1 while release 2 is published: 409 `release_moved` with the ID of release 2. `withdrawn_through` is unchanged, and the story is on the shelf. |
 | Publish after a take-off | Release 3 is on the shelf and is served, and the entry of the story has its old place. Releases 1 and 2 still give 404. |
 
@@ -1447,5 +1505,21 @@ checked against the source.
 | 10 | Empty and failed shelf look the same; focus on Home while Waiting; Home during a turn; order tie-break | Gemini | Signs, focus to `main`, controls above the sheet, descending story ID |
 | 11 | A dangling `published_release_id` (no foreign key) | Codex | Story skipped and logged; no draft data |
 | 12 | Privacy wording forbade the cover requests | Codex | Reworded: no personal data, telemetry, or parameters |
+
+Review of the ADR 0017 decisions 17 to 25 (PR #86, 2026-11-20). Codex and
+Gemini; findings merged as a union, each single-reviewer finding checked
+against the source.
+
+| # | Finding | Reviewer | Result |
+| :-- | :-- | :-- | :-- |
+| 1 | A scenario uses a `say` action that the DSL does not have | both | `show_bubble` |
+| 2 | The Studio after a take-off: Done and "Open" on a withdrawn release, no republish, chip on one row only, chip on a draft | both | Off-the-shelf form of the Publish card; chip on every withdrawn row; draft shows "None" |
+| 3 | Long-cached release files stay readable after a take-off | Codex | `manifest.json` is the enforcement point; the limit is stated |
+| 4 | Take-off while a book waits in Ready | Codex | Ready counts as open |
+| 5 | Cover files missing from the shared `manifestFiles` | Codex | The DSL helper lists them; test named |
+| 6 | Content-route scenarios checked only `manifest.json` | Codex | Page JSON, image, `Range`, `If-None-Match` scenarios |
+| 7 | A 0 px picture area does not trigger the Small screen | Gemini | Minimum picture height 64 px; Home zone and sign placement; shelf plates in the check |
+| 8 | Narrow and Short shelf sizes; narration panel height before Ready; silent clip format and audio element mount; selected-layer chip tokens | Gemini | Defined in `DESIGN.md` and "5. Scene runtime" |
+| 9 | `TASTES.md` rules without the exceptions of `DESIGN.md` | Gemini | Qualified |
 
 The end of the book is ADR 0016 decision B ("5. Scene runtime", "End page").

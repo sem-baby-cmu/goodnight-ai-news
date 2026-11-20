@@ -261,7 +261,25 @@ Spec: requirements US-9, AC-20, "Core Features" 4 · design "6. API" (Taking a b
 - Test: spec (to implement)
 
 ### EDT-05.S5 The stories list shows a story that is off the shelf
-- Given a story whose `onShelf` is false in `GET /api/studio/stories`, and a story whose `onShelf` is true
+- Given a story with a published release whose `onShelf` is false in `GET /api/studio/stories`, and a story whose `onShelf` is true
 - When the operator opens the stories list
 - Then the row of the first story has an "Off the shelf" chip, and the row of the second story has none
+- Test: spec (to implement)
+
+### EDT-05.S6 The "Publish" card of a story that is off the shelf offers a new release
+- Given a story with releases 1 and 2 that was taken off the shelf with release 2, where no page blocks
+- When the operator opens the story view
+- Then the "Publish" card shows its Ready form with the primary button "Publish release 3"; it has no "ok" notice of a published release and no "Open" button; no control of the story view opens release 1 or release 2 in the Player
+- Test: spec (to implement)
+
+### EDT-05.S7 A draft with no release shows "None", not "Off the shelf"
+- Given a draft story with no release, whose `onShelf` is false in `GET /api/studio/stories`
+- When the operator opens the stories list
+- Then the Release cell of its row shows "None", and the row has no "Off the shelf" chip
+- Test: spec (to implement)
+
+### EDT-05.S8 A page that blocks still blocks a story that is off the shelf
+- Given a story with releases 1 and 2 that was taken off the shelf with release 2, where one page blocks publishing
+- When the operator opens the story view
+- Then the "Publish" card shows its Blocked form: one "blocked" row for that page, and a disabled primary button; it has no "ok" notice and no "Open" button for a release
 - Test: spec (to implement)

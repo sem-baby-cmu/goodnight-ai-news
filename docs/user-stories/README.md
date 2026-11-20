@@ -16,12 +16,12 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
 | [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
-| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page, take a book off the shelf | 5 | 38 |
-| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, the shelf list, and the take-off | 4 | 43 |
-| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release, on every viewport | 7 | 99 |
+| [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page, take a book off the shelf | 5 | 41 |
+| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, the shelf list, and the take-off | 4 | 47 |
+| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release, on every viewport | 7 | 103 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 16 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 23 |
-| Total | | | 29 | 274 |
+| Total | | | 29 | 285 |
 
 ## Format
 
@@ -69,7 +69,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 126 scenarios are `spec (to implement)`, 137 have an
+Current state: 137 scenarios are `spec (to implement)`, 137 have an
 automated test, 10 are `manual · not run`, and 1 is a recorded manual check.
 
 ## Coverage of the requirements
@@ -97,16 +97,16 @@ automated test, 10 are `manual · not run`, and 1 is a recorded manual check.
 | AC-10 A release has a new prefix and changes no earlier release; a take-off changes no release | PUB-01.S1, PUB-01.S4, PUB-04.S4 |
 | AC-11 A release has copies of its asset versions, with each backdrop | PUB-01.S3, PUB-01.S10, PUB-01.S12 |
 | AC-12 Every scene names a backdrop with a variant for its sky | RUN-03.S15, RUN-03.S16, EDT-03.S23 |
-| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S17 |
+| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S18 |
 | AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2, PLY-03.S5 |
 | AC-15 The Studio is behind Access; the Player, the shelf, and `GET /api/shelf` are public | SYS-03.S1, SYS-03.S2 |
 | AC-16 `GET /api/shelf` lists the latest release of each published story, three fields, newest story first; a story with a broken pointer is not listed, and a story that was taken off the shelf is not listed | PUB-03.S1 to PUB-03.S12, PUB-01.S11, PUB-04.S2 |
 | AC-17 The shelf shows books with a title and a still cover; shelf pages; quiet empty and failed states | PLY-05.S1 to PLY-05.S15, PLY-05.S19 to PLY-05.S24 |
 | AC-18 One Home control on each book screen; the Resting state; "Start" does not wait for audio | PLY-06.S1 to PLY-06.S15, PLY-04.S11, PLY-04.S14, PLY-07.S5, PLY-07.S10 |
 | AC-19 A tappable layer has a hit area of 64 x 64 CSS px or more, cut at the stage edge; a drawn layer wins over a margin | PLY-01.S8 to PLY-01.S14 |
-| AC-20 The operator takes a story off the shelf: not in the shelf list, 404 for every release up to the published one, the resting state for a link, no release changes, no undo, a new release puts it back | PUB-04.S1 to PUB-04.S12, EDT-05.S1 to EDT-05.S5, PLY-06.S16 to PLY-06.S18 |
+| AC-20 The operator takes a story off the shelf: not in the shelf list, 404 for every release up to the published one, the resting state for a link, no release changes, no undo, a new release puts it back | PUB-04.S1 to PUB-04.S16, EDT-05.S1 to EDT-05.S8, PLY-06.S16 to PLY-06.S18, PLY-06.S20 |
 | AC-21 A path that matches no Player route shows the shelf | PLY-06.S19, SYS-03.S3 |
-| AC-22 Every viewport has a layout; the Small screen state where the fixed parts cannot fit | PLY-07.S1 to PLY-07.S10 |
+| AC-22 Every viewport has a layout; the Small screen state where the fixed parts cannot fit | PLY-07.S1 to PLY-07.S12 |
 
 ## Coverage of the design
 
@@ -131,7 +131,7 @@ Integration sequences (`design.md`, "Testing Strategy"):
 | Shelf after a second release | PUB-03.S4 |
 | Shelf on an empty database | PUB-03.S6 |
 | Shelf with a broken pointer | PUB-03.S11, PUB-03.S12 |
-| Take-off | PUB-04.S1, PUB-04.S2, PUB-04.S3, PUB-04.S4 |
+| Take-off | PUB-04.S1, PUB-04.S2, PUB-04.S3, PUB-04.S4, PUB-04.S13 to PUB-04.S16 |
 | Take-off of a release that is not the published one | PUB-04.S6 |
 | Publish after a take-off | PUB-04.S10 |
 
@@ -169,9 +169,9 @@ Error rows (`design.md`, "Error Handling"):
 | The narration of a page cannot be loaded or played after "Start" | PLY-06.S11 |
 | A take-off names a release that is not the published one | PUB-04.S6, EDT-05.S4 |
 | A take-off of a story with no published release | PUB-04.S7 |
-| A file of a withdrawn release is requested | PUB-04.S3, PLY-06.S16, PLY-06.S17 |
+| A file of a withdrawn release is requested | PUB-04.S3, PUB-04.S13 to PUB-04.S16, PLY-06.S16, PLY-06.S17, PLY-06.S18, PLY-06.S20 |
 | A path matches no route | PLY-06.S19, SYS-03.S3 |
-| The viewport cannot hold the fixed parts of a screen | PLY-07.S5, PLY-07.S6, PLY-07.S8, PLY-07.S9, PLY-07.S10 |
+| The viewport cannot hold the fixed parts of a screen | PLY-07.S5, PLY-07.S6, PLY-07.S8, PLY-07.S9, PLY-07.S10, PLY-07.S11, PLY-07.S12 |
 | The silent clip or a sound effect cannot be played | PLY-02.S8, PLY-02.S9 |
 | Error record fields; no full text in logs | SYS-04.S2, SYS-04.S3 |
 
@@ -210,9 +210,9 @@ in ADR 0017, "Decisions (2026-11-19, #78)". Their scenarios:
 | Decision | Scenarios |
 | :-- | :-- |
 | 17 Cover file, only after a failed shelf load check | REG-02.S9, REG-02.S10, PUB-01.S12, PLY-05.S22 to PLY-05.S25 |
-| 18 Low viewports and the Small screen state | PLY-07.S1 to PLY-07.S10 |
+| 18 Low viewports and the Small screen state | PLY-07.S1 to PLY-07.S12, PLY-04.S18 |
 | 19 No friends by the shelf | None; nothing is built |
-| 20 Taking a book off the shelf | PUB-04.S1 to PUB-04.S12, EDT-05.S1 to EDT-05.S5, PLY-06.S16 to PLY-06.S18 |
+| 20 Taking a book off the shelf | PUB-04.S1 to PUB-04.S16, EDT-05.S1 to EDT-05.S8, PLY-06.S16 to PLY-06.S18, PLY-06.S20 |
 | 21 A path that matches no route | PLY-06.S19, SYS-03.S3 |
 | 22 Starting values of the Narrow and the Short layout | None; a rule for the device tests |
 | 23 `clouds` on the `dusk` sky | None; a recorded measurement |

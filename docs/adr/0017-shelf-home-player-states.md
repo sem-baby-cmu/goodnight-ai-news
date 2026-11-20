@@ -325,9 +325,10 @@ is true:
 - There is no timer. A slow load stays in Loading, where Home is present.
 - There is no automatic retry. The address does not change, so a reload
   tries again.
-- After "Start", the Player never changes to Resting. An image that does
-  not load follows the "Late images" rule: the narration and the paper
-  colour show.
+- From Ready on, the Player never changes to Resting: every file that
+  "Start" waits for is loaded (decision 20, "A book that is open stays
+  open"). After "Start", an image that does not load follows the "Late
+  images" rule: the narration and the paper colour show.
 - A narration that cannot be loaded or played after "Start" changes
   nothing on the page: the picture, the text, and the controls stay. The
   Player plays no sound for that page, shows no fault sign, and does not
@@ -530,9 +531,9 @@ They are accepted with this record. The numbers continue the table of
 | # | Item | Decision | Reason |
 | :-- | :-- | :-- | :-- |
 | 17 | Cover method if the shelf load check fails | A cover file of 800 x 400 px for each painted backdrop variant, made by the asset pipeline and copied into each release with its backdrop. Still mode draws it. It is built only after a failed check | It cuts the bytes and the decoded memory of a cover by about 9 times. It needs no publish step, no new R2 path, and no fourth shelf field |
-| 18 | A low Narrow viewport | A viewport under 365 px high uses the Short layout, at every width. Where the fixed parts of a screen still cannot fit, the Player shows the Small screen state: a picture sign, one line, and, for a book, the Home control | 365 px is what the Narrow frame needs, so Narrow cannot fit below it. The Short layout has its controls at the sides. Now every viewport has a defined result |
+| 18 | A low Narrow viewport | A viewport under 365 px high uses the Short layout, at every width. Where the fixed parts of a screen still cannot fit, the Player shows the Small screen state: a picture sign, one line, and, for a book, the Home control. A picture area of 64 px in height is one of the fixed parts of a book screen | 365 px is what the Narrow frame needs, so Narrow cannot fit below it. The Short layout has its controls at the sides. Now every viewport has a defined result |
 | 19 | The friends by the shelf | Out of the MVP. The Proposal is removed from `DESIGN.md` | No requirement needs it. Its only answer to a tap is a text. It needs a second source for a character file |
-| 20 | Taking a book off the shelf | A Studio action sets `story.withdrawn_through` to the number of the published release. The shelf does not list the story. The content route answers 404 for every release up to that number, so a link shows Resting. No release changes. There is no undo; a new release puts the story back | A book that the operator removed must not reach a child by any path. One number that only goes up needs no change to a release |
+| 20 | Taking a book off the shelf | A Studio action sets `story.withdrawn_through` to the number of the published release. The shelf does not list the story. The content route answers 404 for every release up to that number, so a link shows Resting. No release changes. There is no undo; a new release puts the story back | A book that the operator removed must not open in the Player, from the shelf or from a link. A file that a browser cached before the take-off stays in that browser (the limit below). One number that only goes up needs no change to a release |
 | 21 | A path that matches no route | The Player shows the shelf at `/`. `/read/<text>` stays a book route and shows Resting | A path that names no screen has one safe place to go. A link to a book that is not there is a sleeping book |
 | 22 | Narrow and Short shelf layouts without a board | The starting values stay. The device tests confirm or change them | No evidence for other values exists before a device test |
 | 23 | `clouds` on the `dusk` sky | Accepted as it is. No rule and no new file | The cloud is scenery, not a sign. Its colour difference to the `dusk` sky is small but can be seen, and its lightness difference is higher there than on `day` and `cloudy` |
@@ -569,9 +570,20 @@ variant of a painted backdrop:
   its manifest names (design "7. Publish", step 4). The manifest names the
   cover file, so the file is in
   `releases/<releaseId>/assets/<key>/v<n>/`. Publish gets no new step, no
-  new R2 path, and no new column. The list of the files of a manifest
-  (`manifestFiles`, `apps/storybook/worker/publish/publish.ts:26`) reads
-  the new field. The shelf response keeps its three fields.
+  new R2 path, and no new column. The shelf response keeps its three
+  fields.
+- **One list of files.** The files of a manifest come from one shared
+  helper: `manifestFiles` in `packages/dsl/src/registry.ts:67`. Three
+  parts use it: the registry upload and the approval digests
+  (`tools/assets/src/publish.ts`), and the release copy
+  (`apps/storybook/worker/publish/publish.ts:160`). Today it returns only
+  `variants[].file` for a backdrop. It must return each `coverFile` too.
+  Then the upload, the digests, and the release copy all get the cover
+  files, and no part needs a list of its own. A helper in the Worker
+  alone would leave the cover files out of the upload and out of the
+  approval record. The test is `manifestFiles returns the cover files of
+  a backdrop`, in `packages/dsl/src/registry.test.ts`. REG-02.S10 and
+  PUB-01.S12 check the two ends.
 - **How the Player finds it.** A release page holds a copy of the asset
   manifest of each asset that it uses (`ReleasePage.assets`, design
   "Release layout (R2)"). So the page 1 JSON, which a cover loads already,
@@ -636,6 +648,17 @@ The layout rule of `DESIGN.md` section 12.3 gets one more clause:
 - A shelf page of the Narrow or the Short layout has one book less, down
   to 1, while its books do not fit at 128 px wide. At 568 x 320 it has 2
   books.
+- The shelf of these two layouts has no Paper frame part. Its arrows
+  stand on the ground, in a row at the bottom (Narrow) or in a zone at
+  each side (Short). So the name "Lullabyte" never lies partly on Paper.
+  The sizes of the sides, the boards, and the margins are starting values
+  in `DESIGN.md` section 12.1. At 568 x 320 the name band, one board, and
+  a book of 147 x 183 px need 319 px of the 320 px (arithmetic).
+- The Player measures the height of the narration panel. Before a book
+  is loaded it uses a fixed reference text of 40 words, and before Ready
+  it uses the page texts of the book (`DESIGN.md` section 12.3;
+  implementation decision). So the panel does not change at "Start", no
+  legal page is cut, and the Small screen test can run in Loading.
 
 Some viewports still cannot hold the fixed parts of a screen: for example
 320 x 400 (the Narrow frame needs 414 px at that width) and 400 x 300
@@ -644,13 +667,22 @@ the requirements has such a viewport in a browser; a small window on a
 desktop can. For these the Player has one state:
 
 - **When.** The viewport cannot hold the fixed parts of the screen of the
-  route, uncut. For a book screen they are the frame parts and the
-  narration panel. For the shelf they are the name, one board with one
-  book of 128 x 159 px, and the arrows. The test uses the sizes of the
-  layout. It runs when the screen is shown and after each resize.
+  route, uncut. For a book screen they are the frame parts, the
+  narration panel, and a picture area of 64 px in height. For the shelf
+  they are the name band, one board with one book of 128 x 159 px, the
+  arrows, and, in Waiting, Empty, and Failed, the plate of that state.
+  The test uses the sizes of the layout and the measured panel height.
+  It runs when the screen is shown, after each resize, when the panel
+  height of a book is set, and when the state of the shelf changes (for
+  example from Waiting to Failed), because the plates differ in height.
 - **What it shows.** Paper, a sign that the Player draws (a book in a
   frame, with four arrows that point outward), and the line "This screen
-  is too small for the book."
+  is too small for the book." The sign is a drawing and not a control.
+  The sign and the line stand in the free area beside or below Home, so
+  they never lie over it (`DESIGN.md` section 12.6). A like sign is the
+  "full screen" button of a video player, so a child can take it for a
+  button. That was not tested with children (`DESIGN.md` section 16,
+  open item 14).
 - **Home.** On a book route the state has one control, the Home round
   button, so decision 8 holds: every screen of a book has exactly one
   Home control. Home stops the narration and shows the shelf. On the
@@ -665,12 +697,23 @@ desktop can. For these the Player has one state:
   on to its end, or until Home.
 - **No part is cut.** If the viewport cannot hold the parts of the state
   itself, the line is left out first, and then the sign. Home is shown
-  while the viewport has 64 x 64 CSS px.
+  while the viewport has 64 x 64 CSS px. It keeps its 16 px offsets while
+  the viewport has 80 x 80 CSS px. In a smaller viewport the offsets get
+  smaller, down to 0.
 - **How it ends.** When the viewport can hold the fixed parts again, the
   screen shows as it was. There is no time limit and no request.
-- A fitting layout with a small picture is not a Small screen. At
-  320 x 480 the Narrow layout fits with a picture area of 66 px, and it
-  stays: the story is still heard and read.
+- **The smallest picture.** The picture area of a book screen is at least
+  64 px high, and that height is one of the fixed parts. 64 px is the
+  height of one hit area of a tappable layer (decision 10), and every
+  page has a tap. Without this rule, a viewport of 500 x 365 has the
+  Narrow layout with a picture of 0 px: the top bar, the control row,
+  and the lowest panel take the whole 365 px. So a Narrow viewport from
+  365 to 428 px high shows the Small screen state. The layout rule keeps
+  its 365 px.
+- A fitting layout with a picture of 64 px or more is not a Small screen.
+  At 320 x 480 the Narrow layout fits with a picture area of 66 px by
+  the estimate, and it stays: the story is still heard and read. That is
+  2 px over the limit, so the renderer test decides at that size.
 
 ### No friends by the shelf (decision 19)
 
@@ -748,13 +791,30 @@ no list of the links that adults keep.
   `manifest.json` with the fetch cache mode `no-cache`, for a cover and
   for a book. That request reaches the content route each time. The cache
   header of the content route does not change (PUB-01.S8). The content
-  route makes the withdrawn check before it reads the object and before
-  any conditional answer (304), and its 404 has `Cache-Control: no-store`.
-  Today the route gives no 304 (`apps/storybook/worker/publish/serve.ts`). The fetch
-  standard defines the mode; it is not yet tested in Safari (PLY-06.S17).
-- A book that is open after "Start" stays open. A file that then gives
-  404 follows the "Late images" rule and the "Narration that fails" rule.
-  This limit is accepted: every page text was loaded before "Start".
+  route makes the withdrawn check before it reads the object, and before
+  any conditional answer (304) and any range answer (206). Its 404 has
+  `Cache-Control: no-store`. That holds for every file of the prefix: the
+  manifest, a page JSON, an image, and an audio file (PUB-04.S13 to
+  PUB-04.S16). Today the route gives 206 for a `Range` request and no 304
+  (`apps/storybook/worker/publish/serve.ts`). The fetch standard defines
+  the mode; it is not yet tested in Safari (PLY-06.S17).
+- **The enforcement point is `manifest.json`.** A book and a cover request
+  no other file before their manifest is loaded. Every other release
+  file keeps the immutable cache header and the default cache mode.
+- **The limit.** A file that a browser cached before the take-off stays in
+  that browser. The browser can show it and sends no request, so the
+  content route cannot answer 404 for it. A withdrawn book is not
+  reachable through the Player: the shelf does not list it, and
+  `/read/<id>` shows Resting. The address of a cached file can still load
+  in that browser. This limit is accepted, and the cache header stays.
+- **A book that is open stays open.** A book is open from Ready on: its
+  manifest, every page JSON, and its first-page files are loaded. A
+  take-off after that does not close it, before "Start" and after it. In
+  Ready, a tap on "Start" starts the book (PLY-06.S20). A file that then
+  gives 404 follows the "Late images" rule and the "Narration that fails"
+  rule. This limit is accepted: every page text was loaded before Ready.
+  A book in Loading is not open: a request that fails there gives
+  Resting.
 - A shelf that is open still shows the book until its next load. A tap on
   it shows Resting.
 
@@ -764,6 +824,17 @@ the result. A withdrawn release has an "Off the shelf" chip and no "Open"
 button. `GET /api/studio/stories` gives `onShelf` for each story, and
 `GET /api/studio/stories/:id` gives `onShelf` and `withdrawn` for each
 release. The look is in `DESIGN.md` section 13.
+
+- After a take-off, every release with a number up to `withdrawnThrough`
+  has the "Off the shelf" chip and no button: the published release and
+  every earlier one.
+- The "Publish" card of a story that is off the shelf has no "done" state
+  and no "Open" button, because the Player would show Resting. It shows
+  "Publish release <n+1>" when no page blocks, and the blocking pages
+  when one blocks. Publish needs no change of a page.
+- `onShelf` is false for a story with no release. The "Off the shelf"
+  chip needs a release and `onShelf: false`. A draft with no release
+  shows "None" (EDT-05.S7).
 
 **The way back.** There is no undo. The operator publishes again. Publish
 is as before: the new release has the next number, which is above
@@ -837,13 +908,19 @@ backdrop needs a new record with that number (ADR 0016, decision A).
 ### Unlock of the sound-effect element (decision 25)
 
 - The Player has two audio elements for a book: one for the narration and
-  one for sound effects.
+  one for sound effects. Both are made one time for the book route. They
+  are mounted above the switch between the Start gate, the reading page,
+  the end page, and the Small screen state. No change of screen makes an
+  element again: a new element is locked again.
 - The handler of the "Start" tap sets the narration `src` of page 1 and
   calls `play()`. Then, in the same handler, it sets a silent clip as the
   `src` of the sound-effect element and calls `play()` on it.
 - The silent clip is part of the app: 0.1 s or less, with no sound. It is
   not a release file, and no request is sent for it (implementation
-  decision: a `data:` URL in the bundle).
+  decision: a `data:` URL in the bundle). Its format is a WAV file with
+  PCM audio, 1 channel, and 1 sample or more, every sample at the zero
+  level. Safari plays PCM in a WAV file. A clip with no sample has
+  nothing to play, so it is not used.
 - If that `play()` is rejected, the Player handles the error and shows
   nothing. A later sound effect that cannot play is quiet in the same
   way.
@@ -859,13 +936,15 @@ backdrop needs a new record with that number (ADR 0016, decision A).
   and `withdrawn` in the two Studio story routes.
 - `apps/storybook/src/player`: the route fallback to `/`; the Small
   screen state; the `no-cache` request for the manifest; the silent clip
-  at "Start"; the Short layout under 640 px wide.
+  at "Start"; the Short layout under 640 px wide; the measured panel
+  height; the two audio elements above the screen switch.
 - `apps/storybook/src/studio`: the take-off button, its dialog, and the
-  "Off the shelf" chip; the fallback to `/studio`.
+  "Off the shelf" chip; the off-the-shelf form of the "Publish" card; the
+  fallback to `/studio`.
 - Only after a failed shelf load check: `tools/assets` (the cover files),
   `packages/dsl` (`coverFile` in the backdrop manifest),
   `packages/scene-runtime` (still mode draws it), and `manifestFiles` in
-  publish.
+  `packages/dsl` (it lists the cover files).
 - Requirements: one user story and three acceptance criteria, at the end
   of their lists.
 

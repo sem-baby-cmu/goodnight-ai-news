@@ -116,7 +116,7 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" (Audio,
 ### PLY-02.S3 Sound effects use a second shared element
 - Given a book that was started
 - When a tap runs a `play_sfx` action
-- Then the sound plays on a second shared audio element, the one that "Start" unlocked with the silent clip (PLY-02.S7); the narration element keeps its `src` and goes on
+- Then the sound plays on a second shared audio element, the one that "Start" unlocked with the silent clip (PLY-02.S7); it is the same DOM element as on the Start gate, and the narration element is too; the narration element keeps its `src` and goes on
 - Test: spec (to implement)
 
 ### PLY-02.S4 The narration text is below the stage
@@ -140,7 +140,7 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" (Audio,
 ### PLY-02.S7 "Start" plays a silent clip on the sound-effect element
 - Given a release open in the Player, in the Ready state
 - When the child taps "Start"
-- Then the handler of that tap calls `play()` on the narration element with the narration of page 1, and then `play()` on the sound-effect element with the silent clip of the app, both before it returns; no request is sent for the clip
+- Then the handler of that tap calls `play()` on the narration element with the narration of page 1, and then `play()` on the sound-effect element with the silent clip of the app, both before it returns; the clip is a `data:audio/wav` URL of a PCM WAV file with 1 sample or more, and no request is sent for it
 - Test: spec (to implement)
 
 ### PLY-02.S8 A silent clip that cannot play shows nothing
@@ -150,9 +150,9 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" (Audio,
 - Test: spec (to implement)
 
 ### PLY-02.S9 A sound effect that cannot play is quiet
-- Given a book that was started, and a tap with a `play_sfx` action and a `say` action, where the `sfx` file gives 404
+- Given a book that was started, and a tap with a `play_sfx` action and a `show_bubble` action (`target`: a layer of the page, `text`: "Hello!"), where the `sfx` file gives 404
 - When the child taps the layer
-- Then the bubble of the `say` action shows; there is no sound effect, no fault sign, no thrown error, and no second try; the narration goes on
+- Then the bubble of the `show_bubble` action shows "Hello!" at its target layer; there is no sound effect, no fault sign, no thrown error, and no second try; the narration goes on
 - Test: spec (to implement)
 
 ## PLY-03 The story runs on phones and tablets
@@ -293,13 +293,19 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 ### PLY-04.S16 The picture keeps its size and its place at "Start"
 - Given the Narrow layout at 390 x 844, and the Start gate in Ready
 - When the child taps "Start"
-- Then the picture area has the same size and the same place before and after the tap; the top bar and the control row had their full height in Loading and in Ready
+- Then the picture area has the same size and the same place before and after the tap, and the narration panel has the same height; the top bar and the control row had their full height in Loading and in Ready
 - Test: spec (to implement)
 
 ### PLY-04.S17 The Start gate fits its panel in every layout
 - Given the viewports 900 x 600 (Wide), 844 x 600 and 375 x 553 (Narrow), and 667 x 375 (Short), and a book with a title of 2 lines
 - When the Start gate is shown in Loading, in Ready, and in the Resting state
 - Then the text and the button of each state are inside the narration panel; nothing is cut, nothing lies over another part, and nothing scrolls
+- Test: spec (to implement)
+
+### PLY-04.S18 The panel has the height of the longest page before Ready
+- Given the Narrow layout at 390 x 844, and a book with one legal page of 40 words whose text needs more lines than the reference text of the Player
+- When the Start gate changes from Loading to Ready
+- Then the narration panel has the height of that page in Ready, on every page, and on the end page; the whole text of that page shows, nothing is cut, and nothing scrolls; the picture area has the same size from Ready on
 - Test: spec (to implement)
 
 ## PLY-05 A child picks a book from the shelf
@@ -565,7 +571,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 ### PLY-06.S17 A withdrawn book that the browser holds shows the Resting state
 - Given a browser that read release `R` before, so that its HTTP cache holds the files of `R`; the story was then taken off the shelf
 - When a child opens `/read/R`
-- Then the Player requests `manifest.json` with the fetch cache mode `no-cache`, the content route answers 404, and the Player shows the Resting state
+- Then the Player requests `manifest.json` first, with the fetch cache mode `no-cache`; the content route answers 404, and the Player shows the Resting state; it requests and shows no other file of `R`
 - Test: spec (to implement)
 
 ### PLY-06.S18 A book that is open stays open after a take-off
@@ -578,6 +584,12 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given the paths `/abc`, `/read`, and `/read/<a release ID>/more`
 - When a child opens each of them
 - Then the Player shows the shelf each time; the address is `/`, and the history has no new entry for it
+- Test: spec (to implement)
+
+### PLY-06.S20 A book in Ready stays open after a take-off
+- Given a release open in the Player, in the Ready state; the story is then taken off the shelf, so that the narration file of page 1 gives 404
+- When the child taps "Start"
+- Then page 1 shows with its text, its picture, and its controls, and no sound; the Player sends no new request for `manifest.json`, and it does not show the Resting state
 - Test: spec (to implement)
 
 ## PLY-07 Every viewport has a layout
@@ -596,7 +608,7 @@ Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene
 ### PLY-07.S2 A 40-word page fits at 568 x 320
 - Given a reading page with a 40-word text in a viewport of 568 x 320
 - When the page is shown
-- Then the whole text shows at 18 px or more, nothing scrolls, no frame part lies over the picture area, and the picture area has a height above 0
+- Then the whole text shows at 18 px or more, nothing scrolls, no frame part lies over the picture area, and the picture area is 64 CSS px high or more
 - Test: spec (to implement)
 
 ### PLY-07.S3 The Start gate of a Short viewport under 640 px wide is a stack
@@ -608,13 +620,13 @@ Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene
 ### PLY-07.S4 The shelf at 568 x 320 has 2 books
 - Given a shelf response with 6 books, in a viewport of 568 x 320
 - When the shelf is shown
-- Then the shelf page has 2 books on 1 board, each 128 CSS px wide or more; the arrows are shown, and nothing scrolls
+- Then the shelf page has 2 books on 1 board, each 128 CSS px wide or more; the arrows are shown, and nothing scrolls; the name "Lullabyte" is whole and lies on the ground, and the shelf screen has no Paper rail
 - Test: spec (to implement)
 
 ### PLY-07.S5 A viewport that cannot hold the frame shows the Small screen state
 - Given a release in a viewport of 400 x 300
 - When a child opens `/read/<releaseId>`
-- Then the Player shows the Small screen state: the paper colour, the sign of a book in a frame with four arrows that point outward, and the line "This screen is too small for the book."; it has exactly one control, the Home round button, and it starts no sound; no part of the book frame is drawn
+- Then the Player shows the Small screen state: the paper colour, the sign of a book in a frame with four arrows that point outward, and the line "This screen is too small for the book."; it has exactly one control, the Home round button, and it starts no sound; Home is whole, 16 CSS px from the top and from the left; the sign and the line stand right of Home and do not lie over it, and the sign takes no tap and no focus; no part of the book frame is drawn
 - Test: spec (to implement)
 
 ### PLY-07.S6 The Small screen state keeps the page and the narration
@@ -624,9 +636,9 @@ Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene
 - Test: spec (to implement)
 
 ### PLY-07.S7 A small picture is not a Small screen
-- Given a reading page with a 40-word text in a viewport of 320 x 480
+- Given a reading page with the 40-word reference text of the Player in a viewport of 320 x 480
 - When the page is shown
-- Then the Narrow layout shows with the whole text and every frame control; the Small screen state is not shown
+- Then the Narrow layout shows with the whole text and every frame control; the picture area is 64 CSS px high or more, and the Small screen state is not shown
 - Test: spec (to implement)
 
 ### PLY-07.S8 The shelf shows the Small screen state
@@ -645,4 +657,16 @@ Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene
 - Given a book on page 3 with its narration playing, in a viewport of 400 x 300, so that the Small screen state shows
 - When the child taps Home
 - Then the narration stops, and the Player shows `/`
+- Test: spec (to implement)
+
+### PLY-07.S11 A picture area under 64 CSS px shows the Small screen state
+- Given a release in a viewport of 500 x 365, where the top bar, the control row, and the narration panel of the Narrow layout take the whole height
+- When a child opens `/read/<releaseId>`
+- Then the Player shows the Small screen state with the Home round button; the Narrow layout is not drawn with a picture area under 64 CSS px
+- Test: spec (to implement)
+
+### PLY-07.S12 A shelf plate that does not fit shows the Small screen state
+- Given `GET /api/shelf` answers 500, in a viewport of 320 x 400, which cannot hold the plate of the Failed state uncut between the name band and the arrow row
+- When a child opens `/`
+- Then the Player shows the Small screen state with no control, and no part of the plate is drawn; when the viewport changes to 390 x 844, the shelf shows the plate with its "Look again" button
 - Test: spec (to implement)
