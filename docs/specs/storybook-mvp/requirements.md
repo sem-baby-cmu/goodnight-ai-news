@@ -25,7 +25,7 @@ child can look at, listen to, and touch.
 | Story script, page scenes, narration audio | Word-level highlighting |
 | Layered, animated, tappable pages | Full-page AI illustrations |
 | Character registry with all 13 Producer characters | Content safety and copyright policy |
-| Studio: edit, regenerate one page target, publish | User accounts and roles |
+| Studio: edit, regenerate one page target, publish, take a book off the shelf | User accounts and roles |
 | Player: a shelf of the published books; read a published release | Offline mode, PWA, video or EPUB export |
 
 ## Core Features
@@ -44,12 +44,14 @@ child can look at, listen to, and touch.
 4. **Studio.** Shows run progress and every page. The operator can change the
    narration, the layout template, the backdrop, the characters, their pose
    and expression, props, animations, and taps. The operator can regenerate one page scene or
-   one page audio. The operator publishes a draft.
+   one page audio. The operator publishes a draft. The operator can take a
+   published story off the shelf (ADR 0017, decision 20).
 5. **Player.** Reads one immutable release. Shows pages with animation, plays
    narration, and responds to taps. The narration is below the picture, a
    page turns like paper, and the last page turns to an end page (ADR 0016).
 6. **Shelf.** The home of the Player is a shelf. It shows one book for each
-   published story: the latest release, with its title and a cover. The
+   published story that was not taken off the shelf: the latest release,
+   with its title and a cover. The
    cover is the picture of page 1. A child picks a book, and a Home control
    on every screen of a book goes back to the shelf (ADR 0017).
 
@@ -71,6 +73,8 @@ child can look at, listen to, and touch.
   that new stories use it and old releases stay the same.
 - As a child, I want to pick a book from a shelf, so that I can choose my
   story without help.
+- As the operator, I want to take a book off the shelf, so that a child can
+  no longer open a story that should not be read.
 
 ## Acceptance Criteria
 
@@ -102,7 +106,8 @@ child can look at, listen to, and touch.
       can mark a stale scene as "still fits", which makes it current.
 - [ ] Publishing writes a release under a new R2 prefix and changes no earlier
       release. The Player of release 1 shows the same content after release 2
-      is published.
+      is published. A take-off (below) changes no release either; it only
+      stops the serving of it.
 - [ ] A published release contains copies of the asset versions it uses,
       including the backdrop of each page.
 - [ ] Every page scene names a backdrop that has a variant for the page's sky
@@ -119,7 +124,8 @@ child can look at, listen to, and touch.
 - [ ] `GET /api/shelf` is read-only. It lists one book for each story that
       has a release: the `releaseId` of its latest release, its `title`,
       and its publish time, and no other field. A story with no release is
-      not in the list. The newest story is first, and a new release of a
+      not in the list, and a story that was taken off the shelf is not in
+      it. The newest story is first, and a new release of a
       story does not move its book. A story whose pointer names no
       release of that story is not in the list either, and the route
       logs it. The route never reads draft data.
@@ -137,6 +143,17 @@ child can look at, listen to, and touch.
       CSS px or more. The hit area is cut at the stage edge and is never
       moved, so a small layer at the edge has less. A drawn layer wins
       over the added margin of another layer.
+- [ ] The operator can take a published story off the shelf. After that,
+      `GET /api/shelf` does not list the story, and the content route
+      answers 404 for every release of the story up to the published one,
+      so a link to such a release shows the resting state. No release file
+      and no `release` row changes. There is no undo: a new release puts
+      the story back on the shelf, and the earlier releases stay off.
+- [ ] A path that matches no Player route shows the shelf.
+- [ ] Every viewport has a layout. Where the fixed parts of a screen cannot
+      fit the viewport, the Player shows a picture sign and one line (the
+      Small screen state), with the Home control on a book route, and the
+      screen comes back when the viewport is large enough.
 
 ## Non-functional Requirements
 
@@ -158,8 +175,9 @@ child can look at, listen to, and touch.
   connection. This shelf load check is a gate: it is measured before the
   shelf goes public, in the Wide layout with 6 drawn covers, and on a
   real phone in portrait and in landscape. If it fails, the shelf does not
-  go public, and the cover method is a new decision (ADR 0017, "Still
-  open"). No other cover method is defined or built now.
+  go public, the asset pipeline makes a cover file of 800 x 400 px for
+  each painted backdrop variant, and the check runs again (ADR 0017,
+  decision 17). The cover files are not built before a failed check.
 - **Assets.** SVG is the target format for characters and props. A transparent
   WebP is allowed while an SVG version is not ready. The renderer supports
   both. A painted backdrop is a WebP of 2400 x 1200 px; the code-made backdrop

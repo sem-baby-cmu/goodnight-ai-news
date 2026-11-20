@@ -228,3 +228,40 @@ Spec: requirements AC-8 · design "3. Calls, revisions, and heads", "Error Handl
 - When `scene:<page 3>` commits
 - Then the scene revision is kept with `status = superseded`; the head does not move; the Studio shows page 3 as missing a current scene, and the operator can regenerate it
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
+
+## EDT-05 Take a book off the shelf from the Studio
+
+As the operator, I want to take a book off the shelf from the story view, so
+that I can remove a story fast and see that it is gone.
+
+Spec: requirements US-9, AC-20, "Core Features" 4 · design "6. API" (Taking a book off the shelf) · ADR 0017 "Taking a book off the shelf (decision 20)"
+
+### EDT-05.S1 The release on the shelf has a take-off button
+- Given a story with releases 1 and 2, where release 2 is the published release and `withdrawn_through` is 0
+- When the operator opens the story view
+- Then the "Releases" card has a "Take off the shelf" button on the row of release 2 only; the row of release 1 has an "Open" button and no take-off button
+- Test: spec (to implement)
+
+### EDT-05.S2 The take-off asks first
+- Given the story view of EDT-05.S1
+- When the operator activates "Take off the shelf"
+- Then a dialog names the result: the book leaves the shelf, the links to its releases show the sleeping book, and there is no undo; no request is sent yet, and closing the dialog changes nothing
+- Test: spec (to implement)
+
+### EDT-05.S3 A confirmed take-off shows the releases as off the shelf
+- Given the dialog of EDT-05.S2
+- When the operator confirms
+- Then the Studio sends `POST /api/studio/stories/:id/withdrawal` with the ID of release 2; after the 200 answer, the rows of release 1 and of release 2 have an "Off the shelf" chip, no "Open" button, and no take-off button
+- Test: spec (to implement)
+
+### EDT-05.S4 A refused take-off changes nothing in the view
+- Given the dialog of EDT-05.S2, and a release 3 that was published after the operator opened the story view
+- When the operator confirms, and the API answers 409 `release_moved`
+- Then the Studio shows a notice that another release was published and that nothing was changed; no row gets an "Off the shelf" chip
+- Test: spec (to implement)
+
+### EDT-05.S5 The stories list shows a story that is off the shelf
+- Given a story whose `onShelf` is false in `GET /api/studio/stories`, and a story whose `onShelf` is true
+- When the operator opens the stories list
+- Then the row of the first story has an "Off the shelf" chip, and the row of the second story has none
+- Test: spec (to implement)

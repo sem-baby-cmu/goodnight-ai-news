@@ -99,10 +99,10 @@ Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", 
 As a child, I want to hear each page read aloud, so that I can follow the
 story without reading.
 
-Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" · ADR 0017 "Progress pill in the Wide layout"
+Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" (Audio, Sound-effect unlock) · ADR 0017 "Progress pill in the Wide layout", "Unlock of the sound-effect element (decision 25)"
 
 ### PLY-02.S1 "Start" unlocks the audio
-- Given a release open in the Player, with one `<audio>` element for the whole book
+- Given a release open in the Player, with one `<audio>` element for the narration of the whole book
 - When the child taps "Start"
 - Then that tap unlocks the element, and the narration of the first page starts
 - Test: spec (to implement)
@@ -116,7 +116,7 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" · ADR 
 ### PLY-02.S3 Sound effects use a second shared element
 - Given a book that was started
 - When a tap runs a `play_sfx` action
-- Then the sound plays on a second shared audio element, which is unlocked in the same way
+- Then the sound plays on a second shared audio element, the one that "Start" unlocked with the silent clip (PLY-02.S7); the narration element keeps its `src` and goes on
 - Test: spec (to implement)
 
 ### PLY-02.S4 The narration text is below the stage
@@ -135,6 +135,24 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" · ADR 
 - Given the Wide layout at 900 x 600, and a reading page with a 40-word text
 - When the page is shown
 - Then Home, "previous", "next", and the progress pill are in the gutters, no two of them are less than 12 CSS px apart, and none lies over the picture
+- Test: spec (to implement)
+
+### PLY-02.S7 "Start" plays a silent clip on the sound-effect element
+- Given a release open in the Player, in the Ready state
+- When the child taps "Start"
+- Then the handler of that tap calls `play()` on the narration element with the narration of page 1, and then `play()` on the sound-effect element with the silent clip of the app, both before it returns; no request is sent for the clip
+- Test: spec (to implement)
+
+### PLY-02.S8 A silent clip that cannot play shows nothing
+- Given a browser that rejects the `play()` of the silent clip
+- When the child taps "Start"
+- Then the narration of page 1 starts, and the reading page shows; there is no fault sign, no thrown error, and no second try
+- Test: spec (to implement)
+
+### PLY-02.S9 A sound effect that cannot play is quiet
+- Given a book that was started, and a tap with a `play_sfx` action and a `say` action, where the `sfx` file gives 404
+- When the child taps the layer
+- Then the bubble of the `say` action shows; there is no sound effect, no fault sign, no thrown error, and no second try; the narration goes on
 - Test: spec (to implement)
 
 ## PLY-03 The story runs on phones and tablets
@@ -167,6 +185,12 @@ Spec: requirements AC-14, "Non-functional Requirements" · design "Testing Strat
 - Given a page of a published release, on a throttled 4G profile
 - When the page loads
 - Then its assets load in 2 s or less
+- Test: manual · not run
+
+### PLY-03.S5 A sound effect plays after "Start" on an iPad and an iPhone
+- Given a published release whose page 1 has a tap with a `play_sfx` action, on a real iPad and a real iPhone in Safari
+- When a person taps "Start" and then taps that layer while the narration plays
+- Then the sound effect is heard, and the narration goes on; the record names each device and its iOS version
 - Test: manual · not run
 
 ## PLY-04 A page turns like a page of a book
@@ -283,7 +307,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 As a child, I want to pick a book from a shelf, so that I can choose my
 story without help. (Owner decision 2026-11-19, ADR 0017.)
 
-Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" (Shelf, Cover, Shelf load check), "5. Scene runtime" (Still mode, Fit), "6. API" (Shelf) · ADR 0017 "Cover", "The shelf screen"
+Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" (Shelf, Cover, Shelf load check), "5. Scene runtime" (Still mode, Fit), "6. API" (Shelf), "8. Asset pipeline" (Cover files) · ADR 0017 "Cover", "The shelf screen", "Cover file (decision 17)"
 
 ### PLY-05.S1 The shelf is the home of the Player
 - Given two published stories
@@ -396,7 +420,7 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 ### PLY-05.S19 A cover loads only the files of its picture
 - Given a book whose page 1 has a tap interaction with a `set_pose` action and a `play_sfx` action, and a narration
 - When its cover is loaded
-- Then the Player requests the manifest, the page 1 JSON, the backdrop variant, and the file of the starting pose and expression of each layer; it requests no other page JSON, no audio file, no `sfx` file, and no file of the other pose
+- Then the Player requests the manifest, the page 1 JSON, the backdrop variant (or its cover file, PLY-05.S22), and the file of the starting pose and expression of each layer; it requests no other page JSON, no audio file, no `sfx` file, and no file of the other pose
 - Test: spec (to implement)
 
 ### PLY-05.S20 A cover fills its window and is cut at the sides
@@ -411,12 +435,36 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 - Then the name and 2 boards of 3 books are inside the viewport and nothing scrolls; each book has its title plate above its picture window, and no part of the plate lies over the window
 - Test: spec (to implement)
 
+### PLY-05.S22 A cover draws the cover file of its backdrop
+- Given a release whose page 1 JSON holds, in `assets`, a backdrop manifest that names a `coverFile` for the variant of page 1
+- When the cover of the book is loaded on the shelf
+- Then the Player requests that cover file and draws it as the backdrop; it does not request the `file` of the variant, and it requests no asset manifest
+- Test: spec (to implement)
+
+### PLY-05.S23 A cover with no cover file draws the full-size backdrop
+- Given a release whose page 1 JSON holds a backdrop manifest that names no `coverFile`
+- When the cover of the book is loaded on the shelf
+- Then the Player requests the `file` of the variant and draws it, as before
+- Test: spec (to implement)
+
+### PLY-05.S24 A book draws the full-size backdrop
+- Given the release of PLY-05.S22
+- When a child opens the book, and the Start gate loads
+- Then the Player requests the `file` of the variant for page 1, and the picture of the Start gate and of the reading page uses it, not the cover file
+- Test: spec (to implement)
+
+### PLY-05.S25 After a failed shelf load check, the check runs again with cover files
+- Given a record in which PLY-05.S16, PLY-05.S17, or PLY-05.S18 failed; and 6 books that were published again, each with a painted backdrop version that has cover files
+- When the three checks run again
+- Then each time is 2 s or less; the record has both runs, with the time, the number of requests, and the bytes of each; if a check fails again, the shelf does not go public
+- Test: manual · not run
+
 ## PLY-06 A way back to the shelf from every screen of a book
 
 As a child, I want a way back to the shelf from every screen of a book, so
 that I am never stuck. (Derived from AC-18, ADR 0017.)
 
-Spec: requirements AC-18 · design "9. Player screens" (Home, Resting), "5. Scene runtime" (Loading, Narration that fails, Frame parts, End page, Late images), "Error Handling"
+Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Resting, A book that was taken off the shelf, Unknown path), "5. Scene runtime" (Loading, Narration that fails, Frame parts, End page, Late images), "Error Handling"
 
 ### PLY-06.S1 Each screen of a book has one Home control
 - Given a published release open in the Player
@@ -506,4 +554,95 @@ Spec: requirements AC-18 · design "9. Player screens" (Home, Resting), "5. Scen
 - Given a book on page 3, with the keyboard focus on Home
 - When the user activates Home
 - Then the focus is on the shelf itself (`main`, `tabindex="-1"`) at once, while the shelf is in its waiting state; the focus does not move when the books arrive, and the next Tab goes to the first book
+- Test: spec (to implement)
+
+### PLY-06.S16 A release that was taken off the shelf shows the Resting state
+- Given a release `R` of a story that was taken off the shelf, so that `GET /content/releases/R/manifest.json` gives 404
+- When a child opens `/read/R`
+- Then the Player shows the Resting state of PLY-06.S5; no page text, no picture, and no sound of the book is shown or played
+- Test: spec (to implement)
+
+### PLY-06.S17 A withdrawn book that the browser holds shows the Resting state
+- Given a browser that read release `R` before, so that its HTTP cache holds the files of `R`; the story was then taken off the shelf
+- When a child opens `/read/R`
+- Then the Player requests `manifest.json` with the fetch cache mode `no-cache`, the content route answers 404, and the Player shows the Resting state
+- Test: spec (to implement)
+
+### PLY-06.S18 A book that is open stays open after a take-off
+- Given a book that was started, on page 2; the story is then taken off the shelf, so that the narration file of page 3 gives 404
+- When the child turns to page 3
+- Then page 3 shows with its text and its controls and no sound; the Player does not show the Resting state
+- Test: spec (to implement)
+
+### PLY-06.S19 A path that matches no route shows the shelf
+- Given the paths `/abc`, `/read`, and `/read/<a release ID>/more`
+- When a child opens each of them
+- Then the Player shows the shelf each time; the address is `/`, and the history has no new entry for it
+- Test: spec (to implement)
+
+## PLY-07 Every viewport has a layout
+
+As a child, I want the book to fit the screen that I hold, so that no
+control and no text is cut. (Derived from AC-22, ADR 0017 decision 18.)
+
+Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene runtime" (Frame parts) · ADR 0017 "Low viewports and the Small screen state (decision 18)"
+
+### PLY-07.S1 A viewport under 365 px high uses the Short layout
+- Given a reading page in a viewport of 568 x 320
+- When the page is shown
+- Then the layout is Short: a control rail at each side, no top bar, and no control row; Home, "previous", "next", and the progress pill are whole and inside the viewport
+- Test: spec (to implement)
+
+### PLY-07.S2 A 40-word page fits at 568 x 320
+- Given a reading page with a 40-word text in a viewport of 568 x 320
+- When the page is shown
+- Then the whole text shows at 18 px or more, nothing scrolls, no frame part lies over the picture area, and the picture area has a height above 0
+- Test: spec (to implement)
+
+### PLY-07.S3 The Start gate of a Short viewport under 640 px wide is a stack
+- Given a release in the Ready state in a viewport of 568 x 320
+- When the Start gate is shown
+- Then the title stands above the Start button; both are whole and inside the panel, and the Home round button is whole
+- Test: spec (to implement)
+
+### PLY-07.S4 The shelf at 568 x 320 has 2 books
+- Given a shelf response with 6 books, in a viewport of 568 x 320
+- When the shelf is shown
+- Then the shelf page has 2 books on 1 board, each 128 CSS px wide or more; the arrows are shown, and nothing scrolls
+- Test: spec (to implement)
+
+### PLY-07.S5 A viewport that cannot hold the frame shows the Small screen state
+- Given a release in a viewport of 400 x 300
+- When a child opens `/read/<releaseId>`
+- Then the Player shows the Small screen state: the paper colour, the sign of a book in a frame with four arrows that point outward, and the line "This screen is too small for the book."; it has exactly one control, the Home round button, and it starts no sound; no part of the book frame is drawn
+- Test: spec (to implement)
+
+### PLY-07.S6 The Small screen state keeps the page and the narration
+- Given a book on page 3 in a viewport of 667 x 375, with its narration playing
+- When the viewport changes to 400 x 300, and then back to 667 x 375
+- Then at 400 x 300 the Small screen state shows and the narration goes on; at 667 x 375 page 3 shows again as it was, and no release file is requested again
+- Test: spec (to implement)
+
+### PLY-07.S7 A small picture is not a Small screen
+- Given a reading page with a 40-word text in a viewport of 320 x 480
+- When the page is shown
+- Then the Narrow layout shows with the whole text and every frame control; the Small screen state is not shown
+- Test: spec (to implement)
+
+### PLY-07.S8 The shelf shows the Small screen state
+- Given a viewport of 240 x 200, which cannot hold the name, one book of 128 x 159 CSS px on a board, and the arrows
+- When a child opens `/`
+- Then the Player shows the Small screen state with no control; when the viewport changes to 568 x 320, the shelf shows with its books
+- Test: spec (to implement)
+
+### PLY-07.S9 The Small screen state takes the focus and gives it back
+- Given a reading page with the keyboard focus on "next"
+- When the viewport changes so that the Small screen state shows, and then so that it ends
+- Then the focus is on the state itself (`main`, `tabindex="-1"`) while it shows, the next Tab goes to Home, and no control of the page takes a tap, a key, or the focus; when it ends, the focus is on the `main` of the reading page
+- Test: spec (to implement)
+
+### PLY-07.S10 Home in the Small screen state shows the shelf
+- Given a book on page 3 with its narration playing, in a viewport of 400 x 300, so that the Small screen state shows
+- When the child taps Home
+- Then the narration stops, and the Player shows `/`
 - Test: spec (to implement)
