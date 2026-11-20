@@ -112,6 +112,7 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
       targetKeys: [sceneKey],
       basisFrom: first,
       model,
+      repairIssues: checked.issues,
       call: call(repairSuffix(previous, checked.issues)),
     });
     const repairError = providerErrorOf(last.result);

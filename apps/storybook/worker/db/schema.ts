@@ -121,12 +121,16 @@ export const callLog = sqliteTable(
     pageId: text("page_id").notNull().default(""),
     purpose: text("purpose", { enum: ["first", "repair"] }).notNull(),
     result: text("result", { mode: "json" }).$type<unknown>(),
+    // Repair rows only: the issues of the first attempt, as the repair prompt gives them (#64).
+    repairIssues: text("repair_issues", { mode: "json" }).$type<Issue[]>(),
     r2Key: text("r2_key"),
     // Read at the first attempt; a retry reuses it.
     basis: text("basis", { mode: "json" }).$type<Heads>().notNull(),
     // The heads of the target keys when the basis was read; a retry reuses it.
     expectedHeads: text("expected_heads", { mode: "json" }).$type<ExpectedHeads>().notNull(),
     model: text("model").notNull(),
+    // The MODEL_* value of the step (#64).
+    configuredModel: text("configured_model"),
     usage: text("usage", { mode: "json" }).$type<unknown>(),
     createdAt: createdAt(),
   },
