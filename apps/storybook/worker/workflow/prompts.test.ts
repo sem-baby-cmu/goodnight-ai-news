@@ -168,16 +168,17 @@ describe("prompts", () => {
   });
 
   it("the models do not see door and window", () => {
-    const layer = (kind: "character" | "scenery") => ({
+    // The scene schema needs a non-empty list of expressions and of backdrops (draft.ts `oneOf`).
+    const layer = (kind: "character" | "scenery", expressions: string[] = []) => ({
       kind,
       poses: [{ id: "stand", file: "stand.webp", foot: { x: 0, y: 0 }, box: { x: 0, y: 0, w: 1, h: 1 } }],
-      expressions: [],
+      expressions,
       legal: [],
       flippable: false,
     });
     const r: RegistrySnapshot = {
       assets: {
-        bear: { kind: "character", renderer: "webp", version: 1, manifest: layer("character") },
+        bear: { kind: "character", renderer: "webp", version: 1, manifest: layer("character", ["happy"]) },
         tree: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
         door: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
         window: { kind: "scenery", renderer: "webp", version: 1, manifest: layer("scenery") },
@@ -189,7 +190,15 @@ describe("prompts", () => {
     const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry: modelRegistry(r), templates: TEMPLATES });
     expect(user).not.toMatch(/\b(door|window)\b/);
     expect(user).toContain('- sway: ["tree"]');
-    expect(enumsOf(buildSceneJsonSchema({ registry: modelRegistry(r), templates: TEMPLATES }), "ref")).toEqual([["bear", "tree"]]);
+    // `r` stays at the 5 keys of the section; the schema call adds one backdrop, which it requires.
+    const meadow = {
+      kind: "backdrop" as const,
+      renderer: "svg" as const,
+      version: 1,
+      manifest: { kind: "backdrop" as const, description: "a meadow", size: { width: 2400 as const, height: 1200 as const }, variants: [{ sky: "day" as const, file: "day.svg" }] },
+    };
+    const forSchema: RegistrySnapshot = { assets: { ...modelRegistry(r).assets, meadow } };
+    expect(enumsOf(buildSceneJsonSchema({ registry: forSchema, templates: TEMPLATES }), "ref")).toEqual([["bear", "tree"]]);
   });
 
   it("scriptPrompt states the reader age, the page count, and the cast rule", () => {
