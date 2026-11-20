@@ -10,7 +10,7 @@ The owner fills those.
 | Field | Value |
 | :-- | :-- |
 | Date | 2026-11-19 (US time); `results.json` `measuredAt` 2026-11-20T01:23:45Z, WebKit smoke 2026-11-20T01:27:44Z |
-| Commit SHA | `8ccedc0` (the harness commit; `results.json` `commit`) |
+| Commit SHA | `8ccedc0`, the harness commit in `results.json` `commit`. After the rebase on `origin/main` it is `eaf06f6`; `git diff 8ccedc0 eaf06f6 -- tools/mp3-spike` is empty |
 | Machine | Apple M4, macOS 26.5.2 |
 | Node | v22.17.1 (supporting numbers only) |
 | wrangler | 4.165.0 (local workerd from `wrangler dev`) |
@@ -25,6 +25,10 @@ The owner fills those.
 | `@breezystack/lamejs` 1.2.7 | fail | T3: 77.1 MB peak memory. T6: at 32 kbps the output is 22050 Hz, not 24000 Hz |
 | `lamejs` 1.2.1 | fail | T1: `ReferenceError: MPEGMode is not defined` in workerd |
 | `shine.js` 0.0.3 | not usable | Wrong package: a CSS shadow library, not the shine MP3 encoder |
+
+Cloudflare (D69-1, owner approved 2026-11-19): the deployed CPU time and
+`startup_time_ms` also pass. The throwaway Worker was deleted in the same
+session, and the deletion was confirmed (see "Cloudflare deploy").
 
 Spike verdict: **open**. One candidate passes T1 to T8 and T10. The spike
 passes when T9 (real iPhone and iPad) passes. The named candidate is
@@ -116,8 +120,10 @@ Local workerd, 20 timed runs. Node p95 is the supporting number.
   (3,000 ms; 200 ms per audio second).
 - `@breezystack/lamejs` at 32 kbps is about 4 times slower than at 48 kbps.
   At 32 kbps it resamples to 22050 Hz (see Output).
-- Cloudflare CPU time: not measured. It needs the deployed Worker (decision
-  1, D69-1).
+- Cloudflare CPU time: see "Cloudflare deploy". The deployed encode
+  estimate is 1.4 to 3.3 times the local workerd p50 of the same
+  configuration (for example 48 kbps 15 s: 181 ms against 110 ms). The
+  10 times margin of T2 covers it.
 
 ## Memory (T3)
 
@@ -176,8 +182,9 @@ bundle, because the adapter calls `createEncoder` with the module and never
   `mp3.wasm`, and `makeWorker({...})`, which stores function references. Each
   encoder is created inside the request handler (`createEncoder` and `new
   Mp3Encoder` in `src/enc/*.ts`). Pass for all candidates that load.
-- `startup_time_ms`: not measured. It is reported only by `wrangler deploy`
-  or `wrangler versions upload` (decision 1, D69-1).
+- `startup_time_ms` from `wrangler deploy` ("Worker Startup Time"): baseline
+  4 ms, `wasm-media-encoders` 2 ms. Delta -2 ms, limit 100 ms: pass. One
+  deploy each, so the 2 ms difference is noise.
 
 ## Output (T6, T7)
 
@@ -248,6 +255,42 @@ Listening verdict (owner), `wasm-media-encoders`, on a real iPhone:
 | 48 kbps | | |
 | 64 kbps | | |
 
+## Cloudflare deploy (D69-1)
+
+Only `wasm-media-encoders`, the candidate that passes locally. The Worker
+`mp3-spike` was on `workers.dev` only, with no route and no bindings. The
+credentials came from the main checkout's `apps/storybook/.dev.vars` and were
+not printed. Before the deploy, `GET
+/accounts/<id>/workers/scripts/mp3-spike` returned 404.
+
+| Step (UTC, 2026-11-20) | Command | Result |
+| :-- | :-- | :-- |
+| 01:56:11 | `wrangler deploy worker/bundle/baseline.ts --name mp3-spike` | Total Upload 4.81 KiB; Worker Startup Time 4 ms; version `b2d05843` |
+| 01:56:14 | `wrangler deploy worker/bundle/wasm-media-encoders.ts --name mp3-spike` | Total Upload 143.87 KiB; Worker Startup Time 2 ms; version `552d8e3c` |
+| 01:56:43 to 01:57:23 | `wrangler tail mp3-spike --format json`, 30 requests to `/encode` | 30 events, all `outcome` `ok`, each with `cpuTime` |
+| 01:57:47 | `wrangler delete --name mp3-spike --force` | "Successfully deleted mp3-spike" |
+| 01:57:54 | `GET /accounts/<id>/workers/scripts/mp3-spike`; `GET .../workers/scripts`; `wrangler deployments list --name mp3-spike`; the `workers.dev` URL | 404; not in the list of 36 scripts; error code 10007 "This Worker does not exist on your account"; 404 |
+
+CPU time per request from the `cpuTime` field of the tail events, in ms.
+`runs=0` generates the fixture only. `runs=1` generates the fixture and
+encodes once. The deployed Worker cannot time the encode alone: its
+`performance.now()` returned 0 for every run, as the performance page says.
+
+| kbps | Audio s | `runs=0` (n) | `runs=1` (n) | `runs=1` median minus `runs=0` median |
+| --: | --: | :-- | :-- | --: |
+| 32 | 15 | 322, 333, 384 (3) | 356, 543, 635, 683, 783 (5) | 302 |
+| 48 | 15 | 229, 262, 304 (3) | 322, 336, 443, 531, 916 (5) | 181 |
+| 64 | 15 | 163, 255, 389 (3) | 281, 326, 494, 499, 593 (5) | 239 |
+| 48 | 60 | 1061, 1538, 1687 (3) | 1757, 2086, 2108 (3) | 548 |
+
+- T2 on Cloudflare, with the whole request as an upper bound (fixture
+  included): 15 s, highest 916 ms (limit 3,000 ms). 60 s, highest 2,108 ms,
+  that is 35.1 ms per audio second (limit 200). Pass.
+- The deployed files have the same SHA-256 as the local workerd files (15 s,
+  all 3 bitrates).
+- The values spread widely: n is small, and each request can run on a
+  different machine.
+
 ## 4G (T10)
 
 One 15 s page on DevTools "Fast 4G": 1,012,500 B/s, 165 ms latency. Measured
@@ -274,10 +317,10 @@ Both views (D69-3):
 | ID | `wasm-media-encoders` | `@breezystack/lamejs` | `lamejs` | `shine.js` |
 | :-- | :-- | :-- | :-- | :-- |
 | T1 loads in workerd | pass | pass | **fail** (`ReferenceError: MPEGMode is not defined`) | not usable |
-| T2 CPU (15 s p95 ≤ 3,000 ms; 60 s ≤ 200 ms per audio s) | pass (15 s max p95 202 ms; 60 s max 9.1 ms/s) | pass (15 s max p95 1,180 ms; 60 s max 120.0 ms/s) | not measured (T1) | not usable |
+| T2 CPU (15 s p95 ≤ 3,000 ms; 60 s ≤ 200 ms per audio s) | pass (local: 15 s max p95 202 ms, 60 s max 9.1 ms/s; Cloudflare upper bound: 916 ms, 35.1 ms/s) | pass (15 s max p95 1,180 ms; 60 s max 120.0 ms/s) | not measured (T1) | not usable |
 | T3 memory ≤ 32 MB | pass (16.2 MB) | **fail** (77.1 MB) | not measured (T1) | not usable |
 | T4 bundle delta ≤ 1 MiB | pass (139.06 KiB) | pass (258.64 KiB) | pass (446.01 KiB) | not usable |
-| T5 startup | pass (global scope); `startup_time_ms` not measured | pass (global scope); `startup_time_ms` not measured | not measured (T1) | not usable |
+| T5 startup | pass (global scope; `startup_time_ms` delta -2 ms) | pass (global scope); `startup_time_ms` not measured (not deployed) | not measured (T1) | not usable |
 | T6 output format | pass | **fail** (32 kbps: 22050 Hz) | not measured (T1) | not usable |
 | T7 size within 2% | pass (+0.32%) | pass (+0.49%) | not measured (T1) | not usable |
 | T8 WebKit smoke | pass (6 of 6) | pass (6 of 6) | not measured (T1) | not usable |
@@ -293,6 +336,5 @@ passes and T9 passes. T9 is open, so the spike verdict is open.
 
 | Item | Reason |
 | :-- | :-- |
-| Cloudflare CPU time | Needs the deployed throwaway Worker (decision 1, D69-1) |
-| `startup_time_ms` | Reported only by `wrangler deploy` or `wrangler versions upload` (decision 1, D69-1) |
+| Cloudflare CPU time and `startup_time_ms` of `@breezystack/lamejs` and `lamejs` | Only the candidate that passed locally was deployed |
 | T9 device rows and listening verdict | Owner |
