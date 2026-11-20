@@ -3,16 +3,19 @@
 // Invariants (refinement and PR #55 review): R2 objects before the rows that
 // refer to them; one (key, version) always means the same bytes (R65), so a
 // difference is an error, never a skip; at most one active version per asset,
-// exactly one when publish ends; a rerun is safe. Prints keys, versions and
-// counts only.
+// exactly one when publish ends; a rerun is safe. A backdrop publishes only
+// with an approval record whose digests match (#67, ADR 0016 Decision D); the
+// check runs for every backdrop in the set before the first wrangler call.
+// Prints keys, versions and counts only.
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { manifestFiles as dslManifestFiles } from "@storybook/dsl";
 import { v7 } from "uuid";
+import { checkApprovals } from "./approval";
 import { type AssetBuild, AssetBuildSchema } from "./build";
-import { OUT_DIR } from "./paths";
+import { OUT_DIR, REVIEWS_DIR } from "./paths";
 import { checkSvg, sanitizeSvg } from "./svg";
 
 // Names from apps/storybook/wrangler.jsonc (design, Deployment).
@@ -38,12 +41,15 @@ const RENDERERS: Record<AssetBuild["kind"], readonly AssetBuild["renderer"][]> =
   character: ["webp", "svg", "svg-rig"],
   prop: ["webp", "svg", "svg-rig"],
   scenery: ["webp", "svg", "svg-rig"],
+  backdrop: ["svg", "webp"],
   sfx: ["audio"],
 };
 const CONTENT_TYPES: Record<string, string> = { ".webp": "image/webp", ".svg": "image/svg+xml", ".wav": "audio/wav" };
 const ONLY = /^([a-z0-9][a-z0-9-]*)@([1-9]\d*)$/;
-// cut writes its review sheets here; it holds no build.
-const NOT_A_KEY = new Set(["review"]);
+// cut and review write their review sheets to `review/`;
+// `apps/storybook/scripts/make-texture.ts` writes the spike test texture
+// to `out/spike/`. Neither holds a build.
+const NOT_A_KEY = new Set(["review", "spike"]);
 
 export const label = (b: { key: string; version: number }) => `${b.key} v${b.version}`;
 export const r2Prefix = (b: { key: string; version: number }) => `assets/${b.key}/v${b.version}/`;
@@ -69,6 +75,7 @@ const versionOf = (dir: string) => (/^v([1-9]\d*)$/.exec(dir) ? Number(dir.slice
 
 // The build step that writes a missing asset.json.
 function missingStep(key: string, dir: string): string {
+  if (key === "meadow") return "meadow";
   if (key.startsWith("sfx-")) return "sfx";
   return readdirSync(dir).some((f) => f.endsWith(".svg")) ? "svg" : "measure";
 }
@@ -133,6 +140,12 @@ function checkBuild(build: AssetBuild, folder: string, dir: string, errors: stri
   if (folder !== `${build.key}/v${build.version}`) errors.push(`${folder}: the folder does not match ${name}`);
   if (!RENDERERS[build.kind].includes(build.renderer)) errors.push(`${name}: kind ${build.kind} with renderer ${build.renderer} is not allowed`);
   if (build.manifest.kind !== build.kind) errors.push(`${name}: manifest kind ${build.manifest.kind} differs from kind ${build.kind}`);
+  // The renderer of a backdrop decides the type of every variant file (#67).
+  if (build.manifest.kind === "backdrop" && (build.renderer === "svg" || build.renderer === "webp")) {
+    for (const { file } of build.manifest.variants) {
+      if (extname(file) !== `.${build.renderer}`) errors.push(`${name}: a backdrop with renderer ${build.renderer} has only .${build.renderer} variant files; ${file} is not`);
+    }
+  }
   for (const file of manifestFiles(build).sort()) {
     if (file !== file.trim() || file.includes("/") || file.includes("\\") || file.startsWith(".")) {
       errors.push(`${name}: "${file}" is not a plain file name`);
@@ -248,13 +261,16 @@ export type PublishDeps = {
   newId?: () => string;
 };
 
-export async function runPublish(opts: { mode: Mode; only?: string[]; outDir?: string; dryRun?: boolean }, deps: PublishDeps): Promise<number> {
+export async function runPublish(opts: { mode: Mode; only?: string[]; outDir?: string; reviewsDir?: string; dryRun?: boolean }, deps: PublishDeps): Promise<number> {
   const log = deps.log ?? console.log;
   const error = deps.error ?? deps.log ?? console.error;
   const flag = `--${opts.mode}`;
   const outDir = opts.outDir ?? OUT_DIR;
   try {
     const local = loadLocalBuilds({ outDir, only: opts.only });
+    // Before any wrangler call, also for a backdrop that planPublish would skip (#67 invariants 1 and 4).
+    const unapproved = checkApprovals(local.filter((b) => b.kind === "backdrop"), opts.reviewsDir ?? REVIEWS_DIR);
+    if (unapproved.length > 0) throw new PublishInputError(unapproved);
     const plan = planPublish(local, await readRegistry(deps.runWrangler, flag, false));
     if (opts.dryRun) {
       for (const b of plan.skip) log(`skip ${label(b)} (exists)`);

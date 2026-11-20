@@ -4,9 +4,13 @@
 //   pnpm --filter @storybook/assets-tools run cli cut <board> | --all     # cut out WebP files
 //   pnpm --filter @storybook/assets-tools run cli measure <board> | --all # write asset.json
 //   pnpm --filter @storybook/assets-tools run cli svg <key> --version <n> # sanitise and check an SVG asset
+//   pnpm --filter @storybook/assets-tools run cli meadow                  # write the code-made backdrop meadow v1
+//   pnpm --filter @storybook/assets-tools run cli review <key> --version <n>  # backdrop review sheets
+//   pnpm --filter @storybook/assets-tools run cli approve <key> --version <n> # a person approves the sheets
 //
 // `--out <dir>` writes the build output (and `review/`) there instead of
-// tools/assets/out. `--no-review` skips the review sheets.
+// tools/assets/out. `--no-review` skips the review sheets. `--reviews <dir>`
+// replaces tools/assets/reviews (the approval records) for approve and publish.
 // `publish` and `sfx` belong to #21.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,10 +20,13 @@ import { isLayerManifest } from "@storybook/dsl";
 import { AssetBuildSchema } from "./build";
 import { silhouetteIoU, writeCompareSheet } from "./compare";
 import { ALL_BOARDS, CropMapSchema, proposeCropMap } from "./crops";
+import { writeApproval } from "./approval";
+import { writeBackdropReview } from "./backdrop-review";
 import { readBoard } from "./io";
+import { MEADOW_VERSION, writeMeadowBuild } from "./meadow";
 import { cropMapPath, cutBoard, loadCropMap, measureBoard } from "./pipeline";
-import { OUT_DIR, SOURCES_DIR } from "./paths";
-import { runPublish } from "./publish";
+import { OUT_DIR, REVIEWS_DIR, SOURCES_DIR } from "./paths";
+import { PublishInputError, runPublish } from "./publish";
 import { writeSfxBuilds } from "./sfx/synth";
 import { checkSvg, sanitizeSvg } from "./svg";
 import { runWrangler } from "./wrangler";
@@ -44,6 +51,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
         remote: { type: "boolean", default: false },
         only: { type: "string" },
         "dry-run": { type: "boolean", default: false },
+        reviews: { type: "string" },
       },
     });
   } catch (e) {
@@ -53,6 +61,7 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
   const { values, positionals } = parsed;
   const [command, board] = positionals;
   const outDir = values.out ?? OUT_DIR;
+  const reviewsDir = values.reviews ?? REVIEWS_DIR;
 
   if (command === "sfx") {
     for (const b of writeSfxBuilds(outDir)) io.log(`${b.key} v1: ${b.manifest.kind === "sfx" ? b.manifest.durationMs : 0} ms`);
@@ -66,7 +75,34 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
       return 1;
     }
     const only = values.only === undefined ? undefined : values.only.split(",").map((s) => s.trim()).filter(Boolean);
-    return runPublish({ mode: values.local ? "local" : "remote", only, outDir, dryRun: values["dry-run"] }, { runWrangler, log: io.log, error });
+    return runPublish({ mode: values.local ? "local" : "remote", only, outDir, reviewsDir, dryRun: values["dry-run"] }, { runWrangler, log: io.log, error });
+  }
+  if (command === "meadow") {
+    writeMeadowBuild(outDir);
+    io.log(`meadow v${MEADOW_VERSION}: wrote 4 SVG files to ${outDir}`);
+    io.log(`next: cli review meadow --version ${MEADOW_VERSION}`);
+    return 0;
+  }
+  if (command === "review" || command === "approve") {
+    const version = Number(values.version);
+    if (!board || !Number.isInteger(version) || version < 1) {
+      error("usage: cli review|approve <key> --version <n> [--out <dir>] [--reviews <dir>]");
+      return 1;
+    }
+    try {
+      if (command === "review") {
+        for (const path of await writeBackdropReview({ key: board, version, outDir })) io.log(path);
+      } else {
+        const path = writeApproval({ key: board, version, outDir, reviewsDir, log: io.log });
+        const count = Object.keys(JSON.parse(readFileSync(path, "utf8")).files).length;
+        io.log(`approved ${board} v${version}: ${count} variant file(s); commit ${path}`);
+      }
+      return 0;
+    } catch (e) {
+      if (e instanceof PublishInputError) for (const m of e.errors) error(m);
+      else error((e as Error).message);
+      return 1;
+    }
   }
   if (command === "svg") {
     const version = Number(values.version);
@@ -85,7 +121,9 @@ export async function main(argv: string[], io: Io = { log: console.log, error: c
     error("usage: cli <cut|measure> <board> | --all [--propose] [--out <dir>] [--no-review]");
     error("       cli svg <key> --version <n> [--src <dir>] [--out <dir>]");
     error("       cli sfx [--out <dir>]");
-    error("       cli publish --local|--remote [--only <key>@<n>,...] [--dry-run] [--out <dir>]");
+    error("       cli meadow [--out <dir>]");
+    error("       cli review|approve <key> --version <n> [--out <dir>] [--reviews <dir>]");
+    error("       cli publish --local|--remote [--only <key>@<n>,...] [--dry-run] [--out <dir>] [--reviews <dir>]");
     return 1;
   }
   if (!values.all && !board) {
