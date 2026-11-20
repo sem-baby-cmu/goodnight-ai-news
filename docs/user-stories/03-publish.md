@@ -75,7 +75,7 @@ Spec: requirements US-4, AC-10, AC-11 · design "7. Publish", "Release layout (R
 - Given a draft that can be published
 - When the operator publishes the draft
 - Then `release.title` is the `title` in `manifest.json` of that release
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/publish.test.ts
 
 ### PUB-01.S12 A release holds the cover file of a backdrop variant
 - Given a draft that can be published, whose scenes record a backdrop version with a manifest that names a `coverFile` for each variant
@@ -144,73 +144,73 @@ Spec: requirements AC-16 · design "6. API" (Shelf), "7. Publish", "D1 tables"
 - Given two published stories and one draft story
 - When a client sends `GET /api/shelf`
 - Then the response is 200 with two entries; each has `releaseId` (the release that `story.published_release_id` names), `title` (the `title` in the manifest of that release), and `publishedAt` (the `created_at` of that release); the draft story is not in the list
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S2 An entry has three fields only
 - Given a published story
 - When a client sends `GET /api/shelf`
 - Then its entry has exactly the keys `releaseId`, `title`, and `publishedAt`; the response has no story ID, no revision ID, no run, no head, no status, and no source
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S3 The newest story is first
 - Given story A with its first release, and then story B with its first release
 - When a client sends `GET /api/shelf`
 - Then the entry of B is before the entry of A
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S4 A new release keeps the place of its book
 - Given story A and then story B, each with one release, and then release 2 of story A
 - When a client sends `GET /api/shelf`
 - Then the entry of B is still before the entry of A; the entry of A has the `releaseId` and the `publishedAt` of release 2, and release 1 of A is not in the list
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S5 A failed publish is not on the shelf
 - Given a story with no release, and a publish of it that failed before the `release` row was inserted
 - When a client sends `GET /api/shelf`
 - Then the story is not in the list
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S6 An empty shelf is an empty list
 - Given no published story
 - When a client sends `GET /api/shelf`
 - Then the response is 200 with `{ "books": [] }`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf-empty.test.ts
 
 ### PUB-03.S7 The shelf response is not stored
 - Given a published story
 - When a client sends `GET /api/shelf`
 - Then the response has `Cache-Control: no-store`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S8 A database failure gives 500
 - Given a database that fails
 - When a client sends `GET /api/shelf`
 - Then the response is 500 with `{ error: "internal" }`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S9 The shelf route is read-only
 - Given the shelf route
 - When a client sends `POST /api/shelf`
 - Then the response is 404 with `{ error: "not_found" }`, and no row changes
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S10 Stories with the same first release time are in descending story ID order
 - Given story A and story B whose first releases have the same `created_at`, and the ID of B is greater than the ID of A
 - When a client sends `GET /api/shelf`
 - Then the entry of B is before the entry of A
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S11 A pointer to a missing release gives no entry
 - Given a sound published story A, and a story B whose `published_release_id` names no `release` row
 - When a client sends `GET /api/shelf`
 - Then the response is 200 with the entry of A only; the route writes one log line with the ID of B, the release ID, and the reason `missing_release`, with no title and no text; no draft value of B is read
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ### PUB-03.S12 A pointer to a release of another story gives no entry
 - Given a sound published story A, and a story B whose `published_release_id` names a `release` row of story A
 - When a client sends `GET /api/shelf`
 - Then the response is 200 with one entry, the entry of A; the route writes one log line with the ID of B, the release ID, and the reason `wrong_story`, with no title and no text
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/shelf.test.ts
 
 ## PUB-04 Take a book off the shelf
 
