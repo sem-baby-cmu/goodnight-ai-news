@@ -89,7 +89,7 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 - Given the asset pipeline
 - When the code backdrop step runs
 - Then the registry holds the backdrop `meadow`, renderer `svg`, with one variant for each of `day`, `cloudy`, `dusk`, and `night`, each 2400 x 1200 units
-- Test: spec (to implement)
+- Test: @storybook/assets-tools · tools/assets/test/backdrop.test.ts
 
 ### REG-02.S7 A painted backdrop is scaled, compressed, and reviewed
 - Given a painting for each variant of a backdrop
@@ -101,4 +101,4 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline", 
 - Given a backdrop version whose approval file is missing, or lists a SHA-256 that does not match a variant file or the template list
 - When the developer runs publish
 - Then publish refuses the backdrop version with an error and uploads nothing for it
-- Test: spec (to implement)
+- Test: @storybook/assets-tools · tools/assets/test/publish.test.ts
