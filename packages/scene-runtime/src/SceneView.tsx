@@ -157,9 +157,18 @@ export function SceneView(props: SceneViewProps) {
     else if (backdropDone.current?.id === backdropId) record(BACKDROP, backdropDone.current.failure);
     for (const failure of unrequestable(page, assets)) record(failure.key, failure);
     for (const l of page.layers) {
-      // A view with a new ref mounts again and loads again: carry nothing.
+      // Carry only when the view keeps its ref and the file of its starting
+      // state (ID12 ruling). Otherwise it loads again: drop its old result.
       const before = previous?.layers.find((p) => p.instanceId === l.instanceId);
-      if (before?.ref !== l.ref) continue;
+      const asset = assets.get(l.ref);
+      const fileOf = (x: typeof l) => (asset ? entryFor(asset, { pose: x.pose, expression: x.expression })?.file : undefined);
+      if (!before || before.ref !== l.ref || fileOf(before) !== fileOf(l)) {
+        if (before?.ref === l.ref) {
+          ready.delete(l.instanceId);
+          layerFailures.delete(l.instanceId);
+        }
+        continue;
+      }
       if (ready.has(l.instanceId)) record(l.instanceId, null);
       const failure = layerFailures.get(l.instanceId);
       if (failure && failure.ref === l.ref) record(l.instanceId, failure);
