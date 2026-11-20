@@ -22,7 +22,7 @@ Five parts:
 | Storybook DSL | Zod schemas for every stage output and for releases. |
 | Asset pipeline and registry | Turns the Producer boards into versioned character, prop, scenery, and backdrop assets, plus a small sound set, and lists them in D1. |
 | Studio | Starts runs, edits pages, regenerates one page target, publishes. |
-| Player | Reads one release and plays it. |
+| Player | Shows the shelf of published books. Reads one release and plays it. |
 
 Five rules hold from the first version:
 
@@ -53,9 +53,10 @@ actor Child
 
 package "Worker: storybook-mvp" {
   [Studio SPA\n/studio, /studio/*] as Studio
-  [Player SPA\n/read/:releaseId] as Player
+  [Player SPA\n/, /read/:releaseId] as Player
   [Hono API\n/api/studio/*] as API
   [Content route\n/content/releases/:releaseId/*] as Content
+  [Shelf route\n/api/shelf] as Shelf
   [StoryRun Workflow] as WF
   [scene-runtime\n(shared React package)] as Runtime
 }
@@ -83,6 +84,8 @@ GW --> OR : JSON
 GW --> GAS : TTS
 Player --> Content
 Content --> R2
+Player --> Shelf
+Shelf --> D1
 @enduml
 ```
 
@@ -94,7 +97,8 @@ Content --> R2
 | D1 | New database `storybook-mvp`. |
 | R2 | New bucket `storybook-mvp`. |
 | Workflow | `StoryRunWorkflow`, binding `STORY_RUN`. |
-| Access | One Access application with three paths: `/studio`, `/studio/*`, and `/api/studio/*`. `/read/*` and `/content/*` stay public. The Worker does not check `Cf-Access-Jwt-Assertion` in the MVP. Access protects the routes at the edge. The `workers.dev` route and preview URLs are off, so no route bypasses Access (#25). |
+| Access | One Access application with three paths: `/studio`, `/studio/*`, and `/api/studio/*`. `/`, `/read/*`, `/api/shelf`, and `/content/*` stay public (ADR 0017). The Worker does not check `Cf-Access-Jwt-Assertion` in the MVP. Access protects the routes at the edge. The `workers.dev` route and preview URLs are off, so no route bypasses Access (#25). |
+| Player routes | `/` is the shelf, the home of the Player. `/read/:releaseId` is one book. Both are static asset paths with the SPA fallback. `/api/*` and `/content/*` run the Worker first (ADR 0017). |
 | Models | JSON generation: AI Gateway, then OpenRouter. Development points the same adapter at a local proxy. TTS: AI Gateway, provider `google-ai-studio`. Development calls Google AI Studio directly. TTS never goes through OpenRouter (owner decision Q7). |
 
 The existing Worker `goodnight-ai-news` (folder `app/`), its D1 database, and
@@ -398,7 +402,7 @@ Q14).
 <SceneView
   page={PageScene}
   assets={AssetResolver}          // key + version -> URL or SVG text
-  mode="play" | "edit"
+  mode="play" | "edit" | "still"
   phase?="incoming" | "current" | "outgoing"   // Player only; default "current"
   onSelectLayer?={(instanceId) => void}
   onMoveLayer?={(instanceId, at) => void}
@@ -420,6 +424,12 @@ Q14).
   - On a short landscape screen (for example a phone), the narration keeps
     its minimum font size of 18 px and the stage gets the remaining height.
 - In edit mode, the Studio shows the stage only.
+- **Still mode** (ADR 0017). `mode="still"` draws the backdrop variant and
+  every layer at its `at`, with the paper texture. No animation runs, of
+  either trigger, and a layer with an `enter` `fade-in` is visible. It has
+  no tap handling, no bubble, and no sound. No layer has a role or is in
+  the tab order. `phase` is ignored. A cover on the shelf uses this mode
+  ("9. Player screens").
 - Until the backdrop file is loaded, the paper colour shows behind the stage,
   not a sky colour.
 - `svg` and `svg-rig` assets are inlined. `webp` assets are `<img>` elements.
@@ -435,7 +445,9 @@ Q14).
   second shared element, unlocked the same way.
 - **Loading.** "Start" is enabled only when the manifest, every page JSON,
   and the assets of page 1 are loaded. After a page is shown, the Player
-  loads the assets of the next and the previous page.
+  loads the assets of the next and the previous page. If one of the files
+  that "Start" waits for fails to load, the Player shows the Resting state
+  ("9. Player screens").
 - **Page turn** (ADR 0016). A tap on "next" or "previous" turns the page:
   - The page sheet (backdrop frame, stage, and narration on an opaque paper
     background) turns about the left edge of the page panel. A forward turn
@@ -459,8 +471,8 @@ Q14).
   narration in the tap handler. "Read again" sets the `src` of page 1, calls
   `play()` in the tap handler, and shows page 1 with a 200 ms cross-fade;
   the Start gate is not shown again. A tap on "next" or "previous" during
-  the cross-fade ends it at once, as during a turn. A Home control is added only when the
-  shelf exists.
+  the cross-fade ends it at once, as during a turn. The end page has the
+  Home round button ("9. Player screens", "Home").
 - **Page phases.** `SceneView` takes a `phase` prop: `incoming`, `current`,
   or `outgoing`. `enter` animations run once, when the page is `current` and
   all its assets are loaded. A layer with an `enter` `fade-in` is hidden
@@ -471,6 +483,24 @@ Q14).
   (200 ms) when it is loaded. A layer with an `enter` `fade-in` uses its own
   animation instead. With `prefers-reduced-motion`, a late image appears
   without a fade.
+- **Hit area** (ADR 0017). In play mode, a layer that has a tap interaction
+  has a hit area:
+  - It is the drawn box of the layer. On an axis where the box is less than
+    64 CSS px on the screen, the hit area is 64 CSS px, centred on the box.
+    The part beyond the box is the margin.
+  - A hit area that would go outside the stage is moved along that axis
+    until it is inside the stage. It is not cut.
+  - A point inside the drawn box of one or more tappable layers belongs to
+    the one with the highest `z`.
+  - A point that is in no such box, and inside one or more margins, belongs
+    to the layer with the highest `z` among them.
+  - A layer without a tap interaction takes no tap and blocks none.
+  - The size is computed from the stage scale, and again after a resize.
+  - This is a rule of the runtime. It is not a validation rule, and the
+    layout checks do not change. Edit mode has no margin.
+- **Frame parts.** No control and no status of the Player frame lies over
+  the picture area, in any layout (ADR 0017). A bubble is part of the
+  stage, not of the frame.
 - Edit mode adds selection boxes and drag handles. Play mode adds tap handling.
 
 Animation primitives (closed list). Validation rejects a primitive on a layer
@@ -502,7 +532,8 @@ Tap actions (closed list):
 
 ### 6. API (`apps/storybook/worker/api`)
 
-Studio routes are behind Cloudflare Access.
+Studio routes are behind Cloudflare Access. The content route and
+`GET /api/shelf` are public.
 
 | Method and route | Does |
 | :-- | :-- |
@@ -518,6 +549,7 @@ Studio routes are behind Cloudflare Access.
 | `GET /api/studio/registry` | Active assets (with backdrops), sounds, and templates. The Studio page editor offers only the palettes of the chosen backdrop; when the operator picks a backdrop that lacks the current palette, the editor picks its first palette (implementation decision). |
 | `GET /api/studio/files/*` | Serves registry assets and draft audio from R2 to the Studio. Only keys under `assets/` and `calls/`. A key that does not start with `assets/` or `calls/`, or that has a `..` segment, gives 404 `{ error: "not_found" }`, the same as a missing object. |
 | `GET /content/releases/:releaseId/*` | Public. Serves `releases/<releaseId>/*` from R2 with `Cache-Control: public, max-age=31536000, immutable`, only when a `release` row with that ID exists. Answers a `Range` request with 206. |
+| `GET /api/shelf` | Public. The books of the shelf: for each story that has a release, its latest release. Rules in "Shelf" below (ADR 0017). |
 
 The three save routes (`PUT .../text`, `PUT .../scene`, and `still-fits`) return 503 `busy` when the compare-and-set loop is exhausted. The operator can retry; the stored revision is not a head (amendment R58).
 
@@ -538,6 +570,30 @@ The three save routes (`PUT .../text`, `PUT .../scene`, and `still-fits`) return
 200 words gives 422. More than 2,000 words is cut at 2,000 words, and the
 Studio shows a note.
 
+**Shelf** (ADR 0017). `GET /api/shelf` is public and read-only. It takes no
+parameter and no body.
+
+```ts
+type ShelfResponse = {
+  books: Array<{
+    releaseId: string;     // the release that story.published_release_id names
+    title: string;         // release.title, the title of that release's manifest
+    publishedAt: string;   // release.created_at, ISO 8601 UTC
+  }>;
+};
+```
+
+| Topic | Rule |
+| :-- | :-- |
+| Content | One entry for each story whose `published_release_id` is set. The pointer moves only to a higher release number ("7. Publish"), so the entry is the latest release of the story |
+| Left out | A story with no release, the prefix of a failed publish, and every earlier release of a story |
+| Fields | The three fields above, and no other: no story ID, no revision ID, no run, no head, no status, no source |
+| Order | By the `created_at` of the first release of the story, newest first. Ties are in story ID order. A new release of a story does not move its entry |
+| Size | Every book in one response. No paging on the server, and no cap |
+| Empty | 200 with `{ "books": [] }` |
+| Errors | A database failure gives 500 `{ error: "internal" }`. Another method gives 404 `{ error: "not_found" }` |
+| Caching | `Cache-Control: no-store` (implementation decision). Each shelf view is one D1 query, and a new book shows on the next load. The Worker does not cache the response |
+
 ### 7. Publish
 
 1. Read the story row (`heads`, `heads_version`) once. This is the snapshot.
@@ -554,11 +610,15 @@ Studio shows a note.
 5. Copy each audio object to `releases/<releaseId>/audio/`.
 6. Write page JSON, then the manifest last.
 7. Insert the `release` row and update `story.published_release_id` in one
-   batch. The pointer moves only to a higher release number. The same
+   batch. The row holds the `title` of the manifest in `release.title`
+   (ADR 0017). The pointer moves only to a higher release number. The same
    statement sets `story.status = published`. The status never goes back to
    `draft`.
 
 If a step fails, the prefix stays unreferenced. The Player never sees it.
+
+A story is on the shelf from the batch of step 7 on: `GET /api/shelf` reads
+the release pointer ("6. API", "Shelf"). Publish makes no cover asset.
 
 ### 8. Asset pipeline (`tools/assets`)
 
@@ -612,6 +672,121 @@ test on 2 or 3 real paintings before the first painted backdrop is
 published, and the device test checks it against the 4G load target
 ("Testing Strategy").
 
+### 9. Player screens (`apps/storybook/src/player`)
+
+The behaviour of the Player outside a page (ADR 0017). The look is in the
+root `DESIGN.md`, sections 12 to 14.
+
+| Route | Screen |
+| :-- | :-- |
+| `/` | The shelf. It is the home of the Player |
+| `/read/:releaseId` | One book: the Start gate (Loading, then Ready), the reading page, and the end page; or the Resting state |
+
+**Shelf.** The Player sends `GET /api/shelf` ("6. API") one time when the
+route is shown.
+
+| State | When | Shows |
+| :-- | :-- | :-- |
+| Waiting | Until the response arrives | The shelf with no book, and three waiting dots |
+| Books | 200 with one book or more | The books, in the order of the response |
+| Empty | 200 with no book | The shelf with no book, and the line "New stories are coming soon." No control |
+| Failed | A network error, a status that is not 200, or a body that does not pass the shelf schema | The shelf with no book, the line "The books are sleeping. Come back soon.", and one "Look again" button. A tap sends the request again |
+
+- A book is a link to `/read/<releaseId>`. It shows the `title` and a cover.
+  The whole book is the target. Its accessible name is "Open the book" and
+  the title.
+- A shelf page is the set of books that show at one time. Its size comes
+  from the layout (root `DESIGN.md` section 12.1): 6 books in the Wide
+  layout. The first book of the response is the first book of the first
+  shelf page.
+- With more books than one shelf page, the shelf has a "previous" and a
+  "next" round button. "Previous" is disabled on the first shelf page, and
+  "next" on the last. With one shelf page, neither is shown.
+- A change of shelf page is a 200 ms cross-fade of the books (`opacity`
+  only). Nothing on the shelf scrolls.
+- The shelf opens on its first shelf page every time.
+- The shelf has at most 2 controls. It has no Home control, no link out of
+  the product, and no navigation that is text only.
+- The shelf sends no data to a server except that request, which has no
+  parameter. It stores nothing on a server.
+
+**Cover.** A cover is the scene of the first page of the release as a still
+picture. No asset is made for it.
+
+- The Player reads `manifest.json` of the release, then the page JSON of the
+  first entry of `pages`, then the backdrop variant and the layer files of
+  that page. All come from the content route, so the browser caches them as
+  immutable files.
+- The scene is drawn with `mode="still"` ("5. Scene runtime"). The picture
+  window of a book shows a part of the stage; the crop is a value of the
+  look. The rule "the stage is never cropped" is for the picture area of a
+  page, not for a cover.
+- Only the covers of the shelf page that is shown are loaded. The covers of
+  another shelf page load when that shelf page is shown.
+- A book shows at once, before its cover is loaded: its title, and a
+  picture window in the paper colour. The book can be opened at once.
+- The picture appears when every file of the cover is loaded, as a whole,
+  with a 200 ms fade. With `prefers-reduced-motion` it appears without a
+  fade.
+- A cover whose files fail to load keeps the paper colour. It shows no
+  fault sign, and the book still opens.
+- Caching of covers (implementation decision): the immutable cache of the
+  content route only. The Player keeps a loaded cover while the shelf is
+  shown.
+
+**Shelf load check.** The device test ("Testing Strategy") measures the
+shelf on the throttled 4G profile of the page load test.
+
+| Part | Value |
+| :-- | :-- |
+| Fixture | 6 books, each a different release. Page 1 of each uses a painted backdrop at full size |
+| Cache | Empty |
+| Start | The browser sends `GET /api/shelf` |
+| End | The last cover of the first shelf page is drawn |
+| Pass | 2 s or less |
+
+If the check fails, the rule of ADR 0017 applies: publish stores one cover
+image in the release, the shelf entry gets a `cover` field with its path,
+and the shelf shows that image instead of the still scene. A release that
+was published before that change has no cover image, and the shelf draws
+its page 1 scene as before. That change is not part of this design.
+
+**Home.** A Home control shows the shelf.
+
+| Screen | Home control |
+| :-- | :-- |
+| Shelf | None |
+| Start gate (Loading and Ready), reading page, end page | One Home round button in the frame |
+| Resting | One Home button with a label, in the panel. No round button |
+
+- A tap on Home stops the narration and any sound effect, and shows `/`.
+  There is no question and no overlay.
+- Home is a frame control. It works during a page turn and during the
+  cross-fade of "Read again".
+- The Player keeps no reading position. A book that is opened again shows
+  its Start gate.
+
+**Resting.** At `/read/:releaseId`, the Player shows the Resting state when
+one of these is true:
+
+| Trigger | Detail |
+| :-- | :-- |
+| The release does not exist | `releaseId` is not a lower-case UUID version 7, or the request for `manifest.json` gives 404 |
+| The release fails to load before "Start" | A request for the manifest, a page JSON, or an asset of page 1 ends with a network error or a status that is not 2xx; or the manifest or a page JSON does not pass the release schema (`ReleaseManifest`, `ReleasePage`) |
+
+- Resting shows the Player frame, a night picture that is part of the app
+  bundle, the line "This book is sleeping. Come back soon.", and the Home
+  button. It has no "Start", no "previous", no "next", no progress pill,
+  and no sound.
+- The picture is not a registry asset and needs no request, so the state
+  shows with no network.
+- There is no time limit. A slow load stays in Loading, where the Home
+  round button is present.
+- There is no automatic retry. The address stays `/read/:releaseId`, so a
+  reload tries again.
+- After "Start", the Player never changes to Resting. An image that fails
+  to load then follows the "Late images" rule ("5. Scene runtime").
+
 ## Data Models
 
 ### D1 tables
@@ -626,7 +801,7 @@ All IDs are UUID version 7, lower case (ADR 0007).
 | `run` | `id`, `story_id`, `scope` (JSON), `status`, `basis` (JSON), `registry` (JSON), `workflow_instance_id`, `error` (JSON), `created_at`, `finished_at` | Status: `queued`, `running`, `draft_ready`, `needs_review`, `failed`. |
 | `call_log` | `call_id` (primary key), `run_id`, `step`, `page_id`, `purpose` (`first`, `repair`), `basis` (JSON), `expected_heads` (JSON), `result` (JSON), `r2_key`, `model`, `usage` (JSON), `created_at` | Written once, after the model answers. `basis` and `expected_heads` are read at the first attempt; a retry reuses them. `expected_heads` maps each key that the step moves to its head at that moment (`null` for none; `{}` when the step moves no key) (R58). For a provider 4xx other than 429, `result` is `{ providerError: { status, message } }` ("Error Handling"). |
 | `revision` | `id`, `story_id`, `kind`, `page_id`, `content` (JSON), `r2_key`, `basis` (JSON), `asset_versions` (JSON), `origin` (`ai`, `human`), `call_id` (null for human), `status` (`ok`, `needs_review`, `superseded`), `error` (JSON), `created_at` | Kinds: `source`, `outline`, `page_text`, `scene`, `audio`. `page_id` is `''` for story-level kinds. Unique index on `(call_id, kind, page_id)`, with no `WHERE`. SQLite treats every NULL as distinct, so human revisions (`call_id` null) never conflict. No code orders revisions by `id`: UUID v7 order is not creation order across isolates (R58). `asset_versions` maps each asset key that a `scene` revision uses (its layers and its backdrop) to its version (Q3). |
-| `release` | `id`, `story_id`, `number`, `manifest_key`, `snapshot` (JSON of revision IDs), `created_at` | Unique `(story_id, number)`. |
+| `release` | `id`, `story_id`, `number`, `title`, `manifest_key`, `snapshot` (JSON of revision IDs), `created_at` | Unique `(story_id, number)`. `title` is the `title` of the release manifest, not null; `GET /api/shelf` reads it (ADR 0017). `created_at` is the publish time. |
 
 ### Asset manifest (`asset_version.manifest`)
 
@@ -804,6 +979,11 @@ type ReleasePage = {
 | Compare-and-set loop exhausted (5 tries) | API save route | 503 `busy`. The operator can retry; the stored revision is not a head (amendment R58). |
 | Publish blocked | API | 409 with the list of pages and reasons. |
 | Run fails | Workflow | `run.status = failed` with the error. The Studio shows it. A run whose `script` step failed restarts as a full run; a run whose page step failed restarts that page with a page run. |
+| Database fails in `GET /api/shelf` | API | 500 `{ error: "internal" }`. The log has the method, the path, and the error name only. |
+| The shelf request fails: a network error, a status that is not 200, or a body that does not pass the shelf schema | Player | The shelf shows no book, a quiet line, and "Look again", which sends the request again. No fault wording ("9. Player screens"). |
+| A cover fails to load | Player | The book keeps its picture window in the paper colour. It shows no fault sign and still opens. |
+| A release does not exist, or a file that "Start" waits for fails to load | Player | The Resting state, with Home to the shelf ("9. Player screens"). |
+| An image fails to load after "Start" | Player | The "Late images" rule: the narration and the paper colour show. The Player does not change to Resting. |
 
 Every error record has `runId`, `storyId`, `pageId`, `step`, and the provider
 status. Logs do not contain the full news text or model output.
@@ -816,8 +996,8 @@ status. Logs do not contain the full news text or model output.
 | Worker integration | Vitest with `@cloudflare/vitest-plugin` (the new name of `@cloudflare/vitest-pool-workers`), local D1 and R2, stub model adapter that counts calls | See the sequences below. |
 | Model contract | Recorded model outputs as fixtures | Real outputs from S2 stay as fixtures; schema changes must keep them valid or update them on purpose. |
 | Product premise (S2) | Real models, 3 real news texts | At least 90% of pages pass validation and layout with at most one repair. This is the test that a stub cannot replace. The backdrop choice is tested only with at least 3 backdrops, 1 of them with only some palettes (ADR 0016). |
-| Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render with their backdrop and the narration below the stage; taps fire actions; reduced motion stops loops and makes the page turn a cross-fade; audio starts on "Start" and continues on each page turn; a tap during a turn starts the next turn. |
-| Device | Manual, on a real phone and tablet, with painted WebP backdrops at full size | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. Recorded in the S1 and TB3 results. |
+| Renderer | Playwright with WebKit, iPad and iPhone profiles, on a fixture release | Pages render with their backdrop and the narration below the stage; taps fire actions; reduced motion stops loops and makes the page turn a cross-fade; audio starts on "Start" and continues on each page turn; a tap during a turn starts the next turn. The shelf shows the books of a fixture shelf response in order, changes shelf pages, and shows its empty and failed states; a cover is a still scene; each book screen has one Home control; a release that does not exist shows the Resting state; a small tappable layer has a hit area of 64 x 64 CSS px; no frame part lies over the picture area (ADR 0017). |
+| Device | Manual, on a real phone and tablet, with painted WebP backdrops at full size | Frame time p95 on an animated page and during a page turn (target 33 ms or less). Page assets load in 2 s or less on a throttled 4G profile. The shelf load check ("9. Player screens"): the first shelf page of 6 books shows its covers in 2 s or less on the same profile. Recorded in the S1 and TB3 results. |
 
 Integration sequences (each asserts both the revisions and `story.heads`):
 
@@ -836,6 +1016,9 @@ Integration sequences (each asserts both the revisions and `story.heads`):
 | Content route | `GET /content/releases/<id>/manifest.json` returns the manifest with the immutable cache header. |
 | URL input | Redirect chain of 4 is refused; a 3 MB body is cut at 2 MB; a short article returns 422. |
 | Text input | A pasted text of 199 words returns 422; a pasted text of 2,001 words is cut at 2,000 words. |
+| Shelf | Two published stories and one draft: `GET /api/shelf` returns two entries with `releaseId`, `title`, and `publishedAt` only, newest story first, with `Cache-Control: no-store`. Each `title` is the `title` in the manifest of that release. |
+| Shelf after a second release | The entry of that story has the new `releaseId` and the new `publishedAt`, and keeps its place. |
+| Shelf on an empty database | 200 with `{ "books": [] }`. |
 
 Acceptance criteria to tests:
 
@@ -854,7 +1037,12 @@ Acceptance criteria to tests:
 | Narration below the stage; page-turn transition | Renderer test |
 | Safari and Chrome on phones and tablets | Renderer and device tests |
 | Assets load in 2 s on 4G | Device test |
-| Studio behind Access | Manual check after deploy: `/studio`, `/studio/x`, `/api/studio/x` all ask for login; `/read/x` does not |
+| Studio behind Access; the Player, the shelf, and the shelf API public | Manual check after deploy: `/studio`, `/studio/x`, `/api/studio/x` all ask for login; `/`, `/read/x`, and `/api/shelf` do not |
+| The shelf API lists only the latest release of each published story | Integration, the three shelf sequences |
+| The shelf screen: books, covers, shelf pages, empty shelf | Renderer test |
+| One Home control on each book screen; the Resting state | Renderer test |
+| Hit area of 64 x 64 CSS px for a tappable layer | Unit (scene-runtime) and renderer test |
+| The first shelf page loads in 2 s on 4G | Device test (shelf load check) |
 
 ## Review record
 

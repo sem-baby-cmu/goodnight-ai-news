@@ -1,6 +1,6 @@
 # PLY Player
 
-A child reads a published release. Conventions: [README](README.md). The
+A child picks a book from the shelf and reads a published release. Conventions: [README](README.md). The
 spec decides the expected behaviour.
 
 ## PLY-01 Characters move and react to a tap
@@ -8,7 +8,7 @@ spec decides the expected behaviour.
 As a child, I want the characters to move and react when I tap them, so that
 the story feels alive.
 
-Spec: requirements US-5, "Core Features" 5 · design "4. Layout engine", "5. Scene runtime"
+Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", "5. Scene runtime"
 
 ### PLY-01.S1 The Player reads one release
 - Given a published release
@@ -52,6 +52,30 @@ Spec: requirements US-5, "Core Features" 5 · design "4. Layout engine", "5. Sce
 - Then the text of the bubble is an HTML element over the stage; it is not part of the stage image
 - Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
+### PLY-01.S8 A small tappable layer has a hit area of 64 x 64 CSS px
+- Given a page in play mode, and a tappable layer whose drawn box is 30 x 40 CSS px on the screen and is not near the stage edge
+- When the child taps a point 10 CSS px outside the box
+- Then the actions of the layer run; its hit area is 64 x 64 CSS px, centred on the box
+- Test: spec (to implement)
+
+### PLY-01.S9 A hit area at the stage edge is moved inside the stage
+- Given a page in play mode, and a tappable layer whose drawn box is 30 x 30 CSS px and touches the left edge of the stage
+- When the hit area of the layer is computed
+- Then it is 64 x 64 CSS px, it starts at the left edge of the stage, and no part of it is outside the stage
+- Test: spec (to implement)
+
+### PLY-01.S10 A drawn box wins over the margin of another layer
+- Given two tappable layers, where the margin of the small layer A covers a part of the drawn box of layer B, and A has the higher `z`
+- When the child taps a point in that part
+- Then the actions of B run, and the actions of A do not
+- Test: spec (to implement)
+
+### PLY-01.S11 The higher layer wins between two margins
+- Given two tappable layers whose margins overlap, and a point there that is in no drawn box of a tappable layer
+- When the child taps that point
+- Then the actions of the layer with the higher `z` run
+- Test: spec (to implement)
+
 ## PLY-02 Each page is read aloud
 
 As a child, I want to hear each page read aloud, so that I can follow the
@@ -81,6 +105,12 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime"
 - Given a page in the Player
 - When the device is in portrait, and then in landscape
 - Then the narration is HTML outside the stage, below it in both orientations; the stage keeps 4:3 and is never cropped; the bleed fills the width up to 2:1 and the paper colour fills the rest; the narration font is at least 18 px (ADR 0016)
+- Test: spec (to implement)
+
+### PLY-02.S5 No frame part lies over the picture
+- Given a reading page in the Player
+- When it is shown in the Wide, the Narrow, and the Short layout
+- Then no control and no status of the frame (Home, "previous", "next", the progress pill) lies over the picture area
 - Test: spec (to implement)
 
 ## PLY-03 The story runs on phones and tablets
@@ -185,7 +215,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 ### PLY-04.S11 "Next" on the last page turns to the end page
 - Given a book that was started, on its last page, with its narration playing
 - When the child taps "next"
-- Then the narration stops, no new `src` is set, and the page turns to an end page with the backdrop of the last page in its sky, no layers, "The end", "Read again", and "previous"; the end page has no "next", no progress pill, and no Home control while the shelf does not exist
+- Then the narration stops, no new `src` is set, and the page turns to an end page with the backdrop of the last page in its sky, no layers, "The end", "Read again", and "previous"; the end page has no "next" and no progress pill, and it has the Home round button (ADR 0017)
 - Test: spec (to implement)
 
 ### PLY-04.S12 "Read again" starts page 1 without the Start gate
@@ -198,4 +228,174 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 - Given the end page, or the turn to it that has run for 200 ms
 - When the child taps "previous"
 - Then the page turns back to the last page, and the tap handler sets its `src` and calls `play()`
+- Test: spec (to implement)
+
+## PLY-05 A child picks a book from the shelf
+
+As a child, I want to pick a book from a shelf, so that I can choose my
+story without help. (Owner decision 2026-11-19, ADR 0017.)
+
+Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" (Shelf, Cover, Shelf load check), "5. Scene runtime" (Still mode), "6. API" (Shelf)
+
+### PLY-05.S1 The shelf is the home of the Player
+- Given two published stories
+- When a child opens `/`
+- Then the Player sends `GET /api/shelf` one time, and shows one book for each story with its title and a cover; the shelf has no Home control
+- Test: spec (to implement)
+
+### PLY-05.S2 The shelf waits with dots
+- Given a shelf request that has no response yet
+- When the shelf is shown
+- Then it shows no book and three waiting dots
+- Test: spec (to implement)
+
+### PLY-05.S3 A tap on a book opens its release
+- Given the shelf with a book whose `releaseId` is `R`
+- When the child taps the book
+- Then the Player shows `/read/R` with its Start gate; the whole book is the target, and its accessible name is "Open the book" and the title
+- Test: spec (to implement)
+
+### PLY-05.S4 The books stand in the order of the response
+- Given a shelf response with the books A, B, and C in that order
+- When the shelf shows them
+- Then A is the first book of the first shelf page, B is the second, and C is the third
+- Test: spec (to implement)
+
+### PLY-05.S5 More books than one shelf page
+- Given the Wide layout, and a shelf response with 7 books
+- When the shelf is shown
+- Then the first shelf page shows books 1 to 6, a "previous" round button that is disabled, and a "next" round button; nothing on the shelf scrolls
+- Test: spec (to implement)
+
+### PLY-05.S6 "Next" shows the next shelf page
+- Given the Wide layout, 7 books, and the first shelf page
+- When the child taps "next"
+- Then book 7 replaces books 1 to 6 with a 200 ms cross-fade; "next" is disabled and "previous" is enabled
+- Test: spec (to implement)
+
+### PLY-05.S7 One shelf page has no arrows
+- Given the Wide layout, and a shelf response with 6 books
+- When the shelf is shown
+- Then "previous" and "next" are not shown
+- Test: spec (to implement)
+
+### PLY-05.S8 An empty shelf is quiet
+- Given a shelf response of 200 with `{ "books": [] }`
+- When the shelf is shown
+- Then it shows the shelf with no book and the line "New stories are coming soon."; it has no control and no fault sign
+- Test: spec (to implement)
+
+### PLY-05.S9 A shelf that cannot be loaded is quiet
+- Given `GET /api/shelf` answers 500
+- When the shelf is shown
+- Then it shows the shelf with no book, the line "The books are sleeping. Come back soon.", and one "Look again" button; it has no fault wording
+- Test: spec (to implement)
+
+### PLY-05.S10 "Look again" sends the request again
+- Given the shelf in its failed state, and `GET /api/shelf` now answers 200 with one book
+- When the child taps "Look again"
+- Then the Player sends `GET /api/shelf` again, and shows the book
+- Test: spec (to implement)
+
+### PLY-05.S11 A cover is the page 1 scene as a still picture
+- Given a book whose first page has a `loop` animation, a layer with an `enter` `fade-in`, and a tap interaction
+- When its cover is shown
+- Then the cover is that scene drawn with `mode="still"`: the backdrop variant and every layer at its `at`; no animation runs; the `fade-in` layer is visible; no layer takes a tap, has a role, or is in the tab order
+- Test: spec (to implement)
+
+### PLY-05.S12 A book shows before its cover is loaded
+- Given a book whose cover files are not loaded yet
+- When the shelf shows the book
+- Then the book shows its title and a picture window in the paper colour, and it can be opened; when every file of the cover is loaded, the picture appears as a whole with a 200 ms fade, and without a fade with `prefers-reduced-motion`
+- Test: spec (to implement)
+
+### PLY-05.S13 A cover that fails to load keeps the paper colour
+- Given a book whose page 1 JSON request gives 500
+- When the shelf shows the book
+- Then the picture window stays in the paper colour with no fault sign, and a tap on the book still opens `/read/:releaseId`
+- Test: spec (to implement)
+
+### PLY-05.S14 Only the covers of the shown shelf page are loaded
+- Given the Wide layout, and a shelf response with 7 books
+- When the first shelf page is shown
+- Then the Player requests the release files of books 1 to 6 only; it requests the files of book 7 when the second shelf page is shown
+- Test: spec (to implement)
+
+### PLY-05.S15 The shelf opens on its first shelf page
+- Given 7 books, and a child who opened book 7 from the second shelf page
+- When the child taps Home
+- Then the shelf shows its first shelf page
+- Test: spec (to implement)
+
+### PLY-05.S16 The first shelf page loads in 2 s on 4G
+- Given 6 books, each a different release whose page 1 uses a painted backdrop at full size; an empty cache; the throttled 4G profile of PLY-03.S4
+- When the shelf loads
+- Then the time from the `GET /api/shelf` request to the drawing of the last cover of the first shelf page is 2 s or less
+- Test: manual · not run
+
+## PLY-06 A way back to the shelf from every screen of a book
+
+As a child, I want a way back to the shelf from every screen of a book, so
+that I am never stuck. (Derived from AC-18, ADR 0017.)
+
+Spec: requirements AC-18 · design "9. Player screens" (Home, Resting), "5. Scene runtime" (Loading, End page, Late images), "Error Handling"
+
+### PLY-06.S1 Each screen of a book has one Home control
+- Given a published release open in the Player
+- When the Start gate (Loading, then Ready), the reading page, and the end page are shown in turn
+- Then each of them has exactly one Home control, the Home round button in the frame
+- Test: spec (to implement)
+
+### PLY-06.S2 Home on the reading page shows the shelf
+- Given a book that was started, on page 3, with its narration playing
+- When the child taps Home
+- Then the narration and any sound effect stop, and the Player shows `/`; there is no question and no overlay
+- Test: spec (to implement)
+
+### PLY-06.S3 Home works during a page turn
+- Given a forward turn that has run for 200 ms
+- When the child taps Home
+- Then the narration stops, and the Player shows the shelf
+- Test: spec (to implement)
+
+### PLY-06.S4 A book that is opened again shows its Start gate
+- Given a child who left a book on page 3 with Home
+- When the child opens the same book from the shelf
+- Then the Start gate is shown; the Player kept no reading position
+- Test: spec (to implement)
+
+### PLY-06.S5 A release that does not exist shows the Resting state
+- Given no `release` row with the ID `R`, so that `GET /content/releases/R/manifest.json` gives 404
+- When a child opens `/read/R`
+- Then the Player shows the Resting state: the Player frame, a night picture from the app bundle (no request is sent for it), the line "This book is sleeping. Come back soon.", and one Home button with a label; it has no "Start", "previous", "next", progress pill, Home round button, or sound; the address stays `/read/R`
+- Test: spec (to implement)
+
+### PLY-06.S6 An ID that is not a UUID version 7 shows the Resting state
+- Given the path `/read/abc`
+- When a child opens it
+- Then the Player shows the Resting state
+- Test: spec (to implement)
+
+### PLY-06.S7 A file that "Start" waits for fails to load
+- Given a release whose manifest loads, and whose request for one page JSON gives 500
+- When the Start gate is in Loading
+- Then the Player shows the Resting state; "Start" is not enabled, and no request is sent again
+- Test: spec (to implement)
+
+### PLY-06.S8 Home in the Resting state shows the shelf
+- Given the Resting state
+- When the child taps Home
+- Then the Player shows `/`
+- Test: spec (to implement)
+
+### PLY-06.S9 A slow load does not rest
+- Given a release whose page JSON requests have no response for 60 s
+- When the Start gate is in Loading for those 60 s
+- Then the Player stays in Loading with the Home round button, and does not show the Resting state
+- Test: spec (to implement)
+
+### PLY-06.S10 A failed image after "Start" does not rest
+- Given a book that was started, and an image of page 3 that fails to load
+- When the child turns to page 3
+- Then the narration plays and the paper colour shows in place of the image; the Player does not show the Resting state
 - Test: spec (to implement)

@@ -102,8 +102,8 @@ Spec: requirements AC-15 · design "Deployment", "Testing Strategy"
 
 ### SYS-03.S2 The Player does not ask for a login
 - Given the deployed Worker, and a browser with no Access session
-- When it opens `/read/x`
-- Then it does not ask for a login; `/read/*` and `/content/*` are public
+- When it opens `/`, `/read/x`, and `/api/shelf`
+- Then none of them asks for a login; `/`, `/read/*`, `/api/shelf`, and `/content/*` are public (ADR 0017)
 - Test: manual · not run
 
 ## SYS-04 No child data, and no full text in logs
@@ -130,6 +130,12 @@ Spec: requirements "Non-functional Requirements" · design "Error Handling"
 - When the run writes logs
 - Then the logs do not contain the full news text or a full model output
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
+
+### SYS-04.S4 The shelf sends no child data
+- Given a child who opens the shelf
+- When the Player sends `GET /api/shelf`
+- Then the request has no parameter and no body, and the shelf sends no other data to a server
+- Test: spec (to implement)
 
 ## SYS-05 One model adapter, set by configuration
 
