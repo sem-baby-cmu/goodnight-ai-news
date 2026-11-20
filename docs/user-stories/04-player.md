@@ -204,55 +204,55 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 - Given a book that was started, on page 2
 - When the child taps "next"
 - Then the page sheet (backdrop frame, stage, and narration on opaque paper) turns about the left edge of the page panel for 500 ms and shows page 3 below it; the transition changes only `transform` and `opacity`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S2 A backward turn runs the other way
 - Given a book that was started, on page 3
 - When the child taps "previous"
 - Then page 2 turns back over page 3 for 500 ms
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S3 The narration does not wait for the turn
 - Given a book that was started
 - When the child taps "next"
 - Then the tap handler sets the `src` of the new page and calls `play()` before the transition ends
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S4 Loops stop when the turn starts
 - Given a page with looping animations and a next page with `enter` animations
 - When the child taps "next"
 - Then the looping animations and bubbles of the old page stop when the turn starts; the `enter` animations of the new page run once, when it is `current` and its assets are loaded; a layer with an `enter` `fade-in` is hidden until then
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S5 A tap during a turn starts the next turn
 - Given a forward turn from page 2 to page 3 that has run for 200 ms
 - When the child taps "next" again
 - Then the turn to page 3 ends at once, the turn to page 4 starts, and the narration of page 4 plays
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S6 Reduced motion gives a cross-fade
 - Given a device with `prefers-reduced-motion` set
 - When the child taps "next"
 - Then the new page cross-fades in for 200 ms, with no rotation
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S7 A page whose images are not loaded yet still shows
 - Given a next page whose images are not loaded
 - When the child turns to it
 - Then its narration text and the paper colour show at once (not a sky colour), and each image fades in for 200 ms when it is loaded; with reduced motion it appears without a fade
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S8 "Previous" during a forward turn turns back from the current page
 - Given a forward turn from page 2 to page 3 that has run for 200 ms
 - When the child taps "previous"
 - Then the turn to page 3 ends at once, a backward turn from page 3 to page 2 starts, and the narration of page 2 plays
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S9 Taps on layers are ignored during a turn
 - Given a turn that is running
 - When the child taps a character that has a tap interaction
 - Then no action runs
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S10 "Start" waits for the page data
 - Given a release whose manifest is loaded and whose page JSON files are still loading
@@ -264,19 +264,19 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 - Given a book that was started, on its last page, with its narration playing
 - When the child taps "next"
 - Then the narration stops, no new `src` is set, and the page turns to an end page with the backdrop of the last page in its sky, no layers, "The end", "Read again", and "previous"; the end page has no "next" and no progress pill, and it has the Home round button (ADR 0017)
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S12 "Read again" starts page 1 without the Start gate
 - Given the end page
 - When the child taps "Read again"
 - Then the tap handler sets the `src` of page 1 and calls `play()`, page 1 replaces the end page with a 200 ms cross-fade, and the Start gate is not shown; a tap on "next" during the cross-fade ends it at once and turns to page 2
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S13 "Previous" on the end page returns to the last page
 - Given the end page, or the turn to it that has run for 200 ms
 - When the child taps "previous"
 - Then the page turns back to the last page, and the tap handler sets its `src` and calls `play()`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-04.S14 "Start" does not wait for audio
 - Given a release whose manifest, page JSON files, and first-page files are loaded, and whose narration and `sfx` requests have no response
@@ -476,7 +476,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given a published release open in the Player
 - When the Start gate (Loading, then Ready), the reading page, and the end page are shown in turn
 - Then each of them has exactly one Home control, the Home round button in the frame
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S2 Home on the reading page shows the shelf
 - Given a book that was started, on page 3, with its narration playing
@@ -488,7 +488,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given a forward turn that has run for 200 ms
 - When the child taps Home
 - Then the narration stops, and the Player shows the shelf
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S4 A book that is opened again shows its Start gate
 - Given a child who left a book on page 3 with Home
@@ -554,7 +554,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given the Wide layout, and a forward turn in which the sheet swings past the left edge of the page panel
 - When the element at the middle of Home and at the middle of "previous" is read at each frame of the turn
 - Then it is the control every time, and a tap there reaches the control
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/player.spec.ts
 
 ### PLY-06.S15 Home moves the focus to the shelf
 - Given a book on page 3, with the keyboard focus on Home
