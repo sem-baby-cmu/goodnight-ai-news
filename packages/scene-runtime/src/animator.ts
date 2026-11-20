@@ -2,7 +2,8 @@ import type { PrimitiveId } from "@storybook/dsl";
 import type { KeyframeSpec } from "./keyframes";
 
 // Why an animation runs: a page loop, a page enter animation, or a tap.
-export type AnimationGroup = "loop" | "enter" | "tap";
+// "late" is the fade of an image that loads after the page became current (#68).
+export type AnimationGroup = "loop" | "enter" | "tap" | "late";
 
 type Entry = { element: Element; primitive: PrimitiveId; group: AnimationGroup; animation: Animation };
 

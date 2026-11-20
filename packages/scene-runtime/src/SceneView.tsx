@@ -2,11 +2,22 @@ import type { Animation as SceneAnimation, PageScene, PrimitiveId } from "@story
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import { runTap, type TapContext } from "./actions";
 import { type AnimationGroup, Animator } from "./animator";
+import { BackdropView } from "./BackdropView";
 import { Bubble } from "./Bubble";
+import {
+  BLEED,
+  FRAME_H,
+  FRAME_W,
+  fitFrame,
+  LATE_FADE_MS,
+  PAPER,
+  resolveBackdrop,
+  TEXTURE_OPACITY,
+  TEXTURE_TILE,
+} from "./frame";
 import { isLoopable, type KeyframeSpec, keyframesFor, STAGE_H, STAGE_W } from "./keyframes";
 import { entryFor, type LayerNodes, LayerView } from "./LayerView";
-import { SKY_COLORS } from "./sky";
-import type { AssetResolver, LayerState, SceneViewProps } from "./types";
+import type { AssetFailure, AssetResolver, LayerState, ScenePhase, SceneViewProps } from "./types";
 import { useReducedMotion } from "./useReducedMotion";
 
 const BUBBLE_MS = 3000;
@@ -14,6 +25,44 @@ const BUBBLE_GAP = 24;
 
 type BubbleState = { key: number; text: string; x: number; bottom: number };
 type Preload = { ref: string; file: string; renderer: string };
+
+const BACKDROP = "backdrop";
+const LATE_FADE: KeyframeSpec = {
+  element: "once",
+  keyframes: { opacity: ["0", "1"] },
+  // Easing ease-out: implementation decision (#68 Exact changes 9).
+  options: { duration: LATE_FADE_MS, easing: "ease-out", iterations: 1 },
+};
+
+// The keys the load report waits for: "backdrop" and every layer that is not
+// audio (#68 Exact changes 6, D68-11 (a)).
+function expectedKeys(page: PageScene, assets: AssetResolver): string[] {
+  const keys = [BACKDROP];
+  for (const l of page.layers) if (assets.get(l.ref)?.renderer !== "audio") keys.push(l.instanceId);
+  return keys;
+}
+
+// The layers the runtime cannot even request, with the reason of their
+// warning. They count as failed at once, with no url (D68-11 (a)).
+function unrequestable(page: PageScene, assets: AssetResolver): AssetFailure[] {
+  const out: AssetFailure[] = [];
+  for (const l of page.layers) {
+    const asset = assets.get(l.ref);
+    if (asset?.renderer === "audio") continue;
+    const reason = !l.at
+      ? `has no "at"`
+      : !asset
+        ? `has unknown ref "${l.ref}"`
+        : !entryFor(asset, { pose: l.pose, expression: l.expression })
+          ? `has no pose entry for "${l.pose}"`
+          : null;
+    if (reason) out.push({ key: l.instanceId, ref: l.ref, url: null, reason });
+  }
+  return out;
+}
+
+const hasEnterFade = (page: PageScene, instanceId: string) =>
+  page.animations.some((a) => a.target === instanceId && a.trigger === "enter" && a.primitive === "fade-in");
 
 function initialStates(page: PageScene): Map<string, LayerState> {
   return new Map(page.layers.map((l) => [l.instanceId, { pose: l.pose, expression: l.expression }]));
@@ -59,31 +108,93 @@ function preloadList(page: PageScene, assets: AssetResolver): Preload[] {
 export function SceneView(props: SceneViewProps) {
   const { page, assets, mode, textureUrl, className } = props;
   const play = mode === "play";
+  // Edit and still mode ignore `phase` (invariants 11 and 12).
+  const phase: ScenePhase = play ? (props.phase ?? "current") : "current";
+  const fitMode = props.fit ?? "contain";
   const reduced = useReducedMotion(props.reducedMotion);
   const [, rerender] = useReducer((n: number) => n + 1, 0);
+  const [settledVersion, bumpSettled] = useReducer((n: number) => n + 1, 0);
 
   // Layer states are read and written synchronously inside one tap, so a
   // later action sees an earlier one. They reset when the page changes.
   const states = useRef<Map<string, LayerState>>(new Map());
   const statesPage = useRef<PageScene | null>(null);
+  // Load report and enter gate (#68 invariants 7 to 9): keys that loaded or
+  // failed for this page, the failures in settle order, and two once-flags.
+  const settled = useRef(new Set<string>());
+  const failures = useRef<AssetFailure[]>([]);
+  const enterStarted = useRef(false);
+  const reported = useRef(false);
+  // Views that stay mounted across a page change do not load again, so their
+  // result is carried to the new page (implementation decision).
+  const layerFailures = useRef(new Map<string, AssetFailure>()).current;
+  const backdropDone = useRef<{ id: string; failure: AssetFailure | null } | null>(null);
+  // Layers whose asset is shown (SVG inserted or WebP loaded).
+  const ready = useRef(new Set<string>()).current;
+
+  const source = resolveBackdrop(assets, page);
+  const backdropId = source.ok ? `${page.backdrop}\n${source.file}` : null;
+
+  // Adds `key` to the settled set once; a failure is listed once per key.
+  const record = (key: string, failure: AssetFailure | null): boolean => {
+    if (settled.current.has(key)) return false;
+    settled.current.add(key);
+    if (failure) failures.current.push(failure);
+    return true;
+  };
+
   if (statesPage.current !== page) {
+    const previous = statesPage.current;
     statesPage.current = page;
     states.current = initialStates(page);
+    settled.current = new Set();
+    failures.current = [];
+    enterStarted.current = false;
+    reported.current = false;
+    if (!source.ok) record(BACKDROP, { key: BACKDROP, ref: page.backdrop, url: null, reason: source.reason });
+    else if (backdropDone.current?.id === backdropId) record(BACKDROP, backdropDone.current.failure);
+    for (const failure of unrequestable(page, assets)) record(failure.key, failure);
+    for (const l of page.layers) {
+      // A view with a new ref mounts again and loads again: carry nothing.
+      const before = previous?.layers.find((p) => p.instanceId === l.instanceId);
+      if (before?.ref !== l.ref) continue;
+      if (ready.has(l.instanceId)) record(l.instanceId, null);
+      const failure = layerFailures.get(l.instanceId);
+      if (failure && failure.ref === l.ref) record(l.instanceId, failure);
+    }
+  }
+
+  // True once the phase changed to current after mount (late fade, #68
+  // Exact changes 9). Never true in edit and still mode.
+  const lastPhase = useRef(phase);
+  const becameCurrent = useRef(false);
+  if (lastPhase.current !== phase) {
+    if (phase === "current") becameCurrent.current = true;
+    lastPhase.current = phase;
   }
 
   const animator = useRef(new Animator()).current;
   const nodes = useRef(new Map<string, LayerNodes>()).current;
   const svgs = useRef(new Map<string, SVGSVGElement>()).current;
-  // Layers whose asset is shown (SVG inserted or WebP loaded).
-  const ready = useRef(new Set<string>()).current;
   // Layers whose enter animations started for the current page.
   const entered = useRef(new Set<string>()).current;
   // Current values for the callbacks that child effects call.
-  const live = useRef({ page, play, reduced, assets, onSfx: props.onSfx, onAssetError: props.onAssetError });
-  live.current = { page, play, reduced, assets, onSfx: props.onSfx, onAssetError: props.onAssetError };
+  const current = {
+    page,
+    play,
+    phase,
+    reduced,
+    assets,
+    onSfx: props.onSfx,
+    onAssetError: props.onAssetError,
+    onAssetsSettled: props.onAssetsSettled,
+  };
+  const live = useRef(current);
+  live.current = current;
 
   const viewportRef = useRef<HTMLDivElement>(null);
-  const [k, setK] = useState(1);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState(() => fitFrame(0, 0));
   const [bubble, setBubble] = useState<BubbleState | null>(null);
   const bubbleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -116,8 +227,8 @@ export function SceneView(props: SceneViewProps) {
   // motion is on. `partsOnly` restarts the parts on a new SVG node.
   const startLoops = useCallback(
     (only: string | null, partsOnly: boolean) => {
-      const { page: current, play: playing, reduced: reducedMotion } = live.current;
-      if (!playing || reducedMotion) return;
+      const { page: current, play: playing, phase: now, reduced: reducedMotion } = live.current;
+      if (!playing || reducedMotion || now === "outgoing") return;
       for (const a of current.animations) {
         if (!isPageLoop(a) || (only !== null && a.target !== only)) continue;
         const spec = pageKeyframes(a);
@@ -127,8 +238,8 @@ export function SceneView(props: SceneViewProps) {
     [startSpec],
   );
 
-  // The page's enter animations of one layer: once per page, after the
-  // layer's asset is ready. `partsOnly` restarts them on a new SVG node.
+  // The page's enter animations of one layer. The enter gate calls it once
+  // per page; `partsOnly` restarts them on a new SVG node.
   const startEnter = useCallback(
     (instanceId: string, partsOnly: boolean) => {
       const { page: current, play: playing } = live.current;
@@ -142,14 +253,28 @@ export function SceneView(props: SceneViewProps) {
     [startSpec],
   );
 
+  // A late image fades in when it loads after the page became current.
+  const lateFade = useCallback(
+    (el: Element | null | undefined, instanceId: string | null) => {
+      const { page: current, play: playing, phase: now, reduced: reducedMotion } = live.current;
+      if (!el || !playing || now !== "current" || !becameCurrent.current || reducedMotion) return;
+      if (instanceId !== null && hasEnterFade(current, instanceId)) return;
+      animator.start(el, "fade-in", "late", LATE_FADE);
+    },
+    [animator],
+  );
+
   const markReady = useCallback(
     (instanceId: string) => {
       ready.add(instanceId);
-      if (!live.current.play || entered.has(instanceId)) return;
-      entered.add(instanceId);
-      startEnter(instanceId, false);
+      layerFailures.delete(instanceId);
+      if (!settled.current.has(instanceId)) {
+        settled.current.add(instanceId);
+        lateFade(nodes.get(instanceId)?.root, instanceId);
+        bumpSettled();
+      }
     },
-    [ready, entered, startEnter],
+    [ready, layerFailures, nodes, lateFade],
   );
 
   const register = useCallback(
@@ -161,9 +286,10 @@ export function SceneView(props: SceneViewProps) {
       } else {
         nodes.delete(instanceId);
         ready.delete(instanceId);
+        layerFailures.delete(instanceId);
       }
     },
-    [animator, nodes, ready],
+    [animator, nodes, ready, layerFailures],
   );
 
   // A new SVG node (first load or pose swap): cancel and drop the animations
@@ -197,6 +323,17 @@ export function SceneView(props: SceneViewProps) {
     (instanceId: string, url: string, reason: string, shown: LayerState | undefined) => {
       console.warn(`scene-runtime: layer ${instanceId}: ${url} ${reason}; skipped`);
       live.current.onAssetError?.(instanceId, url);
+      // A failed first load is a failure of the report; a failed swap is not.
+      if (shown === undefined) {
+        const ref = live.current.page.layers.find((l) => l.instanceId === instanceId)?.ref ?? "";
+        const failure: AssetFailure = { key: instanceId, ref, url, reason };
+        layerFailures.set(instanceId, failure);
+        if (!settled.current.has(instanceId)) {
+          settled.current.add(instanceId);
+          failures.current.push(failure);
+          bumpSettled();
+        }
+      }
       // A failed swap changes nothing (review item 3): the pose and the
       // expression go back to what is still on screen.
       const state = states.current.get(instanceId);
@@ -205,25 +342,93 @@ export function SceneView(props: SceneViewProps) {
         rerender();
       }
     },
-    [],
+    [layerFailures],
   );
 
-  // Page loops: on mount and whenever the page or reduced motion changes.
+  const onBackdropReady = useCallback(() => {
+    if (backdropId) backdropDone.current = { id: backdropId, failure: null };
+    if (settled.current.has(BACKDROP)) return;
+    settled.current.add(BACKDROP);
+    lateFade(backdropRef.current, null);
+    bumpSettled();
+  }, [backdropId, lateFade]);
+
+  const onBackdropFailed = useCallback(
+    (url: string, reason: string) => {
+      const ref = live.current.page.backdrop;
+      console.warn(`scene-runtime: backdrop ${ref}: ${url} ${reason}; paper shown`);
+      const failure: AssetFailure = { key: BACKDROP, ref, url, reason };
+      if (backdropId) backdropDone.current = { id: backdropId, failure };
+      if (settled.current.has(BACKDROP)) return;
+      settled.current.add(BACKDROP);
+      failures.current.push(failure);
+      bumpSettled();
+    },
+    [backdropId],
+  );
+
+  // A backdrop that does not resolve warns once per page (#68 Exact changes 5).
+  const backdropWarned = useRef<PageScene | null>(null);
+  const backdropReason = source.ok ? null : source.reason;
+  useEffect(() => {
+    if (backdropReason === null || backdropWarned.current === page) return;
+    backdropWarned.current = page;
+    console.warn(`scene-runtime: ${backdropReason}; paper shown`);
+  }, [page, backdropReason]);
+
+  // The gates of the load report and of `enter` (#68 Exact changes 6). A
+  // load is recorded in every phase; it acts only in incoming or current.
+  const evaluateGates = useCallback(() => {
+    const { page: current, play: playing, phase: now, assets: resolver, onAssetsSettled } = live.current;
+    if (!expectedKeys(current, resolver).every((key) => settled.current.has(key))) return;
+    let changed = false;
+    if (now !== "outgoing" && !reported.current) {
+      reported.current = true;
+      changed = true;
+      onAssetsSettled?.({ failed: [...failures.current] });
+    }
+    if (playing && now === "current" && !enterStarted.current) {
+      enterStarted.current = true;
+      changed = true;
+      for (const l of current.layers) {
+        if (!ready.has(l.instanceId)) continue;
+        entered.add(l.instanceId);
+        startEnter(l.instanceId, false);
+      }
+    }
+    if (changed) rerender();
+  }, [ready, entered, startEnter]);
+
+  // Page loops: on mount and whenever the page or reduced motion changes, and
+  // off in phase outgoing. incoming -> current keeps them running.
+  const loopsOn = phase !== "outgoing";
   // A reduced-motion change touches only the loops.
   useLayoutEffect(() => {
     startLoops(null, false);
     return () => animator.cancelGroup("loop");
-  }, [page, play, reduced, animator, startLoops]);
+  }, [page, play, loopsOn, reduced, animator, startLoops]);
 
-  // Enter animations: once per page, for each layer when its asset is ready.
+  // Enter animations: once per page, when every asset is settled (the gate).
   useLayoutEffect(() => {
+    enterStarted.current = false;
     entered.clear();
-    for (const instanceId of ready) markReady(instanceId);
+    evaluateGates();
     return () => {
       animator.cancelGroup("enter");
       animator.cancelGroup("tap");
     };
-  }, [page, play, animator, entered, ready, markReady]);
+  }, [page, play, animator, entered, ready, markReady, evaluateGates]);
+
+  useLayoutEffect(() => {
+    evaluateGates();
+  }, [page, phase, mode, settledVersion, evaluateGates]);
+
+  // Leaving current removes the bubble (#68 Exact changes 6).
+  useLayoutEffect(() => {
+    if (phase === "current") return;
+    clearTimeout(bubbleTimer.current);
+    setBubble(null);
+  }, [phase]);
 
   useEffect(() => () => animator.cancelAll(), [animator]);
 
@@ -235,32 +440,35 @@ export function SceneView(props: SceneViewProps) {
     }
   }, [page, assets]);
 
-  // Preload the files that a set_pose or set_expression tap would show.
+  // Preload the files that a set_pose or set_expression tap would show. Not
+  // in still mode (invariant 12).
   const preloadKey = JSON.stringify(preloadList(page, assets));
   useEffect(() => {
+    if (mode === "still") return;
     for (const { ref, file, renderer } of JSON.parse(preloadKey) as Preload[]) {
       if (renderer === "webp") new Image().src = assets.url(ref, file);
       else assets.svgText(ref, file).catch(() => {});
     }
-  }, [preloadKey, assets]);
+  }, [preloadKey, assets, mode]);
 
-  // Stage scale k = viewport width / 1600.
+  // Frame scale and offset from the layout size of the viewport (invariant
+  // 4): clientWidth and clientHeight do not change with an ancestor transform.
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const measure = () => setK(viewport.getBoundingClientRect().width / STAGE_W);
+    const measure = () => setBox(fitFrame(viewport.clientWidth, viewport.clientHeight, fitMode));
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(viewport);
     return () => observer.disconnect();
-  }, []);
+  }, [fitMode]);
 
   useEffect(() => () => clearTimeout(bubbleTimer.current), []);
 
   const onTap = useCallback(
     (instanceId: string) => {
-      const { page: current, play: playing, assets: resolver, onSfx } = live.current;
-      if (!playing) return;
+      const { page: current, play: playing, phase: now, assets: resolver, onSfx } = live.current;
+      if (!playing || now !== "current") return;
       const asset = (target: string) => {
         const layer = current.layers.find((l) => l.instanceId === target);
         return layer ? resolver.get(layer.ref) : undefined;
@@ -302,67 +510,120 @@ export function SceneView(props: SceneViewProps) {
     [startSpec, svgs],
   );
 
-  const tappable = useMemo(() => new Set(play ? page.interactions.map((i) => i.on.tap) : []), [page, play]);
+  const taps = play && phase === "current";
+  const tappable = useMemo(() => new Set(taps ? page.interactions.map((i) => i.on.tap) : []), [page, taps]);
 
   return (
     <div
       ref={viewportRef}
       className={className ? `sv-viewport ${className}` : "sv-viewport"}
-      style={{ position: "relative", width: "100%", aspectRatio: "4 / 3", overflow: "hidden" }}
+      data-mode={mode}
+      data-phase={phase}
+      data-settled={reported.current ? "true" : "false"}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        backgroundColor: PAPER,
+        width: "100%",
+        // Play and still: fill a definite parent, else 4:3 (#68 Exact changes 4).
+        height: mode === "edit" ? "auto" : "100%",
+        aspectRatio: "4 / 3",
+      }}
     >
       <div
-        className="sv-stage"
+        className="sv-frame"
         style={{
           position: "absolute",
-          left: 0,
-          top: 0,
-          width: STAGE_W,
-          height: STAGE_H,
+          left: box.x,
+          top: box.y,
+          width: FRAME_W,
+          height: FRAME_H,
           transformOrigin: "0 0",
-          transform: `scale(${k})`,
-          background: SKY_COLORS[page.sky],
+          transform: `scale(${box.k})`,
         }}
       >
-        {page.layers.map((layer) => {
-          const { at } = layer;
-          const asset = assets.get(layer.ref);
-          if (!at || !asset || asset.renderer === "audio") return null;
-          return (
-            <LayerView
-              // A new asset on the same layer mounts a new view, so the old
-              // SVG and its animations go away with the old view.
-              key={`${layer.instanceId}\n${layer.ref}`}
-              layer={{ ...layer, at }}
-              asset={asset}
-              state={states.current.get(layer.instanceId) ?? {}}
+        <div
+          ref={backdropRef}
+          className="sv-backdrop"
+          style={{ position: "absolute", left: 0, top: 0, width: FRAME_W, height: FRAME_H, pointerEvents: "none" }}
+        >
+          {source.ok ? (
+            <BackdropView
+              key={backdropId}
+              backdrop={page.backdrop}
+              renderer={source.renderer}
+              file={source.file}
+              url={source.url}
               assets={assets}
-              tappable={tappable.has(layer.instanceId)}
-              onTap={onTap}
-              register={register}
-              onSvg={onSvg}
-              onReady={onReady}
-              onAssetFailed={onAssetFailed}
+              host={backdropRef}
+              onReady={onBackdropReady}
+              onFailed={onBackdropFailed}
             />
-          );
-        })}
+          ) : null}
+        </div>
+        <div
+          className="sv-stage"
+          style={{
+            position: "absolute",
+            left: BLEED,
+            top: 0,
+            width: STAGE_W,
+            height: STAGE_H,
+            overflow: "hidden",
+            isolation: "isolate",
+            pointerEvents: "none",
+          }}
+        >
+          {page.layers.map((layer) => {
+            const { at } = layer;
+            const asset = assets.get(layer.ref);
+            if (!at || !asset || asset.renderer === "audio") return null;
+            return (
+              <LayerView
+                // A new asset on the same layer mounts a new view, so the old
+                // SVG and its animations go away with the old view.
+                key={`${layer.instanceId}\n${layer.ref}`}
+                layer={{ ...layer, at }}
+                asset={asset}
+                state={states.current.get(layer.instanceId) ?? {}}
+                assets={assets}
+                tappable={tappable.has(layer.instanceId)}
+                hidden={play && !enterStarted.current && hasEnterFade(page, layer.instanceId)}
+                onTap={onTap}
+                register={register}
+                onSvg={onSvg}
+                onReady={onReady}
+                onAssetFailed={onAssetFailed}
+              />
+            );
+          })}
+        </div>
         {textureUrl ? (
-          <img
+          <div
             className="sv-paper"
-            src={textureUrl}
-            alt=""
+            aria-hidden="true"
             style={{
               position: "absolute",
-              inset: 0,
-              width: STAGE_W,
-              height: STAGE_H,
-              objectFit: "cover",
+              left: 0,
+              top: 0,
+              width: FRAME_W,
+              height: FRAME_H,
+              backgroundImage: `url(${JSON.stringify(textureUrl)})`,
+              backgroundSize: `${TEXTURE_TILE}px ${TEXTURE_TILE}px`,
+              backgroundRepeat: "repeat",
+              backgroundPosition: "0 0",
+              opacity: TEXTURE_OPACITY,
               mixBlendMode: "multiply",
               pointerEvents: "none",
-              zIndex: 9999,
             }}
           />
         ) : null}
-        {bubble ? <Bubble key={bubble.key} text={bubble.text} x={bubble.x} bottom={bubble.bottom} /> : null}
+        <div
+          className="sv-overlay"
+          style={{ position: "absolute", left: BLEED, top: 0, width: STAGE_W, height: STAGE_H, pointerEvents: "none" }}
+        >
+          {bubble ? <Bubble key={bubble.key} text={bubble.text} x={bubble.x} bottom={bubble.bottom} /> : null}
+        </div>
       </div>
     </div>
   );
