@@ -115,7 +115,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f647-7ff9-7663-ab40-b2573dbab232",
-            "text": "Scientists want to connect three giant telescopes into one!"
+            "text": "Three telescopes become one!"
           },
           {
             "action": "play_sfx",
