@@ -42,6 +42,14 @@ describe("validateScene", () => {
       expect(issue.message).toMatch(/^[A-Z].*\.$/);
       expect(issue.message).not.toContain("Hello, friend!");
     }
+    const bubble = check((s) => {
+      raw(actions(s)[2]).text = "Hello\u2014friend " + "a".repeat(40);
+    });
+    expect(bubble.map((i) => i.code)).toEqual(["bubble_too_long", "bubble_no_end_mark", "bubble_not_ascii"]);
+    for (const issue of bubble) {
+      expect(issue.message).toMatch(/^[A-Z].*\.$/);
+      expect(issue.message).not.toContain("Hello");
+    }
   });
 
   // Schema checks (zod).
@@ -73,12 +81,35 @@ describe("validateScene", () => {
     );
   });
 
-  it("RUN-03.S10 schema: rejects bubble over 60 chars", () => {
-    const issues = check((s) => {
-      raw(actions(s)[2]).text = "a".repeat(61);
-    });
-    expectIssue(issues, "schema", "interactions.0.do.2.text");
-    expect(check((s) => void (raw(actions(s)[2]).text = "a".repeat(60)))).toEqual([]);
+  // Bubble checks (#82): they report and never change the text.
+
+  const bubble = (text: string) => check((s) => void (raw(actions(s)[2]).text = text));
+  const BUBBLE_PATH = "interactions.0.do.2.text";
+
+  it("RUN-03.S10 a bubble over 40 characters fails validation", () => {
+    expect(bubble("a".repeat(39) + ".")).toEqual([]);
+    expect(bubble("a".repeat(40) + ".")).toEqual([
+      expect.objectContaining({ code: "bubble_too_long", path: BUBBLE_PATH }),
+    ]);
+  });
+
+  it("RUN-03.S17 a bubble text without an end mark fails validation", () => {
+    for (const text of ["Hello, friend", "Hello, friend! "]) {
+      expect(bubble(text)).toEqual([expect.objectContaining({ code: "bubble_no_end_mark", path: BUBBLE_PATH })]);
+    }
+    expect(bubble("Is it you?")).toEqual([]);
+  });
+
+  it("RUN-03.S18 a bubble text outside printable ASCII fails validation", () => {
+    const issues = bubble("Hello\u2014friend!");
+    expect(issues).toEqual([expect.objectContaining({ code: "bubble_not_ascii", path: BUBBLE_PATH })]);
+    expect(issues[0]!.message).toContain("U+2014");
+    expect(issues[0]!.message).not.toContain("Hello");
+    expect(bubble("Hi, friend!")).toEqual([]);
+  });
+
+  it("bubble checks report every failing rule", () => {
+    expect(bubble("a".repeat(61)).map((i) => i.code)).toEqual(["bubble_too_long", "bubble_no_end_mark"]);
   });
 
   it("schema: requires one layer, animation, interaction", () => {

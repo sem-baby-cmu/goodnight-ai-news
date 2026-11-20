@@ -79,6 +79,17 @@ describe("json-schema", () => {
     });
   });
 
+  it("the scene JSON schema has no maxLength on bubble text", () => {
+    const texts: Node[] = [];
+    walk(buildSceneJsonSchema(ctx()), (n) => {
+      const props = n.properties as Record<string, Node> | undefined;
+      if (props?.action && allowed(props.action).includes("show_bubble")) texts.push(props.text!);
+    });
+    expect(texts).toHaveLength(1);
+    expect(texts[0]!.minLength).toBe(1);
+    expect(texts[0]).not.toHaveProperty("maxLength");
+  });
+
   it("RUN-03.S2 buildSceneJsonSchema enums come from registry", () => {
     const schema = buildSceneJsonSchema(ctx());
     const poses = ["bust", "default", "front", "perch", "stand", "wave"];

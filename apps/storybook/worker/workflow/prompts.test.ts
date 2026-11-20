@@ -59,6 +59,15 @@ describe("prompts", () => {
     expect(user).toContain('- riverbank: "a grassy bank by a wide, slow river"; skies ["day","dusk","night"]');
   });
 
+  it("scenePrompt states the bubble rule", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    expect(system).toContain("2 to 6 words");
+    expect(system).toContain("at most 40 characters");
+    expect(system).toContain("does not repeat the page text");
+  });
+
   it("scenePrompt lists a missing cast key as unknown", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));

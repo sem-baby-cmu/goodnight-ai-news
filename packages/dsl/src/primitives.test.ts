@@ -36,7 +36,7 @@ describe("primitives", () => {
     expect(ACTIONS).toEqual({
       play_animation: { targetKinds: visual },
       play_sfx: { targetKinds: [] },
-      show_bubble: { targetKinds: visual, maxTextLength: 60 },
+      show_bubble: { targetKinds: visual, maxTextLength: 40 },
       set_expression: { targetKinds: ["character"] },
       set_pose: { targetKinds: ["character"] },
     });
