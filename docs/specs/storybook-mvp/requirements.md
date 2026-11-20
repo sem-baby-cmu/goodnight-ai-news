@@ -154,6 +154,11 @@ child can look at, listen to, and touch.
       fit the viewport, the Player shows a picture sign and one line (the
       Small screen state), with the Home control on a book route, and the
       screen comes back when the viewport is large enough.
+- [ ] Every sentence of a page text that the script model writes has at most
+      12 words, and the page texts of a story hold at most 2 real-world names
+      (design "2. StoryRun Workflow", "Script rules"). A script that breaks a
+      limit after one repair makes the run fail. Code does not change the
+      text.
 
 ## Non-functional Requirements
 

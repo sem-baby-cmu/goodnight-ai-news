@@ -15,13 +15,13 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 
 | File | Prefix | Area | Stories | Scenarios |
 | :-- | :-- | :-- | --: | --: |
-| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 57 |
+| [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 59 |
 | [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page, take a book off the shelf | 5 | 41 |
 | [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, the shelf list, and the take-off | 4 | 47 |
 | [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release, on every viewport | 7 | 103 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 16 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 23 |
-| Total | | | 29 | 287 |
+| Total | | | 29 | 289 |
 
 ## Format
 
@@ -69,7 +69,7 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 99 scenarios are `spec (to implement)`, 177 have an
+Current state: 99 scenarios are `spec (to implement)`, 179 have an
 automated test, 10 are `manual · not run`, and 1 is a recorded manual check.
 
 ## Coverage of the requirements
@@ -107,6 +107,7 @@ automated test, 10 are `manual · not run`, and 1 is a recorded manual check.
 | AC-20 The operator takes a story off the shelf: not in the shelf list, 404 for every release up to the published one, the resting state for a link, no release changes, no undo, a new release puts it back | PUB-04.S1 to PUB-04.S16, EDT-05.S1 to EDT-05.S8, PLY-06.S16 to PLY-06.S18, PLY-06.S20 |
 | AC-21 A path that matches no Player route shows the shelf | PLY-06.S19, SYS-03.S3 |
 | AC-22 Every viewport has a layout; the Small screen state where the fixed parts cannot fit | PLY-07.S1 to PLY-07.S12 |
+| AC-23 Sentences of at most 12 words and at most 2 real-world names in a model script | RUN-01.S13, RUN-01.S14, RUN-05.S3 |
 
 ## Coverage of the design
 
