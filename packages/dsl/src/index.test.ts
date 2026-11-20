@@ -8,6 +8,8 @@ it("index re-exports the public API", () => {
     "SKY_PALETTES",
     "AssetManifestSchema",
     "selectPoseEntry",
+    "isLayerManifest",
+    "manifestFiles",
     "OutlineSchema",
     "PageTextSchema",
     "LayerSchema",

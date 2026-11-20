@@ -36,6 +36,7 @@ export function sceneOf(templateId: string, specs: LayerSpec[]): PageScene {
   const layers: Layer[] = specs.map((spec, i) => ({ instanceId: id(i + 1), ...spec }));
   return {
     templateId,
+    backdrop: "meadow",
     sky: "day",
     layers,
     animations: [{ target: id(1), primitive: "float", params: { amplitude: 0.01, period: 4 }, trigger: "loop" }],

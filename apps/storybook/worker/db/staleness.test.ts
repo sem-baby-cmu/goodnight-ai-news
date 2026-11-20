@@ -92,9 +92,10 @@ describe("staleness", () => {
     ).toThrow("head revision missing or superseded");
   });
 
-  it("assetKeysOfScene lists every layer ref and every play_sfx sound once, sorted", () => {
+  it("assetKeysOfScene lists the backdrop, every layer ref, and every play_sfx sound once, sorted", () => {
     const scene = {
       templateId: "t",
+      backdrop: "meadow",
       sky: "day",
       layers: [
         { instanceId: "a", kind: "character", ref: "pip", slot: "left" },
@@ -107,6 +108,6 @@ describe("staleness", () => {
         { on: { tap: "b" }, do: [{ action: "play_sfx", sfx: "boing" }] },
       ],
     } as PageScene;
-    expect(assetKeysOfScene(scene)).toEqual(["ahh", "ball", "boing", "pip"]);
+    expect(assetKeysOfScene(scene)).toEqual(["ahh", "ball", "boing", "meadow", "pip"]);
   });
 });

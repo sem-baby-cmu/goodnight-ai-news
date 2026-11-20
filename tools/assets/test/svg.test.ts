@@ -2,6 +2,7 @@ import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
+import { isLayerManifest } from "@storybook/dsl";
 import { type AssetBuild, AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
 import { REPO_ROOT, SOURCES_DIR } from "../src/paths";
@@ -132,7 +133,7 @@ describe("checkSvg", () => {
   it("pip asset.json validates with AssetBuildSchema and legal has 5 front pairs", () => {
     const build = pipBuild();
     expect(build.renderer).toBe("svg-rig");
-    if (build.manifest.kind === "sfx") throw new Error("pip is not an sfx");
+    if (!isLayerManifest(build.manifest)) throw new Error("pip is a layer asset");
     expect(build.manifest.legal).toEqual(EXPRESSIONS.map((expression) => ({ pose: "front", expression })));
     expect(build.manifest.parts).toEqual(PARTS);
   });
@@ -240,7 +241,7 @@ describe("checkSvg (PR #53 review)", () => {
 
   it("checkSvg reports a legal pair with an undeclared pose or expression", () => {
     const build = pipBuild();
-    if (build.manifest.kind === "sfx") throw new Error("pip is not an sfx");
+    if (!isLayerManifest(build.manifest)) throw new Error("pip is a layer asset");
     build.manifest.legal.push({ pose: "walk", expression: "happy" }, { pose: "front", expression: "sleepy" });
     const issues = checkSvg(sanitizeSvg(rig()), build).filter((i) => i.code === "svg_legal");
     expect(issues).toHaveLength(2);

@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
+import { isLayerManifest } from "@storybook/dsl";
 import { AssetBuildSchema } from "../src/build";
 import { main } from "../src/cli";
 import { buildSql, loadLocalBuilds, planPublish } from "../src/publish";
@@ -36,7 +37,7 @@ describe("build output", () => {
       } else {
         expect(webps, key).toEqual(["default.webp"]);
       }
-      if (build.manifest.kind === "sfx") throw new Error(`${key} is not a visual asset`);
+      if (!isLayerManifest(build.manifest)) throw new Error(`${key} is not a layer asset`);
       expect(build.manifest.poses.map((p) => p.file).sort(), key).toEqual([...webps].sort());
     }
     expect(characters).toBe(13);

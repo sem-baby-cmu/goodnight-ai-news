@@ -28,7 +28,7 @@ export type PublishableStory = {
 };
 
 // The asset versions that every seeded scene records.
-export const SCENE_ASSET_VERSIONS = { "test-bear": 1, "test-ball": 1, "test-pop": 1 };
+export const SCENE_ASSET_VERSIONS = { "test-bear": 1, "test-ball": 1, "test-pop": 1, meadow: 1 };
 
 // A scene in which every layer has `at`, with one `play_sfx test-pop` tap.
 export function testScene(): PageScene {
@@ -36,6 +36,7 @@ export function testScene(): PageScene {
   const ball = newId();
   return {
     templateId: "two-friends",
+    backdrop: "meadow",
     sky: "night",
     layers: [
       {

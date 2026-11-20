@@ -12,6 +12,7 @@ function ids(): () => string {
 function draft(): SceneDraft {
   return {
     templateId: "two-friends",
+    backdrop: "meadow",
     sky: "night",
     layers: [
       { kind: "character", ref: "pip", pose: "stand", expression: "happy", slot: "left", flip: true },
@@ -62,6 +63,18 @@ describe("draft", () => {
     expect("expression" in ball!).toBe(false);
     expect(pip!.expression).toBe("happy");
     expect(PageSceneSchema.safeParse(scene).success).toBe(true);
+  });
+
+  it("assignSceneIds keeps the backdrop", () => {
+    const scene = assignSceneIds(draft(), ids());
+    expect(scene.backdrop).toBe("meadow");
+    expect(scene.sky).toBe("night");
+  });
+
+  it("SceneDraftSchema rejects a draft without backdrop", () => {
+    const d = draft() as unknown as Record<string, unknown>;
+    delete d.backdrop;
+    expect(SceneDraftSchema.safeParse(d).success).toBe(false);
   });
 
   it("assignSceneIds keeps unknown slot target as raw string", () => {

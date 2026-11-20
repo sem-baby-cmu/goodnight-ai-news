@@ -9,6 +9,7 @@ import {
   type SceneDraft,
   SceneDraftSchema,
   assignSceneIds,
+  isLayerManifest,
   validateScene,
 } from "@storybook/dsl";
 import { TEMPLATES, layoutScene } from "@storybook/layout";
@@ -539,6 +540,7 @@ describe("StoryRunWorkflow", () => {
     try {
       const overlap = (): SceneDraft => ({
         templateId: "two-friends",
+        backdrop: "meadow",
         sky: "day",
         layers: [
           { kind: "character", ref: WIDE, pose: "stand", expression: "happy", slot: "left", flip: false },
@@ -702,7 +704,7 @@ describe("StoryRunWorkflow", () => {
         const a = r.registry!.assets[layer.ref]!;
         expect(a).toBeDefined();
         const m = a.manifest;
-        if (m.kind === "sfx") throw new Error("a layer references an sfx asset");
+        if (!isLayerManifest(m)) throw new Error("a layer references an asset that is not a layer asset");
         expect(m.poses.map((p) => p.id)).toContain(layer.pose);
         if (layer.expression !== undefined) expect(m.expressions).toContain(layer.expression);
         expect(head.assetVersions![layer.ref]).toBe(a.version);
