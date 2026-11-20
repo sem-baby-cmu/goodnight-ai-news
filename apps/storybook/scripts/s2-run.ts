@@ -8,7 +8,7 @@
 // It prints only IDs, counts, statuses and timings (AGENTS.md section 5).
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -42,6 +42,17 @@ export function sha256(text: string): string {
 // All texts are checked before the first request, so a changed text costs nothing.
 export function checkInputs(inputs: Input[], readText: (slug: string) => string): void {
   for (const i of inputs) if (sha256(readText(i.slug)) !== i.sha256) throw new Error(`${i.slug}: SHA-256 mismatch`);
+}
+
+// A fixture folder is written once, by the run that it records. A second
+// fixture run would overwrite it with a rerun, so it is refused before the
+// first request. The comparison pass (`--no-fixtures`) writes no folder.
+export function refuseExistingFixtures(inputs: Input[], root: string, fixtures: boolean): void {
+  if (!fixtures) return;
+  for (const i of inputs) {
+    const dir = path.join(root, i.slug);
+    if (existsSync(dir)) throw new Error(`${i.slug}: fixture folder ${dir} already exists; a fixture run records each text once`);
+  }
 }
 
 export async function runOne(input: Input, deps: Deps): Promise<{ outcome: string; rows: S2Rows }> {
@@ -123,6 +134,7 @@ async function main(): Promise<void> {
   const root = path.join(APP, "test/model-contract/s2");
   const inputs = JSON.parse(readFileSync(path.join(root, "inputs.json"), "utf8")) as Input[];
   const deps = realDeps(opts.base);
+  refuseExistingFixtures(inputs, root, opts.fixtures);
   checkInputs(inputs, deps.readText);
 
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
