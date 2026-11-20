@@ -16,6 +16,7 @@ import {
   loadStoryHeads,
   markRunFailed,
   newId,
+  release,
   revision,
   run,
   saveHumanRevision,
@@ -722,6 +723,118 @@ describe("Studio API routes", () => {
     const all = body.stories.map((s) => s.id);
     expect(all).toEqual([...all].sort().reverse());
     expect(ours[0]).toMatchObject({ title: null, status: "draft", publishedReleaseId: null });
+  });
+
+  // One item of the story list, from the raw JSON: a parse would drop unknown keys.
+  async function listed(storyId: string): Promise<Record<string, unknown>> {
+    const res = await call(fakeEnv().env, "GET", "/api/studio/stories");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { stories: Array<Record<string, unknown>> };
+    const item = body.stories.find((s) => s.id === storyId);
+    if (!item) throw new Error(`story ${storyId} is not listed`);
+    return item;
+  }
+
+  // The last change of a story by the rule of design "6. API", from the stored rows.
+  async function lastChange(storyId: string): Promise<string> {
+    const [s] = await db().select({ createdAt: story.createdAt }).from(story).where(eq(story.id, storyId));
+    const revs = await db()
+      .select({ createdAt: revision.createdAt, status: revision.status })
+      .from(revision)
+      .where(eq(revision.storyId, storyId));
+    const runs = await db().select({ createdAt: run.createdAt, finishedAt: run.finishedAt }).from(run).where(eq(run.storyId, storyId));
+    const rels = await db().select({ createdAt: release.createdAt }).from(release).where(eq(release.storyId, storyId));
+    const times = [
+      s!.createdAt,
+      ...revs.filter((r) => r.status !== "superseded").map((r) => r.createdAt),
+      ...runs.map((r) => r.finishedAt ?? r.createdAt),
+      ...rels.map((r) => r.createdAt),
+    ];
+    return times.sort().at(-1)!;
+  }
+
+  const LIST_KEYS = [
+    "createdAt",
+    "id",
+    "latestRunStatus",
+    "onShelf",
+    "pageCounts",
+    "publishedReleaseId",
+    "publishedReleaseNumber",
+    "status",
+    "title",
+    "updatedAt",
+  ];
+
+  it("EDT-01.S6 GET stories gives the run status, the page states, and the last change of each story", async () => {
+    const fresh = await newStory(db());
+    const mixed = await seedPublishableStory(env, { pages: 4, staleScenePage: 2, needsReviewScenePage: 3, missingAudioPage: 4 });
+    // A superseded revision with a later time, which must not count.
+    await insertRevisions(db(), [
+      {
+        storyId: mixed.storyId,
+        kind: "page_text",
+        pageId: mixed.pageIds[0]!,
+        content: { text: "Page 1. Too late." },
+        basis: {},
+        origin: "human",
+        callId: null,
+        status: "superseded",
+        createdAt: "2999-01-01T00:00:00.000Z",
+      },
+    ]);
+    const published = await seedPublishableStory(env);
+    expect((await call(fakeEnv().env, "POST", `/api/studio/stories/${published.storyId}/releases`)).status).toBe(201);
+    const [rel] = await db().select({ createdAt: release.createdAt }).from(release).where(eq(release.storyId, published.storyId));
+
+    const freshItem = await listed(fresh.storyId);
+    expect(freshItem).toMatchObject({ latestRunStatus: "queued", pageCounts: { ok: 0, stale: 0, needs_review: 0, missing: 0 } });
+    expect(freshItem.updatedAt).toBe(await lastChange(fresh.storyId));
+
+    const mixedItem = await listed(mixed.storyId);
+    expect(mixedItem).toMatchObject({ latestRunStatus: "queued", pageCounts: { ok: 1, stale: 1, needs_review: 1, missing: 1 } });
+    expect(mixedItem.updatedAt).toBe(await lastChange(mixed.storyId));
+    expect(mixedItem.updatedAt).not.toBe("2999-01-01T00:00:00.000Z");
+
+    const publishedItem = await listed(published.storyId);
+    expect(publishedItem).toMatchObject({ latestRunStatus: "queued", pageCounts: { ok: 2, stale: 0, needs_review: 0, missing: 0 } });
+    expect(publishedItem.updatedAt).toBe(rel!.createdAt);
+    expect(publishedItem.updatedAt).toBe(await lastChange(published.storyId));
+
+    // `heads` and every other internal column stay in the Worker (#71).
+    for (const item of [freshItem, mixedItem, publishedItem]) expect(Object.keys(item).sort()).toEqual(LIST_KEYS);
+  });
+
+  it("EDT-01.S7 GET stories gives the status of the run that GET story names as latestRun", async () => {
+    const ids = await newStory(db());
+    // Two runs with the same `created_at`, later than the first run.
+    const pair = [newId(), newId()].sort();
+    const low = pair[0]!;
+    const high = pair[1]!;
+    await db()
+      .insert(run)
+      .values([
+        {
+          id: low,
+          storyId: ids.storyId,
+          scope: { kind: "full" },
+          status: "draft_ready",
+          createdAt: "2999-01-01T00:00:00.000Z",
+          finishedAt: "2999-01-01T00:00:01.000Z",
+        },
+        {
+          id: high,
+          storyId: ids.storyId,
+          scope: { kind: "full" },
+          status: "failed",
+          createdAt: "2999-01-01T00:00:00.000Z",
+          finishedAt: "2999-01-01T00:00:01.000Z",
+        },
+      ]);
+    const detail = StoryDetailResponseSchema.parse(await (await call(fakeEnv().env, "GET", `/api/studio/stories/${ids.storyId}`)).json());
+    expect(detail.latestRun!.id).toBe(high);
+    expect(detail.latestRun!.status).toBe("failed");
+    expect((await listed(ids.storyId)).latestRunStatus).toBe(detail.latestRun!.status);
   });
 
   it("EDT-02.S1 PUT text saves a human page_text revision and moves the head", async () => {
