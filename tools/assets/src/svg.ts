@@ -146,6 +146,12 @@ export function checkSvg(text: string, build: AssetBuild, file?: string): Issue[
   } catch (e) {
     return [{ path: "svg", code: "svg_parse", message: `The file is not well-formed XML: ${(e as Error).message.split("\n")[0]}` }];
   }
+  // A backdrop file is the whole frame (ADR 0016 section 1); it has no poses.
+  if (build.manifest.kind === "backdrop") {
+    const { width, height } = build.manifest.size;
+    if (viewBox !== `0 0 ${width} ${height}`) add("svg", "svg_viewbox", `viewBox is "${viewBox ?? ""}"; it must be "0 0 ${width} ${height}".`);
+    return issues;
+  }
   if (!isLayerManifest(build.manifest)) return issues;
   const manifest = build.manifest;
 

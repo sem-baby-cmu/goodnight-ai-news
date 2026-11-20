@@ -230,8 +230,7 @@ export const SPIKE_REGISTRY_FIXTURE: RegistrySnapshot = { assets: {
       "flippable": true
     }
   },
-  // Hand-written, not copied from a build: #67 builds `meadow` and replaces
-  // this entry with its `asset.json`.
+  // copied from `tools/assets/out/meadow/v1/asset.json` (`cli meadow`, #67).
   "meadow": {
     "kind": "backdrop",
     "renderer": "svg",

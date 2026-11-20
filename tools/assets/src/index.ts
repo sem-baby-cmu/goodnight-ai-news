@@ -1,3 +1,5 @@
+export { ApprovalSchema, checkApprovals, templatesDigest, writeApproval } from "./approval";
+export { type SlotEnvelope, slotEnvelopes, writeBackdropReview } from "./backdrop-review";
 export { type AssetBuild, AssetBuildSchema } from "./build";
 export { main } from "./cli";
 export { silhouetteIoU, writeCompareSheet } from "./compare";
@@ -13,7 +15,8 @@ export {
   proposeCropMap,
 } from "./crops";
 export { boardBackground, cutFigure, detectFigures, findHoleCandidates, measureImage } from "./image";
-export { BOARDS_DIR, CROPS_DIR, OUT_DIR, REPO_ROOT, REVIEW_DIR, SOURCES_DIR } from "./paths";
+export { MEADOW_COLOURS, writeMeadowBuild } from "./meadow";
+export { BOARDS_DIR, CROPS_DIR, OUT_DIR, REPO_ROOT, REVIEW_DIR, REVIEWS_DIR, SOURCES_DIR } from "./paths";
 export { activationSql, buildSql, type ExistingRow, type LocalBuild, loadLocalBuilds, manifestFiles, type Plan, planPublish, PublishInputError, runPublish } from "./publish";
 export { writeReviewSheets } from "./review";
 export { SFX, type SfxRecipe } from "./sfx/recipes";

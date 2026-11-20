@@ -9,3 +9,5 @@ export const CROPS_DIR = join(REPO_ROOT, "tools/assets/crops");
 export const OUT_DIR = join(REPO_ROOT, "tools/assets/out");
 export const REVIEW_DIR = join(OUT_DIR, "review");
 export const SOURCES_DIR = join(REPO_ROOT, "assets");
+// Backdrop approval records (#67). Tracked; a person writes them with `cli approve`.
+export const REVIEWS_DIR = join(REPO_ROOT, "tools/assets/reviews");
