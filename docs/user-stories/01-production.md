@@ -412,6 +412,12 @@ Spec: requirements AC-4 · design "2. StoryRun Workflow", "6. API", "Error Handl
 - Then the "Run" card has a notice "The run failed." with the line "scene, page 2: <message>" and the line "Open a page to make its scene or audio again."; the notice has no "Start again" button
 - Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
+### RUN-05.S15 A repair call stores the issues of the attempt it repairs
+- Given a `script` or `scene:<pageId>` first output that fails the checks
+- When the step makes the repair call
+- Then the `repair` row in `call_log` stores in `repair_issues` the issue list that the repair prompt gives, also when the repair gets a provider 4xx; the `first` row has `repair_issues` null; no row is updated
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
+
 ## RUN-06 The scene approach holds on real news
 
 As the operator, I want real news texts to pass with the real models, so that

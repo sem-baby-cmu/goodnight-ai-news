@@ -186,3 +186,9 @@ Spec: requirements "Non-functional Requirements" · design "1. Model adapter", "
 - When the adapter returns
 - Then `usage` is `{ inputTokens: promptTokenCount, outputTokens: candidatesTokenCount }`; an answer without both counts gives `usage` null, never 0
 - Test: @storybook/models · src/client.test.ts
+
+### SYS-05.S7 Each call row names the configured model
+- Given a model call of any step
+- When the step stores the result in `call_log`
+- Then `configured_model` holds the `MODEL_SCRIPT`, `MODEL_SCENE` or `MODEL_TTS` value of the step, and `model` holds the model ID that the answer names (the configured ID when the answer names none)
+- Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
