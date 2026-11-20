@@ -293,7 +293,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Star
 ### PLY-04.S16 The picture keeps its size and its place at "Start"
 - Given the Narrow layout at 390 x 844, and the Start gate in Ready
 - When the child taps "Start"
-- Then the picture area has the same size and the same place before and after the tap, and the narration panel has the same height; the top bar and the control row had their full height in Loading and in Ready
+- Then the picture area has the same size and the same place before and after the tap, and the narration panel has the same height; the top bar and the control row had their full height (84 px each) in Loading and in Ready
 - Test: spec (to implement)
 
 ### PLY-04.S17 The Start gate fits its panel in every layout
