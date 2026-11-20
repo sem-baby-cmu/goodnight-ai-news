@@ -359,6 +359,13 @@ describe("StoryRunWorkflow", () => {
     expect(stub.answered.script).toBe(1);
   });
 
+  it("an audio call row stores the usage that synthesizeSpeech returns (#65)", async () => {
+    const { ids } = await fullRun();
+    const rows = (await callsOf(ids.runId)).filter((r) => r.step.startsWith("audio:"));
+    expect(rows).toHaveLength(6);
+    for (const r of rows) expect(r.usage).toEqual({ inputTokens: 0, outputTokens: 0 });
+  });
+
   it("RUN-01.S2 full run on an empty database", async () => {
     const { ids, stub, output } = await fullRun();
     expect(output).toEqual({ status: "draft_ready" });
