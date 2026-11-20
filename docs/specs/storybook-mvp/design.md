@@ -1328,6 +1328,7 @@ type ReleasePage = {
 | Compare-and-set loop exhausted (5 tries) | step | Step throws; the platform retries the step. |
 | Compare-and-set loop exhausted (5 tries) | API save route | 503 `busy`. The operator can retry; the stored revision is not a head (amendment R58). |
 | Publish blocked | API | 409 with the list of pages and reasons. |
+| A Studio request gets no full answer (the status and the whole body) in 20 s | Studio | The request ends as no answer (status 0), and the screen shows its no-answer text. 20 s is more than the 10 s URL fetch of `POST /api/studio/stories` ("6. API", "URL input"). A `GET` is aborted. A request with another method is not aborted, so the Worker is not cut off in the middle of a write; it can still finish on the server, and its late answer is ignored. |
 | Run fails | Workflow | `run.status = failed` with the error. The Studio shows it. A run whose `script` step failed restarts as a full run; a run whose page step failed restarts that page with a page run. |
 | Database fails in `GET /api/shelf` | API | 500 `{ error: "internal" }`. The log has the method, the path, and the error name only. |
 | A release pointer names no `release` row, or a release of another story | API, `GET /api/shelf` | That story has no entry. One log line with the story ID, the release ID, and the reason; no title. The other books are returned with 200. No draft value is read ("6. API", "Shelf"). |
