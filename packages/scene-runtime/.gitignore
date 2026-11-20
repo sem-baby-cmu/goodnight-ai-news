@@ -1,2 +1,4 @@
 # Screenshots of the browser tests (test:browser). Uploaded by CI; not tracked.
 test/browser/__screenshots__/
+# Failure screenshots that Vitest stores as attachments.
+.vitest-attachments/

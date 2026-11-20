@@ -1,30 +1,8 @@
-import { act, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { mount } from "./helpers";
 
 // Engine facts that the runtime relies on (#68). Each runs in Chromium and
 // WebKit. The expected values come from the issue section, not the engines.
-
-// Tell React that act() is in use here (no test/setup.ts in browser mode).
-(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-let root: Root | null = null;
-let host: HTMLDivElement | null = null;
-
-function mount(node: ReactNode): HTMLDivElement {
-  host = document.createElement("div");
-  document.body.append(host);
-  root = createRoot(host);
-  act(() => root!.render(node));
-  return host;
-}
-
-afterEach(() => {
-  act(() => root?.unmount());
-  host?.remove();
-  root = null;
-  host = null;
-});
 
 describe("engine probe", () => {
   it("an image whose blob cannot be decoded fires error, not load", async () => {

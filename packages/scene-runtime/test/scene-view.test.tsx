@@ -700,10 +700,19 @@ describe("SceneView", () => {
 
   it("non-tappable layers have pointer-events none", () => {
     show({ page: page([layer(1, "bun"), layer(2, "bun")], [], [tap(1, { action: "play_sfx", sfx: "chime" })]) });
+    // #68 Part B: the pointer target is the drawn box (.sv-hitbox), shown once
+    // the image loaded.
+    fireEvent.load(assetOf(1).querySelector("img") as HTMLImageElement);
     const tappable = assetOf(1);
-    expect(tappable.style.pointerEvents).toBe("auto");
-    expect(tappable.style.cursor).toBe("pointer");
-    expect(tappable.style.touchAction).toBe("manipulation");
+    expect(tappable.style.pointerEvents).toBe("none");
+    expect(assetOf(2).style.pointerEvents).toBe("none");
+    const hitboxes = tappable.querySelectorAll<HTMLElement>(".sv-hitbox");
+    expect(hitboxes).toHaveLength(1);
+    const hitbox = hitboxes[0] as HTMLElement;
+    expect(hitbox.style.pointerEvents).toBe("auto");
+    expect(hitbox.style.cursor).toBe("pointer");
+    expect(hitbox.style.touchAction).toBe("manipulation");
+    expect(assetOf(2).querySelectorAll(".sv-hitbox")).toHaveLength(0);
     expect(tappable.getAttribute("role")).toBe("button");
     expect(tappable.tabIndex).toBe(0);
     expect(tappable.getAttribute("aria-label")).toBe("bun");
@@ -1370,6 +1379,8 @@ describe("SceneView frame, fit, still mode, phases and load report (#68)", () =>
     expect(opacityCalls(onceOf(2)).filter(running)).toHaveLength(1);
     expect(assetOf(1).getAttribute("role")).toBe("button");
     expect(assetOf(1).tabIndex).toBe(0);
+    // #68 Part B (deferred from Part A, ID8).
+    expect(assetOf(1).querySelectorAll(".sv-hitbox")).toHaveLength(1);
     expect(onAssetsSettled).toHaveBeenCalledTimes(1);
     expect(viewportEl().getAttribute("data-phase")).toBe("current");
   });
@@ -1561,6 +1572,30 @@ describe("SceneView frame, fit, still mode, phases and load report (#68)", () =>
     const played = show({ page: p, mode: "play" });
     await settle();
     expect(played.svgText).toHaveBeenCalledWith("pip", "sit.svg");
+  });
+
+  // #68 Part B (jsdom): roles and attributes of the hit layer.
+  it("PLY-01.S13 the keyboard focus is on the layer, not on its margin", async () => {
+    stubClientSize(800, 600);
+    const onSfx = vi.fn();
+    show({ page: page([layer(1, "tree")], [], [tap(1, { action: "play_sfx", sfx: "chime" })]), onSfx });
+    await settle();
+    const hits = document.querySelector(".sv-hits");
+    expect(hits).not.toBeNull();
+    expect(hits?.getAttribute("aria-hidden")).toBe("true");
+    const margin = document.querySelector<HTMLElement>(`.sv-margin[data-instance-id="${id(1)}"]`);
+    expect(margin).not.toBeNull();
+    expect(margin?.hasAttribute("role")).toBe(false);
+    expect(margin?.hasAttribute("tabindex")).toBe(false);
+    expect(margin?.getAttribute("aria-hidden")).toBe("true");
+    // layer(1, ...) has z 1.
+    expect(margin?.style.zIndex).toBe("1");
+    expect(assetOf(1).getAttribute("role")).toBe("button");
+    expect(assetOf(1).tabIndex).toBe(0);
+    expect(assetOf(1).getAttribute("aria-label")).toBe("tree");
+    fireEvent.click(margin as HTMLElement);
+    expect(onSfx).toHaveBeenCalledTimes(1);
+    expect(onSfx).toHaveBeenCalledWith("chime");
   });
 
   it("a bubble stays inside the stage vertically", () => {

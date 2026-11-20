@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 // Imported from the package entry (`src/index.ts`, #68 Exact changes 3), so a
 // missing export fails the test that uses it, not the whole file.
-import { BLEED, FRAME_H, FRAME_W, fitFrame, resolveBackdrop, SKY_COLORS } from "../src";
+import { BLEED, FRAME_H, FRAME_W, fitFrame, focusRingRect, hitArea, resolveBackdrop, SKY_COLORS } from "../src";
 import type { AssetResolver } from "../src/types";
 import { makeResolver } from "./fixtures";
 
@@ -9,8 +9,10 @@ import { makeResolver } from "./fixtures";
 // Exact changes 1 and 3, Acceptance) and design "5. Scene runtime", "Fit".
 
 describe("src/index.ts", () => {
-  it("exports the frame constants, fitFrame, resolveBackdrop and SKY_COLORS", () => {
+  it("exports the frame constants, fitFrame, resolveBackdrop, hitArea, focusRingRect and SKY_COLORS", () => {
     expect(typeof fitFrame).toBe("function");
+    expect(typeof hitArea).toBe("function");
+    expect(typeof focusRingRect).toBe("function");
     expect(typeof resolveBackdrop).toBe("function");
     expect(FRAME_W).toBe(2400);
     expect(FRAME_H).toBe(1200);
