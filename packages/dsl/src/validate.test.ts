@@ -157,6 +157,14 @@ describe("validateScene", () => {
     expectIssue(issues, "asset_kind_mismatch", "layers.3.kind");
   });
 
+  it("a layer whose asset has a backdrop manifest fails with asset_kind_mismatch", () => {
+    // The registry kind says scenery, but the manifest is a backdrop: the two disagree.
+    const c = ctx();
+    c.registry.assets.tree = { ...c.registry.assets.tree!, manifest: c.registry.assets.meadow!.manifest };
+    const issues = check(() => {}, c);
+    expectIssue(issues, "asset_kind_mismatch", "layers.3.kind");
+  });
+
   it("RUN-03.S5 layer kind must match slot accepts", () => {
     const issues = check((s) => {
       ball(s).slot = "left";
