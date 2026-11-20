@@ -593,7 +593,11 @@ test("Studio frame 7: the Releases card in its 360 px column", async ({ page }, 
     const chip = await boxOf(card.getByText("On the shelf"), "On the shelf");
     const openLocator = card.getByLabel("Open release 2");
     const open = await boxOf(openLocator, "Open release 2");
-    const row = await boxOf(card.getByRole("listitem").filter({ has: openLocator }), "row of release 2");
+    // `has` is queried inside each list item, so it must not be chained from `card`.
+    const row = await boxOf(
+      card.getByRole("listitem").filter({ has: page.getByLabel("Open release 2") }),
+      "row of release 2",
+    );
     // Board 13 item 9: number and time on one line, the chip under them, the button at the right.
     expect(
       Math.abs(number.y + number.height / 2 - (time.y + time.height / 2)),
