@@ -175,10 +175,10 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Then it records the source revision, the active registry versions, and the current heads as the run basis
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
-### RUN-03.S2 The model schema is built from the frozen registry
+### RUN-03.S2 The model schema is built from the model view of the frozen registry
 - Given a run with a frozen registry and the template list
 - When a `scene:<pageId>` step calls the model
-- Then the JSON schema it sends is built at run time from the frozen registry and the template list; `ref`, `pose`, `expression`, `slot`, `sfx`, and `templateId` are enums in that schema
+- Then the JSON schema it sends is built at run time from the model view of the frozen registry (`modelRegistry`) and the template list; `ref`, `pose`, `expression`, `slot`, `sfx`, and `templateId` are enums in that schema
 - Test: @storybook/dsl · packages/dsl/src/json-schema.test.ts
 
 ### RUN-03.S3 Every layer references the frozen registry
