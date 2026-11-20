@@ -9,6 +9,7 @@ import type {
   StartRunResponseSchema,
   StoryDetailResponseSchema,
   StoryListResponseSchema,
+  WithdrawalResponseSchema,
 } from "../../worker/api/schemas";
 
 // The Studio API client (#23, Exact changes 5). The response types come from
@@ -21,6 +22,7 @@ export type RunResponse = z.infer<typeof RunResponseSchema>;
 export type RegistryResponse = z.infer<typeof RegistryResponseSchema>;
 export type ReleaseCreated = z.infer<typeof ReleaseCreatedSchema>;
 export type PublishBlocked = z.infer<typeof PublishBlockedSchema>;
+export type WithdrawalResponse = z.infer<typeof WithdrawalResponseSchema>;
 export type RunScope = z.infer<typeof StartRunRequestSchema>["scope"];
 type StartRunResponse = z.infer<typeof StartRunResponseSchema>;
 
@@ -58,6 +60,7 @@ export const studioApi = {
   startRun: (storyId: string, scope: RunScope) => call<StartRunResponse>("POST", `${story(storyId)}/runs`, { scope }),
   publish: (storyId: string) => call<ReleaseCreated>("POST", `${story(storyId)}/releases`),
   getRegistry: () => call<RegistryResponse>("GET", "/api/studio/registry"),
+  withdraw: (storyId: string, releaseId: string) => call<WithdrawalResponse>("POST", `${story(storyId)}/withdrawal`, { releaseId }),
 };
 
 // The `error` field of an error body, if it has one.

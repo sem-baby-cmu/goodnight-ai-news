@@ -903,3 +903,36 @@ it("After Publish and a take-off in the same view, the Publish card leaves Done 
   expect(screen.queryByText(/in the Player$/)).toBeNull();
   expect(screen.getByRole("button", { name: "Publish release 4" })).toBeTruthy();
 });
+
+it("After a take-off, Publish shows Done for the new release", async () => {
+  const [r1, r2, r3] = [releaseFixture(1), releaseFixture(2), releaseFixture(3)];
+  let gets = 0;
+  stubStory(
+    () => {
+      gets += 1;
+      return gets === 1
+        ? onShelfStory([r1, r2])
+        : onShelfStory([
+            { ...r1, withdrawn: true },
+            { ...r2, withdrawn: true },
+            r3,
+          ]);
+    },
+    {
+      [`POST ${withdrawalPath}`]: withdrawn(r2.id, 2),
+      [`POST ${storyPath}/releases`]: { status: 201, body: releaseCreatedFixture(3) },
+    },
+  );
+  renderStory();
+
+  await confirmTakeOff();
+  await dialogClosed();
+  await waitFor(() => expect(screen.getAllByText("Off the shelf")).toHaveLength(2));
+
+  fireEvent.click(screen.getByRole("button", { name: "Publish release 3" }));
+  expect(await screen.findByText("Release 3 published.")).toBeTruthy();
+  // The refetch after the 201 puts release 3 on the shelf; Done stays.
+  await waitFor(() => expect(rowButton().closest("li")).toBe(screen.getByText("Release 3").closest("li")));
+  expect(screen.getByText("Release 3 published.")).toBeTruthy();
+  expect(screen.getByRole("link", { name: "Open release 3 in the Player" })).toBeTruthy();
+});

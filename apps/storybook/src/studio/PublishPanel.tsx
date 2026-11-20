@@ -31,11 +31,13 @@ export function PublishPanel({
   pages,
   releases,
   onPublished,
+  offShelf,
 }: {
   storyId: string;
   pages: Pages;
   releases: StoryDetailResponse["releases"];
   onPublished: () => void;
+  offShelf: boolean;
 }) {
   const [serverRows, setServerRows] = useState<string[] | null>(null);
   const [seenPages, setSeenPages] = useState(pages);
@@ -47,6 +49,14 @@ export function PublishPanel({
   if (seenPages !== pages) {
     setSeenPages(pages);
     setServerRows(null);
+  }
+  // Done is cleared only on the on-shelf -> off-shelf transition (a take-off;
+  // DESIGN.md 13.2 "Off the shelf"), never while the story stays off the shelf,
+  // because publish sets Done before the refetch lands.
+  const [seenOff, setSeenOff] = useState(offShelf);
+  if (seenOff !== offShelf) {
+    setSeenOff(offShelf);
+    if (offShelf) setDone(null);
   }
 
   const rows = serverRows ?? blockingRows(pages);

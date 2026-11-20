@@ -16,7 +16,7 @@ export const quietClass = "text-[16px] leading-[1.5] font-medium text-ink-3";
 
 // The two focus rings of DESIGN.md 14 on an element that can have ::after:
 // the Ink outline 3 px away, and a 3 px Sun ring directly outside it.
-const afterRing =
+export const afterRing =
   "relative focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-solid focus-visible:outline-ink focus-visible:after:pointer-events-none focus-visible:after:absolute focus-visible:after:-inset-[9px] focus-visible:after:border-3 focus-visible:after:border-sun";
 
 // Link look: Teal text, underline on hover, offset 3 px, at least 44 px high.

@@ -49,17 +49,26 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
   const [starting, setStarting] = useState(false);
   const request = useRef(0);
 
-  const refetch = useCallback(() => {
+  // True only when this call's answer was applied and was ok.
+  const refetch = useCallback((): Promise<boolean> => {
     const n = ++request.current;
-    void studioApi.getStory(storyId).then((r) => {
-      if (n !== request.current) return;
+    return studioApi.getStory(storyId).then((r) => {
+      if (n !== request.current) return false;
       // A failed refetch keeps the story that is shown.
       setLoad((prev) => (r.ok ? { kind: "ok", data: r.data } : prev.kind === "ok" ? prev : { kind: "error", status: r.status }));
+      return r.ok;
     });
   }, [storyId]);
 
+  // The rows after a take-off come from the answer, not from a refetch. The
+  // request number goes up first, so a story GET in flight is dropped.
+  const applyWithdrawal = useCallback((withdrawnThrough: number) => {
+    request.current += 1;
+    setLoad((prev) => (prev.kind !== "ok" ? prev : { kind: "ok", data: withdrawnView(prev.data, withdrawnThrough) }));
+  }, []);
+
   useEffect(() => {
-    refetch();
+    void refetch();
     return () => {
       request.current += 1;
     };
@@ -94,14 +103,14 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
       // The view stays mounted (keyed by storyId): fetch the story again, so
       // `latestRun` is the new run and the failed notice goes away.
       void navigate({ to: "/studio/stories/$storyId", params: { storyId }, search: { runId: r.data.runId } });
-      refetch();
+      void refetch();
       return;
     }
     const error = errorOf(r.body);
     const body = r.body as { runId?: unknown };
     if (r.status === 409 && error === "run_active" && typeof body.runId === "string") {
       void navigate({ to: "/studio/stories/$storyId", params: { storyId }, search: { runId: body.runId } });
-      refetch();
+      void refetch();
       return;
     }
     if (r.status === 409 && error === "full_run_not_allowed") {
@@ -110,7 +119,7 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
     }
     if (r.status === 503) {
       setRunFailure({ title: "Could not start the run.", body: "Nothing was changed. Try again." });
-      refetch();
+      void refetch();
       return;
     }
     if (r.status === 0) {
@@ -236,12 +245,26 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
           )}
         </section>
         <div className="flex min-w-0 flex-col gap-[22px]">
-          <PublishPanel storyId={story.id} pages={pages} releases={releases} onPublished={refetch} />
-          <ReleasesCard story={story} releases={releases} />
+          <PublishPanel
+            storyId={story.id}
+            pages={pages}
+            releases={releases}
+            onPublished={refetch}
+            offShelf={story.publishedReleaseId !== null && !story.onShelf}
+          />
+          <ReleasesCard story={story} releases={releases} onWithdrawn={applyWithdrawal} onReload={refetch} />
         </div>
       </div>
     </div>
   );
+}
+
+// The story after a 200 take-off: every release up to `withdrawnThrough` is
+// withdrawn, and `onShelf` follows the rule of the Worker.
+function withdrawnView(data: StoryDetailResponse, withdrawnThrough: number): StoryDetailResponse {
+  const releases = data.releases.map((r) => (r.number <= withdrawnThrough ? { ...r, withdrawn: true } : r));
+  const pointed = releases.find((r) => r.id === data.story.publishedReleaseId);
+  return { ...data, releases, story: { ...data.story, onShelf: pointed !== undefined && !pointed.withdrawn } };
 }
 
 // One line for each error record of a failed run (DESIGN.md 13.2 "A failed run").

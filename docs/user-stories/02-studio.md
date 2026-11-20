@@ -258,25 +258,25 @@ Spec: requirements US-9, AC-20, "Core Features" 4 · design "6. API" (Taking a b
 - Given a story with releases 1 and 2, where release 2 is the published release and `withdrawn_through` is 0
 - When the operator opens the story view
 - Then the "Releases" card has a "Take off the shelf" button on the row of release 2 only; the row of release 1 has an "Open" button and no take-off button
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/ReleasesCard.test.tsx
 
 ### EDT-05.S2 The take-off asks first
 - Given the story view of EDT-05.S1
 - When the operator activates "Take off the shelf"
 - Then a dialog names the result: the book leaves the shelf, the links to its releases show the sleeping book, and there is no undo; no request is sent yet, and closing the dialog changes nothing
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ### EDT-05.S3 A confirmed take-off shows the releases as off the shelf
 - Given the dialog of EDT-05.S2
 - When the operator confirms
 - Then the Studio sends `POST /api/studio/stories/:id/withdrawal` with the ID of release 2; after the 200 answer, the rows of release 1 and of release 2 have an "Off the shelf" chip, no "Open" button, and no take-off button
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ### EDT-05.S4 A refused take-off changes nothing in the view
 - Given the dialog of EDT-05.S2, and a release 3 that was published after the operator opened the story view
 - When the operator confirms, and the API answers 409 `release_moved`
 - Then the Studio shows a notice that another release was published and that nothing was changed; no row gets an "Off the shelf" chip
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/src/studio/StoryPage.test.tsx
 
 ### EDT-05.S5 The stories list shows a story that is off the shelf
 - Given a story with a published release whose `onShelf` is false in `GET /api/studio/stories`, and a story whose `onShelf` is true
