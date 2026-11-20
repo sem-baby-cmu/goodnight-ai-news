@@ -26,3 +26,6 @@ tools/assets/out/
 
 # S2 input texts: full news articles, never committed (#26)
 apps/storybook/.s2/
+
+# MP3 spike output (issue #69): audio files, results.json, bundles. Never ships.
+tools/mp3-spike/out/
