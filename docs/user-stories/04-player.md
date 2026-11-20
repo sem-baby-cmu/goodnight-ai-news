@@ -319,91 +319,91 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 - Given two published stories
 - When a child opens `/`
 - Then the Player sends `GET /api/shelf` one time, and shows one book for each story with its title and a cover; the shelf has no Home control
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S2 The shelf waits with dots
 - Given a shelf request that has no response yet
 - When the shelf is shown
 - Then it shows no book and three waiting dots
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S3 A tap on a book opens its release
 - Given the shelf with a book whose `releaseId` is `R`
 - When the child taps the book
 - Then the Player shows `/read/R` with its Start gate; the whole book is the target, and its accessible name is "Open the book" and the title
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S4 The books stand in the order of the response
 - Given a shelf response with the books A, B, and C in that order
 - When the shelf shows them
 - Then A is the first book of the first shelf page, B is the second, and C is the third
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S5 More books than one shelf page
 - Given the Wide layout, and a shelf response with 7 books
 - When the shelf is shown
 - Then the first shelf page shows books 1 to 6, a "previous" round button that is disabled, and a "next" round button; nothing on the shelf scrolls
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S6 "Next" shows the next shelf page
 - Given the Wide layout, 7 books, and the first shelf page
 - When the child taps "next"
 - Then book 7 replaces books 1 to 6 with a 200 ms cross-fade; "next" is disabled and "previous" is enabled
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S7 One shelf page has no arrows
 - Given the Wide layout, and a shelf response with 6 books
 - When the shelf is shown
 - Then "previous" and "next" are not shown
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S8 An empty shelf is quiet
 - Given a shelf response of 200 with `{ "books": [] }`
 - When the shelf is shown
 - Then it shows the shelf of the layout with all its boards and no book, the day sign, and the line "New stories are coming soon."; it has no control and no fault sign
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S9 A shelf that cannot be loaded is quiet
 - Given `GET /api/shelf` answers 500
 - When the shelf is shown
 - Then it shows the shelf of the layout with all its boards and no book, the night sign, the line "The books are sleeping. Come back soon.", and one "Look again" button; it has no fault wording
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S10 "Look again" sends the request again
 - Given the shelf in its failed state, and `GET /api/shelf` now answers 200 with one book
 - When the child taps "Look again"
 - Then the Player sends `GET /api/shelf` again, and shows the book
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S11 A cover is the page 1 scene as a still picture
 - Given a book whose first page has a `loop` animation, a layer with an `enter` `fade-in`, and a tap interaction
 - When its cover is shown
 - Then the cover is that scene drawn with `mode="still"` and `fit="cover"`: the backdrop variant and every layer at its `at`; no animation runs; the `fade-in` layer is visible; no layer takes a tap, has a role, or is in the tab order
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S12 A book shows before its cover is loaded
 - Given a book whose cover files are not loaded yet
 - When the shelf shows the book
 - Then the book shows its title and a picture window in the paper colour, and it can be opened; when every file of the cover is loaded, the picture appears as a whole with a 200 ms fade, and without a fade with `prefers-reduced-motion`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S13 A cover that fails to load keeps the paper colour
 - Given a book whose page 1 JSON request gives 500
 - When the shelf shows the book
 - Then the picture window stays in the paper colour with no fault sign, and a tap on the book still opens `/read/:releaseId`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S14 Only the covers of the shown shelf page are loaded
 - Given the Wide layout, and a shelf response with 7 books
 - When the first shelf page is shown
 - Then the Player requests the release files of books 1 to 6 only; it requests the files of book 7 when the second shelf page is shown
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S15 The shelf opens on its first shelf page
 - Given 7 books, and a child who opened book 7 from the second shelf page
 - When the child taps Home
 - Then the shelf shows its first shelf page
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S16 The first shelf page loads in 2 s on 4G
 - Given the Wide layout, and 6 books, each a different release whose page 1 uses a painted backdrop at full size; an empty cache; the throttled 4G profile of PLY-03.S4; the shelf is not public yet
@@ -427,19 +427,19 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 - Given a book whose page 1 has a tap interaction with a `set_pose` action and a `play_sfx` action, and a narration
 - When its cover is loaded
 - Then the Player requests the manifest, the page 1 JSON, the backdrop variant (or its cover file, PLY-05.S22), and the file of the starting pose and expression of each layer; it requests no other page JSON, no audio file, no `sfx` file, and no file of the other pose
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S20 A cover fills its window and is cut at the sides
 - Given a book of 180 x 224 CSS px, whose picture window is 151 x 148 CSS px
 - When its cover is shown
 - Then the stage has the height of the window and is centred in it; the window cuts the stage at the left and the right and shows stage x 188 to 1412 (rounded); no paper colour shows beside the picture, and the picture is not stretched
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S21 The Wide shelf fits 900 x 600
 - Given the Wide layout at 900 x 600, and a shelf response with 6 books
 - When the shelf is shown
 - Then the name and 2 boards of 3 books are inside the viewport and nothing scrolls; each book has its title plate above its picture window, and no part of the plate lies over the window
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-05.S22 A cover draws the cover file of its backdrop
 - Given a release whose page 1 JSON holds, in `assets`, a backdrop manifest that names a `coverFile` for the variant of page 1
@@ -494,7 +494,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given a child who left a book on page 3 with Home
 - When the child opens the same book from the shelf
 - Then the Start gate is shown; the Player kept no reading position
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-06.S5 A release that does not exist shows the Resting state
 - Given no `release` row with the ID `R`, so that `GET /content/releases/R/manifest.json` gives 404
@@ -560,7 +560,7 @@ Spec: requirements AC-18, AC-20, AC-21 · design "9. Player screens" (Home, Rest
 - Given a book on page 3, with the keyboard focus on Home
 - When the user activates Home
 - Then the focus is on the shelf itself (`main`, `tabindex="-1"`) at once, while the shelf is in its waiting state; the focus does not move when the books arrive, and the next Tab goes to the first book
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-06.S16 A release that was taken off the shelf shows the Resting state
 - Given a release `R` of a story that was taken off the shelf, so that `GET /content/releases/R/manifest.json` gives 404
@@ -621,7 +621,7 @@ Spec: requirements AC-22 · design "9. Player screens" (Small screen), "5. Scene
 - Given a shelf response with 6 books, in a viewport of 568 x 320
 - When the shelf is shown
 - Then the shelf page has 2 books on 1 board, each 128 CSS px wide or more; the arrows are shown, and nothing scrolls; the name "Lullabyte" is whole and lies on the ground, and the shelf screen has no Paper rail
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/e2e/shelf.spec.ts
 
 ### PLY-07.S5 A viewport that cannot hold the frame shows the Small screen state
 - Given a release in a viewport of 400 x 300

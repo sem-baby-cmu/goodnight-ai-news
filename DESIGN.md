@@ -167,8 +167,15 @@ and focus rings need 3:1.
 | Ink on `day`, `cloudy`, `dusk` sky | 10.2, 10.1, 9.2 | The inner focus ring passes on light skies |
 | Sun yellow on `night` sky | 5.1 | The outer focus ring passes on night |
 | Moon on `night` sky | 7.4 | Light shapes on night |
+| Card on Deep wood, Wood grain, Wood, Light wood, the shelf back | 5.91, 4.48, 3.58, 2.41, 1.44 | The inner ring of a focused book on the shelf (section 12.1) |
+| Ink on the shelf back, Light wood, Wood, Deep wood | 8.96, 5.36, 3.62, 2.19 | The middle ring of a focused book. On Deep wood it is under 3:1, so Card lies inside it |
+| Sun yellow on Ink, Deep wood, Wood grain, Wood, the shelf back, Light wood | 6.50, 2.97, 2.25, 1.80, 1.38, 1.21 | The outer ring of a focused book. It is the outer line and is never read alone |
 
 A new pair needs its ratio in this table before it is used.
+
+The ring of a focused book on the shelf is, from the book outward, 3 px Card,
+3 px Ink, 3 px Sun yellow. Ink always has Card inside (12.9) and Sun yellow
+outside (6.50). Sun yellow is the outer line and is not read alone.
 
 ### One light theme
 
@@ -1409,14 +1416,19 @@ with children.
     tested with children. The test of item 10 looks at it too. If
     children tap it, the sign changes: an edit of section 12.6 and of the
     spec line that names the sign.
-15. **The focus ring of a book on the shelf.** The ring stands on the
+15. **The focus ring of a book on the shelf.** Resolved by the planner
+    decision P77-4 (a), 2026-11-20, built in #77. The ring stands on the
     wood of the shelf. Computed from the hex values of section 12.1, Ink
     is 2.19:1 on Deep wood (`#8E5533`) and Sun yellow is 2.97:1 on it;
     on the wood grain (`#A5673D`) Ink is 2.88:1 and Sun yellow 2.25:1.
     Neither ring reaches 3:1 there (found in the review of #92). The fix
-    is for #77: a third ring of Card inside the two rings, or a Card
-    plate behind the focused book. It needs a board before #77 starts.
-16. **"Look again" at 320 px.** The `child` Primary button "Look again"
-    is estimated at 255 to 265 px wide; the Narrow shelf plate has 256 px
-    inside at 320 px. Measure it in a browser before #77. If it does not
-    fit, the plate padding goes from 16 to 12 px under 360 px.
+    is a 3 px Card ring in the gap between the book and the Ink ring.
+    From the book outward the ring is 3 px Card, 3 px Ink, 3 px Sun
+    yellow. The pairs are in the table of section 2, "Contrast".
+16. **"Look again" at 320 px.** Resolved by the planner decision P77-5,
+    2026-11-20. The `child` Primary button "Look again" at 28 px, weight
+    800, is 248.54 px wide. It was measured by shaping the Baloo 2 font
+    file (`@fontsource/baloo-2` 5.3.0, latin 800) with HarfBuzz, not in a
+    browser. The Narrow shelf plate has 256 px inside at 320 px, so 7.46 px
+    are left and the plate padding stays 16 px. The e2e test of #77
+    "Look again fits the plate at 320 x 480" is the browser check.
