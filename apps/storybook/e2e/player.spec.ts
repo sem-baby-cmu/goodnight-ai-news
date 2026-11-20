@@ -120,6 +120,9 @@ async function setup(page: Page): Promise<Net> {
     }).observe(document, { subtree: true, childList: true, attributes: true });
   });
   await page.route("**/content/releases/**", (route) => net.handle(route));
+  await page.route("**/api/shelf", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ books: [] }) }),
+  );
   return net;
 }
 
@@ -549,7 +552,7 @@ test("PLY-06.S2 Home on the reading page shows the shelf", async ({ page }) => {
   await startBook(page);
   await turnTo(page, 3);
   await homeButton(page).click();
-  await expect(page.getByTestId("shelf-placeholder")).toBeVisible();
+  await expect(page.getByTestId("shelf")).toBeVisible();
   expect(new URL(page.url()).pathname).toBe("/");
   const pauses = await page.evaluate(() => window.__pauses);
   for (const id of ["narration-audio", "sfx-audio"]) {
@@ -589,7 +592,7 @@ test("PLY-06.S8 Home in the Resting state shows the shelf", async ({ page }) => 
   await open(page, MISSING_ID);
   await expect(restingLine(page)).toBeVisible();
   await homeButton(page).click();
-  await expect(page.getByTestId("shelf-placeholder")).toBeVisible();
+  await expect(page.getByTestId("shelf")).toBeVisible();
   expect(new URL(page.url()).pathname).toBe("/");
 });
 
@@ -715,7 +718,7 @@ test("PLY-06.S19 a path that matches no route shows the shelf", async ({ page })
     await page.goto("/studio");
     const before = await page.evaluate(() => history.length);
     await page.goto(target);
-    await expect(page.getByTestId("shelf-placeholder")).toBeVisible();
+    await expect(page.getByTestId("shelf")).toBeVisible();
     expect(new URL(page.url()).pathname, target).toBe("/");
     expect(await page.evaluate(() => history.length), target).toBe(before + 1);
   }

@@ -1,6 +1,6 @@
 import { cleanup, screen } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
-import { loadRelease, ReleaseUnavailableError } from "./loadRelease";
+import { loadCover, loadRelease, ReleaseUnavailableError } from "./loadRelease";
 import {
   deferred,
   FIXTURE_FILES,
@@ -108,4 +108,36 @@ it("PLY-06.S6 an ID that is not a UUID version 7 shows the Resting state", async
   renderBook("abc");
   expect(await screen.findByText("This book is sleeping. Come back soon.")).toBeTruthy();
   expect(global.calls).toHaveLength(0);
+});
+
+it("loadCover requests the manifest with cache no-cache, then page 1 JSON only", async () => {
+  const { fetchImpl, calls } = fixtureFetch();
+  const cover = await loadCover(FIXTURE_ID, fetchImpl);
+  expect(calls).toEqual([
+    { url: `${FIXTURE_ROOT}manifest.json`, init: { cache: "no-cache" } },
+    { url: `${FIXTURE_ROOT}pages/${PAGE_IDS[0]}.json`, init: undefined },
+  ]);
+  expect(cover.root).toBe(FIXTURE_ROOT);
+  expect(cover.page.pageId).toBe(PAGE_IDS[0]);
+});
+
+it("loadCover rejects an ID that is not a UUID version 7 with zero fetch calls, a mismatched releaseId, a page id mismatch, a non-ok response and a schema failure", async () => {
+  const bad = fixtureFetch();
+  await expect(loadCover("abc", bad.fetchImpl)).rejects.toBeInstanceOf(ReleaseUnavailableError);
+  expect(bad.calls).toHaveLength(0);
+
+  const page1 = `pages/${PAGE_IDS[0]}.json`;
+  const cases: Record<string, (path: string) => Response | undefined> = {
+    "mismatched releaseId": (p) =>
+      p === "manifest.json" ? json({ ...manifest(), releaseId: "01936b2a-0000-7000-8000-0000000000ff" }) : undefined,
+    "page id mismatch": (p) => (p === page1 ? json({ ...page(0), pageId: PAGE_IDS[1] }) : undefined),
+    "non-ok manifest": (p) => (p === "manifest.json" ? new Response("", { status: 500 }) : undefined),
+    "non-ok page 1": (p) => (p === page1 ? new Response("", { status: 500 }) : undefined),
+    "manifest schema failure": (p) => (p === "manifest.json" ? json({ ...manifest(), title: undefined }) : undefined),
+    "page 1 schema failure": (p) => (p === page1 ? json({ ...page(0), scene: undefined }) : undefined),
+  };
+  for (const [name, override] of Object.entries(cases)) {
+    const { fetchImpl } = fixtureFetch(override);
+    await expect(loadCover(FIXTURE_ID, fetchImpl), name).rejects.toBeInstanceOf(ReleaseUnavailableError);
+  }
 });
