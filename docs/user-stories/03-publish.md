@@ -1,6 +1,7 @@
 # PUB Publish and releases
 
-From a checked draft to a release that never changes. Conventions:
+From a checked draft to a release that never changes, and to a book on the
+shelf. Conventions:
 [README](README.md). The spec decides the expected behaviour.
 
 ## PUB-01 Publish a draft as a release that never changes
@@ -70,6 +71,12 @@ Spec: requirements US-4, AC-10, AC-11 · design "7. Publish", "Release layout (R
 - Then the release prefix holds a copy of each backdrop version that a snapshot `scene` revision records, and each release page lists its backdrop in `assets`
 - Test: spec (to implement)
 
+### PUB-01.S11 The release row keeps the title of the manifest
+- Given a draft that can be published
+- When the operator publishes the draft
+- Then `release.title` is the `title` in `manifest.json` of that release
+- Test: spec (to implement)
+
 ## PUB-02 Publishing is blocked while a page is not ready
 
 As the operator, I want publishing blocked while a page is incomplete, so
@@ -119,3 +126,64 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - When the operator publishes
 - Then the API returns 409 with the list of the blocking pages and their reasons
 - Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
+
+## PUB-03 A published story is a book on the shelf
+
+As the operator, I want a published story to be on the shelf with no other
+step, so that a child can find it. (Derived from AC-16, ADR 0017.)
+
+Spec: requirements AC-16 · design "6. API" (Shelf), "7. Publish", "D1 tables"
+
+### PUB-03.S1 The shelf lists the latest release of each published story
+- Given two published stories and one draft story
+- When a client sends `GET /api/shelf`
+- Then the response is 200 with two entries; each has `releaseId` (the release that `story.published_release_id` names), `title` (the `title` in the manifest of that release), and `publishedAt` (the `created_at` of that release); the draft story is not in the list
+- Test: spec (to implement)
+
+### PUB-03.S2 An entry has three fields only
+- Given a published story
+- When a client sends `GET /api/shelf`
+- Then its entry has exactly the keys `releaseId`, `title`, and `publishedAt`; the response has no story ID, no revision ID, no run, no head, no status, and no source
+- Test: spec (to implement)
+
+### PUB-03.S3 The newest story is first
+- Given story A with its first release, and then story B with its first release
+- When a client sends `GET /api/shelf`
+- Then the entry of B is before the entry of A
+- Test: spec (to implement)
+
+### PUB-03.S4 A new release keeps the place of its book
+- Given story A and then story B, each with one release, and then release 2 of story A
+- When a client sends `GET /api/shelf`
+- Then the entry of B is still before the entry of A; the entry of A has the `releaseId` and the `publishedAt` of release 2, and release 1 of A is not in the list
+- Test: spec (to implement)
+
+### PUB-03.S5 A failed publish is not on the shelf
+- Given a story with no release, and a publish of it that failed before the `release` row was inserted
+- When a client sends `GET /api/shelf`
+- Then the story is not in the list
+- Test: spec (to implement)
+
+### PUB-03.S6 An empty shelf is an empty list
+- Given no published story
+- When a client sends `GET /api/shelf`
+- Then the response is 200 with `{ "books": [] }`
+- Test: spec (to implement)
+
+### PUB-03.S7 The shelf response is not stored
+- Given a published story
+- When a client sends `GET /api/shelf`
+- Then the response has `Cache-Control: no-store`
+- Test: spec (to implement)
+
+### PUB-03.S8 A database failure gives 500
+- Given a database that fails
+- When a client sends `GET /api/shelf`
+- Then the response is 500 with `{ error: "internal" }`
+- Test: spec (to implement)
+
+### PUB-03.S9 The shelf route is read-only
+- Given the shelf route
+- When a client sends `POST /api/shelf`
+- Then the response is 404 with `{ error: "not_found" }`, and no row changes
+- Test: spec (to implement)

@@ -6,7 +6,9 @@ a renderer-agnostic Storybook DSL describes pages, a character registry holds
 reusable SVG/WebP assets, a Studio edits and regenerates single pages, and a
 Player reads immutable releases.
 
-Decision record: [ADR 0015](../../adr/0015-storybook-mvp-reset.md).
+Decision record: [ADR 0015](../../adr/0015-storybook-mvp-reset.md), amended
+by [ADR 0016](../../adr/0016-backdrops-page-turn.md) and
+[ADR 0017](../../adr/0017-shelf-home-player-states.md).
 
 ## Goal
 
@@ -24,7 +26,7 @@ child can look at, listen to, and touch.
 | Layered, animated, tappable pages | Full-page AI illustrations |
 | Character registry with all 13 Producer characters | Content safety and copyright policy |
 | Studio: edit, regenerate one page target, publish | User accounts and roles |
-| Player: read a published release | Offline mode, PWA, video or EPUB export |
+| Player: a shelf of the published books; read a published release | Offline mode, PWA, video or EPUB export |
 
 ## Core Features
 
@@ -46,6 +48,10 @@ child can look at, listen to, and touch.
 5. **Player.** Reads one immutable release. Shows pages with animation, plays
    narration, and responds to taps. The narration is below the picture, a
    page turns like paper, and the last page turns to an end page (ADR 0016).
+6. **Shelf.** The home of the Player is a shelf. It shows one book for each
+   published story: the latest release, with its title and a cover. The
+   cover is the picture of page 1. A child picks a book, and a Home control
+   on every screen of a book goes back to the shelf (ADR 0017).
 
 ## User Stories
 
@@ -63,6 +69,8 @@ child can look at, listen to, and touch.
   story without reading.
 - As the designer, I want to replace a character asset with a new version, so
   that new stories use it and old releases stay the same.
+- As a child, I want to pick a book from a shelf, so that I can choose my
+  story without help.
 
 ## Acceptance Criteria
 
@@ -106,8 +114,24 @@ child can look at, listen to, and touch.
       again".
 - [ ] The Player works in current Safari on iPad and iPhone, and in current
       Chrome on Android.
-- [ ] `/studio` and the Studio API are behind Cloudflare Access. The Player is
-      public.
+- [ ] `/studio` and the Studio API are behind Cloudflare Access. The Player,
+      with the shelf at `/`, and `GET /api/shelf` are public.
+- [ ] `GET /api/shelf` is read-only. It lists one book for each story that
+      has a release: the `releaseId` of its latest release, its `title`,
+      and its publish time, and no other field. A story with no release is
+      not in the list. The newest story is first, and a new release of a
+      story does not move its book.
+- [ ] The shelf at `/` shows each book with its title and a cover. The cover
+      is the page 1 scene of the release as a still picture. A tap on a
+      book opens `/read/:releaseId`. With more books than fit, "previous"
+      and "next" change the books, and nothing scrolls. An empty shelf and
+      a shelf that cannot be loaded show a quiet line and no fault sign.
+- [ ] Every Player screen of a book has exactly one Home control, and it
+      shows the shelf. When a release does not exist or cannot be loaded,
+      the Player shows a resting state with a Home control, and no fault
+      sign.
+- [ ] In the Player, a layer that reacts to a tap has a hit area of at least
+      64 x 64 CSS px, inside the stage.
 
 ## Non-functional Requirements
 
@@ -125,6 +149,9 @@ child can look at, listen to, and touch.
   moves only by compare-and-set against the revision the step was based on.
 - **Performance.** On a mid-range phone, the frame time p95 on an animated page
   is 33 ms or less. A page's assets load in 2 s or less on a 4G connection.
+  The first shelf page (6 books) shows its covers in 2 s or less on the same
+  connection. If the device test fails, publish adds a cover image to a
+  release, and the shelf shows it (ADR 0017).
 - **Assets.** SVG is the target format for characters and props. A transparent
   WebP is allowed while an SVG version is not ready. The renderer supports
   both. A painted backdrop is a WebP of 2400 x 1200 px; the code-made backdrop

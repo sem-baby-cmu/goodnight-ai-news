@@ -306,8 +306,10 @@ state changes of a button (`box-shadow`, `background`).
 | Late image | 200 ms fade-in |
 | Speech bubble | Appears with scale 0.6 to 1 and opacity 0 to 1, 220 ms, `cubic-bezier(0.2, 0.8, 0.2, 1)` |
 | Waiting dots | Opacity 0.3 to 1 and back, 1.8 s, ease-in-out; each dot starts 0.3 s after the one before |
+| Cover on the shelf | 200 ms fade-in, as a whole, when every file of the cover is loaded |
+| Shelf page change | 200 ms cross-fade of the books. The shelf and the arrows do not move |
 | A character on the shelf (**Proposal**, section 12.1) | Floats 6 px up and down, 4 s, ease-in-out |
-| A tapped character on the shelf (**Proposal**) | Bounce: up 18 px, 600 ms, `cubic-bezier(0.3, 1.6, 0.5, 1)`, 2 times |
+| A tapped character on the shelf (**Proposal**, section 12.1) | Bounce: up 18 px, 600 ms, `cubic-bezier(0.3, 1.6, 0.5, 1)`, 2 times |
 
 - A character is not UI. On a story page, its animation comes from the
   scene (the closed primitive list of the spec), not from this table.
@@ -316,8 +318,8 @@ state changes of a button (`box-shadow`, `background`).
   12.2).
 - In the Studio, nothing moves on its own. Pip in the header is still.
 - Reduced motion (`prefers-reduced-motion`): loops are off, the dots are
-  still, a button has no transition, a bubble and a late image appear at
-  once, and the page turn is the cross-fade.
+  still, a button has no transition, a bubble, a late image, and a cover
+  appear at once, and the page turn is the cross-fade.
 - Nothing flashes, spins, or shakes.
 
 ## 6. Components
@@ -414,7 +416,16 @@ placed (S2 results, or the operator's notes).
 
 ### Other pictures
 
-- A cover on the shelf is the picture of page 1 of its book.
+- A cover on the shelf is the picture of page 1 of its book, as a still
+  scene: no animation and no tap (spec "5. Scene runtime", "Still mode").
+  The picture window of a book is upright, so it shows the middle part of
+  the stage (section 12.1). No file is made for a cover.
+- The ground of the shelf and the picture of the Resting state are drawn
+  by the Player: inline SVG and CSS in the Player source, with the colours
+  of section 2. The shelf ground is the `day` palette: the Sky colour with
+  three hills. The Resting picture is the `night` palette: the Sky colour
+  with three hills, and star shapes in the Moon colour. They are not registry assets, because a
+  registry file is served only inside a release. They need no request.
 - The Start gate shows the picture of page 1. The end page shows the
   backdrop of the last page without its layers.
 - The torn paper edge between the picture and the narration belongs to the
@@ -449,8 +460,8 @@ work for a child who cannot read.
 | Hear first | Every page plays its narration. The text is never the only way to get the story. There is no word highlighting |
 | No reading to move around | Every control has a picture: play, house, arrows, a round arrow. A label is an addition |
 | Big targets | A child control is at least 64 x 64 px, with at least 12 px between controls |
-| Few controls | At most 3 controls on a screen. A control is a button of the Player: Home, previous, next, Start, Read again. A book on the shelf and a character in a picture are content, not controls, and the count does not apply to them. The size of a book is in section 12.1 (**Proposal**). A hit area for a tappable layer is a **Proposal** (section 12.3), not a rule |
-| One thing per page | One picture and one short text. Nothing scrolls inside a story page |
+| Few controls | At most 3 controls on a screen. A control is a button of the Player: Home, previous, next, Start, Read again. A book on the shelf and a character in a picture are content, not controls, and the count does not apply to them. The size of a book is in section 12.1. A tappable layer has a hit area of at least 64 x 64 px (section 12.3) |
+| One thing per page | One picture and one short text. Nothing scrolls inside a story page or on the shelf |
 | Safe to tap anything | A tap never punishes. No timers, no scores, no losing. No red, no cross, no failure state. A fault shows as a quiet state |
 | No way out | No link leaves the product. No source link, no sharing, no settings, no sign-in on a child screen |
 | No child data | The Player sends no personal data to a server. Progress stays in the browser |
@@ -468,37 +479,79 @@ Animations API).
 The Player has one frame for the Start gate, the reading page, and the end
 page, so that only the content changes between them.
 
-**The Home rule.** A Home control goes to the shelf. It has a house icon and
-the accessible name "Home".
+The shelf at `/` is the home of the Player. A book is at
+`/read/:releaseId` (ADR 0017).
 
-- Until the shelf exists (section 16, open item 1), no screen shows a Home
-  control. A control without a target is not shown.
-- When the shelf exists, each screen has exactly one Home control:
+**The Home rule.** A Home control goes to the shelf. It has a house icon and
+the accessible name "Home". Every screen of a book has exactly one Home
+control. The shelf has none.
+
+- A tap on Home stops the narration and any sound effect, and shows the
+  shelf at once. It asks no question.
+- Home works during a page turn. It is a frame control and is never inert.
 
 | Screen | Home control |
 | :-- | :-- |
+| Shelf | None |
 | Start gate, Loading and Ready | The Home round button (`child-icon`), in the place it has on the reading page |
 | Reading page | The Home round button. Its place is given for each layout in section 12.3 |
 | End page | The Home round button, in the same place |
-| Resting (**Proposal**) | A Home button with a label (`child` size) in the panel. No Home round button |
+| Resting | A Home button with a label (`child` size) in the panel. No Home round button |
 
 ### 12.1 Bookshelf
 
-**Proposal.** The spec does not define the shelf (section 16, open item 1):
-it has no route, no list of published releases, and no rule for more than
-6 books. This section is a look for that decision. It is not a rule.
+The shelf is the home of the Player, at `/` (ADR 0017). The behaviour is in
+the spec ("9. Player screens"); the look is here. The Wide values come from
+the approved board. No board exists for Narrow and Short; their values are
+starting values (section 16, open item 7).
 
 | Part | Look |
 | :-- | :-- |
-| Ground | The `day` meadow, full screen, with the paper texture |
+| Ground | The `day` palette (section 2): the Sky colour with three hills in the Far, Mid, and Near ground colours, as flat fills, full screen, with the paper texture. The Player draws it (section 8, "Other pictures") |
 | Name | "Lullabyte", top left, 32 px, weight 800, Deep teal |
-| Shelf | Wood, centred, two boards. Each board holds 3 books; the shelf shows up to 6 |
-| Book | 180 x 224 px. A cloth cover with a hard edge, a darker spine strip of 13 px, page edges on the open side, and a tilt of at most 1.2 degrees. The cover picture is page 1 of the book. A Paper plate at the top holds the title: 18 px, weight 700, Ink, 2 px edge |
-| Cloth colours | Coral, Cobalt, Sun yellow, `#3B4F7D`, `#6E9F45`, Teal, in this order. Each has a darker edge. A colour is decoration; it has no meaning |
-| Friends | One or two characters stand by the shelf. One floats. A tap makes it bounce and say "Pick a story!" in a bubble. The shelf is not a stage, so this bubble is in CSS px: 20 px / 1.3, weight 700, radius 24 px, edge `0 3px 0 var(--edge)` |
+| Shelf | Wood, centred, with boards. One board holds one row of books. The wood colours are from the board: `#EAD2AB` (back), `#B8774A` (boards and sides), `#D29A68` (the light top of a board), `#8E5533` (under edges and feet), `#A5673D` (grain). No text stands on the wood |
+| Book | 180 x 224 px. A cloth cover with a hard edge, a darker spine strip of 13 px, page edges on the open side, and a tilt of at most 1.2 degrees. A Paper plate at the top holds the title |
+| Title plate | Paper, 2 px edge. The title: 18 px, weight 700, Ink, at most 2 lines. A longer title is cut with an ellipsis; the accessible name has the whole title |
+| Picture window | 151 x 208 px on a 180 px book. Paper until the cover is loaded |
+| Cover | Page 1 of the book as a still scene (spec, "Still mode"). The stage gets the height of the window and is centred; its left and right parts are cut. Stage x 364 to 1236 shows (arithmetic), so a character in an outer slot of `line-up` or `circle-around-object` is cut. No filter. It appears as a whole with a 200 ms fade |
+| Cloth colours | Coral, Cobalt, Sun yellow, `#3B4F7D`, `#6E9F45`, Teal, in this order, by the place of the book on the shelf page. Each has a darker edge. A colour is decoration; it has no meaning |
 
-The whole book is the button. Its accessible name is "Open the book" and
-the title. The shelf has no other control.
+**Shelf page.** The books that show at one time.
+
+| Layout (section 12.3) | Shelf page | Book width | Arrows |
+| :-- | :-- | :-- | :-- |
+| Wide | 6 books: 2 boards of 3 | 180 px | In the 96 px gutters, at the middle height of the shelf |
+| Narrow | 4 books: 2 boards of 2. With `h` < 700: 2 books on 1 board | The largest width up to 180 px that leaves 16 px at each side and between books, and whose height fits the space between the name and the control row | In a control row at the bottom, 88 px high, at the left and at the right |
+| Short | 3 books on 1 board | The largest width up to 180 px that fits between the rails with 12 px between books, and whose height fits below the name | At the bottom of the left rail and of the right rail |
+
+- A book keeps the ratio 180:224 at every width. Its parts scale with it,
+  except the title, which stays 18 px.
+- The arrows are the "previous" and "next" round buttons (`child-icon`, 64
+  px). They are shown only with more books than one shelf page. On the
+  first shelf page "previous" is disabled, and on the last "next" (section
+  4, `aria-disabled`). Their names are "Previous books" and "Next books".
+- A change of shelf page is a 200 ms cross-fade of the books. The shelf,
+  the ground, and the arrows do not move. Nothing scrolls.
+- The whole book is one link. Its accessible name is "Open the book" and
+  the title. A book is content, not a control (section 10).
+- The shelf has at most 2 controls, and no Home control.
+
+| State | Look |
+| :-- | :-- |
+| Waiting | The shelf with no book. Three waiting dots in Deep teal on a Paper plate (2 px edge), centred on the shelf |
+| Books | The books of the shelf page |
+| Empty | The shelf with no book. "New stories are coming soon." (28 px, weight 700, Ink) on a Paper plate, centred on the shelf. No control |
+| Failed | The shelf with no book. "The books are sleeping. Come back soon." on a Paper plate, and below it one button: "Look again" (Primary, `child` size, round-arrow icon) |
+
+A line of a quiet state stands on a Paper plate, never on the ground or on
+the wood, so it needs no new colour pair (section 2, "Contrast").
+
+**Friends (Proposal).** One or two characters stand by the shelf. One
+floats. A tap makes it bounce and say "Pick a story!" in a bubble. The
+shelf is not a stage, so this bubble is in CSS px: 20 px / 1.3, weight
+700, radius 24 px, edge `0 3px 0 var(--edge)`. This part is not a rule:
+ADR 0017 does not decide it, and a character file is served only inside a
+release (section 16, open item 11). Do not build it.
 
 ### 12.2 Start gate and quiet states
 
@@ -509,7 +562,7 @@ action for each state.
 | :-- | :-- | :-- | :-- |
 | Loading | Until the manifest, every page JSON, and the assets of page 1 are loaded | Paper | "Opening the book" (28 px), three waiting dots in Deep teal, and the Start button, disabled (PLY-04.S10) |
 | Ready | When they are loaded | Page 1, with its `loop` animations. No tap handling | The title (40 px) and the Start button: play icon, "Start", `child-start` size |
-| Resting (**Proposal**) | The book cannot be opened | A calm night picture that the app bundles | "This book is sleeping. Come back soon." and a Home button (`child` size, house icon) |
+| Resting | The release does not exist, or a file that "Start" waits for fails to load (spec "9. Player screens") | The night picture that the Player draws (section 8, "Other pictures") | "This book is sleeping. Come back soon." (28 px) and a Home button (Primary, `child` size, house icon, label "Home") |
 
 - "Previous", "next", and the progress pill are not shown in Loading,
   Ready, and Resting. The frame shows only the Home control of the Home
@@ -523,10 +576,10 @@ action for each state.
   (PLY-02.S1). The panel changes to the narration with a 200 ms cross-fade.
   The picture does not change. "Previous" (disabled on page 1), "next", and
   the progress pill appear at once.
-- **Resting is a Proposal.** The spec does not define what the Player shows
-  when a release does not exist or does not load (section 16, open item 2).
-  The row above is a look for that decision. It is not a rule. Until the
-  shelf exists, this state would have no control at all.
+- Resting is a quiet state, not a fault screen (ADR 0017). It has one
+  control, the Home button, and no sound. It has no time limit: a slow
+  load stays in Loading. After "Start", the Player never changes to
+  Resting.
 
 ### 12.3 Reading page
 
@@ -567,7 +620,7 @@ wide: w >= 900 and h >= 600
 
  Desk    +------------- page panel (Paper) -------------+    Desk
  96 px   |                                              |   96 px
- [home]  | (3 / 5 ooo)                                  |
+ [home]  |                                              | (3 / 5)
          |          picture area                        |
  [prev]  |   bleed |   4:3 stage   | bleed              | [next]
          |                                              |
@@ -584,7 +637,7 @@ wide: w >= 900 and h >= 600
 | Picture area | The panel above the narration. The stage keeps 4:3; the bleed fills the rest of the width up to 2:1 (spec "5. Scene runtime") |
 | Narration panel | 256 px high on board 3: the 12 px torn edge, then 20 px, 5 lines of narration, and 20 px. The text is centred, at most 760 px wide, 28 px / 1.45, weight 600, Ink, `text-wrap: pretty`. On a panel that is too narrow for 760 px of text, a 40-word page needs more lines, and the panel is higher |
 | Home | Round button, 64 px, house icon, at the top of the left gutter (the Home rule, section 12) |
-| Progress pill | Over the top left of the picture area, 16 px from the left edge and from the top edge of the page panel (board 3). See "Progress pill" below |
+| Progress pill | At the top of the right gutter, opposite Home, the count only (no dots). It does not lie over the picture (ADR 0017). See "Progress pill" below |
 | Previous, next | Round buttons, 64 px, arrow icons, in the gutters, at the middle height of the picture. On page 1, "previous" is disabled |
 
 The frame has at most 3 controls: Home, previous, next.
@@ -599,7 +652,7 @@ device tests of PLY-03 confirm or change them.
 | Page panel | The full width, no gutter | The full width, no gutter |
 | Frame parts | A top bar and a control row, both on Paper | A control rail on Paper at each side, 88 px wide (a 64 px button and 12 px on each side), from the top to the bottom |
 | Home (the Home rule) | In the top bar, at the left | At the top of the left rail |
-| Progress pill | In the top bar, right of Home, 12 px away. With no Home, at the left | At the top of the right rail, the count only (no dots) |
+| Progress pill | In the top bar, right of Home, 12 px away, with the dots | At the top of the right rail, the count only (no dots) |
 | Previous, next | In the control row, at the left and at the right, 16 px from the sides | At the bottom of the left rail and at the bottom of the right rail, 12 px from the bottom |
 | Top bar | 80 px high (a 64 px button and 8 px above and below), 16 px from the sides | None |
 | Control row | A frame part on Paper below the narration panel, at the bottom of the screen, 88 px high (a 64 px button and 12 px above and below). It is not part of the page sheet and does not turn with it | None |
@@ -635,7 +688,7 @@ the text does not get smaller than the steps above.
 | :-- | :-- |
 | Shape | Card fill, hard edge, 44 px high, fully round |
 | Count | "3 / 5", 18 px, weight 800 |
-| Dots | One for each page. The current page is a 22 x 8 px Deep teal bar. A read page is an 8 px Teal dot. A page to come is an 8 px `--dot-ahead` dot with a 2 px Soft ink border inside it. The Short layout shows no dots |
+| Dots | One for each page. The current page is a 22 x 8 px Deep teal bar. A read page is an 8 px Teal dot. A page to come is an 8 px `--dot-ahead` dot with a 2 px Soft ink border inside it. Only the Narrow layout shows the dots. The Wide and the Short layout show the count only |
 | Read and to come | The pages before the current page are read. The pages after it are to come. Only the current page number decides this; the history does not. After "previous", the page that the child left is a page to come again. After "Read again", page 1 is current and every other dot is a page to come |
 | Role | A status, not a control. `role="status"`, accessible name "Page 3 of 5". It takes no pointer events (`pointer-events: none`) |
 
@@ -643,15 +696,28 @@ A read dot and a dot to come differ in shape (filled, ring) and in colour.
 The dots stand on the Card fill of the pill, never on Paper or on a
 picture (section 2, contrast).
 
-No frame control lies over the picture area in any layout. The progress
-pill is the only frame part that lies over the picture, and only in the
-Wide layout (board 3). There it can hide a part of a `sky-*` layer near the
-top left corner of the stage. A tap on that layer still reaches the layer,
-because the pill takes no pointer events. Section 16, open item 9.
+No frame part lies over the picture area in any layout: no control, and
+not the progress pill. Board 3 has the pill over the top left of the
+picture. On a small Wide viewport it would hide a large part of a `sky-1`
+object, so ADR 0017 moved it to the right gutter (section 16,
+"Differences"). A count-only pill is about 77 px wide and fits the 96 px
+gutter (arithmetic, not measured in a browser).
 
-**Proposal.** A tappable layer has a hit area of at least 64 x 64 px,
-centred on the layer. This is not a rule. The spec has no hit area rule
-(section 16, open item 3).
+#### Hit area of a tappable layer
+
+The rule is in the spec ("5. Scene runtime", "Hit area"; ADR 0017).
+
+| Part | Rule |
+| :-- | :-- |
+| Size | The drawn box of the layer. On an axis where the box is less than 64 px on the screen, the hit area is 64 px, centred on the box |
+| Stage edge | A hit area that would go outside the stage is moved inside. It is not cut |
+| Overlap | A drawn box wins over the margin of another layer. Between two drawn boxes, and between two margins, the higher layer wins |
+| Look | The margin is not drawn. The focus ring follows the drawn box, not the hit area |
+| Where | Play mode only. The cover on the shelf, the picture of the Start gate, and the Studio have no hit area |
+
+On a 220 px stage (the smallest row of the size table) one stage unit is
+0.14 px, so most layers are under 64 px and margins overlap often. The
+overlap rule decides every such tap.
 
 #### Bubble on a stage
 
@@ -705,7 +771,7 @@ inert, and the layers of the new picture wait for the end of the turn
 | :-- | :-- |
 | Picture | The backdrop of the last page in its sky, without layers. The place is quiet; the cast went home. No new file is loaded |
 | Panel | "The end" (40 px, weight 800; 28 px in Short) and one button: "Read again" (Primary, `child` size, round-arrow icon). In Wide and Narrow the button is below "The end", 16 px away, centred. In Short they are in one row. The panel has no second button, so it fits at every width |
-| Frame | "Previous" stays in its place. The Home round button stays in its place when the shelf exists (the Home rule, section 12). "Next" and the progress pill are not shown |
+| Frame | "Previous" and the Home round button stay in their places (the Home rule, section 12). "Next" and the progress pill are not shown |
 
 The end page has at most 3 controls: previous, Read again, and Home. It is
 part of the Player, not of a release: it has no page JSON and no audio
@@ -732,10 +798,9 @@ open item 10).
 | "Previous" on the end page, or during the turn to it | The turn, if one runs, ends at once. The page turns back to the last page, and its narration plays. The tap handler sets the `src` and calls `play()` |
 | "Read again" | Page 1 replaces the end page with a 200 ms cross-fade, and its narration plays. The tap handler sets the `src` and calls `play()`. The Start gate is not shown again. The frame changes to the frame of page 1 at once: "next" and the progress pill appear, and "previous" is disabled |
 | A tap on "next" or "previous" during that cross-fade | The cross-fade ends at once, as during a turn (spec "5. Scene runtime"). "Next" then turns to page 2 (PLY-04.S12). "Previous" is disabled on page 1 and starts no turn |
-| Home | The Player goes to the shelf |
+| Home | The Player shows the shelf |
 
-Until the shelf exists, the end page shows "Read again" and "previous"
-only (the Home rule, section 12). The behaviour is decision B in ADR 0016.
+The behaviour is decision B in ADR 0016, with the Home rule of ADR 0017.
 The focus after each event is in section 14, "Focus moves".
 
 ## 13. Studio screens
@@ -790,14 +855,14 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 
 | Topic | Rule |
 | :-- | :-- |
-| Targets | A child control: 64 x 64 px or more, 12 px apart. Studio: 44 x 44 px or more. A hit area for a tappable layer is a Proposal (section 12.3) |
+| Targets | A child control: 64 x 64 px or more, 12 px apart. Studio: 44 x 44 px or more. A tappable layer in play mode: a hit area of 64 x 64 px or more (section 12.3) |
 | Contrast | The table in section 2. Text 4.5:1; large text, icons, and rings 3:1 |
 | Focus ring | Two rings, on every focusable element, with `:focus-visible`: a 3 px Ink ring 3 px away from the element, and a 3 px Sun yellow ring directly outside it. Ink passes on every light ground; Sun yellow passes on the night sky |
 | Colour | A state always has a word and an icon. A colour alone never carries a meaning |
-| Names | Every button has an accessible name: "Home" (every Home control), "Previous page", "Next page", "The end" (for "next" on the last page), "Start the story", "Read again". The name of a button with a visible label contains that label. A character button has the name of the character |
+| Names | Every button has an accessible name: "Home" (every Home control), "Previous page", "Next page", "The end" (for "next" on the last page), "Start the story", "Read again", "Look again", "Previous books", "Next books". A book on the shelf is a link with the name "Open the book" and its title. The name of a button with a visible label contains that label. A character button has the name of the character |
 | Regions | The narration is a live region (`aria-live="polite"`). The progress pill and a bubble have `role="status"`. A Studio notice that reports a refused action has `role="alert"` |
 | Inert sheets | During a page turn and during the 200 ms cross-fade of "Read again", the sheet that goes away is `inert` as a whole: nothing in it takes the focus, a tap, or a key, and assistive technology does not read it. The sheet that comes in is not inert: its panel is live at once (the narration is read, and "Read again" can take the focus). Only the layers of its picture wait: they take no tap and no focus, and are not in the tab order, until the turn or the cross-fade ends. A sheet that is not shown is not in the tab order at any time. The picture of the Start gate has no buttons at all (section 12.2). The frame controls are never inert |
-| Focus moves | When the control that has the focus is removed, the same handler moves the focus. The focus never falls back to the document. "Start": to "next". "Next" on the last page: to "Read again". "Read again": to "next" on page 1. "Previous" on the end page: it stays on "previous". "Previous" to page 1: it stays on "previous", which is now disabled with `aria-disabled` (section 4). Home, or a book on the shelf (**Proposal**): to the first control of the new screen |
+| Focus moves | When the control that has the focus is removed, the same handler moves the focus. The focus never falls back to the document. "Start": to "next". "Next" on the last page: to "Read again". "Read again": to "next" on page 1. "Previous" on the end page: it stays on "previous". "Previous" to page 1: it stays on "previous", which is now disabled with `aria-disabled` (section 4). A book on the shelf: to the first control of the book screen. Home: to the first book on the shelf; with no book, to "Look again", or to the shelf itself (`main`, `tabindex="-1"`). A shelf arrow that becomes disabled keeps the focus, as "previous" does |
 | Motion | Section 5, reduced motion |
 | Keyboard | Every control is a real button or link, in reading order. No function needs a pointer, except dragging a layer in the Studio, which the x, y, and Scale fields replace |
 | Text | Real text, never text in an image. The narration is at least 18 px |
@@ -809,12 +874,13 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
   The hard edge is the only depth. A painted backdrop is art, not UI: it
   may have soft gradients (section 8).
 - No word highlighting during narration (out of scope in the requirements).
-- No red, no cross, and no failure wording on a child screen. Coral and the
-  "blocked" state are for the Studio.
+- No red, no cross, and no failure wording on a child screen. Coral as a
+  sign and the "blocked" state are for the Studio. Coral as the cloth of a
+  book is decoration from the approved board (section 12.1).
 - No link out of the product, no source link, no sharing, and no settings
   on a child screen.
 - No text on the stage or on a backdrop. No text over the picture except a
-  bubble and the progress pill.
+  bubble.
 - No filter on a layer and no filter during a page turn.
 - No dark mode. No second font family. No upper-case labels. No emoji.
 - No native `<select>`, and no stock shadcn grey or blue.
@@ -823,8 +889,10 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 - No code from a model in the browser, and no SVG with a script or an event
   attribute (ADR 0015).
 - No fourth control on a child screen.
-- No frame control over the picture area, and no torn edge over the stage
-  or the bleed.
+- No frame part over the picture area: no control and no progress pill.
+  No torn edge over the stage or the bleed.
+- No scrolling on the shelf, and no fault sign on a cover that did not
+  load.
 - No information that needs hover (no tooltip as the only source).
 - No Sun yellow or Teal as a text colour. No Sun yellow alone as a ring on
   a light ground.
@@ -847,8 +915,14 @@ notice. For example, "Still fits" is disabled unless the scene is stale.
 | The bubble has 20 px text and radius 22 px, and does not wrap | On a stage: 64 stage units of text, radius 48 stage units, wraps at 60 % of the stage width (about 31 px and 23 px on board 3) | The runtime draws the bubble inside the scaled stage, so its values are stage units. 20 px on the board is about 40 stage units, which is under 10 px on a 390 px phone stage. A 60-character bubble must fit a phone stage |
 | The stage in the editor has radius 12 px | 10 px | One radius for a picture in a card |
 | A notice has radius 14 or 18 px by board | 14 px in a card, 18 px alone | One rule |
-| The torn paper edge is 48 px high over the picture | 12 px high, at the top of the narration panel, not over the picture | The spec says that the stage is never cropped. Foot points reach y 1200, the bottom of the stage (`solo-center`, slot `bust`) || Cut-outs are dimmed and tinted by the sky with a CSS `filter` | Not included | The spec has no tint rule and allows no per-layer filter. Open item 4 |
-| The night meadow has a moon; the meadow has a river | Not included | The spec makes `meadow` from a sky colour and three hills. A moon would lie under the `sky-*` slots |
+| The torn paper edge is 48 px high over the picture | 12 px high, at the top of the narration panel, not over the picture | The spec says that the stage is never cropped. Foot points reach y 1200, the bottom of the stage (`solo-center`, slot `bust`) |
+| Cut-outs are dimmed and tinted by the sky with a CSS `filter` | Not included | ADR 0017 rejects a night tint for the MVP: a filter breaks the page-turn rule. Open item 4 |
+| The night meadow has a moon; the meadow has a river | Not included | The spec makes `meadow` from a sky colour and three hills. A moon would lie under the `sky-*` slots. ADR 0017: no moon asset in the MVP |
+| The progress pill lies over the top left of the picture, with dots (board 3) | In the right gutter, the count only | ADR 0017: on a 900 x 600 viewport the pill hides up to 72 % of the width of a `sky-1` object (arithmetic). No frame part lies over the picture |
+| A cover on the shelf is a small scene placed by hand, with drawn hills and a CSS `filter` on the art | Page 1 of the release as a still scene, cut to the upright window. No filter | Owner decision (ADR 0017): no new asset. A cover uses only files of its release |
+| The shelf ground has registry art (trees) and characters beside the shelf | The Player draws the ground. The characters are a Proposal | A registry file is served only inside a release. Open item 11 |
+| The shelf shows 6 books and has no arrows | Arrows with more than one shelf page | ADR 0017: shelf pages, no scrolling, no cap |
+| No Home control on the Start gate | The Home round button | ADR 0017: one Home control on every screen of a book |
 | The editor has a dashed "text zone" on the stage, and the error "overlaps the text zone" | Not included | The spec has no text zone; the narration is below the stage |
 | The loading state shows Pip on a day meadow | Paper | The spec shows the paper colour until the backdrop is loaded |
 | The table head has a 2 px line | 1 px | One weight for dividers |
@@ -875,30 +949,28 @@ win. That holds for the child screens in every case. For the Studio:
 
 ### Open items
 
-These are not decided here. Each needs the spec or the owner.
+An item that is not marked "Resolved" is not decided here. It needs the
+spec or the owner.
 
-1. **The shelf is not in the spec.** There is no route for it, no public
-   list of published releases, and no rule for more than 6 books. Section
-   12.1 is a Proposal: a look, not a rule. Every Home control depends on
-   the shelf (the Home rule, section 12).
-2. **The resting state is not in the spec.** The spec does not say what
-   the Player shows when a release does not exist or does not load. The
-   Resting row of section 12.2 is a Proposal. It also needs a bundled
-   picture, because registry assets are served only inside a release.
-   Until the shelf exists it would have no control.
-3. **The hit area of a tappable layer.** Section 12.3 proposes at least
-   64 x 64 px. It is a Proposal, not a rule. The spec has no rule for it.
-4. **Cut-outs on a night backdrop.** The approved boards dim the cast at
-   night. Without it, a day-coloured character stands on a night painting.
-   A rule needs a way that holds the frame time target (for example a
-   night version of each asset, or one layer over the stage), and a spec
-   change.
-5. **A moon.** The scenery boards have `sun`, `clouds`, and `stars`, and no
-   moon. A night page can show stars only.
+1. **The shelf.** Resolved by ADR 0017. The shelf is at `/`, with the
+   public `GET /api/shelf` and shelf pages for more than 6 books. Section
+   12.1 is a rule, except its "Friends" part (item 11).
+2. **The resting state.** Resolved by ADR 0017. The spec has its triggers
+   ("9. Player screens"). The Player draws its picture (section 8), and it
+   has a Home button (section 12.2).
+3. **The hit area of a tappable layer.** Resolved by ADR 0017: at least
+   64 x 64 px, with rules for the stage edge and for overlap (section
+   12.3).
+4. **Cut-outs on a night backdrop.** Resolved by ADR 0017: no night tint in
+   the MVP. A day-coloured character stands on a night painting. A tint
+   needs a night version of each asset file, which is a later decision.
+5. **A moon.** Resolved by ADR 0017: no moon asset in the MVP. A night page
+   shows stars only.
 6. **The torn paper edge.** Resolved. The edge is in the narration panel
    and never lies over the stage or the bleed (section 8).
-7. **The narrow and the short Player layout** have no approved board. The
-   values of section 12.3 are starting values, and its size table is
+7. **The narrow and the short Player layout** have no approved board,
+   for the reading page and for the shelf. The values of sections 12.1 and
+   12.3 are starting values, and its size table is
    arithmetic, not a measurement. On a stage under 390 px wide, the text
    of a bubble is under 16 px on the screen.
 8. **Code that this file makes stale:**
@@ -917,13 +989,15 @@ These are not decided here. Each needs the spec or the owner.
      has `tabIndex` 0 and key handlers. The runtime has no check of the
      page phase yet, so a sheet that is not current is not inert
      (section 14).
-9. **The progress pill in the Wide layout lies over the top left of the
-   stage** (board 3). It can hide a part of a `sky-*` layer; a tap still
-   reaches the layer (section 12.3). To move it off the picture needs a
-   new place in the frame and the owner's approval, because it changes an
-   approved board.
+9. **The progress pill in the Wide layout.** Resolved by ADR 0017. The
+   pill is at the top of the right gutter, the count only (section 12.3).
+   This differs from board 3 ("Differences" above).
 10. **The end page for a child who cannot read.** Section 12.5 gives the
     signs that the existing parts allow. They were not tested with
     children. A stronger sign (for example the cast on the end page, or a
     sound) needs a spec change, because the spec gives the end page no
     layers and no audio.
+11. **Friends by the shelf.** The approved board has one or two
+    characters beside the shelf, and a tap makes one say "Pick a story!".
+    Section 12.1 keeps this as a Proposal. It needs a decision on the
+    behaviour, and a source for the character file outside a release.

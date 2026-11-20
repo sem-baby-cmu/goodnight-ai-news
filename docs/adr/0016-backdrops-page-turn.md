@@ -4,6 +4,8 @@
 - Date: 2026-11-19
 - Decided by: Jinyu Liu (owner)
 - Amends: [ADR 0015](0015-storybook-mvp-reset.md) (not superseded)
+- Amended: 2026-11-19 by [ADR 0017](0017-shelf-home-player-states.md). The
+  Home rule of decision B changed, and five items left "Still open" (#70).
 - Spec: [`design.md`](../specs/storybook-mvp/design.md) "4. Layout engine",
   "5. Scene runtime", "8. Asset pipeline", "Data Models"
 - Issue: #59
@@ -163,7 +165,7 @@ variants.
 **B. "Next" on the last page** turns to an end page. The Player makes it; it
 is not part of a release (no page JSON, no audio). Its picture is the
 backdrop of the last page in its sky, without layers. It shows "The end", a
-"Read again" button, and "previous".
+"Read again" button, "previous", and Home.
 
 | Event | Result |
 | :-- | :-- |
@@ -171,9 +173,11 @@ backdrop of the last page in its sky, without layers. It shows "The end", a
 | "Previous" on the end page or during the turn to it | The turn back to the last page; its `src` is set and `play()` is called in the tap handler |
 | "Read again" | The `src` of page 1 is set and `play()` is called in the tap handler. Page 1 replaces the end page with a 200 ms cross-fade. The Start gate is not shown again |
 
-- A "Home" button (to the shelf) is added to the end page only when the
-  shelf exists. Until then no screen has a Home control, because it would
-  have no target.
+- The end page has the Home round button. The shelf is in the spec since
+  [ADR 0017](0017-shelf-home-player-states.md): every Player screen of a
+  book has exactly one Home control, and it goes to the shelf (ADR 0017,
+  decision 8). The earlier text gave the end page a Home button "only when
+  the shelf exists".
 - Reason: a book needs an end a child can see; a jump away looks like a
   fault, and the child who wants the story again does not have to find it.
 
@@ -201,17 +205,20 @@ it and this record or the spec disagree, the spec wins.
 
 ## Still open
 
-- The shelf: the spec has no route and no public list of releases. The
-  approved boards show one; it needs a spec change before any Home control.
-- The "resting" state: the spec does not say what the Player shows when a
-  release does not exist or does not load.
-- A minimum hit area for a tappable layer (`DESIGN.md` proposes 64 x 64 px).
-- A night tint for cut-outs on a night backdrop; the boards show one, the
-  spec has none, and a filter is not allowed during the page turn.
-- A moon asset: the scenery boards have none.
 - The `clouds` cut-out is warm cream; its contrast on the `dusk` sky is not
   checked.
 - Indoor backdrops: 36 of the 60 page settings of the sample stories (3
   stories, 2 age scripts each) are indoor (`bedroom`, `office`,
   `classroom`; counted 2026-11-19 from `setting.place`). Not in the MVP;
   S2 records how often a news story cannot be told outdoors.
+  [ADR 0017](0017-shelf-home-player-states.md) keeps them out.
+
+Settled by [ADR 0017](0017-shelf-home-player-states.md) (2026-11-19, #70):
+
+| Item | Result | ADR 0017 |
+| :-- | :-- | :-- |
+| The shelf | In the spec: the route `/` and the public `GET /api/shelf` | Decisions 1 to 7 |
+| The "resting" state | Defined: its triggers, what it shows, and Home | Decision 9 |
+| A minimum hit area for a tappable layer | 64 x 64 CSS px, with rules for overlap and the stage edge | Decision 10 |
+| A night tint for cut-outs | Rejected for the MVP. Decision C stays | Decision 11 |
+| A moon asset | Not needed in the MVP | Decision 12 |

@@ -6,8 +6,9 @@ Then scenarios. A refinement, a test, and a review name a scenario by its ID.
 The stories add no behaviour. Every expected value comes from
 [`requirements.md`](../specs/storybook-mvp/requirements.md),
 [`design.md`](../specs/storybook-mvp/design.md), or
-[ADR 0015](../adr/0015-storybook-mvp-reset.md) and
-[ADR 0016](../adr/0016-backdrops-page-turn.md). If a story and the spec
+[ADR 0015](../adr/0015-storybook-mvp-reset.md),
+[ADR 0016](../adr/0016-backdrops-page-turn.md), and
+[ADR 0017](../adr/0017-shelf-home-player-states.md). If a story and the spec
 disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 
 ## Files
@@ -16,11 +17,11 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | :-- | :-- | :-- | --: | --: |
 | [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
 | [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 33 |
-| [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 17 |
-| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 4 | 28 |
+| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, and the shelf list | 3 | 27 |
+| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release | 6 | 59 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 14 |
-| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 21 |
-| Total | | | 23 | 168 |
+| [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 22 |
+| Total | | | 26 | 210 |
 
 ## Format
 
@@ -68,8 +69,8 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 31 scenarios are `spec (to implement)`, 131 have an
-automated test, 5 are `manual · not run`, and 1 is a recorded manual check.
+Current state: 72 scenarios are `spec (to implement)`, 131 have an
+automated test, 6 are `manual · not run`, and 1 is a recorded manual check.
 
 ## Coverage of the requirements
 
@@ -82,6 +83,7 @@ automated test, 5 are `manual · not run`, and 1 is a recorded manual check.
 | US-5 Characters move and react to a tap | PLY-01 |
 | US-6 Each page is read aloud | PLY-02 |
 | US-7 Replace a character asset with a new version | REG-01 |
+| US-8 Pick a book from a shelf | PLY-05 |
 | AC-1 200 to 2,000 words give 6 to 8 pages | RUN-01.S1, RUN-01.S2, RUN-01.S9, RUN-01.S10 |
 | AC-2 Each page has text, audio, a character, an animation, a tap | RUN-01.S3, RUN-03.S13 |
 | AC-3 Every layer references the registry: the frozen version for an AI draft, the active version for an operator's edit | RUN-03.S1, RUN-03.S2, RUN-03.S3, EDT-03.S16, EDT-03.S19 |
@@ -96,7 +98,11 @@ automated test, 5 are `manual · not run`, and 1 is a recorded manual check.
 | AC-12 Every scene names a backdrop with a variant for its sky | RUN-03.S15, RUN-03.S16, EDT-03.S23 |
 | AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S13 |
 | AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2 |
-| AC-15 The Studio is behind Access; the Player is public | SYS-03.S1, SYS-03.S2 |
+| AC-15 The Studio is behind Access; the Player, the shelf, and `GET /api/shelf` are public | SYS-03.S1, SYS-03.S2 |
+| AC-16 `GET /api/shelf` lists the latest release of each published story, three fields, newest story first | PUB-03.S1 to PUB-03.S9, PUB-01.S11 |
+| AC-17 The shelf shows books with a title and a still cover; shelf pages; quiet empty and failed states | PLY-05.S1 to PLY-05.S15 |
+| AC-18 One Home control on each book screen; the Resting state | PLY-06.S1 to PLY-06.S10, PLY-04.S11 |
+| AC-19 A tappable layer has a hit area of 64 x 64 CSS px inside the stage | PLY-01.S8 to PLY-01.S11 |
 
 ## Coverage of the design
 
@@ -117,6 +123,9 @@ Integration sequences (`design.md`, "Testing Strategy"):
 | Content route | PUB-01.S8 |
 | URL input | RUN-02.S3, RUN-02.S5, RUN-02.S6 |
 | Text input | RUN-01.S9, RUN-01.S10 |
+| Shelf | PUB-03.S1, PUB-03.S2, PUB-03.S3, PUB-03.S7 |
+| Shelf after a second release | PUB-03.S4 |
+| Shelf on an empty database | PUB-03.S6 |
 
 Error rows (`design.md`, "Error Handling"):
 
@@ -143,6 +152,11 @@ Error rows (`design.md`, "Error Handling"):
 | Compare-and-set loop exhausted (5 tries), API save route | EDT-03.S22 |
 | Publish blocked | PUB-02.S7 |
 | Run fails | RUN-05.S7, RUN-05.S9 |
+| Database fails in `GET /api/shelf` | PUB-03.S8 |
+| The shelf request fails | PLY-05.S9, PLY-05.S10 |
+| A cover fails to load | PLY-05.S13 |
+| A release does not exist, or a file that "Start" waits for fails to load | PLY-06.S5, PLY-06.S6, PLY-06.S7 |
+| An image fails to load after "Start" | PLY-06.S10 |
 | Error record fields; no full text in logs | SYS-04.S2, SYS-04.S3 |
 
 Not written as scenarios, because they are not behaviour of the system:
@@ -162,6 +176,9 @@ needs a decision from the owner (`AGENTS.md` section 7). Do not choose an
 answer in code.
 
 No question is open.
+
+The points that ADR 0017 leaves open are in its "Still open" section. No
+scenario gives an expected result for them.
 
 On 2026-11-19 the owner closed Q1, Q4 to Q6, and Q8 to Q10 (#34), Q2 (#36),
 Q11 to Q13 (#38), and Q3, Q7, Q14, and Q15 (#32). The scenarios of the last
