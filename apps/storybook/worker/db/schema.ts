@@ -167,6 +167,7 @@ export const release = sqliteTable(
       .notNull()
       .references(() => story.id),
     number: integer("number").notNull(),
+    title: text("title").notNull(),
     manifestKey: text("manifest_key").notNull(),
     snapshot: text("snapshot", { mode: "json" }).$type<{ heads: Heads; headsVersion: number }>().notNull(),
     createdAt: createdAt(),

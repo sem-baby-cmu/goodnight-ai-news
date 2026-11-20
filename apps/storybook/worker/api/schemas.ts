@@ -170,5 +170,11 @@ export const RegistryResponseSchema = z.object({
   templates: z.array(z.unknown()),
 });
 
+// GET /api/shelf (ADR 0017). The Player (#77) imports it.
+export const ShelfResponseSchema = z
+  .object({ books: z.array(z.object({ releaseId: uuid, title: z.string(), publishedAt: iso }).strict()) })
+  .strict();
+
 export type RevisionView = z.infer<typeof RevisionViewSchema>;
 export type RunStep = z.infer<typeof RunResponseSchema>["steps"][number];
+export type ShelfResponse = z.infer<typeof ShelfResponseSchema>;

@@ -41,6 +41,7 @@ import {
   StillFitsRequestSchema,
   UUID_V7,
 } from "./schemas";
+import { loadShelf } from "./shelf";
 import { fetchArticleText, limitWords } from "./source";
 import { runSteps, toRevisionView } from "./views";
 
@@ -495,6 +496,14 @@ app.get(`${FILES}*`, async (c) => {
 
 // Public release files (#20).
 app.get("/content/releases/:releaseId/*", ids, (c) => handleContent(c));
+
+// ---- Shelf ----
+
+// Public and read-only (ADR 0017). Not under /api/studio/*, so Access does not cover it.
+app.get("/api/shelf", async (c) => {
+  const shelf = await loadShelf(c.env.DB);
+  return c.json(shelf, 200, { "Cache-Control": "no-store" });
+});
 
 // ---- Errors ----
 

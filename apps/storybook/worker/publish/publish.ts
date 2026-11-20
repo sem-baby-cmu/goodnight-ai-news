@@ -192,6 +192,7 @@ export async function publishStory(env: Env, storyId: string): Promise<PublishRe
         id: releaseId,
         storyId,
         number,
+        title: manifest.title,
         manifestKey,
         snapshot: { heads, headsVersion },
         createdAt: new Date().toISOString(),
