@@ -170,6 +170,18 @@ describe("POST /api/studio/stories/:id/withdrawal", () => {
   it("PUB-04.S12 the Studio routes say what is on the shelf", async () => {
     const s = await twoReleases();
     expect((await withdraw(s.storyId, { releaseId: s.r2 })).status).toBe(200);
+
+    // Withdrawn while the pointer still names the withdrawn release: off the
+    // shelf, but the release number is still given (the "Off the shelf" chip).
+    const listedBefore = StoryListResponseSchema.parse(await (await call("GET", "/api/studio/stories")).json());
+    expect(listedBefore.stories.find((x) => x.id === s.storyId)).toMatchObject({
+      publishedReleaseId: s.r2,
+      onShelf: false,
+      publishedReleaseNumber: 2,
+    });
+    const detailBefore = StoryDetailResponseSchema.parse(await (await call("GET", `/api/studio/stories/${s.storyId}`)).json());
+    expect(detailBefore.story.onShelf).toBe(false);
+
     const r3 = await publish(s.storyId);
     expect((await storyRow(s.storyId)).withdrawnThrough).toBe(2);
     const draft = await newStory(db());
