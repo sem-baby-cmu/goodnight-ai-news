@@ -198,13 +198,13 @@ Steps for a full run:
 | :-- | :-- | :-- |
 | `freeze` | Records the source revision, the active registry versions, and the current heads as the run basis. | `run.basis` |
 | `script` | One LLM call: outline (title, cast, 6 to 8 page beats) and the text of every page. Code gives each page a new UUID v7 `pageId`. | 1 `outline` revision, N `page_text` revisions |
-| `scene:<pageId>` | LLM picks a template and fills slots, then validation, at most one repair, then layout. | 1 `scene` revision per page |
+| `scene:<pageId>` | LLM picks a template and fills slots, then validation, at most one repair, then layout. The prompt also gets the template, sky, and scenery keys of the `ok` scene heads of the earlier pages (#105). | 1 `scene` revision per page |
 | `audio:<pageId>` | TTS of the page text, stored in R2. | 1 `audio` revision per page |
 | `finish` | Checks that every page has current text, scene, and audio. Sets the run status (rule below). | `run.status` |
 
 - Step names are unique because `pageId` values come from code, never from
   the model.
-- `scene:*` and `audio:*` run in parallel, at most 4 pages at a time.
+- `scene:*` steps run one at a time, in page order, so that each scene step sees the scenes of the earlier pages (#105). Then the `audio:*` steps run in parallel, at most 4 pages at a time.
 - Every step returns only IDs and keys. A non-stream step result is at most
   1 MiB (Workflows limits, checked 2026-11-19).
 - Retry policy for model steps: 3 tries, exponential back-off, starting at
@@ -274,9 +274,11 @@ API --> Studio : 202 {storyId, runId}
 WF -> D1 : freeze (run.basis)
 WF -> M : script (JSON)
 WF -> D1 : call_log, outline + page_text revisions, heads CAS
-par each page (max 4)
+loop each page, in order
   WF -> M : scene (JSON), repair if needed
   WF -> D1 : call_log, scene revision, heads CAS
+end
+par each page (max 4)
   WF -> M : TTS
   WF -> R2 : calls/<callId>.<ext>
   WF -> D1 : call_log, audio revision, heads CAS
@@ -302,6 +304,7 @@ heads again. A `repair` call uses the basis stored with the `first` call of
 the same step. At the same moment, the step reads the current head of each
 key that it will move, and stores this map in `call_log.expected_heads`
 (`null` for a key with no head). A retry reuses it in the same way.
+The earlier scenes that a scene step gets as story context are not part of its basis, so a change to an earlier scene does not make a later scene stale (#105).
 
 **Step pattern.**
 
@@ -1224,7 +1227,7 @@ code assigns `instanceId` values and rewrites `target` and `on.tap`.
 The JSON schema sent to the model is built at run time from the frozen
 registry and the template list. `ref`, `pose`, `expression`, `slot`, `sfx`,
 `backdrop`, and `templateId` are enums in that schema. The prompt gives the
-model the `description` of each backdrop and the palettes that it has. It also lists each animation primitive with the layer assets that it works on: `all`, or the keys whose renderer the primitive allows, so that a first answer does not fail on `primitive_renderer` (#63). The `sway` line lists scenery keys only; this is a prompt rule, and validation allows `sway` on every layer (#84). Each template line gives its description (`TEMPLATE_DESCRIPTIONS`), and each cast, prop, and scenery line gives the asset's `description`, so that the model chooses by meaning (#84). The prompt also asks for a tap on every character, an expression that follows the feeling words of the text, and no `set_expression` to the current expression; these are prompt rules, not checks. The prompts and model JSON schemas leave out `door` and `window` until an indoor backdrop exists (ADR 0016); validation uses the whole frozen registry (#84). An operator's scene does not pass
+model the `description` of each backdrop and the palettes that it has. It also lists each animation primitive with the layer assets that it works on: `all`, or the keys whose renderer the primitive allows, so that a first answer does not fail on `primitive_renderer` (#63). The `sway` line lists scenery keys only; this is a prompt rule, and validation allows `sway` on every layer (#84). Each template line gives its description (`TEMPLATE_DESCRIPTIONS`), and each cast, prop, and scenery line gives the asset's `description`, so that the model chooses by meaning (#84). The prompt also asks for a tap on every character, an expression that follows the feeling words of the text, and no `set_expression` to the current expression; these are prompt rules, not checks. The prompts and model JSON schemas leave out `door` and `window` until an indoor backdrop exists (ADR 0016); validation uses the whole frozen registry (#84). The scene prompt also lists, for each earlier page, the template, sky, and scenery keys of its `ok` scene head (scenery keys that the model can see only), and the page number of the story. It asks the model not to repeat the template or the exact set of scenery keys of the page just before, to change the sky only when the text gives a reason, and to choose `dusk` or `night` on the last page; these are prompt rules, not checks (#105). An operator's scene does not pass
 through that schema, so the API also checks the same enums in code. For an
 operator's scene, the enums use the active registry versions at the time of
 the request (owner decision Q3). A `scene` revision records the versions that
