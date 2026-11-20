@@ -9,6 +9,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
+import { manifestFiles as dslManifestFiles } from "@storybook/dsl";
 import { v7 } from "uuid";
 import { type AssetBuild, AssetBuildSchema } from "./build";
 import { OUT_DIR } from "./paths";
@@ -50,8 +51,7 @@ const differs = (b: { key: string; version: number }) => `asset ${label(b)} diff
 
 // The files that a manifest names; these are the files that publish uploads.
 export function manifestFiles(build: AssetBuild): string[] {
-  const m = build.manifest;
-  return m.kind === "sfx" ? [m.file] : [...new Set(m.poses.map((p) => p.file))];
+  return dslManifestFiles(build.manifest);
 }
 
 // Every error of the local build set; nothing is written when this is thrown.

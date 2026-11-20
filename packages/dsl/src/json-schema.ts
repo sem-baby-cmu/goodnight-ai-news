@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { makeSceneDraftSchema, makeScriptDraftSchema } from "./draft";
-import type { RegistrySnapshot } from "./registry";
+import { type RegistrySnapshot, isLayerManifest } from "./registry";
 import type { LayoutTemplate } from "./template";
 
 // The model JSON schema is a hint. zod and `validateScene` are the gate.
@@ -45,10 +45,13 @@ export function buildSceneJsonSchema(ctx: {
   templates: LayoutTemplate[];
 }): Record<string, unknown> {
   const assets = Object.entries(ctx.registry.assets);
-  const visual = assets.flatMap(([key, a]) => (a.kind !== "sfx" && a.manifest.kind !== "sfx" ? [{ key, manifest: a.manifest }] : []));
+  // Only layer assets: the `ref`, `pose`, and `expression` enums never name a backdrop or sfx.
+  const visual = assets.flatMap(([key, a]) => (isLayerManifest(a.manifest) ? [{ key, manifest: a.manifest }] : []));
+  const backdrops = assets.filter(([, a]) => a.kind === "backdrop" && a.manifest.kind === "backdrop").map(([key]) => key);
   return toJsonSchema(
     makeSceneDraftSchema({
       templateId: uniqSorted(ctx.templates.map((t) => t.id)),
+      backdrop: uniqSorted(backdrops),
       slot: uniqSorted(ctx.templates.flatMap((t) => t.slots.map((s) => s.id))),
       ref: uniqSorted(visual.map((v) => v.key)),
       pose: uniqSorted(visual.flatMap((v) => v.manifest.poses.map((p) => p.id))),

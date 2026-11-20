@@ -1,7 +1,7 @@
 // Sanitise step and structural check for SVG assets (design "8. Asset pipeline", SVG step).
 // #21 imports `sanitizeSvg` and `checkSvg` and refuses a file where
 // `sanitizeSvg(text) !== text`, so the sanitised output must be a fixed point.
-import type { Issue } from "@storybook/dsl";
+import { type Issue, isLayerManifest } from "@storybook/dsl";
 import { type Config, type CustomPlugin, optimize, type XastChild, type XastElement, type XastParent } from "svgo";
 import type { AssetBuild } from "./build";
 
@@ -146,7 +146,7 @@ export function checkSvg(text: string, build: AssetBuild, file?: string): Issue[
   } catch (e) {
     return [{ path: "svg", code: "svg_parse", message: `The file is not well-formed XML: ${(e as Error).message.split("\n")[0]}` }];
   }
-  if (build.manifest.kind === "sfx") return issues;
+  if (!isLayerManifest(build.manifest)) return issues;
   const manifest = build.manifest;
 
   const poses = manifest.poses.filter((p) => file === undefined || p.file === file);

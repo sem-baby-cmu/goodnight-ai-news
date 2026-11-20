@@ -229,5 +229,23 @@ export const SPIKE_REGISTRY_FIXTURE: RegistrySnapshot = { assets: {
       "legal": [],
       "flippable": true
     }
+  },
+  // Hand-written, not copied from a build: #67 builds `meadow` and replaces
+  // this entry with its `asset.json`.
+  "meadow": {
+    "kind": "backdrop",
+    "renderer": "svg",
+    "version": 1,
+    "manifest": {
+      "kind": "backdrop",
+      "description": "an open meadow with soft hills",
+      "size": { "width": 2400, "height": 1200 },
+      "variants": [
+        { "sky": "day", "file": "day.svg" },
+        { "sky": "cloudy", "file": "cloudy.svg" },
+        { "sky": "dusk", "file": "dusk.svg" },
+        { "sky": "night", "file": "night.svg" }
+      ]
+    }
   }
 } };

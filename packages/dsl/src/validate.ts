@@ -1,13 +1,12 @@
 import type { z } from "zod";
 import { ACTIONS, ONE_SHOT_PRIMITIVES, primitiveAllows } from "./primitives";
-import type { AssetManifest, RegistrySnapshot } from "./registry";
+import { type LayerManifest, type RegistrySnapshot, isLayerManifest } from "./registry";
 import { type Layer, type PageScene, PageSceneSchema } from "./schemas";
 import type { LayoutTemplate } from "./template";
 
 export type Issue = { path: string; code: string; message: string };
 
 type Ctx = { registry: RegistrySnapshot; templates: LayoutTemplate[] };
-type VisualManifest = Exclude<AssetManifest, { kind: "sfx" }>;
 
 // Path format (implementation decision R1): the path keys joined with ".".
 const joinPath = (path: readonly PropertyKey[]) => path.map(String).join(".");
@@ -27,13 +26,13 @@ export function validateScene(scene: unknown, ctx: Ctx): Issue[] {
   return semanticIssues(parsed.data, ctx);
 }
 
-function visualManifest(ctx: Ctx, ref: string): { renderer: string; manifest: VisualManifest } | undefined {
+function visualManifest(ctx: Ctx, ref: string): { renderer: string; manifest: LayerManifest } | undefined {
   const asset = ctx.registry.assets[ref];
-  if (!asset || asset.kind === "sfx" || asset.manifest.kind === "sfx") return undefined;
+  if (!asset || !isLayerManifest(asset.manifest)) return undefined;
   return { renderer: asset.renderer, manifest: asset.manifest };
 }
 
-const isLegal = (m: VisualManifest, pose: string, expression: string) =>
+const isLegal = (m: LayerManifest, pose: string, expression: string) =>
   m.legal.some((p) => p.pose === pose && p.expression === expression);
 
 function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
@@ -49,6 +48,16 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
   const reserved = new Set(ctx.templates.flatMap((t) => t.slots.flatMap((s) => s.poses ?? [])));
   type Slot = LayoutTemplate["slots"][number];
   const slotRejects = (slot: Slot, pose: string) => (slot.poses ? !slot.poses.includes(pose) : reserved.has(pose));
+
+  // Backdrop (ADR 0016 section 1): a registry backdrop with a variant for the sky.
+  const backdrop = ctx.registry.assets[scene.backdrop];
+  if (!backdrop) {
+    add("backdrop", "unknown_asset", `Asset "${scene.backdrop}" is not in the registry.`);
+  } else if (backdrop.kind !== "backdrop" || backdrop.manifest.kind !== "backdrop") {
+    add("backdrop", "asset_kind_mismatch", `Asset "${scene.backdrop}" is a ${backdrop.kind}, not a backdrop.`);
+  } else if (!backdrop.manifest.variants.some((v) => v.sky === scene.sky)) {
+    add("sky", "backdrop_sky_mismatch", `Backdrop "${scene.backdrop}" has no variant for sky "${scene.sky}".`);
+  }
 
   // Layers, by index.
   const layerById = new Map<string, Layer>();

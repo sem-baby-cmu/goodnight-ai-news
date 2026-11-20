@@ -159,7 +159,7 @@ export const RegistryResponseSchema = z.object({
   assets: z.array(
     z.object({
       key: z.string(),
-      kind: z.enum(["character", "prop", "scenery", "sfx"]),
+      kind: z.enum(["character", "prop", "scenery", "backdrop", "sfx"]),
       name: z.string(),
       version: z.number().int(),
       renderer: z.enum(["svg-rig", "svg", "webp", "audio"]),

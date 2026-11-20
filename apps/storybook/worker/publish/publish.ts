@@ -1,4 +1,4 @@
-import type { AssetManifest, Outline, PageScene } from "@storybook/dsl";
+import { type Outline, type PageScene, manifestFiles } from "@storybook/dsl";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { type Db, getDb } from "../db/client";
 import { newId } from "../db/ids";
@@ -21,11 +21,6 @@ export type PublishResult =
   | { ok: false; reason: "not_found" }
   | { ok: false; reason: "blocked"; blocking: BlockingItem[] }
   | { ok: false; reason: "conflict" };
-
-// Every file that a manifest names.
-function manifestFiles(m: AssetManifest): string[] {
-  return m.kind === "sfx" ? [m.file] : [...new Set(m.poses.map((p) => p.file))];
-}
 
 const LABEL = { page_text: "text", scene: "scene", audio: "audio" } as const;
 

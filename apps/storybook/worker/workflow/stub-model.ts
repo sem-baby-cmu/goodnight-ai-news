@@ -1,4 +1,4 @@
-import { PRIMITIVES, type RegistrySnapshot, type SceneDraft, type ScriptDraft } from "@storybook/dsl";
+import { PRIMITIVES, type RegistrySnapshot, type SceneDraft, type ScriptDraft, isLayerManifest } from "@storybook/dsl";
 import { TEMPLATES } from "@storybook/layout";
 import { type ModelClient, pcmToWav } from "@storybook/models";
 
@@ -69,7 +69,7 @@ export function stubScene(registry: RegistrySnapshot): SceneDraft {
     if (slot.poses) continue;
     for (const key of sortedKeys(registry, slot.accepts)) {
       const manifest = registry.assets[key]!.manifest;
-      if (manifest.kind === "sfx") continue;
+      if (!isLayerManifest(manifest)) continue;
       const pair = manifest.legal.find((p) => !reserved.has(p.pose));
       if (!pair) continue;
       layers.push({ kind: slot.accepts, ref: key, pose: pair.pose, expression: pair.expression, slot: slot.id, flip: false });
@@ -80,8 +80,15 @@ export function stubScene(registry: RegistrySnapshot): SceneDraft {
   if (!first) throw new Error("stub: no asset with a legal pose and expression pair");
   const sfx = sortedKeys(registry, "sfx")[0];
   if (!sfx) throw new Error("stub: no sfx asset");
+  // The first backdrop in sorted order with a `day` variant, for `sky: "day"`.
+  const backdrop = sortedKeys(registry, "backdrop").find((key) => {
+    const m = registry.assets[key]!.manifest;
+    return m.kind === "backdrop" && m.variants.some((v) => v.sky === "day");
+  });
+  if (!backdrop) throw new Error("stub: no backdrop asset with a day variant");
   return {
     templateId: template.id,
+    backdrop,
     sky: "day",
     layers,
     animations: [{ target: first.slot, primitive: "float", params: { ...PRIMITIVES.float.defaults }, trigger: "loop" }],

@@ -104,6 +104,7 @@ export function buildSpikePage(
     if (layers.length < def.layers.length) continue;
     const scene: PageScene = {
       templateId: template.id,
+      backdrop: "meadow",
       sky: "day",
       layers,
       animations: def.animations.map((a) => ({ target: idOf(a.ref), primitive: a.primitive, params: a.params, trigger: a.trigger }) as Animation),

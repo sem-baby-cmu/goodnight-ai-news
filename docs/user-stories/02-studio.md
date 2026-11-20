@@ -208,7 +208,7 @@ Spec: requirements US-3, "Core Features" 4 · design "2. StoryRun Workflow", "4.
 - Given a page whose scene uses the backdrop `meadow`
 - When the operator saves the scene with another backdrop that has a variant for the page's `sky`
 - Then the scene is validated, laid out, and saved as a human `scene` revision; its `asset_versions` records the active version of the new backdrop
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
 ### EDT-03.S24 The editor offers only the palettes of the chosen backdrop
 - Given the page editor with the backdrop `meadow` and the sky `cloudy`

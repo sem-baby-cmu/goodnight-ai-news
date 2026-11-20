@@ -8,6 +8,7 @@ import { LAYER_KINDS, type Layer, type PageScene, sceneSchema } from "./schemas"
 // string; `json-schema.ts` passes the lists from the registry and templates.
 export type SceneDraftLists = {
   templateId: string[];
+  backdrop: string[];
   slot: string[];
   ref: string[];
   pose: string[];
@@ -46,7 +47,7 @@ export function makeSceneDraftSchema(lists?: SceneDraftLists) {
     flip: z.boolean(),
   });
   const sfx = !lists ? z.string() : lists.sfx.length > 0 ? oneOf("sfx", lists.sfx) : null;
-  return sceneSchema(layer, { templateId: pick("templateId"), target: slot, sfx, expression, pose });
+  return sceneSchema(layer, { templateId: pick("templateId"), backdrop: pick("backdrop"), target: slot, sfx, expression, pose });
 }
 
 export const ScriptDraftSchema = makeScriptDraftSchema();
@@ -76,6 +77,7 @@ export function assignSceneIds(draft: SceneDraft, newId: () => string): PageScen
   const id = (slot: string) => bySlot.get(slot) ?? slot;
   return {
     templateId: draft.templateId,
+    backdrop: draft.backdrop,
     sky: draft.sky,
     layers,
     animations: draft.animations.map((a) => ({ ...a, target: id(a.target) })),

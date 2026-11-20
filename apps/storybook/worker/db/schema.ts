@@ -1,4 +1,4 @@
-import type { AssetManifest, Issue, RegistrySnapshot } from "@storybook/dsl";
+import type { AssetKind, AssetManifest, Issue, RegistrySnapshot } from "@storybook/dsl";
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
@@ -28,7 +28,7 @@ export type ErrorRecord = {
 };
 export type RunError = { errors: ErrorRecord[] };
 
-const ASSET_KINDS = ["character", "prop", "scenery", "sfx"] as const;
+const ASSET_KINDS = ["character", "prop", "scenery", "backdrop", "sfx"] as const satisfies readonly AssetKind[];
 const RENDERERS = ["svg-rig", "svg", "webp", "audio"] as const;
 const RUN_STATUSES = ["queued", "running", "draft_ready", "needs_review", "failed"] as const satisfies readonly RunStatus[];
 const REVISION_KINDS = ["source", "outline", "page_text", "scene", "audio"] as const satisfies readonly RevisionKind[];

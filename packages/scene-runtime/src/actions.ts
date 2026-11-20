@@ -1,4 +1,4 @@
-import { type AssetManifest, type PageScene, type PrimitiveId, selectPoseEntry } from "@storybook/dsl";
+import { type AssetManifest, type PageScene, type PrimitiveId, isLayerManifest, selectPoseEntry } from "@storybook/dsl";
 import type { LayerState, ResolvedAsset } from "./types";
 
 type Action = PageScene["interactions"][number]["do"][number];
@@ -46,12 +46,12 @@ function hasFile(asset: ResolvedAsset, state: LayerState): boolean {
 }
 
 function isLegal(manifest: AssetManifest, pose: string, expression: string): boolean {
-  return manifest.kind !== "sfx" && manifest.legal.some((p) => p.pose === pose && p.expression === expression);
+  return isLayerManifest(manifest) && manifest.legal.some((p) => p.pose === pose && p.expression === expression);
 }
 
 // The pose of a layer without one is the first pose entry.
 function currentPose(manifest: AssetManifest, state: LayerState): string | undefined {
-  return state.pose ?? (manifest.kind === "sfx" ? undefined : manifest.poses[0]?.id);
+  return state.pose ?? (isLayerManifest(manifest) ? manifest.poses[0]?.id : undefined);
 }
 
 function runAction(action: Action, ctx: TapContext): void {
@@ -91,7 +91,7 @@ function runAction(action: Action, ctx: TapContext): void {
       const manifest = asset?.manifest;
       const legal =
         manifest !== undefined &&
-        manifest.kind !== "sfx" &&
+        isLayerManifest(manifest) &&
         state !== undefined &&
         (state.expression === undefined
           ? manifest.poses.some((p) => p.id === action.pose)

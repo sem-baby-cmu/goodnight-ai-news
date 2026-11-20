@@ -70,9 +70,10 @@ export function interactionSchema(e: ActionEnums) {
 
 // The page minimums come from the requirements: at least one layer, one
 // animation, and one tap interaction (implementation decision R23).
-export function sceneSchema<L extends z.ZodType>(layer: L, e: ActionEnums & { templateId: Str }) {
+export function sceneSchema<L extends z.ZodType>(layer: L, e: ActionEnums & { templateId: Str; backdrop: Str }) {
   return z.strictObject({
     templateId: e.templateId,
+    backdrop: e.backdrop,
     sky: z.enum(SKY_PALETTES),
     layers: z.array(layer).min(1),
     animations: z.array(animationSchema(e.target)).min(1),
@@ -124,8 +125,9 @@ const layerShape = {
 
 export const LayerSchema = z.strictObject(layerShape);
 
-const plain: ActionEnums & { templateId: Str } = {
+const plain: ActionEnums & { templateId: Str; backdrop: Str } = {
   templateId: z.string(),
+  backdrop: z.string(),
   target: z.string(),
   sfx: z.string(),
   expression: z.string(),
