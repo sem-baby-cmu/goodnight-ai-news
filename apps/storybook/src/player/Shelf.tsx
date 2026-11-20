@@ -19,23 +19,38 @@ const BOARD = "linear-gradient(to bottom, var(--wood-light) 0 7px, var(--wood) 7
 const GRAIN = "#A5673D";
 const FADE: KeyframeAnimationOptions = { duration: 200, easing: "linear" };
 
-// Two short grain lines on the Wood part of a board.
-function BoardGrain() {
-  return (
-    <svg aria-hidden="true" className="absolute inset-0 size-full" preserveAspectRatio="none" viewBox="0 0 100 16">
-      <line x1="18" y1="10" x2="30" y2="10" stroke={GRAIN} strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-      <line x1="62" y1="9.5" x2="71" y2="9.5" stroke={GRAIN} strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
+// The grain: 2 px lines of GRAIN with round ends, on the Wood band of
+// each board and on the sides (approved shelf mock of #77).
+const BOARD_GRAIN: [number, number][] = [
+  [0.07, 0.22],
+  [0.44, 0.63],
+  [0.8, 0.93],
+];
 
-// One grain line along a side.
-function SideGrain() {
-  return (
-    <svg aria-hidden="true" className="absolute inset-0 size-full" preserveAspectRatio="none" viewBox="0 0 16 100">
-      <line x1="8" y1="20" x2="8" y2="38" stroke={GRAIN} strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
+function grainPaths(layout: ShelfLayout, side: number, boardTop: (i: number) => number): string[] {
+  const { shelf, boards, book } = layout;
+  const W = shelf.w;
+  const B = book.h;
+  const paths: string[] = [];
+  // Board i: 0 is the top board, 1 to `boards` stand under the book rows.
+  for (let i = 0; i <= boards; i++) {
+    const full = i === 0 || i === boards;
+    const x0 = full ? 0 : side;
+    const bw = full ? W : W - 2 * side;
+    const y = boardTop(i) + 10;
+    BOARD_GRAIN.forEach(([fa, fb], k) => {
+      if (W < 400 && (k + i) % 3 === 1) return;
+      const len = bw * (fb - fa);
+      paths.push(`M ${x0 + bw * fa} ${y} c ${len / 3} -1.5, ${(2 * len) / 3} 1.5, ${len} 0`);
+    });
+  }
+  const run = (x: number, y: number) => `M ${x} ${y} c 2 ${0.1 * B}, -2 ${0.2 * B}, 0 ${0.3 * B}`;
+  for (let r = 0; r < boards; r++) {
+    const y0 = 16 + r * (B + 28) + 12;
+    paths.push(run(side / 2 - 1, y0 + 0.18 * B));
+    paths.push(run(W - side / 2 + 1, y0 + 0.48 * B));
+  }
+  return paths;
 }
 
 // The wooden shelf of the layout (DESIGN.md 12.1): the back, the sides, a
@@ -44,7 +59,8 @@ function ShelfWood({ layout }: { layout: ShelfLayout }) {
   const { shelf, boards, book } = layout;
   const side = layout.layout === "wide" ? 16 : 12;
   const bodyH = shelf.h - 12;
-  const boardTop = (r: number) => 16 + (r + 1) * (book.h + 28) - 16;
+  // The top of board i (0 is the top board; i >= 1 is under book row i - 1).
+  const boardTop = (i: number) => (i === 0 ? 0 : 16 + i * (book.h + 28) - 16);
   return (
     <div aria-hidden="true" className="absolute inset-0">
       <div className="absolute" style={{ left: side, right: side, top: 0, height: bodyH, background: "#EAD2AB" }} />
@@ -53,13 +69,9 @@ function ShelfWood({ layout }: { layout: ShelfLayout }) {
           key={i}
           className="absolute bg-wood"
           style={{ top: 0, height: bodyH, width: side, ...(i === 0 ? { left: 0 } : { right: 0 }) }}
-        >
-          <SideGrain />
-        </div>
+        />
       ))}
-      <div className="absolute inset-x-0 top-0 h-[16px]" style={{ background: BOARD }}>
-        <BoardGrain />
-      </div>
+      <div className="absolute inset-x-0 top-0 h-[16px]" style={{ background: BOARD }} />
       {Array.from({ length: boards }, (_, r) => {
         const lowest = r === boards - 1;
         return (
@@ -67,12 +79,15 @@ function ShelfWood({ layout }: { layout: ShelfLayout }) {
             key={r}
             data-testid="shelf-board"
             className="absolute h-[16px]"
-            style={{ top: boardTop(r), left: lowest ? 0 : side, right: lowest ? 0 : side, background: BOARD }}
-          >
-            <BoardGrain />
-          </div>
+            style={{ top: boardTop(r + 1), left: lowest ? 0 : side, right: lowest ? 0 : side, background: BOARD }}
+          />
         );
       })}
+      <svg aria-hidden="true" className="absolute top-0 left-0 overflow-visible" width={shelf.w} height={shelf.h}>
+        {grainPaths(layout, side, boardTop).map((d) => (
+          <path key={d} d={d} fill="none" stroke={GRAIN} strokeWidth={2} strokeLinecap="round" />
+        ))}
+      </svg>
       <div className="absolute bottom-0 left-[4px] h-[12px] w-[44px] bg-wood-deep" />
       <div className="absolute right-[4px] bottom-0 h-[12px] w-[44px] bg-wood-deep" />
     </div>
@@ -317,7 +332,7 @@ export function Shelf() {
   }
 
   return (
-    <main ref={mainRef} tabIndex={-1} data-testid="shelf" className="fixed inset-0 overflow-hidden text-ink">
+    <main ref={mainRef} tabIndex={-1} data-testid="shelf" className="fixed inset-0 overflow-hidden text-ink outline-none">
       <div aria-hidden="true" className="absolute inset-0">
         <DayPicture />
       </div>
