@@ -1032,6 +1032,32 @@ describe("StoryRunWorkflow", () => {
     }
   });
 
+  it("a registry with no backdrop fails the run at freeze without retries", async () => {
+    await seedRegistry(env);
+    const d = db();
+    const backdrops = await d
+      .select({ id: assetVersion.id })
+      .from(assetVersion)
+      .innerJoin(asset, eq(asset.id, assetVersion.assetId))
+      .where(and(eq(asset.kind, "backdrop"), eq(assetVersion.active, true)));
+    expect(backdrops.length).toBeGreaterThan(0);
+    for (const { id } of backdrops) await d.update(assetVersion).set({ active: false }).where(eq(assetVersion.id, id));
+    try {
+      const s = await setup();
+      await expect(freezeStep(env, s.ids.runId, s.ids.storyId)).rejects.toThrow("the active registry has no backdrop asset");
+      expect(await nameOf(freezeStep(env, s.ids.runId, s.ids.storyId))).toBe("NonRetryableError");
+      await runWorkflow(s.ids.runId, s.ids.storyId);
+      const r = await readRun(s.ids.runId);
+      expect(r.status).toBe("failed");
+      expect(r.error!.errors).toHaveLength(1);
+      expect(r.error!.errors[0]).toMatchObject({ step: "freeze", pageId: null });
+      // No script call is paid, and no scene or audio step runs.
+      expect(s.stub.attempts).toEqual({});
+    } finally {
+      for (const { id } of backdrops) await d.update(assetVersion).set({ active: true }).where(eq(assetVersion.id, id));
+    }
+  });
+
   it("errors that cannot heal on retry throw NonRetryableError", async () => {
     const s = await setup();
     expect(await nameOf(freezeStep(env, s.ids.runId, newId()))).toBe("NonRetryableError");
