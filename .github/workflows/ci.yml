@@ -58,3 +58,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @storybook/app exec playwright install --with-deps webkit chromium
       - run: pnpm --filter @storybook/app test:e2e
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: player-screenshots
+          path: apps/storybook/test-results/screenshots/
+          if-no-files-found: error
