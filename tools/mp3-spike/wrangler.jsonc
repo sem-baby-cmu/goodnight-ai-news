@@ -1,0 +1,10 @@
+{
+  // The throwaway spike Worker of issue #69. No bindings, no routes, no
+  // account_id. It never ships with the app.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mp3-spike",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "observability": { "enabled": true }
+}

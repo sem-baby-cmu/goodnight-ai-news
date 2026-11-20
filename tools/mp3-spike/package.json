@@ -1,0 +1,22 @@
+{
+  "name": "@storybook/mp3-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "spike:run": "tsx scripts/run.ts",
+    "spike:bundle": "tsx scripts/bundle.ts",
+    "spike:smoke": "playwright test --config smoke/playwright.config.ts"
+  },
+  "devDependencies": {
+    "@breezystack/lamejs": "1.2.7",
+    "@playwright/test": "catalog:",
+    "@storybook/models": "workspace:*",
+    "@types/node": "catalog:",
+    "lamejs": "1.2.1",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "wasm-media-encoders": "0.7.0",
+    "wrangler": "catalog:"
+  }
+}
