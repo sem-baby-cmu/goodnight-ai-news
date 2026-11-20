@@ -47,6 +47,10 @@ catalog:
   svgo: 4.1.0
   # Exact: the WebKit build of the S1 smoke test (#15) is tied to this version.
   "@playwright/test": 1.65.1
+  # Exact: Vitest browser mode of packages/scene-runtime (#68). The provider
+  # matches the vitest version; playwright matches "@playwright/test".
+  "@vitest/browser-playwright": 4.1.12
+  playwright: 1.65.1
 
 # Written by pnpm: these versions are newer than minimumReleaseAge.
 minimumReleaseAgeExclude:

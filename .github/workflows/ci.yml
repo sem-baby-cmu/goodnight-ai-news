@@ -24,3 +24,23 @@ jobs:
       - run: pnpm -r typecheck
       - run: pnpm -r test
       - run: pnpm --filter @storybook/app build
+
+  # Real-browser tests of packages/scene-runtime (#68, D68-1).
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @storybook/scene-runtime exec playwright install --with-deps chromium webkit
+      - run: pnpm --filter @storybook/scene-runtime test:browser
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: scene-runtime-screenshots
+          path: packages/scene-runtime/test/browser/__screenshots__
+          if-no-files-found: ignore
