@@ -1,5 +1,5 @@
 import { type Layer, type PoseEntry, selectPoseEntry } from "@storybook/dsl";
-import { type CSSProperties, type KeyboardEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, type FocusEvent, type KeyboardEvent, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { sanitizeSvg } from "./sanitizeSvg";
 import type { AssetResolver, LayerState, ResolvedAsset } from "./types";
 
@@ -14,6 +14,8 @@ type Props = {
   // A layer with an enter fade-in waits hidden until enter starts (#68).
   hidden: boolean;
   onTap(instanceId: string): void;
+  // Focus on the layer, and whether it matches :focus-visible (focus ring).
+  onFocusVisible(instanceId: string, visible: boolean): void;
   register(instanceId: string, nodes: LayerNodes | null): void;
   // A new inlined SVG node (or null when it is removed). Inserting it makes
   // the layer ready.
@@ -38,7 +40,8 @@ export function entryFor(asset: ResolvedAsset, state: LayerState): PoseEntry | u
 // .sv-layer > .sv-loop > .sv-once > .sv-asset > img | svg
 // SceneView keys it by instanceId and ref, so a new asset mounts a new view.
 export function LayerView(props: Props) {
-  const { layer, asset, state, assets, tappable, hidden, onTap, register, onSvg, onReady, onAssetFailed } = props;
+  const { layer, asset, state, assets, tappable, hidden, onTap, onFocusVisible, register, onSvg, onReady, onAssetFailed } =
+    props;
   const { instanceId, ref, at } = layer;
   // Ids inside the SVG are unique per mount, also across two SceneViews of
   // one page in one document.
@@ -149,8 +152,11 @@ export function LayerView(props: Props) {
   const assetStyle: CSSProperties = {
     transformOrigin: "0 0",
     transform: shown ? `scale(${sx}, ${s}) translate(${-shown.foot.x}px, ${-shown.foot.y}px)` : undefined,
-    pointerEvents: tappable ? "auto" : "none",
-    ...(tappable ? { cursor: "pointer", touchAction: "manipulation" } : {}),
+    position: "relative",
+    // The pointer target is the drawn box (.sv-hitbox), not the file rect;
+    // the focus ring in the stage overlay replaces the outline (#68).
+    pointerEvents: "none",
+    outline: "none",
   };
   const tapProps = tappable
     ? {
@@ -158,6 +164,8 @@ export function LayerView(props: Props) {
         tabIndex: 0,
         "aria-label": ref,
         onClick: () => onTap(instanceId),
+        onFocus: (event: FocusEvent<HTMLDivElement>) => onFocusVisible(instanceId, matchesFocusVisible(event.currentTarget)),
+        onBlur: () => onFocusVisible(instanceId, false),
         onKeyDown: (event: KeyboardEvent) => {
           if (event.key !== "Enter" && event.key !== " ") return;
           event.preventDefault();
@@ -166,6 +174,8 @@ export function LayerView(props: Props) {
       }
     : {};
   const imageUrl = asset.renderer === "webp" && entry ? assets.url(ref, entry.file) : null;
+  // Shown: an inserted SVG, or a WebP that loaded.
+  const isShown = inline ? svg !== null : loadedImage !== null && failedImage !== imageUrl;
 
   return (
     <div
@@ -184,6 +194,23 @@ export function LayerView(props: Props) {
       <div ref={loopRef} className="sv-loop" style={ORIGIN}>
         <div ref={onceRef} className="sv-once" style={hidden ? { ...ORIGIN, opacity: 0 } : ORIGIN}>
           <div ref={assetRef} className="sv-asset" style={assetStyle} {...tapProps}>
+            {tappable && isShown && shown ? (
+              <div
+                className="sv-hitbox"
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  // File px: the .sv-asset transform scales and flips it.
+                  left: shown.box.x,
+                  top: shown.box.y,
+                  width: shown.box.w,
+                  height: shown.box.h,
+                  pointerEvents: "auto",
+                  cursor: "pointer",
+                  touchAction: "manipulation",
+                }}
+              />
+            ) : null}
             {imageUrl && failedImage !== imageUrl ? (
               <img
                 src={imageUrl}
@@ -208,6 +235,15 @@ export function LayerView(props: Props) {
       </div>
     </div>
   );
+}
+
+// jsdom throws on :focus-visible; that counts as not visible.
+function matchesFocusVisible(el: Element): boolean {
+  try {
+    return el.matches(":focus-visible");
+  } catch {
+    return false;
+  }
 }
 
 // svg-rig expression (R64): every expr-* element gets an explicit inline
