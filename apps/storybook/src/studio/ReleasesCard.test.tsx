@@ -1,4 +1,4 @@
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { releaseFixture, renderInRouter, squash, storyDetailFixture } from "./fixtures";
 import { ReleasesCard } from "./ReleasesCard";
@@ -9,7 +9,7 @@ afterEach(cleanup);
 const OFF_NOTICE = "This book is off the shelf. Publish a new release to put it back.";
 
 function renderCard(story: ReturnType<typeof storyDetailFixture>["story"], releases: ReturnType<typeof releaseFixture>[]) {
-  return renderInRouter(<ReleasesCard story={story} releases={releases} />, "/studio/stories/$storyId", `/studio/stories/${story.id}`);
+  return renderInRouter(<ReleasesCard story={story} releases={releases} onWithdrawn={() => {}} onReload={async () => true} />, "/studio/stories/$storyId", `/studio/stories/${story.id}`);
 }
 
 // The href of the link around each "Open" label, in document order.
@@ -65,4 +65,21 @@ it("ReleasesCard shows None without releases", async () => {
   const none = await screen.findByText("None");
   expect(none.closest(".text-ink-3")).not.toBeNull();
   expect(container.querySelectorAll("a")).toHaveLength(0);
+});
+
+it("EDT-05.S1 ReleasesCard has Take off the shelf on the row of the release on the shelf only", async () => {
+  const r1 = releaseFixture(1);
+  const r2 = releaseFixture(2);
+  const base = storyDetailFixture().story;
+  const story = { ...base, status: "published" as const, publishedReleaseId: r2.id, onShelf: true };
+  renderCard(story, [r1, r2]);
+
+  expect(await screen.findByText("Release 2")).toBeTruthy();
+  const take = screen.getAllByRole("button", { name: "Take off the shelf" });
+  expect(take).toHaveLength(1);
+  expect(take[0].closest("li")).toBe(screen.getByText("Release 2").closest("li"));
+  const row1 = screen.getByText("Release 1").closest("li") as HTMLElement;
+  expect(row1).not.toBeNull();
+  expect(within(row1).getByRole("link", { name: "Open release 1" })).toBeTruthy();
+  expect(row1.querySelectorAll("button, [role=button]")).toHaveLength(0);
 });

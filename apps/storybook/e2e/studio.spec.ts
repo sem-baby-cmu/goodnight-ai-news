@@ -609,7 +609,8 @@ test("Studio frame 7: the Releases card in its 360 px column", async ({ page }, 
     await page.goto(`/studio/stories/${STORY_ID}`);
     await settle(page, PREVIEWS);
     const card = region(page, "Releases");
-    expectPx((await boxOf(card, "Releases")).width, 360, `Releases at ${width}`);
+    const cardBox = await boxOf(card, "Releases");
+    expectPx(cardBox.width, 360, `Releases at ${width}`);
     const numberLocator = card.getByText("Release 2", { exact: true });
     const number = await boxOf(numberLocator, "Release 2");
     const time = await boxOf(numberLocator.locator("xpath=following-sibling::span[1]"), "time of release 2");
@@ -618,6 +619,7 @@ test("Studio frame 7: the Releases card in its 360 px column", async ({ page }, 
     await expect(openLocator).toBeVisible();
     await expectLinkBox(card.getByRole("link", { name: "Open release 2", exact: true }), 78, 44, `Open at ${width}`);
     const open = await boxOf(openLocator, "Open release 2");
+    const take = await boxOf(card.getByRole("button", { name: "Take off the shelf", exact: true }), "Take off the shelf");
     // `has` is queried inside each list item, so it must not be chained from `card`.
     const row = await boxOf(
       card.getByRole("listitem").filter({ has: page.getByLabel("Open release 2") }),
@@ -629,12 +631,16 @@ test("Studio frame 7: the Releases card in its 360 px column", async ({ page }, 
       `centres of the number and the time at ${width}`,
     ).toBeLessThanOrEqual(2);
     expect(chip.y, `chip under the number at ${width}`).toBeGreaterThanOrEqual(number.y + number.height - 1);
-    expect(open.x, `Open right of the chip at ${width}`).toBeGreaterThanOrEqual(chip.x + chip.width);
-    expect(open.x, `Open right of the time at ${width}`).toBeGreaterThanOrEqual(time.x + time.width);
+    // Board 14 item 10 (#89): the row of the release on the shelf has Open and
+    // Take off the shelf; the group goes to its own line, at the right.
+    expect(open.y, `button group under the chip at ${width}`).toBeGreaterThanOrEqual(chip.y + chip.height - 1);
+    expectPx(take.x + take.width, cardBox.x + cardBox.width - 20, `group at the right content edge at ${width}`);
+    expectPx(take.x - (open.x + open.width), 8, `8 px between Open and Take off the shelf at ${width}`);
+    expectPx(open.y + open.height / 2, take.y + take.height / 2, `one line of buttons at ${width}`);
+    expect(Math.abs(take.height - 44), `Take off the shelf height at ${width}: ${take.height} px`).toBeLessThanOrEqual(2);
     const openCentre = open.y + open.height / 2;
     expect(openCentre, `Open centre in its row at ${width}`).toBeGreaterThanOrEqual(row.y);
     expect(openCentre, `Open centre in its row at ${width}`).toBeLessThanOrEqual(row.y + row.height);
-    expect(row.height, `row of release 2 not wrapped at ${width}`).toBeLessThan(2 * open.height + 40);
     await shotOf(card, `studio-releases-${width}x${height}`);
   }
   expect(api.unrouted).toEqual([]);
@@ -748,6 +754,286 @@ test("Studio frame 9: Loading, Story not found, and No pages yet", async ({ page
   await expect(page.getByText("No pages yet.")).toBeVisible();
   await settle(page);
   await shotOf(main, "studio-no-pages-1024x768");
+
+  expect(api.unrouted).toEqual([]);
+  expect(api.missingFiles).toEqual([]);
+});
+
+// ---- Take off the shelf (#89; DESIGN.md 13.2, board 14). The take-off story
+// has its own fixture: release 1 is not withdrawn, so its row has Open.
+
+const TAKEOFF_ID = uuid(0x108);
+const RELEASE_3 = uuid(0x205);
+const takeoffStory = storyWith(TAKEOFF_ID, {
+  pages: buildPages(4),
+  releases: [
+    { id: RELEASE_1, number: 1, createdAt: AT, withdrawn: false },
+    { id: RELEASE_2, number: 2, createdAt: AT, withdrawn: false },
+  ],
+});
+const TAKEOFF_PAGES = 4;
+const TAKEOFF_TITLE = "Take this book off the shelf?";
+const TAKEOFF_TEXT =
+  "Children will no longer see this book on the shelf. Every link to release 2 and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release.";
+const takenOff = { storyId: TAKEOFF_ID, releaseId: RELEASE_2, withdrawnThrough: 2 };
+
+// The GET of the take-off story and its withdrawal POST call the handlers in
+// `takeoff`, so a test can change the answer. `posts` counts the POSTs.
+async function routeTakeoff(page: Page) {
+  const takeoff: { get: Handler; post: Handler; posts: number } = {
+    get: jsonAnswer(takeoffStory),
+    post: jsonAnswer(takenOff),
+    posts: 0,
+  };
+  const api = await routeStudioApi(page, {
+    [`GET /api/studio/stories/${TAKEOFF_ID}`]: (route) => takeoff.get(route),
+    [`POST /api/studio/stories/${TAKEOFF_ID}/withdrawal`]: (route) => {
+      takeoff.posts += 1;
+      return takeoff.post(route);
+    },
+  });
+  return { api, takeoff };
+}
+
+const takeoffButton = (card: import("@playwright/test").Locator) =>
+  card.getByRole("button", { name: "Take off the shelf", exact: true });
+
+// Opens the dialog by keyboard: Tab to the row button (unless it has the focus), Enter.
+async function openTakeoff(page: Page, card: import("@playwright/test").Locator) {
+  const button = takeoffButton(card);
+  if (!(await button.evaluate((el) => el === document.activeElement))) await tabTo(page, button);
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: TAKEOFF_TITLE });
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
+
+// Confirms by keyboard: Tab from "Keep on the shelf" to "Take off the shelf", Enter.
+async function confirmTakeoff(page: Page, dialog: import("@playwright/test").Locator) {
+  await expect(dialog.getByRole("button", { name: "Keep on the shelf", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(dialog.getByRole("button", { name: "Take off the shelf", exact: true })).toBeFocused();
+  await page.keyboard.press("Enter");
+}
+
+// The rows of the take-off story as loaded.
+async function expectTakeoffRows(card: import("@playwright/test").Locator) {
+  await expect(card.getByText("On the shelf", { exact: true })).toHaveCount(1);
+  await expect(card.getByText("Off the shelf", { exact: true })).toHaveCount(0);
+  await expect(card.getByRole("link", { name: "Open release 1", exact: true })).toBeVisible();
+  await expect(card.getByRole("link", { name: "Open release 2", exact: true })).toBeVisible();
+}
+
+test("Studio frame 10: the take-off row and an earlier row with Open", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  const { api } = await routeTakeoff(page);
+  for (const [width, height] of SIZES) {
+    await page.setViewportSize({ width, height });
+    await page.goto(`/studio/stories/${TAKEOFF_ID}`);
+    await settle(page, TAKEOFF_PAGES);
+    const card = region(page, "Releases");
+    const cardBox = await boxOf(card, "Releases");
+    expectPx(cardBox.width, 360, `Releases at ${width}`);
+    // Board 14 frame s89-takeoff-01: release 1 keeps Open beside its facts.
+    const numberLocator = card.getByText("Release 1", { exact: true });
+    const number1 = await boxOf(numberLocator, "Release 1");
+    const time1 = await boxOf(numberLocator.locator("xpath=following-sibling::span[1]"), "time of release 1");
+    const open1 = await boxOf(card.getByRole("link", { name: "Open release 1", exact: true }), "Open release 1");
+    expectPx(open1.x + open1.width, cardBox.x + cardBox.width - 20, `Open release 1 at the right content edge at ${width}`);
+    expect(open1.x, `Open release 1 right of the time at ${width}`).toBeGreaterThanOrEqual(time1.x + time1.width);
+    expect(open1.y, `Open release 1 beside the facts at ${width}`).toBeLessThan(number1.y + number1.height);
+    await shotOf(card, `studio-takeoff-row-${width}x${height}`);
+    if (width === 1024) {
+      const button = takeoffButton(card);
+      await tabTo(page, button);
+      await expect(button).toBeFocused();
+      await shotAround(page, button, "studio-takeoff-focus-button-1024x768");
+    }
+  }
+  expect(api.unrouted).toEqual([]);
+  expect(api.missingFiles).toEqual([]);
+});
+
+test("Studio frame 11: the take-off dialog", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  const { api, takeoff } = await routeTakeoff(page);
+  for (const [width, height] of SIZES) {
+    await page.setViewportSize({ width, height });
+    await page.goto(`/studio/stories/${TAKEOFF_ID}`);
+    await settle(page, TAKEOFF_PAGES);
+    const card = region(page, "Releases");
+    const dialog = await openTakeoff(page, card);
+    await expect(dialog.getByText(TAKEOFF_TEXT, { exact: true })).toBeVisible();
+    const box = await boxOf(dialog, "dialog");
+    expectPx(box.width, 440, `dialog width at ${width}`);
+    expect(box.x, `dialog left at ${width}`).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, `dialog right at ${width}`).toBeLessThanOrEqual(width);
+    const buttons = dialog.getByRole("button");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveAccessibleName("Keep on the shelf");
+    await expect(buttons.nth(1)).toHaveAccessibleName("Take off the shelf");
+    const keep = await boxOf(buttons.nth(0), "Keep on the shelf");
+    const take = await boxOf(buttons.nth(1), "Take off the shelf");
+    expect(Math.abs(keep.height - 44), `Keep on the shelf height at ${width}: ${keep.height} px`).toBeLessThanOrEqual(2);
+    expect(Math.abs(take.height - 44), `Take off the shelf height at ${width}: ${take.height} px`).toBeLessThanOrEqual(2);
+    expectPx(take.x + take.width, box.x + box.width - 20, `Take off the shelf at the dialog content edge at ${width}`);
+    expectPx(take.x - (keep.x + keep.width), 12, `12 px between the dialog buttons at ${width}`);
+    await expect(buttons.nth(0)).toBeFocused();
+    const overlay = page.locator('[data-slot="dialog-overlay"]');
+    const scrim = await boxOf(overlay, "scrim");
+    expectPx(scrim.x, 0, `scrim left at ${width}`);
+    expectPx(scrim.y, 0, `scrim top at ${width}`);
+    expectPx(scrim.width, width, `scrim width at ${width}`);
+    expectPx(scrim.height, height, `scrim height at ${width}`);
+    expect(await overlay.evaluate((el) => getComputedStyle(el).backdropFilter), `scrim blur at ${width}`).toBe("none");
+    expect(takeoff.posts).toBe(0);
+    await shot(page, `studio-takeoff-dialog-${width}x${height}`);
+
+    if (width === 1024) {
+      // Each close changes nothing and gives the focus back to the row button.
+      const closes: Array<[string, () => Promise<void>]> = [
+        ["Escape", () => page.keyboard.press("Escape")],
+        ["a click outside", () => page.mouse.click(10, 10)],
+        ["Keep on the shelf", () => dialog.getByRole("button", { name: "Keep on the shelf", exact: true }).click()],
+      ];
+      for (const [i, [how, close]] of closes.entries()) {
+        if (i > 0) await openTakeoff(page, card);
+        await close();
+        await expect(dialog, `dialog hidden after ${how}`).toBeHidden();
+        await expect(takeoffButton(card), `focus on the row button after ${how}`).toBeFocused();
+        expect(takeoff.posts, `POST count after ${how}`).toBe(0);
+      }
+    }
+  }
+  expect(api.unrouted).toEqual([]);
+  expect(api.missingFiles).toEqual([]);
+});
+
+test("Studio frame 12: a take-off while it runs, and after a 200", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  const { api, takeoff } = await routeTakeoff(page);
+  const answer = gate();
+  takeoff.post = async (route) => {
+    await answer.opened;
+    return jsonAnswer(takenOff)(route);
+  };
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto(`/studio/stories/${TAKEOFF_ID}`);
+  await settle(page, TAKEOFF_PAGES);
+  const card = region(page, "Releases");
+  const dialog = await openTakeoff(page, card);
+  await confirmTakeoff(page, dialog);
+
+  // D89-1: while the request runs, both buttons are disabled and Escape does nothing.
+  await expect(dialog.getByRole("button", { name: "Keep on the shelf", exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Take off the shelf", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  await shot(page, "studio-takeoff-dialog-busy-1024x768");
+
+  answer.open();
+  await expect(dialog).toBeHidden();
+  await expect(card.getByText("Off the shelf", { exact: true })).toHaveCount(2);
+  await expect(card.getByText("On the shelf", { exact: true })).toHaveCount(0);
+  const list = card.getByRole("list");
+  await expect(list.getByRole("link")).toHaveCount(0);
+  await expect(list.getByRole("button")).toHaveCount(0);
+  const notice = card.getByRole("status").filter({ hasText: "This book is off the shelf." });
+  await expect(notice).toContainText("Publish a new release to put it back.");
+  await expect(card.getByRole("heading", { name: "Releases", exact: true })).toBeFocused();
+  const publish = region(page, "Publish");
+  await expect(publish.getByRole("button", { name: "Publish release 3", exact: true })).toBeVisible();
+  await expect(publish).not.toContainText("published.");
+  expect(takeoff.posts).toBe(1);
+  await shotOf(card, "studio-takeoff-done-1024x768");
+  await shot(page, "studio-takeoff-done-page-1024x768");
+
+  expect(api.unrouted).toEqual([]);
+  expect(api.missingFiles).toEqual([]);
+});
+
+test("Studio frame 13: refused take-offs", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  const { api, takeoff } = await routeTakeoff(page);
+  takeoff.post = jsonAnswer({ error: "release_moved", current: RELEASE_3 }, 409);
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto(`/studio/stories/${TAKEOFF_ID}`);
+  await settle(page, TAKEOFF_PAGES);
+  const card = region(page, "Releases");
+  await confirmTakeoff(page, await openTakeoff(page, card));
+
+  const alert = card.getByRole("alert");
+  await expect(alert).toHaveCount(1);
+  await expect(alert).toContainText("Another release was published after you opened this page.");
+  await expect(alert).toContainText("Nothing was changed.");
+  const reload = alert.getByRole("button", { name: "Load the latest", exact: true });
+  await expect(reload).toBeFocused();
+  const reloadBox = await boxOf(reload, "Load the latest");
+  expect(Math.abs(reloadBox.height - 44), `Load the latest height: ${reloadBox.height} px`).toBeLessThanOrEqual(2);
+  await expectTakeoffRows(card);
+  await shotOf(card, "studio-takeoff-release-moved-1024x768");
+
+  // Load the latest: release 3 is on the shelf now.
+  takeoff.get = jsonAnswer(
+    storyWith(TAKEOFF_ID, {
+      pages: takeoffStory.pages,
+      story: { ...takeoffStory.story, publishedReleaseId: RELEASE_3 },
+      releases: [...takeoffStory.releases, { id: RELEASE_3, number: 3, createdAt: AT, withdrawn: false }],
+    }),
+  );
+  await page.keyboard.press("Enter");
+  await expect(card.getByRole("alert")).toHaveCount(0);
+  await expect(card.getByRole("heading", { name: "Releases", exact: true })).toBeFocused();
+  const row3 = card.getByRole("listitem").filter({ has: page.getByText("Release 3", { exact: true }) });
+  await expect(row3.getByText("On the shelf", { exact: true })).toBeVisible();
+  await expect(takeoffButton(row3)).toBeVisible();
+  await shotOf(card, "studio-takeoff-latest-1024x768");
+
+  takeoff.get = jsonAnswer(takeoffStory);
+  takeoff.post = jsonAnswer({ error: "not_published" }, 409);
+  await page.goto(`/studio/stories/${TAKEOFF_ID}`);
+  await settle(page, TAKEOFF_PAGES);
+  await confirmTakeoff(page, await openTakeoff(page, card));
+  await expect(alert).toHaveCount(1);
+  await expect(alert).toContainText("This story has no release on the shelf.");
+  await expect(alert).toContainText("Nothing was changed.");
+  await expect(alert.getByRole("button", { name: "Load the latest", exact: true })).toBeFocused();
+  await shotOf(card, "studio-takeoff-not-published-1024x768");
+
+  expect(api.unrouted).toEqual([]);
+  expect(api.missingFiles).toEqual([]);
+});
+
+test("Studio frame 14: failed take-offs", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  const { api, takeoff } = await routeTakeoff(page);
+  takeoff.post = jsonAnswer({ error: "internal" }, 500);
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto(`/studio/stories/${TAKEOFF_ID}`);
+  await settle(page, TAKEOFF_PAGES);
+  const card = region(page, "Releases");
+  await confirmTakeoff(page, await openTakeoff(page, card));
+
+  const alert = card.getByRole("alert");
+  await expect(alert).toHaveCount(1);
+  await expect(alert).toContainText("The server did not confirm the take-off.");
+  await expect(alert).toContainText("It answered with an error (500). Try again.");
+  await expect(alert.getByRole("button")).toHaveCount(0);
+  await expect(takeoffButton(card)).toBeFocused();
+  await expectTakeoffRows(card);
+  await shotOf(card, "studio-takeoff-failed-500-1024x768");
+
+  // No answer. The focus is on the row button, so Enter opens the dialog again.
+  takeoff.post = (route) => route.abort("failed");
+  await confirmTakeoff(page, await openTakeoff(page, card));
+  await expect(alert).toHaveCount(1);
+  await expect(alert).toContainText("No answer came from the server.");
+  await expect(alert).toContainText("It is not known if this book is still on the shelf. Try again.");
+  await expect(page.locator("body")).not.toContainText("(0)");
+  await expect(takeoffButton(card)).toBeFocused();
+  await expectTakeoffRows(card);
+  await shotOf(card, "studio-takeoff-no-answer-1024x768");
+  expect(takeoff.posts).toBe(2);
 
   expect(api.unrouted).toEqual([]);
   expect(api.missingFiles).toEqual([]);
