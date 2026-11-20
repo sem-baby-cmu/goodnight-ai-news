@@ -16,7 +16,8 @@ export {
 } from "./crops";
 export { boardBackground, cutFigure, detectFigures, findHoleCandidates, measureImage } from "./image";
 export { MEADOW_COLOURS, writeMeadowBuild } from "./meadow";
-export { BOARDS_DIR, CROPS_DIR, OUT_DIR, REPO_ROOT, REVIEW_DIR, REVIEWS_DIR, SOURCES_DIR } from "./paths";
+export { buildPaintedBackdrop, MAX_BACKDROP_WEBP_BYTES, SourceListSchema } from "./painted";
+export { BOARDS_DIR, CACHE_DIR, CROPS_DIR, OUT_DIR, PAINTINGS_DIR, REPO_ROOT, REVIEW_DIR, REVIEWS_DIR, SOURCES_DIR } from "./paths";
 export { activationSql, buildSql, type ExistingRow, type LocalBuild, loadLocalBuilds, manifestFiles, type Plan, planPublish, PublishInputError, runPublish } from "./publish";
 export { writeReviewSheets } from "./review";
 export { SFX, type SfxRecipe } from "./sfx/recipes";
