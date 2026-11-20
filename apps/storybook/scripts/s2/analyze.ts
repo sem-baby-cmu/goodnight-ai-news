@@ -19,6 +19,7 @@ import {
   SceneDraftSchema,
   ScriptDraftSchema,
   assignSceneIds,
+  scriptTextIssues,
   validateScene,
 } from "@storybook/dsl";
 import { TEMPLATES, layoutScene } from "@storybook/layout";
@@ -79,6 +80,7 @@ function scriptIssues(result: Result, registry: RegistrySnapshot): Issue[] {
     if (!text.success) issues.push(...zod(text.error.issues));
   }
   for (const key of draft.data.cast) if (registry.assets[key]?.kind !== "character") issues.push(issue("unknown_character"));
+  issues.push(...scriptTextIssues(draft.data.pages, draft.data.cast));
   return issues;
 }
 

@@ -6,6 +6,7 @@ import {
   PRIMITIVE_IDS,
   PRIMITIVES,
   primitiveAllows,
+  SCRIPT_TEXT_LIMITS,
 } from "@storybook/dsl";
 
 // Prompts for the script and scene steps (#18, Exact changes 10). Never log a
@@ -23,13 +24,40 @@ export function scriptPrompt(input: { sourceText: string; registry: RegistrySnap
     "You write a short picture story for a child aged 5 to 7, from a news text.",
     "Write 6 to 8 pages.",
     "Each page has 1 to 3 sentences and at most 40 words.",
-    "Keep the facts of the news. Leave out frightening details.",
+    `Each sentence has at most ${SCRIPT_TEXT_LIMITS.maxWordsPerSentence} words.`,
+    "Keep the one or two main facts of the news: what happened and what is new.",
+    "Tell them as something the cast do in their own world. The world is outdoors: no page is inside a building or in space.",
+    "Leave out personal names, dates, and money. Leave out frightening details.",
+    `Use at most ${SCRIPT_TEXT_LIMITS.maxNames} real-world names in the whole story. Code counts each capitalised word inside a sentence that is not a cast key as part of a real-world name, for example a place, a group, a project, a day, or a month.`,
+    "Every page names a cast member who does something.",
+    "Write only actions and things that the lists below can show: an action is one of the character's poses, and a thing is a prop or scenery key.",
+    "A pose that is a view (front, three-quarter, side, back, bust) means that the character stands.",
+    "The last page is slow and calm, and the cast get ready for sleep.",
     "`cast` uses only the listed character keys.",
     "Answer with JSON that matches the schema only.",
   ].join("\n");
   // The registry snapshot has no display names: the key is the readable name.
-  const characters = keysOf(input.registry, "character").map((key) => `- ${key}`);
-  const user = ["Characters (key):", ...characters, "", "News text:", input.sourceText].join("\n");
+  const characters = keysOf(input.registry, "character").map((key) => {
+    const m = input.registry.assets[key]!.manifest;
+    if (!isLayerManifest(m)) return `- ${key}: no poses`;
+    const poses = [...new Set(m.poses.map((p) => p.id))].sort();
+    return `- ${key}: ${poses.join(", ")}`;
+  });
+  const props = keysOf(input.registry, "prop").map((key) => `- ${key}`);
+  const scenery = keysOf(input.registry, "scenery").map((key) => `- ${key}`);
+  const user = [
+    "Characters (key: poses):",
+    ...characters,
+    "",
+    "Props (key):",
+    ...props,
+    "",
+    "Scenery (key):",
+    ...scenery,
+    "",
+    "News text:",
+    input.sourceText,
+  ].join("\n");
   return { system, user };
 }
 
