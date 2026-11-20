@@ -34,8 +34,12 @@ export function modelRegistry(registry: RegistrySnapshot): RegistrySnapshot {
 
 export type SceneSummary = { templateId: string; sky: string; scenery: string[] };
 
-export function sceneSummary(scene: PageScene, _shown: RegistrySnapshot): SceneSummary {
-  return { templateId: scene.templateId, sky: scene.sky, scenery: [] };
+export function sceneSummary(scene: PageScene, shown: RegistrySnapshot): SceneSummary {
+  return {
+    templateId: scene.templateId,
+    sky: scene.sky,
+    scenery: [...new Set(scene.layers.filter((l) => l.kind === "scenery" && shown.assets[l.ref] !== undefined).map((l) => l.ref))].sort(),
+  };
 }
 
 const PROMPT_PRIMITIVE_KIND: Partial<Record<PrimitiveId, string>> = { sway: "scenery" }; // Prompt rule (#84); validation allows sway on every layer.
@@ -88,6 +92,7 @@ export function scenePrompt(input: {
   cast: string[];
   registry: RegistrySnapshot;
   templates: LayoutTemplate[];
+  story: { page: number; pages: number; earlier: Array<SceneSummary | null> };
 }): { system: string; user: string } {
   const system = [
     "You choose the picture for one page of a children's story.",
@@ -103,6 +108,9 @@ export function scenePrompt(input: {
     "Give every character layer a tap: an interaction whose `on.tap` is that character's slot.",
     'Choose each character\'s expression from the feeling words of the page text (for example "sad", "surprised", "worried"), from its legal pairs. Use `happy` only when the text is happy, has no feeling word, or no legal pair has that feeling.',
     "Never use `set_expression` with the expression that its target layer already has.",
+    'Do not use the template of the page just before this one (the last line under "Story so far"). Do not use exactly the same set of scenery keys as that page either.',
+    "Keep the sky of the page just before this one. Change the sky only when the page text gives a reason: a time of day, the weather, or the cast getting ready for sleep.",
+    'On the last page ("This page: N of N"), choose `dusk` or `night` when the backdrop has one.',
     "A bubble (`show_bubble` text) is a short line that the character says: 2 to 6 words, at most 40 characters.",
     'A bubble ends with ".", "!", or "?". Use only English letters, digits, spaces, and plain ASCII punctuation: no long dashes, no ellipsis character, no curly quotes.',
     "A bubble does not repeat the page text.",
@@ -157,6 +165,12 @@ export function scenePrompt(input: {
     );
     return `- ${id}: ${JSON.stringify(keys)}`;
   });
+  // The earlier pages of the story (#105); no `Page <n>.` marker here.
+  const { story } = input;
+  const earlier =
+    story.earlier.length === 0
+      ? ["- none"]
+      : story.earlier.map((s, k) => (s ? `- page ${k + 1}: ${s.templateId}, ${s.sky}, ${JSON.stringify(s.scenery)}` : `- page ${k + 1}: no scene`));
   const user = [
     "Templates:",
     ...templates,
@@ -172,6 +186,10 @@ export function scenePrompt(input: {
     "",
     "Animations (primitive: the assets it works on):",
     ...animations,
+    "",
+    "Story so far (page: template, sky, scenery keys):",
+    ...earlier,
+    `This page: ${story.page} of ${story.pages}`,
     "",
     "Beat:",
     input.beat,

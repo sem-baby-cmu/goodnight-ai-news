@@ -14,7 +14,7 @@ import { ModelOutputError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, assetKeysOfScene, getDb, loadStoryHeads, newId, revision } from "../../db";
 import { type StoredCall, answerOf, buildSchema, isUnparsed, providerErrorOf, storedCall, unparsedResult } from "../model-call";
-import { UNPARSED_PREVIOUS, modelRegistry, repairSuffix, scenePrompt } from "../prompts";
+import { UNPARSED_PREVIOUS, modelRegistry, repairSuffix, scenePrompt, sceneSummary } from "../prompts";
 import { type FaultContext, seams } from "../seams";
 import { frozenRegistry } from "./freeze";
 import { type PageStepResult, writePageRevision, writeProviderError } from "./page-revision";
@@ -76,6 +76,13 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
     const outlineId = loaded?.story.heads.outline;
     const outline = outlineId ? (loaded!.revisions.get(outlineId)?.content as Outline | undefined) : undefined;
     if (!outline) throw new Error("story has no outline head");
+    // The earlier pages as story context, not basis (#105).
+    const index = outline.pages.findIndex((p) => p.pageId === pageId);
+    const earlier = (index < 0 ? [] : outline.pages.slice(0, index)).map((p) => {
+      const id = loaded!.story.heads[`scene:${p.pageId}`];
+      const r = id === undefined ? undefined : loaded!.revisions.get(id);
+      return r && r.status === "ok" && r.content != null ? sceneSummary(r.content as PageScene, shown) : null;
+    });
     const [text] = await db.select({ content: revision.content }).from(revision).where(eq(revision.id, basis[textKey]!));
     const prompt = scenePrompt({
       beat: outline.pages.find((p) => p.pageId === pageId)?.beat ?? "",
@@ -83,6 +90,7 @@ export async function sceneStep(env: Env, runId: string, storyId: string, pageId
       cast: outline.cast,
       registry: shown,
       templates: TEMPLATES,
+      story: { page: index + 1, pages: outline.pages.length, earlier },
     });
     try {
       const r = await client.generateJson({
