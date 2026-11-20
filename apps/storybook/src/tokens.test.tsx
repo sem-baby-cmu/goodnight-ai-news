@@ -138,6 +138,28 @@ const themeColorNames = [
   "dot-ahead",
 ];
 
+// The 18 shadcn names. Each has a `--color-<name>: var(--<name>);` line.
+const shadcnColorNames = [
+  "background",
+  "foreground",
+  "card",
+  "card-foreground",
+  "popover",
+  "popover-foreground",
+  "primary",
+  "primary-foreground",
+  "secondary",
+  "secondary-foreground",
+  "accent",
+  "accent-foreground",
+  "muted",
+  "muted-foreground",
+  "border",
+  "input",
+  "ring",
+  "destructive",
+];
+
 // Every `--<name>: <value>;` inside `block`, normalised like the tables.
 function declarations(block: string): Map<string, string> {
   const tokens = new Map<string, string>();
@@ -207,6 +229,14 @@ it("@theme maps each palette and supporting name to a --color-* name", () => {
   }
 });
 
+it("@theme maps each shadcn name to a --color-* name", () => {
+  const theme = themeTokens(css);
+  expect(shadcnColorNames).toHaveLength(18);
+  for (const name of shadcnColorNames) {
+    expect(theme.get(`color-${name}`), `--color-${name}`).toBe(`var(--${name})`);
+  }
+});
+
 it("@theme does not map the Studio state variables", () => {
   const theme = themeTokens(css);
   for (const name of Object.keys(designTokens).filter((key) => /^(ok|work|warn|bad|none)(-|$)/.test(key))) {
@@ -220,8 +250,9 @@ it("the CSS names neither Kiwi Maru nor Nunito", () => {
 });
 
 it("main.tsx imports the four Baloo 2 weights and no old font", () => {
+  // Whole lines: a commented-out import does not count.
   for (const weight of [500, 600, 700, 800]) {
-    expect(main).toContain(`@fontsource/baloo-2/${weight}.css`);
+    expect(main, `${weight}`).toMatch(new RegExp(`^import "@fontsource/baloo-2/${weight}\\.css";$`, "m"));
   }
   expect(main).not.toContain("kiwi-maru");
   expect(main).not.toContain("nunito");
