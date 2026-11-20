@@ -648,7 +648,8 @@ test("Studio frame 8: the Publish card Blocked, Ready, Done, and with no answer"
   await card.getByRole("button", { name: "Publish release 3" }).click();
   await expect(card.getByText("Release 3 published.")).toBeVisible();
   // The Soft button of the Done notice: Teal text and no underline, off and on hover (DESIGN.md 4).
-  const openDone = card.getByRole("link", { name: "Open release 3 in the Player" });
+  // A Base UI Button rendered as `<a>` with `nativeButton={false}` gets `role="button"`.
+  const openDone = card.getByRole("button", { name: "Open release 3 in the Player" });
   const softLook = () =>
     openDone.evaluate((el) => {
       const style = getComputedStyle(el);
