@@ -1,4 +1,12 @@
-import { type Issue, OutlineSchema, PageTextSchema, type RegistrySnapshot, ScriptDraftSchema, buildOutlineJsonSchema } from "@storybook/dsl";
+import {
+  type Issue,
+  OutlineSchema,
+  PageTextSchema,
+  type RegistrySnapshot,
+  ScriptDraftSchema,
+  buildOutlineJsonSchema,
+  scriptTextIssues,
+} from "@storybook/dsl";
 import { ModelOutputError } from "@storybook/models";
 import { eq } from "drizzle-orm";
 import { type HeadKey, type Heads, commitHead, getDb, insertRevisions, newId, revision, story } from "../../db";
@@ -58,6 +66,7 @@ function checkScript(result: unknown, registry: RegistrySnapshot): { issues: Iss
       issues.push({ path: `cast.${i}`, code: "unknown_character", message: `Cast key "${key}" is not a character in the registry.` });
     }
   });
+  issues.push(...scriptTextIssues(script.pages, script.cast));
   return issues.length > 0 ? { issues } : { issues, script };
 }
 
