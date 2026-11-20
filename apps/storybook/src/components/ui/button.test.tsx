@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Button } from "@/components/ui/button";
 
@@ -13,16 +14,25 @@ const childSizes: Size[] = ["child-start", "child", "child-icon"];
 
 // The class tokens of the rendered button. `cn` merges the classes, so the
 // test reads the rendered `className`, not the result of `buttonVariants()`.
-function classesOf(variant: Variant, size: Size): string[] {
-  render(
-    <Button variant={variant} size={size}>
-      Label
-    </Button>,
-  );
+function classesOf(props: ComponentProps<typeof Button>): string[] {
+  render(<Button {...props}>Label</Button>);
   const button = screen.getByRole("button");
   const classes = button.className.split(/\s+/).filter(Boolean);
   cleanup();
   return classes;
+}
+
+// Props of a valid Studio button of each variant. `round` is an icon button
+// with a name, and `link` has the default size only.
+function studioProps(variant: Variant): ComponentProps<typeof Button> {
+  switch (variant) {
+    case "round":
+      return { variant, size: "icon", "aria-label": "Play" };
+    case "link":
+      return { variant };
+    default:
+      return { variant, size: "default" };
+  }
 }
 
 // Copied from DESIGN.md section 4, "Buttons", with the variant `default`.
@@ -77,7 +87,7 @@ const sizeClasses: Record<Size, { has: string[]; hasNot: string[] }> = {
 
 it("each size has its DESIGN.md height, padding and text", () => {
   for (const [size, { has, hasNot }] of Object.entries(sizeClasses) as [Size, (typeof sizeClasses)[Size]][]) {
-    const classes = classesOf("default", size);
+    const classes = classesOf({ variant: "default", size });
     for (const name of has) expect(classes, `${size} has ${name}`).toContain(name);
     for (const name of hasNot) expect(classes, `${size} lacks ${name}`).not.toContain(name);
   }
@@ -121,7 +131,7 @@ const variantClasses: Record<Variant, { has: string[]; hasNot: string[] }> = {
 
 it("each variant has its fill, text and edge", () => {
   for (const [variant, { has, hasNot }] of Object.entries(variantClasses) as [Variant, (typeof variantClasses)[Variant]][]) {
-    const classes = classesOf(variant, "default");
+    const classes = classesOf(studioProps(variant));
     for (const name of has) expect(classes, `${variant} has ${name}`).toContain(name);
     for (const name of hasNot) expect(classes, `${variant} lacks ${name}`).not.toContain(name);
   }
@@ -129,20 +139,20 @@ it("each variant has its fill, text and edge", () => {
 
 it("a ghost and a link button have no hard edge", () => {
   for (const variant of ["ghost", "link"] as const) {
-    const edges = classesOf(variant, "default").filter((name) => name.startsWith("shadow-"));
+    const edges = classesOf(studioProps(variant)).filter((name) => name.startsWith("shadow-"));
     expect(edges, variant).toEqual([]);
   }
 });
 
 it("a Primary button has weight 800 at the default size", () => {
-  const classes = classesOf("default", "default");
+  const classes = classesOf({ variant: "default", size: "default" });
   expect(classes).toContain("font-extrabold");
   expect(classes).not.toContain("font-bold");
 });
 
 it("a child Primary button has a 5 px edge", () => {
   for (const size of childSizes) {
-    const classes = classesOf("default", size);
+    const classes = classesOf({ variant: "default", size });
     expect(classes, size).toContain("shadow-[0_5px_0_var(--teal-edge)]");
     expect(classes, size).toContain("active:not-data-disabled:translate-y-[3px]");
     expect(classes, size).not.toContain("shadow-[0_4px_0_var(--teal-edge)]");
@@ -150,9 +160,16 @@ it("a child Primary button has a 5 px edge", () => {
   }
 });
 
+// DESIGN.md "Reduced motion": a button has no transition.
+it("every button turns its transition off for reduced motion", () => {
+  for (const variant of variants) {
+    expect(classesOf(studioProps(variant)), variant).toContain("motion-reduce:transition-none");
+  }
+});
+
 it("every button has the two focus rings", () => {
   for (const variant of variants) {
-    const classes = classesOf(variant, "default");
+    const classes = classesOf(studioProps(variant));
     for (const name of [
       "focus-visible:outline-3",
       "focus-visible:outline-offset-3",
@@ -168,9 +185,9 @@ it("every button has the two focus rings", () => {
 });
 
 it("a disabled Studio button has one look", () => {
-  for (const variant of variants) {
+  for (const variant of variants.filter((name) => name !== "link")) {
     render(
-      <Button variant={variant} size="default" disabled>
+      <Button {...studioProps(variant)} disabled>
         Label
       </Button>,
     );
@@ -193,6 +210,31 @@ it("a disabled Studio button has one look", () => {
   }
 });
 
+it("a disabled link is text only", () => {
+  render(
+    <Button variant="link" disabled>
+      Label
+    </Button>,
+  );
+  const button = screen.getByRole("button");
+  const classes = button.className.split(/\s+/);
+  expect(button.hasAttribute("disabled")).toBe(true);
+  expect(button.hasAttribute("data-disabled")).toBe(true);
+  for (const name of [
+    "data-disabled:bg-transparent",
+    "data-disabled:shadow-none",
+    "data-disabled:text-ink-2",
+    "data-disabled:cursor-not-allowed",
+    "px-0",
+  ]) {
+    expect(classes, name).toContain(name);
+  }
+  // `cn` drops the fill and the edge of the size.
+  expect(classes).not.toContain("data-disabled:bg-cream");
+  expect(classes).not.toContain("data-disabled:shadow-[0_3px_0_var(--disabled-edge)]");
+  expect(classes).not.toContain("pointer-events-none");
+});
+
 it("a disabled Player button keeps the focus", () => {
   const spy = vi.fn();
   render(
@@ -212,13 +254,13 @@ it("a disabled Player button keeps the focus", () => {
 });
 
 it("no stock base-nova classes", () => {
-  const classes = classesOf("default", "default");
+  const classes = classesOf({ variant: "default", size: "default" });
   for (const name of ["rounded-lg", "h-8", "opacity-50", "ring-ring/50", "hover:bg-primary/80"]) {
     expect(classes, name).not.toContain(name);
   }
 });
 
-it("only the DESIGN.md variants and sizes type-check", () => {
+it("only the DESIGN.md variants, sizes and combinations type-check", () => {
   // The calls are never run. `pnpm -r typecheck` fails when a directive is unused.
   const never = () => (
     <>
@@ -226,6 +268,13 @@ it("only the DESIGN.md variants and sizes type-check", () => {
       <Button size="sm" />
       {/* @ts-expect-error "outline" is not a DESIGN.md variant */}
       <Button variant="outline" />
+      {/* @ts-expect-error "round" is for the icon sizes only */}
+      <Button variant="round" size="default" aria-label="x" />
+      {/* @ts-expect-error "round" needs an aria-label */}
+      <Button variant="round" size="icon" />
+      {/* @ts-expect-error "link" is for the default size only */}
+      <Button variant="link" size="child" />
+      <Button variant="round" size="icon" aria-label="Play" />
     </>
   );
   expect(typeof never).toBe("function");
