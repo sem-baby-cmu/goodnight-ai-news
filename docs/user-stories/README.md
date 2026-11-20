@@ -17,11 +17,11 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | :-- | :-- | :-- | --: | --: |
 | [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
 | [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 33 |
-| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, and the shelf list | 3 | 27 |
-| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release | 6 | 59 |
+| [`03-publish.md`](03-publish.md) | `PUB` | Publish, releases that never change, and the shelf list | 3 | 30 |
+| [`04-player.md`](04-player.md) | `PLY` | A child picks a book and reads a release | 6 | 77 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 14 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 22 |
-| Total | | | 26 | 210 |
+| Total | | | 26 | 231 |
 
 ## Format
 
@@ -69,8 +69,8 @@ Spec: requirements <items> · design "<section title>", ...
 - A refinement section names the scenario IDs that it covers in its
   acceptance part.
 
-Current state: 72 scenarios are `spec (to implement)`, 131 have an
-automated test, 6 are `manual · not run`, and 1 is a recorded manual check.
+Current state: 91 scenarios are `spec (to implement)`, 131 have an
+automated test, 8 are `manual · not run`, and 1 is a recorded manual check.
 
 ## Coverage of the requirements
 
@@ -96,13 +96,13 @@ automated test, 6 are `manual · not run`, and 1 is a recorded manual check.
 | AC-10 A release has a new prefix and changes no earlier release | PUB-01.S1, PUB-01.S4 |
 | AC-11 A release has copies of its asset versions, with each backdrop | PUB-01.S3, PUB-01.S10 |
 | AC-12 Every scene names a backdrop with a variant for its sky | RUN-03.S15, RUN-03.S16, EDT-03.S23 |
-| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S13 |
+| AC-13 Narration below the stage; page-turn transition; narration starts in the tap handler; end page | PLY-02.S4, PLY-04.S1 to PLY-04.S17 |
 | AC-14 Safari on iPad and iPhone, Chrome on Android | PLY-03.S1, PLY-03.S2 |
 | AC-15 The Studio is behind Access; the Player, the shelf, and `GET /api/shelf` are public | SYS-03.S1, SYS-03.S2 |
-| AC-16 `GET /api/shelf` lists the latest release of each published story, three fields, newest story first | PUB-03.S1 to PUB-03.S9, PUB-01.S11 |
-| AC-17 The shelf shows books with a title and a still cover; shelf pages; quiet empty and failed states | PLY-05.S1 to PLY-05.S15 |
-| AC-18 One Home control on each book screen; the Resting state | PLY-06.S1 to PLY-06.S10, PLY-04.S11 |
-| AC-19 A tappable layer has a hit area of 64 x 64 CSS px inside the stage | PLY-01.S8 to PLY-01.S11 |
+| AC-16 `GET /api/shelf` lists the latest release of each published story, three fields, newest story first; a story with a broken pointer is not listed | PUB-03.S1 to PUB-03.S12, PUB-01.S11 |
+| AC-17 The shelf shows books with a title and a still cover; shelf pages; quiet empty and failed states | PLY-05.S1 to PLY-05.S15, PLY-05.S19 to PLY-05.S21 |
+| AC-18 One Home control on each book screen; the Resting state; "Start" does not wait for audio | PLY-06.S1 to PLY-06.S15, PLY-04.S11, PLY-04.S14 |
+| AC-19 A tappable layer has a hit area of 64 x 64 CSS px or more, cut at the stage edge; a drawn layer wins over a margin | PLY-01.S8 to PLY-01.S14 |
 
 ## Coverage of the design
 
@@ -126,6 +126,7 @@ Integration sequences (`design.md`, "Testing Strategy"):
 | Shelf | PUB-03.S1, PUB-03.S2, PUB-03.S3, PUB-03.S7 |
 | Shelf after a second release | PUB-03.S4 |
 | Shelf on an empty database | PUB-03.S6 |
+| Shelf with a broken pointer | PUB-03.S11, PUB-03.S12 |
 
 Error rows (`design.md`, "Error Handling"):
 
@@ -153,10 +154,12 @@ Error rows (`design.md`, "Error Handling"):
 | Publish blocked | PUB-02.S7 |
 | Run fails | RUN-05.S7, RUN-05.S9 |
 | Database fails in `GET /api/shelf` | PUB-03.S8 |
+| A release pointer names no `release` row, or a release of another story | PUB-03.S11, PUB-03.S12 |
 | The shelf request fails | PLY-05.S9, PLY-05.S10 |
 | A cover fails to load | PLY-05.S13 |
-| A release does not exist, or a file that "Start" waits for fails to load | PLY-06.S5, PLY-06.S6, PLY-06.S7 |
+| A release does not exist; or the manifest, a page JSON, or a first-page file fails before "Start" | PLY-06.S5, PLY-06.S6, PLY-06.S7, PLY-06.S12, PLY-06.S13 |
 | An image fails to load after "Start" | PLY-06.S10 |
+| The narration of a page cannot be loaded or played after "Start" | PLY-06.S11 |
 | Error record fields; no full text in logs | SYS-04.S2, SYS-04.S3 |
 
 Not written as scenarios, because they are not behaviour of the system:

@@ -120,18 +120,23 @@ child can look at, listen to, and touch.
       has a release: the `releaseId` of its latest release, its `title`,
       and its publish time, and no other field. A story with no release is
       not in the list. The newest story is first, and a new release of a
-      story does not move its book.
+      story does not move its book. A story whose pointer names no
+      release of that story is not in the list either, and the route
+      logs it. The route never reads draft data.
 - [ ] The shelf at `/` shows each book with its title and a cover. The cover
       is the page 1 scene of the release as a still picture. A tap on a
       book opens `/read/:releaseId`. With more books than fit, "previous"
       and "next" change the books, and nothing scrolls. An empty shelf and
       a shelf that cannot be loaded show a quiet line and no fault sign.
 - [ ] Every Player screen of a book has exactly one Home control, and it
-      shows the shelf. When a release does not exist or cannot be loaded,
-      the Player shows a resting state with a Home control, and no fault
-      sign.
-- [ ] In the Player, a layer that reacts to a tap has a hit area of at least
-      64 x 64 CSS px, inside the stage.
+      shows the shelf. When a release does not exist, or a file that
+      "Start" waits for cannot be loaded or drawn, the Player shows a
+      resting state with a Home control, and no fault sign. "Start" does
+      not wait for audio.
+- [ ] In the Player, a layer that reacts to a tap has a hit area of 64 x 64
+      CSS px or more. The hit area is cut at the stage edge and is never
+      moved, so a small layer at the edge has less. A drawn layer wins
+      over the added margin of another layer.
 
 ## Non-functional Requirements
 
@@ -149,9 +154,12 @@ child can look at, listen to, and touch.
   moves only by compare-and-set against the revision the step was based on.
 - **Performance.** On a mid-range phone, the frame time p95 on an animated page
   is 33 ms or less. A page's assets load in 2 s or less on a 4G connection.
-  The first shelf page (6 books) shows its covers in 2 s or less on the same
-  connection. If the device test fails, publish adds a cover image to a
-  release, and the shelf shows it (ADR 0017).
+  The first shelf page shows its covers in 2 s or less on the same
+  connection. This shelf load check is a gate: it is measured before the
+  shelf goes public, in the Wide layout with 6 drawn covers, and on a
+  real phone in portrait and in landscape. If it fails, the shelf does not
+  go public, and the cover method is a new decision (ADR 0017, "Still
+  open"). No other cover method is defined or built now.
 - **Assets.** SVG is the target format for characters and props. A transparent
   WebP is allowed while an SVG version is not ready. The renderer supports
   both. A painted backdrop is a WebP of 2400 x 1200 px; the code-made backdrop

@@ -8,7 +8,7 @@ spec decides the expected behaviour.
 As a child, I want the characters to move and react when I tap them, so that
 the story feels alive.
 
-Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", "5. Scene runtime"
+Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", "5. Scene runtime" (Hit area, Stage overlay)
 
 ### PLY-01.S1 The Player reads one release
 - Given a published release
@@ -58,10 +58,10 @@ Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", 
 - Then the actions of the layer run; its hit area is 64 x 64 CSS px, centred on the box
 - Test: spec (to implement)
 
-### PLY-01.S9 A hit area at the stage edge is moved inside the stage
+### PLY-01.S9 A hit area at the stage edge is cut, not moved
 - Given a page in play mode, and a tappable layer whose drawn box is 30 x 30 CSS px and touches the left edge of the stage
 - When the hit area of the layer is computed
-- Then it is 64 x 64 CSS px, it starts at the left edge of the stage, and no part of it is outside the stage
+- Then it is 47 CSS px wide and 64 CSS px high: it starts at the left edge of the stage and ends 17 CSS px right of the box; no part of it is outside the stage, and it is not moved to the right
 - Test: spec (to implement)
 
 ### PLY-01.S10 A drawn box wins over the margin of another layer
@@ -76,12 +76,30 @@ Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", 
 - Then the actions of the layer with the higher `z` run
 - Test: spec (to implement)
 
+### PLY-01.S12 A box that is wider than the stage is cut at the stage edge
+- Given a page in play mode, and a tappable prop whose layout box is 1700 stage units wide and centred on the stage (it passes the bounds check)
+- When the hit area of the layer is computed
+- Then its drawn box is the layout box cut at the stage edge, 1600 stage units wide; the hit area is that box, no part of it is outside the stage, and nothing is moved
+- Test: spec (to implement)
+
+### PLY-01.S13 The keyboard focus is on the layer, not on its margin
+- Given a page in play mode, and a small tappable layer that has a margin in the hit layer
+- When a keyboard user moves the focus with Tab
+- Then the focus is on the layer element, which has the role and the name; the margin element has no role, is not in the tab order, and is hidden from assistive technology
+- Test: spec (to implement)
+
+### PLY-01.S14 The focus ring of a layer is drawn in the stage overlay
+- Given a stage that is 390 CSS px wide, and a tappable layer whose drawn box touches the left edge of the stage
+- When the layer gets the keyboard focus
+- Then its focus ring is in the stage overlay, around the drawn box: 3 CSS px Ink, 3 CSS px away, and 3 CSS px Sun yellow, not scaled with the stage; the clip of the stage does not cut it, and it stays inside the stage area
+- Test: spec (to implement)
+
 ## PLY-02 Each page is read aloud
 
 As a child, I want to hear each page read aloud, so that I can follow the
 story without reading.
 
-Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime"
+Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime" · ADR 0017 "Progress pill in the Wide layout"
 
 ### PLY-02.S1 "Start" unlocks the audio
 - Given a release open in the Player, with one `<audio>` element for the whole book
@@ -111,6 +129,12 @@ Spec: requirements US-6 · design "4. Layout engine", "5. Scene runtime"
 - Given a reading page in the Player
 - When it is shown in the Wide, the Narrow, and the Short layout
 - Then no control and no status of the frame (Home, "previous", "next", the progress pill) lies over the picture area
+- Test: spec (to implement)
+
+### PLY-02.S6 The frame controls keep their gaps at 900 x 600
+- Given the Wide layout at 900 x 600, and a reading page with a 40-word text
+- When the page is shown
+- Then Home, "previous", "next", and the progress pill are in the gutters, no two of them are less than 12 CSS px apart, and none lies over the picture
 - Test: spec (to implement)
 
 ## PLY-03 The story runs on phones and tablets
@@ -150,7 +174,7 @@ Spec: requirements AC-14, "Non-functional Requirements" · design "Testing Strat
 As a child, I want the page to turn like paper when I go on, so that the
 story feels like a real book. (Owner decision 2026-11-19, ADR 0016.)
 
-Spec: requirements "Core Features" 5 · design "5. Scene runtime"
+Spec: requirements "Core Features" 5 · design "5. Scene runtime" (Loading, Start gate) · ADR 0017 "Start gate and stage overlay"
 
 ### PLY-04.S1 A forward turn shows the page-turn transition
 - Given a book that was started, on page 2
@@ -209,7 +233,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 ### PLY-04.S10 "Start" waits for the page data
 - Given a release whose manifest is loaded and whose page JSON files are still loading
 - When the Start gate is shown
-- Then "Start" is enabled only when every page JSON and the assets of page 1 are loaded
+- Then "Start" is enabled only when every page JSON and the first-page files are loaded: the backdrop variant of page 1, the file of the starting pose and expression of each layer of page 1, and the paper texture
 - Test: spec (to implement)
 
 ### PLY-04.S11 "Next" on the last page turns to the end page
@@ -230,12 +254,36 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 - Then the page turns back to the last page, and the tap handler sets its `src` and calls `play()`
 - Test: spec (to implement)
 
+### PLY-04.S14 "Start" does not wait for audio
+- Given a release whose manifest, page JSON files, and first-page files are loaded, and whose narration and `sfx` requests have no response
+- When the Start gate is shown
+- Then "Start" is enabled; the Player waits for no audio file, no `sfx` file, no swap file of a tap, and no file of another page
+- Test: spec (to implement)
+
+### PLY-04.S15 The `enter` animations of page 1 wait for "Start"
+- Given the Start gate in Ready, for a book whose page 1 has a `loop` animation, an `enter` animation, and a tap interaction
+- When the child taps "Start"
+- Then the `enter` animations of page 1 play once and tap handling starts; before the tap the `loop` animation ran, no `enter` animation ran, and no layer took a tap or the focus
+- Test: spec (to implement)
+
+### PLY-04.S16 The picture keeps its size and its place at "Start"
+- Given the Narrow layout at 390 x 844, and the Start gate in Ready
+- When the child taps "Start"
+- Then the picture area has the same size and the same place before and after the tap; the top bar and the control row had their full height in Loading and in Ready
+- Test: spec (to implement)
+
+### PLY-04.S17 The Start gate fits its panel in every layout
+- Given the viewports 900 x 600 (Wide), 844 x 600 and 375 x 553 (Narrow), and 667 x 375 (Short), and a book with a title of 2 lines
+- When the Start gate is shown in Loading, in Ready, and in the Resting state
+- Then the text and the button of each state are inside the narration panel; nothing is cut, nothing lies over another part, and nothing scrolls
+- Test: spec (to implement)
+
 ## PLY-05 A child picks a book from the shelf
 
 As a child, I want to pick a book from a shelf, so that I can choose my
 story without help. (Owner decision 2026-11-19, ADR 0017.)
 
-Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" (Shelf, Cover, Shelf load check), "5. Scene runtime" (Still mode), "6. API" (Shelf)
+Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" (Shelf, Cover, Shelf load check), "5. Scene runtime" (Still mode, Fit), "6. API" (Shelf) · ADR 0017 "Cover", "The shelf screen"
 
 ### PLY-05.S1 The shelf is the home of the Player
 - Given two published stories
@@ -282,13 +330,13 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 ### PLY-05.S8 An empty shelf is quiet
 - Given a shelf response of 200 with `{ "books": [] }`
 - When the shelf is shown
-- Then it shows the shelf with no book and the line "New stories are coming soon."; it has no control and no fault sign
+- Then it shows the shelf of the layout with all its boards and no book, the day sign, and the line "New stories are coming soon."; it has no control and no fault sign
 - Test: spec (to implement)
 
 ### PLY-05.S9 A shelf that cannot be loaded is quiet
 - Given `GET /api/shelf` answers 500
 - When the shelf is shown
-- Then it shows the shelf with no book, the line "The books are sleeping. Come back soon.", and one "Look again" button; it has no fault wording
+- Then it shows the shelf of the layout with all its boards and no book, the night sign, the line "The books are sleeping. Come back soon.", and one "Look again" button; it has no fault wording
 - Test: spec (to implement)
 
 ### PLY-05.S10 "Look again" sends the request again
@@ -300,7 +348,7 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 ### PLY-05.S11 A cover is the page 1 scene as a still picture
 - Given a book whose first page has a `loop` animation, a layer with an `enter` `fade-in`, and a tap interaction
 - When its cover is shown
-- Then the cover is that scene drawn with `mode="still"`: the backdrop variant and every layer at its `at`; no animation runs; the `fade-in` layer is visible; no layer takes a tap, has a role, or is in the tab order
+- Then the cover is that scene drawn with `mode="still"` and `fit="cover"`: the backdrop variant and every layer at its `at`; no animation runs; the `fade-in` layer is visible; no layer takes a tap, has a role, or is in the tab order
 - Test: spec (to implement)
 
 ### PLY-05.S12 A book shows before its cover is loaded
@@ -328,17 +376,47 @@ Spec: requirements US-8, AC-17, "Core Features" 6 · design "9. Player screens" 
 - Test: spec (to implement)
 
 ### PLY-05.S16 The first shelf page loads in 2 s on 4G
-- Given 6 books, each a different release whose page 1 uses a painted backdrop at full size; an empty cache; the throttled 4G profile of PLY-03.S4
+- Given the Wide layout, and 6 books, each a different release whose page 1 uses a painted backdrop at full size; an empty cache; the throttled 4G profile of PLY-03.S4; the shelf is not public yet
 - When the shelf loads
-- Then the time from the `GET /api/shelf` request to the drawing of the last cover of the first shelf page is 2 s or less
+- Then the time from the start of the `GET /api/shelf` request to the drawing of the last of the 6 covers is 2 s or less; the record has the time, the number of requests, and the bytes
 - Test: manual · not run
+
+### PLY-05.S17 The shelf loads in 2 s on a phone in portrait
+- Given a real phone in portrait (the Narrow layout), and the books, the cache, and the profile of PLY-05.S16
+- When the shelf loads
+- Then the time to the drawing of the last cover of the first shelf page is 2 s or less, and the browser does not reload the tab while the shelf shows its covers
+- Test: manual · not run
+
+### PLY-05.S18 The shelf loads in 2 s on a phone in landscape
+- Given a real phone in landscape (the Short layout), and the books, the cache, and the profile of PLY-05.S16
+- When the shelf loads
+- Then the time to the drawing of the last cover of the first shelf page is 2 s or less, and the browser does not reload the tab while the shelf shows its covers
+- Test: manual · not run
+
+### PLY-05.S19 A cover loads only the files of its picture
+- Given a book whose page 1 has a tap interaction with a `set_pose` action and a `play_sfx` action, and a narration
+- When its cover is loaded
+- Then the Player requests the manifest, the page 1 JSON, the backdrop variant, and the file of the starting pose and expression of each layer; it requests no other page JSON, no audio file, no `sfx` file, and no file of the other pose
+- Test: spec (to implement)
+
+### PLY-05.S20 A cover fills its window and is cut at the sides
+- Given a book of 180 x 224 CSS px, whose picture window is 151 x 148 CSS px
+- When its cover is shown
+- Then the stage has the height of the window and is centred in it; the window cuts the stage at the left and the right and shows stage x 188 to 1412 (rounded); no paper colour shows beside the picture, and the picture is not stretched
+- Test: spec (to implement)
+
+### PLY-05.S21 The Wide shelf fits 900 x 600
+- Given the Wide layout at 900 x 600, and a shelf response with 6 books
+- When the shelf is shown
+- Then the name and 2 boards of 3 books are inside the viewport and nothing scrolls; each book has its title plate above its picture window, and no part of the plate lies over the window
+- Test: spec (to implement)
 
 ## PLY-06 A way back to the shelf from every screen of a book
 
 As a child, I want a way back to the shelf from every screen of a book, so
 that I am never stuck. (Derived from AC-18, ADR 0017.)
 
-Spec: requirements AC-18 · design "9. Player screens" (Home, Resting), "5. Scene runtime" (Loading, End page, Late images), "Error Handling"
+Spec: requirements AC-18 · design "9. Player screens" (Home, Resting), "5. Scene runtime" (Loading, Narration that fails, Frame parts, End page, Late images), "Error Handling"
 
 ### PLY-06.S1 Each screen of a book has one Home control
 - Given a published release open in the Player
@@ -398,4 +476,34 @@ Spec: requirements AC-18 · design "9. Player screens" (Home, Resting), "5. Scen
 - Given a book that was started, and an image of page 3 that fails to load
 - When the child turns to page 3
 - Then the narration plays and the paper colour shows in place of the image; the Player does not show the Resting state
+- Test: spec (to implement)
+
+### PLY-06.S11 A narration that fails after "Start" does not rest
+- Given a book that was started, and a narration file of page 2 that gives 404
+- When the child turns to page 2
+- Then page 2 shows with its picture, its text, and its controls; there is no sound, no fault sign, no thrown error, and no request is sent again by itself; the Player does not show the Resting state, and the child can turn the page
+- Test: spec (to implement)
+
+### PLY-06.S12 A backdrop that cannot be decoded shows the Resting state
+- Given a release whose manifest and page JSON files load, and whose backdrop variant of page 1 answers 200 with bytes that the browser cannot decode as an image
+- When the Start gate is in Loading
+- Then the Player shows the Resting state; "Start" is not enabled
+- Test: spec (to implement)
+
+### PLY-06.S13 A layer file that the sanitiser refuses shows the Resting state
+- Given a release whose manifest and page JSON files load, and whose SVG file of one layer of page 1 answers 200 with a text that cannot be parsed or that the sanitiser refuses
+- When the Start gate is in Loading
+- Then the Player shows the Resting state; "Start" is not enabled
+- Test: spec (to implement)
+
+### PLY-06.S14 A turning sheet does not lie over a frame control
+- Given the Wide layout, and a forward turn in which the sheet swings past the left edge of the page panel
+- When the element at the middle of Home and at the middle of "previous" is read at each frame of the turn
+- Then it is the control every time, and a tap there reaches the control
+- Test: spec (to implement)
+
+### PLY-06.S15 Home moves the focus to the shelf
+- Given a book on page 3, with the keyboard focus on Home
+- When the user activates Home
+- Then the focus is on the shelf itself (`main`, `tabindex="-1"`) at once, while the shelf is in its waiting state; the focus does not move when the books arrive, and the next Tab goes to the first book
 - Test: spec (to implement)

@@ -132,9 +132,9 @@ Spec: requirements "Non-functional Requirements" · design "Error Handling"
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
 
 ### SYS-04.S4 The shelf sends no child data
-- Given a child who opens the shelf
-- When the Player sends `GET /api/shelf`
-- Then the request has no parameter and no body, and the shelf sends no other data to a server
+- Given a child who opens the shelf, with two books on it
+- When the Player sends `GET /api/shelf` and loads the covers
+- Then the shelf request has no parameter and no body; every other request of the shelf is a `GET` to the content route for a release file of a cover, with no parameter and no body; the shelf sends no personal data and no telemetry
 - Test: spec (to implement)
 
 ## SYS-05 One model adapter, set by configuration
