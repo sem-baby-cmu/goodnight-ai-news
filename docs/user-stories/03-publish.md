@@ -290,3 +290,27 @@ Spec: requirements US-9, AC-20, AC-10 · design "6. API" (Taking a book off the 
 - When the operator sends `GET /api/studio/stories/:id`, and `GET /api/studio/stories`
 - Then the story has `onShelf: true` in both responses; in the first, releases 1 and 2 have `withdrawn: true` and release 3 has `withdrawn: false`
 - Test: spec (to implement)
+
+### PUB-04.S13 A page JSON of a withdrawn release gives 404
+- Given a story with releases 1 and 2 and `withdrawn_through` = 2
+- When a client sends `GET /content/releases/<id>/pages/<pageId>.json` for a page of release 1 and for a page of release 2
+- Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response has a part of the page JSON
+- Test: spec (to implement)
+
+### PUB-04.S14 An image of a withdrawn release gives 404
+- Given a story with releases 1 and 2 and `withdrawn_through` = 2
+- When a client sends `GET /content/releases/<id>/assets/<key>/v<n>/<file>` for an image of release 1 and for an image of release 2
+- Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response has a byte of the image
+- Test: spec (to implement)
+
+### PUB-04.S15 A `Range` request for an audio file of a withdrawn release gives 404
+- Given a story with releases 1 and 2 and `withdrawn_through` = 2
+- When a client sends `GET /content/releases/<id>/audio/<file>` with `Range: bytes=0-` for an audio file of release 1 and for one of release 2
+- Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response is 206, and none has a `Content-Range` header or a byte of the file
+- Test: spec (to implement)
+
+### PUB-04.S16 A conditional request for a file of a withdrawn release gives 404
+- Given a story with releases 1 and 2, and the `ETag` that the content route gave for the manifest, a page JSON, an image, and an audio file of each release; the story was then taken off the shelf with release 2
+- When a client requests each of these files again with `If-None-Match` and its `ETag`
+- Then each response is 404 with `{ error: "not_found" }` and `Cache-Control: no-store`; no response is 304
+- Test: spec (to implement)
