@@ -157,3 +157,19 @@ it("useRunPoll ignores a reply that arrives after runId changed", async () => {
   expect(onDone).not.toHaveBeenCalled();
   expect(result.current.latest?.run.id).toBe(otherRun);
 });
+
+it("useRunPoll counts a 2xx answer that is not a run as a failed request and reports lost after 5", async () => {
+  // An empty body: `call` gives `{ ok: true, data: null }` (#108, comment item 3).
+  const { calls } = stubFetch(() => ({ status: 200 }));
+  const onDone = vi.fn<(r: RunResponse) => void>();
+  const { result } = renderHook(() => useRunPoll(RUN_ID, onDone));
+
+  await advance(0);
+  for (let i = 0; i < 4; i++) await advance(2000);
+  expect(calls).toHaveLength(5);
+  expect(result.current.lost).toBe(true);
+  expect(onDone).not.toHaveBeenCalled();
+
+  await advance(20_000);
+  expect(calls).toHaveLength(5);
+});

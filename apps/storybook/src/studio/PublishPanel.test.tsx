@@ -182,3 +182,29 @@ it("PublishPanel on another status shows Publishing failed (<status>). and Nothi
   expect(alerts.some((a) => squash(a.textContent).includes(squash("Publishing failed (500). Nothing was published. Try again.")))).toBe(true);
   expect(onPublished).not.toHaveBeenCalled();
 });
+
+it("PUB-02.S10 PublishPanel names a page that needs review as page 3: scene needs review", () => {
+  stubFetch(() => ({ status: 500, body: null }));
+  renderPanel({
+    pages: [
+      pageFixture(1),
+      pageFixture(2),
+      pageFixture(3, {
+        state: "needs_review",
+        problems: [
+          { target: "scene", reason: "needs_review" },
+          { target: "audio", reason: "needs_review" },
+        ],
+      }),
+    ],
+  });
+  expect(screen.queryByText("page 3: scene needs review")).not.toBeNull();
+  expect(screen.queryByText("page 3: audio needs review")).not.toBeNull();
+  expect(squash(document.body.textContent)).not.toContain("needs_review");
+});
+
+it("PublishPanel names a page that is not ok and has no problem by its state in words", () => {
+  stubFetch(() => ({ status: 500, body: null }));
+  renderPanel({ pages: [pageFixture(1), pageFixture(2), pageFixture(3, { state: "needs_review", problems: [] })] });
+  expect(screen.queryByText("page 3: needs review")).not.toBeNull();
+});
