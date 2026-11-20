@@ -193,8 +193,8 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Then validation fails for that action
 - Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
-### RUN-03.S10 A bubble text of more than 60 characters fails validation
-- Given a scene with a `show_bubble` action whose text has more than 60 characters
+### RUN-03.S10 A bubble text of more than 40 characters fails validation
+- Given a scene with a `show_bubble` action whose text has more than 40 characters
 - When the scene is validated
 - Then validation fails for that action
 - Test: @storybook/dsl · packages/dsl/src/validate.test.ts
@@ -234,6 +234,18 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - When the `scene:<pageId>` step builds the model schema
 - Then `backdrop` is an enum of the frozen backdrop keys, and the prompt gives the `description` and the palettes of each backdrop
 - Test: @storybook/app · apps/storybook/worker/workflow/prompts.test.ts
+
+### RUN-03.S17 A bubble text that does not end with a full stop, "!", or "?" fails validation
+- Given a scene with a `show_bubble` action whose text does not end with `.`, `!`, or `?`
+- When the scene is validated
+- Then validation fails for that action with `bubble_no_end_mark`
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
+
+### RUN-03.S18 A bubble text with a character outside printable ASCII fails validation
+- Given a scene with a `show_bubble` action whose text has a character outside U+0020 to U+007E
+- When the scene is validated
+- Then validation fails for that action with `bubble_not_ascii`
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ## RUN-04 Code places the layers
 
