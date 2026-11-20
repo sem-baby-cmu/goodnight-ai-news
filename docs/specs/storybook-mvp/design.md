@@ -335,7 +335,7 @@ part of the stage image.
 **Backdrop.** Every page has one backdrop (ADR 0016): a painted full-frame
 background from the registry, below every layer. It is not a layer and has no
 slot. MVP backdrops are outdoor scenes only. Every backdrop fits every
-template; the art contract in "8. Asset pipeline" keeps the floor band open.
+template; the art contract in "8. Asset pipeline" keeps the ground band open.
 The layout engine places layers as before and does not read the backdrop.
 Characters stand in front of the painting; a character cannot sit at a
 painted object or stand behind one.
@@ -458,7 +458,8 @@ Q14).
   and no audio. "Previous" turns back to the last page and plays its
   narration in the tap handler. "Read again" sets the `src` of page 1, calls
   `play()` in the tap handler, and shows page 1 with a 200 ms cross-fade;
-  the Start gate is not shown again. A Home control is added only when the
+  the Start gate is not shown again. A tap on "next" or "previous" during
+  the cross-fade ends it at once, as during a turn. A Home control is added only when the
   shelf exists.
 - **Page phases.** `SceneView` takes a `phase` prop: `incoming`, `current`,
   or `outgoing`. `enter` animations run once, when the page is `current` and
@@ -572,7 +573,7 @@ Offline Node.js scripts, run by the developer.
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
 | Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
 | Code backdrop | The backdrop `meadow` drawn in code: sky colour and three hills, one SVG per sky palette (all 4) | `backdrop` asset, renderer `svg` |
-| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP within the file budget. The source paintings live in R2; git holds only their SHA-256 list, and the pipeline downloads them to an untracked cache (ADR 0016, decision D) | `backdrop` asset, renderer `webp` |
+| Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP within the file budget. The source paintings live in R2; a tracked source list holds their SHA-256 digests, and the pipeline downloads them to an untracked cache and checks them (ADR 0016, decision D). The approval record holds the digests of the built variants, not of the sources | `backdrop` asset, renderer `webp` |
 | Backdrop review | A sheet per backdrop variant with the slot envelopes of all templates drawn over it. A slot envelope is the union of the boxes of every active asset of the slot's kind, placed in that slot at scale 1, with and without flip | `tools/assets/out/review/` |
 | Backdrop approval | A person approves the sheets. The approval is a tracked file `tools/assets/reviews/<key>-v<n>.json` with the SHA-256 of every variant file and of the template list. Publish refuses a backdrop version without an approval whose digests match | Approval record |
 | Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows. One (`key`, `version`) always holds the same bytes (R65): publish compares the file digests, renderer and manifest of an existing version, and any difference is an error, never a skip | Registry rows |
@@ -586,16 +587,18 @@ y 960 to 1200, and heights up to 900 units; with real asset widths, layer
 boxes reach the stage edges. So, in stage units of the 1600 × 1200 middle
 part:
 
-- The floor band, the whole stage width and y 940 to 1200, is open ground.
-  No painted object stands in it.
-- Above the floor band, painted objects are far behind the characters, end
-  at y 940 or higher, and are not needed for the story.
+- The ground band, the whole stage width and y 740 to 1200, is flat, open
+  ground (grass, a bank, or paving). No painted object and no water is in
+  it. The character foot points (y 960 to 1200) and the scenery slots
+  (`back-*` at y 760 to 880; `hill`, `place`, `side` at y 1000) stand on it.
+- Above the ground band, painted objects (water, houses, trees) are far
+  behind, end at y 740 or higher, and are not needed for the story.
 - The review sheet (slot envelopes) is the check; the numbers above are the
   brief for the painter.
 - No painted text, no characters, no animals that look like a cast member.
 - The sky is clear: no sun, moon, stars, or outlined clouds (they are
-  scenery layers in the `sky-*` slots). It uses the sky colour of its
-  palette.
+  scenery layers in the `sky-*` slots). Its dominant colour is the sky
+  colour of its palette; soft gradients are allowed.
 - Each variant has the same layout; only the light and colour change.
 - The style follows the Producer illustration guideline (painted paper,
   hand-cut shapes).
@@ -965,5 +968,22 @@ confirmed.
 | 16 | Root `DESIGN.md` disagrees (0.55 s turn) | Gemini | `DESIGN.md` rewritten (#61); the spec wins |
 | 17 | "No environment stores data" was stated too strongly | Codex | Reworded: no deployed environment; a scene without `backdrop` fails validation |
 | 18 | AC numbers and the pending count in the user-story README | Codex | Corrected |
+
+Review of the ADR 0016 decisions and the `DESIGN.md` rewrite (PR #62, 2026-11-19).
+Codex and Gemini; findings merged as a union, each single-reviewer finding
+checked against the source.
+
+| # | Finding | Reviewer | Result |
+| :-- | :-- | :-- | :-- |
+| 1 | Viewport layouts leave a gap, and the narrow layout sizes the stage before the narration | both | `DESIGN.md` layouts exhaustive; stage fits the space left |
+| 2 | Torn paper edge covers the stage | both | Edge outside the stage |
+| 3 | 64 x 64 layer hit area stated as a rule while undecided | both | Proposal in `DESIGN.md`; open in ADR 0016 |
+| 4 | Source digests and approval digests mixed | Codex | Two lists: sources, and built variants |
+| 5 | Scenery slots stand at y 760 to 1000, inside painted water or houses | Gemini | Ground band from y 740 |
+| 6 | Painted sky as one flat colour | Gemini | Dominant colour; soft gradients allowed |
+| 7 | Taps during the "Read again" cross-fade | Gemini | Same rule as a turn |
+| 8 | Scenario counts in the README table | Codex | 28 Player, 168 total |
+| 9 | `DESIGN.md` contradictions and gaps (Home rule, contrast, bubble units, focus, editor y, progress dots, Start gate controls) | both | Fixed in `DESIGN.md` |
+| 10 | The second audio element for `play_sfx` cannot be unlocked by a "Start" tap with no `src` | Gemini | Kept open: rule from before this change; for #22 |
 
 The end of the book is ADR 0016 decision B ("5. Scene runtime", "End page").

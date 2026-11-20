@@ -17,10 +17,10 @@ disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
 | [`01-production.md`](01-production.md) | `RUN` | From a news text to a draft | 6 | 55 |
 | [`02-studio.md`](02-studio.md) | `EDT` | See a draft, edit and regenerate one page | 4 | 33 |
 | [`03-publish.md`](03-publish.md) | `PUB` | Publish, and releases that never change | 2 | 17 |
-| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 4 | 25 |
+| [`04-player.md`](04-player.md) | `PLY` | A child reads a release | 4 | 28 |
 | [`05-registry.md`](05-registry.md) | `REG` | Character registry and asset pipeline | 2 | 14 |
 | [`06-system.md`](06-system.md) | `SYS` | Retries, revisions, access, privacy, models | 5 | 21 |
-| Total | | | 23 | 165 |
+| Total | | | 23 | 168 |
 
 ## Format
 

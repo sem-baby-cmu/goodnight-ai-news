@@ -191,7 +191,7 @@ Spec: requirements "Core Features" 5 · design "5. Scene runtime"
 ### PLY-04.S12 "Read again" starts page 1 without the Start gate
 - Given the end page
 - When the child taps "Read again"
-- Then the tap handler sets the `src` of page 1 and calls `play()`, page 1 replaces the end page with a 200 ms cross-fade, and the Start gate is not shown
+- Then the tap handler sets the `src` of page 1 and calls `play()`, page 1 replaces the end page with a 200 ms cross-fade, and the Start gate is not shown; a tap on "next" during the cross-fade ends it at once and turns to page 2
 - Test: spec (to implement)
 
 ### PLY-04.S13 "Previous" on the end page returns to the last page

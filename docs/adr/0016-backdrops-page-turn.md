@@ -61,7 +61,7 @@ with this record.
   container that clips to the stage, so no layer shows in the bleed. The
   layout checks do not change.
 - Every backdrop fits every template. The art contract (design "8. Asset
-  pipeline") keeps the floor band open across the whole stage. A review sheet
+  pipeline") keeps the ground band open across the whole stage. A review sheet
   draws the slot envelopes of all templates (computed from the real assets)
   over each variant. A person approves it, and publish checks the approval.
 - Scope limit: characters stand in front of the painting. A character cannot
@@ -155,7 +155,8 @@ variants.
   A page that needs `cloudy` uses `meadow`.
 - A painted sky is clear: no sun, moon, stars, or outlined clouds. Those are
   scenery layers in the `sky-*` slots and would show twice.
-- The sky of a painted variant uses the sky colour of its palette.
+- The dominant sky colour of a painted variant is the sky colour of its
+  palette; soft gradients are allowed.
 - A new backdrop joins the list only on evidence (S2 results or operator
   notes that show stories that cannot be placed).
 
@@ -183,9 +184,11 @@ targets, and a sky picker that shows only the palettes of the chosen
 backdrop. Cut-outs keep their own colours in every sky (no night filter).
 
 **D. Source paintings live in R2**, as `AGENTS.md` section 2 says for large
-binary files. Git holds only the list of their SHA-256 digests, which the
-approval record also uses. The asset pipeline downloads them to a cache that
-git does not track.
+binary files. Git holds a source list with the SHA-256 digest of each source
+painting; the asset pipeline downloads the sources to a cache that git does
+not track and checks them against that list. The approval record is a
+separate list: it holds the digests of the built WebP variants that the
+person reviewed, and publish checks those.
 
 **E. Narration audio is compressed.** The target format is MP3, mono. A spike
 measures the encoding cost in the Worker against the current Workers limits
@@ -202,10 +205,12 @@ it and this record or the spec disagree, the spec wins.
   approved boards show one; it needs a spec change before any Home control.
 - The "resting" state: the spec does not say what the Player shows when a
   release does not exist or does not load.
-- A minimum hit area for a tappable layer (`DESIGN.md` asks for 64 x 64 px).
+- A minimum hit area for a tappable layer (`DESIGN.md` proposes 64 x 64 px).
 - A night tint for cut-outs on a night backdrop; the boards show one, the
   spec has none, and a filter is not allowed during the page turn.
 - A moon asset: the scenery boards have none.
+- The `clouds` cut-out is warm cream; its contrast on the `dusk` sky is not
+  checked.
 - Indoor backdrops: 36 of the 60 page settings of the sample stories (3
   stories, 2 age scripts each) are indoor (`bedroom`, `office`,
   `classroom`; counted 2026-11-19 from `setting.place`). Not in the MVP;
