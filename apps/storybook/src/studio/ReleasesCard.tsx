@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { StoryDetailResponse } from "./api";
@@ -46,14 +46,15 @@ export function ReleasesCard({
                 ) : null}
               </div>
               {release.withdrawn ? null : (
-                <Button
-                  variant="secondary"
+                // A link with the Soft button look: it navigates (WCAG 4.1.2).
+                <Link
+                  to="/read/$releaseId"
+                  params={{ releaseId: release.id }}
                   aria-label={`Open release ${release.number}`}
-                  nativeButton={false}
-                  render={<Link to="/read/$releaseId" params={{ releaseId: release.id }} />}
+                  className={buttonVariants({ variant: "secondary", size: "default" })}
                 >
                   Open
-                </Button>
+                </Link>
               )}
             </li>
           ))}

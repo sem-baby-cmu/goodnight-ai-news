@@ -228,6 +228,11 @@ test("Studio screenshots: the stories list and a story view", async ({ page }, t
     await page.goto(`/studio/stories/${STORY_ID}`);
     await expect(page.getByRole("heading", { name: storyDetail.story.title })).toBeVisible();
     await settle(page, PREVIEWS);
+    // Ghost "Stories" in the nav: 44 px high; 92 px wide = 20 + text + 20 (a wider tolerance: no fill to measure).
+    const nav = page.getByRole("navigation", { name: "Studio" });
+    await expect(nav).toBeVisible();
+    await expectLinkBox(nav.getByRole("link", { name: "Stories", exact: true }), 92, 44, `Stories at ${width}`, 3);
+    await expectLinkBox(page.getByRole("link", { name: "Back to stories", exact: true }), 44, 44, `Back at ${width}`);
     await shot(page, `studio-story-${width}x${height}`);
   }
 
@@ -283,6 +288,22 @@ async function boxOf(locator: import("@playwright/test").Locator, what: string):
 // Within 1 CSS px (rounding only).
 function expectPx(actual: number, expected: number, what: string) {
   expect(Math.abs(actual - expected), `${what}: ${actual} px, expected ${expected} px`).toBeLessThanOrEqual(1);
+}
+
+// A control that navigates is a link (WCAG 4.1.2). `width` and `height` are
+// the size it had as a Base UI Button at d7f0525 (within 2 px; the edge
+// shadow is outside the box): the look did not change.
+async function expectLinkBox(
+  link: import("@playwright/test").Locator,
+  width: number,
+  height: number,
+  what: string,
+  widthTolerance = 2,
+) {
+  await expect(link, `${what} is a link`).toHaveCount(1);
+  const b = await boxOf(link, what);
+  expect(Math.abs(b.width - width), `${what} width: ${b.width} px, expected ${width} px`).toBeLessThanOrEqual(widthTolerance);
+  expect(Math.abs(b.height - height), `${what} height: ${b.height} px, expected ${height} px`).toBeLessThanOrEqual(2);
 }
 
 // A shot of `locator` with 12 px around it: the Sun ring reaches 9 px outside.
@@ -594,6 +615,8 @@ test("Studio frame 7: the Releases card in its 360 px column", async ({ page }, 
     const time = await boxOf(numberLocator.locator("xpath=following-sibling::span[1]"), "time of release 2");
     const chip = await boxOf(card.getByText("On the shelf"), "On the shelf");
     const openLocator = card.getByLabel("Open release 2");
+    await expect(openLocator).toBeVisible();
+    await expectLinkBox(card.getByRole("link", { name: "Open release 2", exact: true }), 78, 44, `Open at ${width}`);
     const open = await boxOf(openLocator, "Open release 2");
     // `has` is queried inside each list item, so it must not be chained from `card`.
     const row = await boxOf(
@@ -648,8 +671,9 @@ test("Studio frame 8: the Publish card Blocked, Ready, Done, and with no answer"
   await card.getByRole("button", { name: "Publish release 3" }).click();
   await expect(card.getByText("Release 3 published.")).toBeVisible();
   // The Soft button of the Done notice: Teal text and no underline, off and on hover (DESIGN.md 4).
-  // A Base UI Button rendered as `<a>` with `nativeButton={false}` gets `role="button"`.
-  const openDone = card.getByRole("button", { name: "Open release 3 in the Player" });
+  const openDone = card.getByRole("link", { name: "Open release 3 in the Player" });
+  await expect(openDone).toBeVisible();
+  await expectLinkBox(openDone, 238, 44, "Done action");
   const softLook = () =>
     openDone.evaluate((el) => {
       const style = getComputedStyle(el);

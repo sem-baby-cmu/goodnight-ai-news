@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { errorOf, type ReleaseCreated, type StoryDetailResponse, studioApi } from "./api";
@@ -98,9 +98,10 @@ export function PublishPanel({
             tone="ok"
             title={`Release ${done.release.number} published.`}
             action={
-              <Button variant="secondary" nativeButton={false} render={<a href={done.release.playerUrl} />}>
+              // A link with the Soft button look (WCAG 4.1.2); a full page load.
+              <a href={done.release.playerUrl} className={buttonVariants({ variant: "secondary", size: "default" })}>
                 Open release {done.release.number} in the Player
-              </Button>
+              </a>
             }
           />
           {done.noTexture ? <Notice tone="work" title="Published without the paper texture" /> : null}

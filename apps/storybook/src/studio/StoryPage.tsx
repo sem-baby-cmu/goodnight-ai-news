@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { errorOf, type RegistryResponse, type RunResponse, type StoryDetailResponse, studioApi } from "./api";
@@ -26,12 +26,13 @@ function sourceOf(source: StoryDetailResponse["source"]): { url: string | null; 
   return { url, truncated };
 }
 
-// The way out of every state of the story view (board 13, item 3).
+// The way out of every state of the story view (board 13, item 3). A link
+// with the Soft icon button look: it navigates (WCAG 4.1.2).
 function BackButton() {
   return (
-    <Button variant="secondary" size="icon" aria-label="Back to stories" nativeButton={false} render={<Link to="/studio" />}>
+    <Link to="/studio" aria-label="Back to stories" className={buttonVariants({ variant: "secondary", size: "icon" })}>
       <BackIcon />
-    </Button>
+    </Link>
   );
 }
 
