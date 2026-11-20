@@ -231,15 +231,15 @@ on the page texts of a model output:
 The counting rule:
 
 1. A page text is split into sentences where white space follows `.`, `!`,
-   or `?`, or follows one of these and then `"` or `”`.
+   or `?`, or follows one of these and then `"`, `'`, `”`, or `’`.
 2. A sentence is split into words at white space. Its word count is the
    number of words.
 3. The core of a word is the word without the characters at its start and
    end that are not letters or digits, and without a final `'s` or `’s`.
 4. A word is a name word when it is not the first word of its sentence, it
-   does not start with `"` or `“`, its core starts with a capital letter A
-   to Z, its core in lower case is not a cast key, and its core is not `I`
-   and does not start with `I'` or `I’`.
+   does not start with `"`, `“`, `'`, or `‘`, its core starts with a
+   capital letter A to Z, its core in lower case is not a cast key, and its
+   core is not `I` and does not start with `I'` or `I’`.
 5. Name words that follow each other form one name. A name ends at a word
    that is not a name word, and after a word whose last character is not a
    letter or a digit.
