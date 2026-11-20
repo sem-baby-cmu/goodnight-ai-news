@@ -141,3 +141,25 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* Player motion (DESIGN.md 5): the waiting dots of Loading and the 200 ms
+   panel swap at "Start". Used with `motion-safe:`, so reduced motion keeps
+   them still. */
+@keyframes player-wait {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes player-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
