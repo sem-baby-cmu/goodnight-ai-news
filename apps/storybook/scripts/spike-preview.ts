@@ -10,13 +10,13 @@ import { fileURLToPath } from "node:url";
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const deployConfig = here("../.wrangler/deploy/config.json");
 
-if (!existsSync(here("../dist-spike/kidsnews/wrangler.json"))) {
+if (!existsSync(here("../dist-spike/lullabyte/wrangler.json"))) {
   console.error("spike-preview: dist-spike/ is missing. Run `pnpm run spike:build` first.");
   process.exit(1);
 }
 
 mkdirSync(here("../.wrangler/deploy/"), { recursive: true });
-writeFileSync(deployConfig, JSON.stringify({ configPath: "../../dist-spike/kidsnews/wrangler.json", auxiliaryWorkers: [] }));
+writeFileSync(deployConfig, JSON.stringify({ configPath: "../../dist-spike/lullabyte/wrangler.json", auxiliaryWorkers: [] }));
 
 const preview = spawn(here("../node_modules/.bin/vite"), ["preview", "--host", "0.0.0.0", "--port", "4173", "--strictPort"], {
   stdio: "inherit",

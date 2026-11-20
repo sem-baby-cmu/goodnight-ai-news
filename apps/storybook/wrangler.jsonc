@@ -1,21 +1,37 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kidsnews",
+  "name": "lullabyte",
   "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
   "account_id": "5ad69dedffa38d8b7ab8ab17e051e410",
+  // The custom domain is the only way in. Both keys are needed: turning off
+  // workers.dev does not turn off preview URLs. A dashboard toggle is reset by
+  // the next deploy, so they live here.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "lullabyte.ioenv.com", "custom_domain": true }],
   "observability": { "enabled": true },
+  // The first deploy is a stub deploy: the stub model client needs no secrets.
+  // Secrets (OPENAI_API_KEY, TTS_API_KEY, AI_GATEWAY_TOKEN) never go in vars.
+  "vars": {
+    "MODEL_MODE": "stub",
+    "OPENAI_BASE_URL": "https://gateway.ai.cloudflare.com/v1/5ad69dedffa38d8b7ab8ab17e051e410/storybook-mvp/compat",
+    "MODEL_SCRIPT": "google-ai-studio/gemini-4-neon",
+    "MODEL_SCENE": "openai/gpt-6.1-sol",
+    "MODEL_TTS": "gemini-3.8-flash-tts",
+    "TTS_BASE_URL": "https://gateway.ai.cloudflare.com/v1/5ad69dedffa38d8b7ab8ab17e051e410/storybook-mvp/google-ai-studio/v1beta",
+    "TTS_VOICE": "Kore"
+  },
   // The Vite plugin sets assets.directory at build time.
   "assets": {
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api", "/api/*", "/content", "/content/*", "/health"]
   },
-  // No database_id yet: local runs provision the database automatically.
-  // #25 creates the remote database and writes its ID.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "storybook-mvp",
+      "database_id": "8367c686-67f7-4e16-922c-c46d85752535",
       "migrations_dir": "migrations"
     }
   ],
