@@ -12,7 +12,7 @@ export function scriptTextIssues(pages: ReadonlyArray<{ text: string }>, cast: r
   pages.forEach((page, i) => {
     const sentences = page.text
       .trim()
-      .split(/(?<=[.!?]["\u201D]?)\s+/)
+      .split(/(?<=[.!?]["'\u201D\u2019]?)\s+/)
       .filter((s) => s.length > 0);
     sentences.forEach((sentence, s) => {
       const words = sentence.trim().split(/\s+/);
@@ -36,7 +36,7 @@ export function scriptTextIssues(pages: ReadonlyArray<{ text: string }>, cast: r
           .replace(/['\u2019]s$/, "");
         const isName =
           w > 0 &&
-          !/^["\u201C]/.test(raw) &&
+          !/^["'\u201C\u2018]/.test(raw) &&
           /^[A-Z]/.test(core) &&
           !cast.includes(core.toLowerCase()) &&
           !/^I(['\u2019]|$)/.test(core);

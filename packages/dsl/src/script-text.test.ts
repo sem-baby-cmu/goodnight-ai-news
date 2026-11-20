@@ -42,6 +42,9 @@ describe("scriptTextIssues", () => {
       'Pip waves. "We see you," said Lumi, "We are here!"',
       '"We did it!" The friends cheered.',
       "Pip sees \u201CHello!\u201D The sun is up.",
+      "Pip says, 'Hello!' Lumi says, 'Hooray!' Pip says, 'Goodnight!'",
+      "Pip says, \u2018Hello!\u2019 Lumi says, \u2018Hooray!\u2019 Pip says, \u2018Goodnight!\u2019",
+      "Pip's ball. Lumi's hat.",
     ]) {
       expect(scriptTextIssues([{ text }], cast), text).toEqual([]);
     }
@@ -49,5 +52,6 @@ describe("scriptTextIssues", () => {
 
   it("script sentences: a closing quote ends a sentence", () => {
     expect(scriptTextIssues([{ text: '"We did it!" Pip and Lumi ran up the hill to the old oak tree.' }], cast)).toEqual([]);
+    expect(scriptTextIssues([{ text: "Pip says, 'We did it!' Lumi and Pip ran up the hill to the old oak tree." }], cast)).toEqual([]);
   });
 });
