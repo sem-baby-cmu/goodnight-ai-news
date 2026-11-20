@@ -813,7 +813,7 @@ Offline Node.js scripts, run by the developer.
 | Step | Tool | Output |
 | :-- | :-- | :-- |
 | Find figures | Connected components on the near-white board background | Candidate boxes per board |
-| Name figures | A tracked crop map per board: box, name, pose or expression | `tools/assets/crops/<board>.json` |
+| Name figures | A tracked crop map per board: box, name, pose or expression, and a one-line `description` of each asset for the model (#84) | `tools/assets/crops/<board>.json` |
 | Cut out | Flood fill of the background from the box edges with a colour tolerance, trim, 2 px feather | Transparent WebP per pose and expression |
 | Measure | Alpha bounds, foot point (lowest opaque row, centre), face box (from the crop map) | Values for the registry manifest |
 | SVG | Hand-cleaned SVG sources in `assets/<key>/v<n>/`; SVGO with scripts and event attributes removed | Sanitised SVG |
@@ -1143,6 +1143,7 @@ All IDs are UUID version 7, lower case (ADR 0007).
 type AssetManifest =
   | {
       kind: "character" | "prop" | "scenery";
+      description?: string;                         // one line for the model, for example "a toy machine on a base" (#84); set on every layer asset built since #84
       poses: Array<{ id: string; file: string; foot: Point; box: Rect; face?: Rect }>;
       expressions: string[];                        // empty for props and scenery
       legal: Array<{ pose: string; expression: string }>;
@@ -1216,7 +1217,7 @@ code assigns `instanceId` values and rewrites `target` and `on.tap`.
 The JSON schema sent to the model is built at run time from the frozen
 registry and the template list. `ref`, `pose`, `expression`, `slot`, `sfx`,
 `backdrop`, and `templateId` are enums in that schema. The prompt gives the
-model the `description` of each backdrop and the palettes that it has. It also lists each animation primitive with the layer assets that it works on: `all`, or the keys whose renderer the primitive allows, so that a first answer does not fail on `primitive_renderer` (#63). An operator's scene does not pass
+model the `description` of each backdrop and the palettes that it has. It also lists each animation primitive with the layer assets that it works on: `all`, or the keys whose renderer the primitive allows, so that a first answer does not fail on `primitive_renderer` (#63). The `sway` line lists scenery keys only; this is a prompt rule, and validation allows `sway` on every layer (#84). Each template line gives its description (`TEMPLATE_DESCRIPTIONS`), and each cast, prop, and scenery line gives the asset's `description`, so that the model chooses by meaning (#84). The prompt also asks for a tap on every character, an expression that follows the feeling words of the text, and no `set_expression` to the current expression; these are prompt rules, not checks. The prompts and model JSON schemas leave out `door` and `window` until an indoor backdrop exists (ADR 0016); validation uses the whole frozen registry (#84). An operator's scene does not pass
 through that schema, so the API also checks the same enums in code. For an
 operator's scene, the enums use the active registry versions at the time of
 the request (owner decision Q3). A `scene` revision records the versions that
