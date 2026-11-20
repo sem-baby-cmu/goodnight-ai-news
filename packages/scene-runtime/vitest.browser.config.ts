@@ -6,6 +6,9 @@ import { defineConfig } from "vitest/config";
 // This config does not load test/setup.ts: the browsers have the real APIs.
 // Screenshots go to test/browser/__screenshots__ (not tracked).
 export default defineConfig({
+  // Pre-bundle these up front: a cold run that finds them late reloads the
+  // test page and fails the first tests (seen on 2026-11-19).
+  optimizeDeps: { include: ["react", "react/jsx-dev-runtime", "react-dom", "react-dom/client", "@storybook/dsl > zod"] },
   test: {
     include: ["test/browser/**/*.browser.test.tsx"],
     browser: {
