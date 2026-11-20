@@ -1,3 +1,4 @@
+import type { Issue } from "@storybook/dsl";
 import { ModelHttpError } from "@storybook/models";
 import { NonRetryableError } from "cloudflare:workflows";
 import { type Db, type ExpectedHeads, type HeadKey, type Heads, getCall, makeCallId, putCall, story } from "../db";
@@ -92,6 +93,7 @@ export type StoredCall = {
 // 2. Else read `basis` and the heads of `targetKeys` in one read (or take
 //    both from `basisFrom`, for a repair), call the model, store bytes in R2,
 //    then the `call_log` row. The row that `putCall` returns wins.
+//    The row also stores the configured model and, for a repair, its issues (#64).
 export async function storedCall(
   deps: { env: Env; db: Db; ctx: FaultContext },
   args: {
@@ -99,6 +101,8 @@ export async function storedCall(
     targetKeys: HeadKey[];
     basisFrom?: { basis: Heads; expectedHeads: ExpectedHeads };
     model: string;
+    // A repair call only: the issues that its prompt gives (#64).
+    repairIssues?: Issue[];
     call: (basis: Heads) => Promise<CallOutput>;
   },
 ): Promise<StoredCall> {
@@ -149,10 +153,12 @@ export async function storedCall(
     pageId: ctx.pageId,
     purpose: ctx.purpose,
     result: out.result,
+    repairIssues: args.repairIssues ?? null,
     r2Key,
     basis,
     expectedHeads,
     model: out.modelId,
+    configuredModel: args.model,
     usage: out.usage ?? null,
     createdAt: new Date().toISOString(),
   });

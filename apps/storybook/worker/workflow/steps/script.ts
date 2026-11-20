@@ -123,6 +123,7 @@ export async function scriptStep(env: Env, runId: string, storyId: string): Prom
       targetKeys: ["outline"],
       basisFrom: first,
       model,
+      repairIssues: checked.issues,
       call: call(repairSuffix(previous, checked.issues)),
     });
     const repairError = providerError(accepted);
