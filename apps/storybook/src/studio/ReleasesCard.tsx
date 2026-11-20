@@ -28,7 +28,10 @@ export function ReleasesCard({
   const offShelf = story.publishedReleaseId !== null && !story.onShelf;
   // The release on the shelf: the condition of the "On the shelf" chip.
   const shelf = releases.find((r) => !r.withdrawn && r.id === story.publishedReleaseId);
-  const [open, setOpen] = useState(false);
+  // The release the dialog is about, taken when the row button opens it, so a
+  // refetch while the dialog is open changes neither its text nor the POST.
+  // Null while the dialog is closed.
+  const [target, setTarget] = useState<{ id: string; number: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<TakeOffNotice | null>(null);
   // A new object each time, so the same target runs again.
@@ -46,13 +49,14 @@ export function ReleasesCard({
   }, [focusTo]);
 
   async function confirm() {
-    if (shelf === undefined) return;
+    if (busy) return;
+    if (target === null) return;
     setBusy(true);
     setNotice(null);
-    const r = await studioApi.withdraw(story.id, shelf.id);
+    const r = await studioApi.withdraw(story.id, target.id);
     if (r.ok) {
       onWithdrawn(r.data.withdrawnThrough);
-      setOpen(false);
+      setTarget(null);
       setFocusTo({ target: "heading" });
     } else {
       const error = errorOf(r.body);
@@ -74,7 +78,7 @@ export function ReleasesCard({
         });
         setFocusTo({ target: "row" });
       }
-      setOpen(false);
+      setTarget(null);
     }
     setBusy(false);
   }
@@ -120,9 +124,11 @@ export function ReleasesCard({
         </div>
       ) : null}
       {offShelf ? (
-        <Notice tone="work" title="This book is off the shelf.">
-          Publish a new release to put it back.
-        </Notice>
+        <div className="pt-[6px]">
+          <Notice tone="work" title="This book is off the shelf.">
+            Publish a new release to put it back.
+          </Notice>
+        </div>
       ) : null}
       {releases.length === 0 ? (
         <p className="text-ink-3">None</p>
@@ -156,7 +162,9 @@ export function ReleasesCard({
                     Open
                   </Link>
                   {release.id === shelf?.id ? (
-                    <Button variant="secondary" ref={rowRef} onClick={() => setOpen(true)}>
+                    <Button variant="secondary" ref={rowRef}
+                      onClick={() => setTarget({ id: release.id, number: release.number })}
+                    >
                       Take off the shelf
                     </Button>
                   ) : null}
@@ -167,12 +175,13 @@ export function ReleasesCard({
         </ul>
       )}
       <Dialog
-        open={open}
+        open={target !== null}
         onOpenChange={(next) => {
           // While the request runs, Escape and a click outside do nothing (D89-1).
-          if (busy) return;
-          setOpen(next);
-          if (!next) setFocusTo({ target: "row" });
+          // The dialog opens only from the row button, so only a close is handled.
+          if (busy || next) return;
+          setTarget(null);
+          setFocusTo({ target: "row" });
         }}
       >
         <DialogPortal>
@@ -184,7 +193,7 @@ export function ReleasesCard({
           >
             <DialogTitle className={cardTitleClass}>Take this book off the shelf?</DialogTitle>
             <DialogDescription>
-              Children will no longer see this book on the shelf. Every link to release {shelf?.number} and to its
+              Children will no longer see this book on the shelf. Every link to release {target?.number} and to its
               earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new
               release.
             </DialogDescription>
@@ -194,7 +203,7 @@ export function ReleasesCard({
                 ref={keepRef}
                 disabled={busy}
                 onClick={() => {
-                  setOpen(false);
+                  setTarget(null);
                   setFocusTo({ target: "row" });
                 }}
               >
