@@ -92,7 +92,7 @@ A decision number in another document is a number of this table.
 | 10 | Hit area of a tappable layer | At least 64 x 64 CSS px in play mode, cut at the stage edge and never moved. The margins are in one hit layer below every drawn layer, so a drawn box wins over every margin | The child target rule also holds for a small cut-out on a phone. A cut is one rule for every box, also for a box that is wider than the stage |
 | 11 | Night tint for cut-outs | Rejected for the MVP | No way keeps the page-turn rule without a second set of asset files |
 | 12 | Moon | No moon asset in the MVP | `stars` and the `night` palette already say night. The scenery boards have no moon asset |
-| 13 | Progress pill in the Wide layout | Moved off the picture: the count only, at the top of the right gutter | On a 900 px wide viewport the pill covers a part of a `sky-1` object: up to 41 % of its width at 900 x 600, and its whole width at 900 x 827 (arithmetic, below). Now no frame part lies over the picture in any layout |
+| 13 | Progress pill in the Wide layout | Moved off the picture: the count only, at the top of the right gutter | On a 900 px wide viewport the pill covers a part of a `sky-1` object: up to 72 % of its width at 900 x 600, and its whole width at 900 x 786 (arithmetic, below). Now no frame part lies over the picture in any layout |
 | 14 | Indoor backdrops | Stay out of the MVP | ADR 0016; no new evidence |
 | 15 | The picture of page 1 at "Start" | Behind the Start gate, page 1 is `incoming`: its loops run, no `enter` animation runs, and no layer takes a tap. "Start" makes it `current`, and its `enter` animations play once | It is the phase rule of the spec with no exception for page 1. The child sees an answer to the tap (#68) |
 | 16 | Where a bubble and a focus ring are drawn | In one overlay above the stage, which the clip of the stage does not cut. The bubble is in stage units and stays inside the stage area. The ring is in CSS px | The stage container clips its content (`packages/scene-runtime/src/SceneView.tsx:311`), so a bubble or a ring at the stage edge was cut. A 3 px ring inside the scaled stage is under 1 px on a phone (#68) |
@@ -426,7 +426,7 @@ form that the Short layout already has. The Narrow layout keeps the dots.
 
 The pill is centred in the 96 px gutter, 44 px high and 26 px from the
 top. Home is centred in the left gutter, 16 px from the top. At 900 x 600
-Home is 40 px from "previous", and the pill is 50 px from "next". Both
+Home is 60.5 px from "previous", and the pill is 70.5 px from "next". Both
 are more than the 12 px that two child controls need (arithmetic in
 `DESIGN.md` section 12.3).
 
@@ -436,22 +436,21 @@ top of the page panel.
 
 | Viewport | Stage | Pill covers (stage units) | Of a `sky-1` object 200 units wide in `hero-and-object` |
 | :-- | :-- | :-- | :-- |
-| 1194 x 834 (board 3) | 771 x 578, starts 116 px from the panel edge | x 0 to 165-223, y 33 to 125 | At most its top left corner |
-| 900 x 600 (smallest Wide) | 405 x 304, starts 151 px from the panel edge | x 0 to 172-282, y 63 to 237 | 0 % (6 pages) to 41 % (8 pages) of its width, over the top 68 % of its height |
-| 900 x 827 (a picture area of 4:3) | 708 x 531, starts at the panel edge | x 36 to 441-504, y 36 to 136 | Its whole width, over the top 18 % of its height |
+| 1194 x 834 (board 3) | 772 x 579, starts 115 px from the panel edge | x 0 to 166-224, y 33 to 124 | At most its top left corner |
+| 900 x 600 (smallest Wide) | 460 x 345, starts 124 px from the panel edge | x 0 to 247-344, y 56 to 209 | 23 % (6 pages) to 72 % (8 pages) of its width, over the top 54 % of its height |
+| 900 x 786 (a picture area of 4:3) | 708 x 531, starts at the panel edge | x 36 to 441-504, y 36 to 136 | Its whole width, over the top 18 % of its height |
 
-At 900 px wide the page panel is 708 px, the narration is 644 px wide, and
-a 40-word page needs 6 lines. So the narration panel is 296 px, not the
-256 px of board 3 (`DESIGN.md` section 12.3, "Wide"). The first text of
-this record used 256 px at 900 x 600 and gave 22 % to 72 % of the width.
-The right number is lower. The case for the move at 900 x 600 is weaker
-than that text said; the rule "no frame part over the picture" does not
-depend on it.
+At 900 px wide the page panel is 708 px and the narration is 644 px wide.
+The reference text of 40 words wraps to 5 lines there, so the narration
+panel is 255 px and the picture area is 708 x 345 px (measured, headless
+Chromium, 2026-11-20; `DESIGN.md` section 12.3, "Wide"). The rule "no
+frame part over the picture" does not depend on these numbers.
 
 The slot is at foot (300, 300) with height 200
 (`packages/layout/src/templates.ts:57`). The width of 200 units is an
 assumed object. The board was drawn at one size, so the fault did not show
-there. A count-only pill is about 77 px wide and fits the 96 px gutter.
+there. A count-only pill is 71 px wide (measured, headless Chromium,
+2026-11-20) and fits the 96 px gutter.
 
 ## Reasons
 
@@ -633,8 +632,8 @@ The layout rule of `DESIGN.md` section 12.3 gets one more clause:
 | Short | `w` >= 640 and `h` < 600; or `h` < 365 |
 | Narrow | Every other viewport |
 
-- The Narrow frame needs 365 px with no picture: the top bar (80 px), the
-  control row (88 px), and the lowest narration panel (197 px). Below
+- The Narrow frame needs 365 px with no picture: the top bar (84 px), the
+  control row (84 px), and the lowest narration panel (197 px). Below
   that height Narrow cannot fit at any width. The Short layout has no top
   bar and no control row.
 - At 568 x 320 the Short layout has 392 px between its rails. A 40-word
@@ -696,8 +695,9 @@ desktop can. For these the Player has one state:
   state stops no sound and starts none, so a narration that plays goes
   on to its end, or until Home.
 - **No part is cut.** If the viewport cannot hold the parts of the state
-  itself, the line is left out first, and then the sign. Home is shown
-  while the viewport has 64 x 64 CSS px. It keeps its 16 px offsets while
+  itself, the line is left out first, and then the sign. The one
+  exception is the focus ring of Home, which may be cut below 89 x 89 CSS
+  px (#92). Home is shown while the viewport has 64 x 64 CSS px. It keeps its 16 px offsets while
   the viewport has 80 x 80 CSS px. In a smaller viewport the offsets get
   smaller, down to 0.
 - **How it ends.** When the viewport can hold the fixed parts again, the

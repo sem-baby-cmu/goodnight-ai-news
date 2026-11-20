@@ -139,7 +139,7 @@ and focus rings need 3:1.
 | Pair | Ratio | Rule |
 | :-- | :-- | :-- |
 | Ink on Card, Paper, Desk | 12.9, 12.5, 11.2 | Any text |
-| Soft ink on Card, Paper, Desk | 5.4, 5.2, 4.6 | Labels and notes |
+| Soft ink on Card, Paper, Desk | 5.4, 5.2, 4.61 | Labels and notes |
 | Soft ink on Soft, Soft cream | 4.5, 4.3 | **Not allowed.** Use Mid ink (6.6, 6.3) |
 | Mid ink on Soft cream | 6.3 | Unselected segment; text of a disabled Studio button |
 | Card on Deep teal | 5.1 | Button text |
@@ -148,6 +148,9 @@ and focus rings need 3:1.
 | Teal text on Card, Desk, Soft, Soft cream | 6.7, 5.8, 5.6, 5.4 | Links and button text |
 | State chip text on its fill | 5.1 to 6.3 | Table "Studio states" |
 | State notice text on its fill | 5.8 to 8.3 | Table "Studio states" |
+| `--bad-chip` on Card, on `--bad` | 6.27, 5.12 | The "blocked" and "failed" chip text, and a failed-run line (section 13.2) |
+| Notice text on `--bad`, `--work`, `--warn` | 7.81, 7.66, 8.30 | The text of a Studio notice (section 13) |
+| `--bad` on Card | 1.22 | **Never alone** |
 | Teal on Card | 3.14 | Fill only, never text: a "done" cell, the dot of a read page |
 | Teal on Paper | 3.02 | Passes by 0.02 only. A Teal mark that carries a meaning stands on Card |
 | Cobalt on Card | 6.8 | A "working" cell; the outline of the selected layer |
@@ -431,7 +434,10 @@ placed (S2 results, or the operator's notes).
   by the Player: inline SVG and CSS in the Player source, with the colours
   of section 2. The shelf ground is the `day` palette: the Sky colour with
   three hills. The Resting picture is the `night` palette: the Sky colour
-  with three hills, and star shapes in the Moon colour. They are not registry assets, because a
+  with three hills, and star shapes in the Moon colour. The Resting
+  picture fills the whole picture area in every layout. It is not a 4:3
+  stage, so it has no Paper above, below, or beside it; a story stage is
+  letterboxed in Narrow and Short, the Resting picture is not. They are not registry assets, because a
   registry file is served only inside a release. They need no request.
   The round signs of the empty and the failed shelf are cuts of these two
   pictures (section 12.1).
@@ -711,7 +717,7 @@ Short they are starting values.
 | Waiting dots (Loading) | Below the message, 12 px away | Below the message, 12 px away | Below the message, 8 px away, in the text group |
 | Text to button | 16 px | 12 px | 16 px |
 | Highest content | Ready: 88 px (2 lines) + 16 + 76 = 180 px | Resting: 73 px (2 lines) + 12 + 68 = 153 px | The Start button: 76 px |
-| Lowest panel | 232 px: 180 px, 40 px of padding, and the 12 px edge. The 5 lines of narration give 256 px or more | 197 px: 153 px, 32 px of padding, and the 12 px edge | 112 px: 76 px, 24 px of padding, and the 12 px edge |
+| Lowest panel | 232 px: 180 px, 40 px of padding, and the 12 px edge. The 5 lines of narration give 255 px or more | 197 px: 153 px, 32 px of padding, and the 12 px edge | 112 px: 76 px, 24 px of padding, and the 12 px edge |
 | Widest row | Not a row | Not a row | 440 px of space at `w` = 640. Loading: a message of 176 px, 16 px, and a button of 212 px, together 404 px. Resting: a line in 2 rows of 254 px, 16 px, and a button of 170 px |
 
 - **Short under 640 px wide** (ADR 0017, decision 18). The row needs
@@ -781,7 +787,7 @@ Test them in this order.
 | Narrow | Every other viewport: `w` < 640 and `h` >= 365, or `w` < 900 and `h` >= 600 | A phone in portrait; a small tablet in portrait |
 
 - **Why 365 px.** The Narrow frame needs 365 px with no picture: the top
-  bar (80 px), the control row (88 px), and the lowest narration panel
+  bar (84 px), the control row (84 px), and the lowest narration panel
   (197 px). Below that height Narrow cannot fit at any width. The Short
   layout has its controls at the sides, so it needs less height (ADR
   0017, decision 18).
@@ -879,21 +885,24 @@ wide: w >= 900 and h >= 600
 | Ground | Desk |
 | Page panel | Paper, from the top of the screen to the bottom, 96 px from each side |
 | Picture area | The panel above the narration. The stage keeps 4:3; the bleed fills the rest of the width up to 2:1 (spec "5. Scene runtime") |
-| Narration panel | 256 px high on board 3: the 12 px torn edge, then 20 px, 5 lines of narration, and 20 px. 32 px of padding at each side. The text is centred. It is as wide as the panel less 64 px, and at most 760 px. 28 px / 1.45, weight 600, Ink, `text-wrap: pretty`. With `w` under 1016 the text is narrower than 760 px, a 40-word page needs more lines, and the panel is higher: 296 px (6 lines) at `w` = 900 |
+| Narration panel | 255 px high: the 12 px torn edge, then 20 px, 5 lines of narration, and 20 px. 32 px of padding at each side. The text is centred. It is as wide as the panel less 64 px, and at most 760 px. 28 px / 1.45, weight 600, Ink, `text-wrap: pretty`. With `w` under 1016 the text is narrower than 760 px. At `w` = 900 (644 px of text) the reference text still wraps to 5 lines, so the panel is 255 px (measured, headless Chromium, 2026-11-20) |
 | Home | Round button, 64 px, house icon. Centred in the left gutter, 16 px from each side of it, and 16 px from the top (the Home rule, section 12) |
 | Progress pill | Centred in the right gutter, the count only (no dots). 44 px high and 26 px from the top, so its middle is at the height of the middle of Home (48 px). It does not lie over the picture (ADR 0017). See "Progress pill" below |
 | Previous, next | Round buttons, 64 px, arrow icons, centred in the gutters. Their middle is at the middle height of the picture area. On page 1, "previous" is disabled |
 
 The frame has at most 3 controls: Home, previous, next.
 
-At 900 x 600, the smallest Wide viewport, the picture area is 304 px
-high (arithmetic). Home ends at 80 px and "previous" starts at 120 px, so
-they are 40 px apart. The pill ends at 70 px and "next" starts at 120 px,
-so they are 50 px apart. Both are more than the 12 px of section 10.
+At 900 x 600, the smallest Wide viewport, the picture area is 708 x 345 px
+(measured, headless Chromium, 2026-11-20). Home ends at 80 px and
+"previous" starts at 140.5 px, so they are 60.5 px apart. The pill ends at
+70 px and "next" starts at 140.5 px, so they are 70.5 px apart. Both are
+more than the 12 px of section 10.
 
 #### Narrow and Short
 
-No board exists for these two layouts. The values are starting values.
+Boards 9 (Narrow, 390 x 844) and 10 (Short, 667 x 375 and 568 x 320)
+show these layouts. They were measured in headless Chromium, not on a
+device, so the values are still starting values.
 
 **Starting values** (ADR 0017, decision 22). A starting value of the
 Narrow or the Short layout, in sections 12.1, 12.2, and 12.3, is the rule
@@ -908,14 +917,22 @@ decision record while the rules of the spec hold.
 | Frame parts | A top bar and a control row, both on Paper | A control rail on Paper at each side, 88 px wide (a 64 px button and 12 px on each side), from the top to the bottom |
 | Home (the Home rule) | In the top bar, at the left | At the top of the left rail |
 | Progress pill | In the top bar, right of Home, 12 px away, with the dots | At the top of the right rail, the count only (no dots) |
-| Previous, next | In the control row, at the left and at the right, 16 px from the sides | At the bottom of the left rail and at the bottom of the right rail, 12 px from the bottom |
-| Top bar | 80 px high (a 64 px button and 8 px above and below), 16 px from the sides | None |
-| Control row | A frame part on Paper below the narration panel, at the bottom of the screen, 88 px high (a 64 px button and 12 px above and below). It is not part of the page sheet and does not turn with it | None |
+| Previous, next | In the control row, at the left and at the right, 16 px from the sides and 10 px from the top and the bottom of the row | At the bottom of the left rail and at the bottom of the right rail, 12 px from the bottom |
+| Top bar | 84 px high (a 64 px button and 10 px above and below), 16 px from the sides | None |
+| Control row | A frame part on Paper below the narration panel, at the bottom of the screen, 84 px high (a 64 px button and 10 px above and below). It is not part of the page sheet and does not turn with it | None |
 | Narration | 22 px / 1.45. 16 px from the sides, 16 px above and below, between the torn edge and the control row | 18 px / 1.4. Between the rails, 12 px from each rail, 12 px above and below |
 | Picture area | Between the top bar and the torn edge, the full width | Between the rails, above the torn edge |
 | Small picture | If the picture area is less than 200 px high with 22 px narration, the narration is 18 px / 1.4 and the panel gets its height again. If the picture area is then less than 64 px high, the viewport shows the Small screen state (section 12.6) | The narration is already at the smallest size. The stage gets the height that is left (spec). If the picture area is less than 64 px high, the viewport shows the Small screen state |
 | Start gate, Resting, end page | A stack in the place of the narration: the text above the button, centred. Sizes in section 12.2 | One row in the place of the narration: the text at the left, the button at the right. With `w` < 640: a stack. Sizes in section 12.2 |
 | Lowest narration panel | 197 px (section 12.2) | 112 px; 186 px with `w` < 640 (section 12.2) |
+
+**Why 84 px and 84 px** (#92). The focus ring reaches 9 px outside a
+button (section 14: 3 px away, 3 px Ink, 3 px Sun yellow). With 8 px above
+Home, the screen edge cut 1 px of the ring. So the top bar and the control
+row each have 10 px above and below the 64 px button. Together they stay
+168 px, so the 365 px and the 429 px of section 12.3 do not change. The
+cost: "previous" and "next" are 10 px from the top and the bottom of the
+control row, not 12 px.
 
 The narration is never smaller than 18 px. The steps are fixed: 28 px in
 Wide, 22 px or 18 px in Narrow, 18 px in Short. A page does not pick its
@@ -923,18 +940,21 @@ own size; one book has one size in one viewport.
 
 #### Sizes that were checked by arithmetic
 
-These numbers are estimates. They were not measured in a browser. They
+These numbers are estimates, except the 900 x 600 row. The estimates were
+not measured in a browser. They
 assume a 40-word page of 240 characters (the reference text above) and that a character
-of Baloo 2 is about half as wide as the font size. A renderer test with a
+of Baloo 2 is about half as wide as the font size. The 900 x 600 row was
+measured with the reference text and Baloo 2 (headless Chromium,
+2026-11-20). A renderer test with a
 40-word page checks each layout. If a test fails, the panel gets higher;
 the text does not get smaller than the steps above.
 
 | Viewport | Layout | Narration panel (estimate) | Picture area | Stage |
 | :-- | :-- | :-- | :-- | :-- |
-| 1194 x 834 (board 3) | Wide | 28 px, 5 lines, 256 px | 1002 x 578 | 771 x 578, bleed at each side |
-| 900 x 600 | Wide | 28 px, 6 lines in 644 px of text, 296 px | 708 x 304 | 405 x 304, the whole frame (608 px wide), Paper beyond |
-| 1024 x 650 | Wide | 28 px, 5 lines, 256 px | 832 x 394 | 525 x 394, the whole frame (788 px wide), Paper beyond |
-| 844 x 600 | Narrow | 22 px, 4 lines, 172 px. That is under the lowest panel, so 197 px (section 12.2); with the top bar (80 px) and the control row (88 px) | 844 x 235 | 313 x 235, the whole frame, Paper beyond |
+| 1194 x 834 (board 3) | Wide | 28 px, 5 lines, 255 px | 1002 x 579 | 772 x 579, bleed at each side |
+| 900 x 600 | Wide | Measured: 28 px, 5 lines in 644 px of text, 255 px | 708 x 345 (measured) | 460 x 345, the whole frame (690 px wide), Paper beyond |
+| 1024 x 650 | Wide | 28 px, 5 lines, 255 px | 832 x 395 | 527 x 395, the whole frame (790 px wide), Paper beyond |
+| 844 x 600 | Narrow | 22 px, 4 lines, 172 px. That is under the lowest panel, so 197 px (section 12.2); with the top bar (84 px) and the control row (84 px) | 844 x 235 | 313 x 235, the whole frame, Paper beyond |
 | 390 x 844 | Narrow | 22 px, 8 lines, 299 px; with the top bar and the control row | 390 x 377 | 390 x 292, Paper above and below |
 | 375 x 553 | Narrow | 22 px would leave a picture of 86 px, so 18 px: 7 lines, 220 px; with the top bar and the control row | 375 x 165 | 220 x 165, the whole frame, Paper beyond |
 | 667 x 375 | Short | 18 px, 5 lines, 162 px | 491 x 213 | 284 x 213, the whole frame, Paper beyond |
@@ -950,7 +970,7 @@ the text does not get smaller than the steps above.
 | :-- | :-- |
 | Shape | Card fill, hard edge, 44 px high, fully round |
 | Count | "3 / 5", 18 px, weight 800 |
-| Dots | One for each page. The current page is a 22 x 8 px Deep teal bar. A read page is an 8 px Teal dot. A page to come is an 8 px `--dot-ahead` dot with a 2 px Soft ink border inside it. Only the Narrow layout shows the dots. The Wide and the Short layout show the count only |
+| Dots | One for each page: a book has 6 to 8 pages, so the pill in Narrow has 6 to 8 dots. The current page is a 22 x 8 px Deep teal bar. A read page is an 8 px Teal dot. A page to come is an 8 px `--dot-ahead` dot with a 2 px Soft ink border inside it. Only the Narrow layout shows the dots. The Wide and the Short layout show the count only |
 | Read and to come | The pages before the current page are read. The pages after it are to come. Only the current page number decides this; the history does not. After "previous", the page that the child left is a page to come again. After "Read again", page 1 is current and every other dot is a page to come |
 | Role | A status, not a control. `role="status"`, accessible name "Page 3 of 5". It takes no pointer events (`pointer-events: none`) |
 
@@ -961,10 +981,11 @@ picture (section 2, contrast).
 No frame part lies over the picture area in any layout: no control, and
 not the progress pill. Board 3 has the pill over the top left of the
 picture. On a Wide viewport of 900 px it would cover a part of a `sky-1`
-object: up to 41 % of its width at 900 x 600, and its whole width at
-900 x 827 (arithmetic in ADR 0017). So ADR 0017 moved it to the right
-gutter (section 16, "Differences"). A count-only pill is about 77 px wide and fits the 96 px
-gutter (arithmetic, not measured in a browser).
+object: up to 72 % of its width at 900 x 600, and its whole width at
+900 x 786 (arithmetic in ADR 0017, from the measured 255 px panel). So ADR
+0017 moved it to the right gutter (section 16, "Differences"). A
+count-only pill is 71 px wide and fits the 96 px gutter (measured,
+headless Chromium, 2026-11-20).
 
 #### Hit area of a tappable layer
 
@@ -1098,13 +1119,13 @@ state (spec "9. Player screens", "Small screen"; ADR 0017, decision 18).
 | When, a screen of a book | The fixed parts of the layout do not fit the viewport, uncut: the frame parts, the narration panel, and a picture area of 64 px in height (section 12.3, "The smallest picture"). The test uses the measured panel height (section 12.3, "How the panel gets its height"). A picture of 64 px or more is not a reason, however small it is |
 | When, the shelf | The fixed parts do not fit the viewport, uncut: the name band, one board with one book of 128 x 159 px, the arrows, and, in Waiting, Empty, and Failed, the plate of that state (section 12.1, "The Narrow and the Short shelf" and "The plate"). The plates differ in height, so the test runs again when the state of the shelf changes, for example from Waiting to Failed |
 | Ground | Paper, the whole viewport, with the paper texture |
-| Sign | A book in a frame, with four arrows that point outward from the frame. The Player draws it (inline SVG, section 8): Deep teal lines of 3 px on Paper. 96 x 96 px where the free area allows it, and never less than 48 x 48 px. It says "more room". It is a drawing and not a control: it has no round shape, no Card fill, no hard edge, and no pointer cursor, and it takes no tap and no focus. It was not tested with children (section 16, open item 14) |
+| Sign | A book in a frame, with four arrows that point outward from the frame. The Player draws it (inline SVG, section 8): Deep teal lines on Paper. 96 x 96 px where the free area allows it, and never less than 48 x 48 px. The lines scale with the sign: 3 px at 96 px. They are never thinner than 2 px, so they are 2 px at 48 px. It says "more room". It is a drawing and not a control: it has no round shape, no Card fill, no hard edge, and no pointer cursor, and it takes no tap and no focus. It was not tested with children (section 16, open item 14) |
 | Line | "This screen is too small for the book.", below the sign, 12 px away. 18 px / 1.3, weight 600, Ink, centred, `text-wrap: pretty`, 12 px from each side |
 | Place of the sign and the line | They are one group, centred in the free area, 12 px or more from each of its edges. On the shelf route the free area is the whole viewport. On a book route it is the viewport without the Home zone: the first 92 px (the 16 px offset, the 64 px button, and 12 px). Where `h` >= `w`, the free area is the part below the top 92 px. Where `w` > `h`, it is the part right of the left 92 px. So the sign and the line never lie over Home |
 | Home | On a book route: the Home round button (`child-icon`, 64 px), 16 px from the top and from the left (the Home rule, section 12). A tap stops the narration and shows the shelf. On the shelf route: no control |
 | Other controls | None. The state has no other button and no link, and it makes no sound |
 | The screen | The state is shown in the place of the screen, not over it. The parts of the screen are not drawn. The Player keeps the route, the page, the shelf page, and the loaded files. A narration that plays goes on to its end, or until Home |
-| A viewport that is too small for the state | No part is cut. The sign takes the largest size from 48 to 96 px that lets the group fit the free area. If the group does not fit with a sign of 48 px, the line is left out first, then the sign. Home keeps its 16 px offsets while the viewport has 80 x 80 px (the offset and the button). In a smaller viewport the offsets get smaller, down to 0 px at 64 x 64 px. Home is shown while the viewport has 64 x 64 px |
+| A viewport that is too small for the state | No part is cut. The one exception is the focus ring of Home: below 89 x 89 px (the 16 px offset, the 64 px button and its 9 px ring), Home stays shown down to 64 x 64 px, and only its ring may be cut. The sign takes the largest size from 48 to 96 px that lets the group fit the free area. If the group does not fit with a sign of 48 px, the line is left out first, then the sign. Home keeps its 16 px offsets while the viewport has 80 x 80 px (the offset and the button). In a smaller viewport the offsets get smaller, down to 0 px at 64 x 64 px. Home is shown while the viewport has 64 x 64 px |
 | End | When the viewport can hold the fixed parts again, the screen shows as it was, at once. No fade, no time limit |
 | Focus | On the state itself (`main`, `tabindex="-1"`). The next Tab goes to Home, where the state has it. When the state ends, on the `main` of the screen |
 
@@ -1117,13 +1138,15 @@ state (spec "9. Player screens", "Small screen"; ADR 0017, decision 18).
 - The state is content of the Player, not of a release. It needs no
   request.
 
-**Place of the sign** (arithmetic, not measured in a browser). The sign
-is 96 x 96 px. The line is about 342 px of text: 38 characters of 18 px.
-The group is the sign, 12 px, and the line.
+**Place of the sign** (arithmetic, not measured in a browser, except the
+320 x 400 row). The sign is 96 x 96 px. By the estimate, the line is
+about 342 px of text: 38 characters of 18 px. Measured, it fits one row
+of 296 px at 320 x 400 (320 px less 12 px at each side), so the estimate
+is high. The group is the sign, 12 px, and the line.
 
 | Viewport | Route | Free area | Group | Place |
 | :-- | :-- | :-- | :-- | :-- |
-| 320 x 400 | Book | Below Home: 320 x 308 px | The line in 2 rows (47 px): 155 px high | The sign starts 168 px from the top. Home ends at 80 px |
+| 320 x 400 | Book | Below Home: 320 x 308 px | The line in 1 row (24 px): 132 px high (measured, headless Chromium, 2026-11-20) | The sign starts 180 px from the top. Home ends at 80 px |
 | 400 x 300 | Book | Right of Home: 308 x 300 px | The line in 2 rows: 155 px high | The sign starts 198 px from the left. Home ends at 80 px |
 | 500 x 365 | Book | Right of Home: 408 x 365 px | The line in 1 row (24 px): 132 px high | The sign starts 248 px from the left |
 | 240 x 200 | Shelf | The whole viewport | The line in 2 rows of 216 px: 155 px high | Centred. No Home |
@@ -1140,21 +1163,29 @@ button "Open the Player".
 | :-- | :-- |
 | "New story" card | At most 440 px wide. A segmented control "Paste text" / "Article URL". One field. A note with the word count and the limit "200 to 2,000 words". The `lg` primary button "Make story" at the bottom right |
 | Refused input (422) | A "blocked" notice in the card: what was wrong, and "No run was started." The count turns to the "blocked" chip text colour, weight 700 |
-| Cut input | A "working" (information) notice: "The text had 2,640 words. The run uses the first 2,000." |
-| "Stories" card | A table: Title (link), Run (chip), Pages (one chip for each state with its count), Release, Updated. A story with no release shows "None" in Soft ink and no chip. Its `onShelf` is false too, so `onShelf` alone does not give the chip. A story that has a release and `onShelf: false` was taken off the shelf: it shows its release number and an "Off the shelf" chip (the "missing" state, section 13.2) |
+| Cut input | A "working" (information) notice: "The text had 2,640 words. The run uses the first 2,000." It stands on the story view of the new story, on the Desk, between the title row and the "Run" card (section 13.2) |
+| "Stories" card | While the list loads: "Loading the stories." With no story: "No stories yet." A table: Title (link), Run (chip), Pages (one chip for each state with its count), Release, Updated. A story with no release shows "None" in Soft ink and no chip. Its `onShelf` is false too, so `onShelf` alone does not give the chip. A story that has a release and `onShelf: false` was taken off the shelf: it shows its release number and an "Off the shelf" chip (the "missing" state, section 13.2) |
 
 ### 13.2 Story view
 
+Columns: at 1024 px and wider, "Pages" and a side column, 22 px apart. The
+side column is a fixed 360 px wide, not a third of the width.
+"Pages" takes the rest: 978 px at 1440 px, 594 px at 1024 px. Under
+1024 px the columns wrap to one column (section 7).
+
 | Part | Look |
 | :-- | :-- |
+| Loading | "Loading the story." |
 | Title row | A Soft `icon` back button, the title (28 px), the run chip, and "Source article" at the right. "Source article" is a real link (`<a>`) in the Link variant, at least 44 px high. It is not a ghost button |
-| "Run" card | The five steps `freeze`, `script`, `scene`, `audio`, `finish`. Each has a row of cells (12 px high, fully round, one for each page or one for the step), its name, and a note. A legend gives each cell colour a word |
+| "Run" card | The five steps `freeze`, `script`, `scene`, `audio`, `finish`. Each has a row of cells (12 px high, fully round, one for each page or one for the step), its name, and a note. A legend gives each cell colour a word. When a cell failed, the note gives the failed count too, for example "8 of 8 done, 2 failed". The border of a failed cell and the border of a waiting cell differ by only 1.17:1, so the count carries the meaning |
+| A failed run | A "blocked" notice inside the "Run" card: "The run failed." Then one line for each failed step: `<kind>, page <n>: <message>`, for example "audio, page 5: ...". The step name holds a page ID, so the line gives the kind and the page number instead. The action button "Start again" is the notice button of section 6 (Card fill, `--bad-edge` edge), not `secondary` |
+| Lost contact | The notice stands inside the "Run" card |
 | "Pages" | A grid of page cards, at least 220 px wide, 16 px apart. A page card holds a preview of the page with a page number chip, the text (14 px, 3 lines), and three chips: Text, Scene, Audio, each with its state. The card moves up 2 px on hover. The whole card opens the editor |
 | "Publish" card | Blocked: one "blocked" row for each page that blocks, with the reason and a Soft "Open" button; the primary button is disabled. Ready: one sentence and the primary button "Publish release 3". Done: an "ok" notice and a Soft button that opens the release in the Player. Off the shelf: when the published release is withdrawn, the card never shows Done and has no "Open" button, because the Player would show the Resting state. It shows Ready with the primary button "Publish release <n+1>" when no page blocks, and Blocked when a page blocks. `n` is the number of the latest release. The pages need no change: publish always makes a new release |
 | "Releases" card | One row for each release: its number, its time, a chip, and its buttons. The release that is on the shelf has an "On the shelf" chip in the "ok" state (its fill, its chip text colour, and the check icon), a Soft "Open" button, and a Soft "Take off the shelf" button. A withdrawn release has an "Off the shelf" chip in the "missing" state (its fill, its chip text colour, and the dash icon) and no button. An earlier release that is not withdrawn has no chip and a Soft "Open" button. After a take-off, the published release and every earlier release are withdrawn |
-| "Take off the shelf" dialog | The shared `Dialog`, at most 440 px wide. Title: "Take this book off the shelf?" (20 px, weight 800). Text: "Children will no longer see this book on the shelf. Every link to release 3 and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release." Two buttons at the bottom right: the Soft button "Keep on the shelf" and the Primary button "Take off the shelf". The focus starts on "Keep on the shelf". Escape and a click outside close the dialog and change nothing |
+| "Take off the shelf" dialog | The shared `Dialog`, at most 440 px wide. Title: "Take this book off the shelf?" (20 px, weight 800). Text: "Children will no longer see this book on the shelf. Every link to release 3 and to its earlier releases will show the sleeping book. This has no undo. To put the book back, publish a new release." Two buttons at the bottom right, 44 px high: the Soft button "Keep on the shelf" and the Primary button "Take off the shelf". The scrim is Ink at 40 %, with no blur. The dialog has no close button. The focus starts on "Keep on the shelf". Escape and a click outside close the dialog and change nothing |
 | After a take-off | The dialog closes. Every row of a release with a number up to the `withdrawnThrough` of the answer gets the "Off the shelf" chip and loses its buttons: the published release and every earlier one. The "Publish" card changes to its off-the-shelf form (above). A "working" (information) notice stands at the top of the "Releases" card: "This book is off the shelf. Publish a new release to put it back." It stays while the story is off the shelf. The focus goes to the heading of the "Releases" card |
-| A take-off that is refused (409) | The dialog closes. A "blocked" notice in the "Releases" card: "Another release was published after you opened this page. Nothing was changed." with the action button "Load the latest". For `not_published`: "This story has no release on the shelf. Nothing was changed." |
+| A take-off that is refused (409) | The dialog closes. A "blocked" notice in the "Releases" card: "Another release was published after you opened this page. Nothing was changed." with the action button "Load the latest" (`release_moved`). For `not_published`: "This story has no release on the shelf. Nothing was changed.", also with the action button "Load the latest" |
 
 ### 13.3 Page editor
 
@@ -1242,6 +1273,8 @@ state for it.
 
 | Board | This file | Reason |
 | :-- | :-- | :-- |
+| Boards 8 to 14 (#22, #23, #89) | They follow this file. Their measured values are in this file | Owner decision (#92) |
+| Boards 1 to 3 and 5 to 7 | This file wins where they differ. The rows below list the differences | They are the early look (#92) |
 | Home round button is 60 px | 64 px | The child target rule |
 | Studio small buttons, segments, layer rows, and the audio play button are 40 px | 44 px | The Studio target rule |
 | The primary button of the editor is 48 px | 52 px (`lg`) | One height for the main action |
@@ -1249,7 +1282,7 @@ state for it.
 | Unselected segments on the stories board use Soft ink | Mid ink | Soft ink has 4.3:1 on Soft cream |
 | The disabled Soft button is paler than the disabled primary button | One disabled look | The paler text has 2.9:1; one look is simpler |
 | Sizes 17, 27, and 30 px | 18, 28, and 32 px | One scale |
-| The narration is at most 660 px wide in a 224 px panel | 760 px wide in a 256 px panel (12 px of it is the torn edge) | A 40-word page must fit at 28 px. The board panel holds 4 lines; the estimate is 5 (not measured in a browser) |
+| The narration is at most 660 px wide in a 224 px panel | 760 px wide in a 255 px panel (12 px of it is the torn edge) | A 40-word page must fit at 28 px. The board panel holds 4 lines; the reference text needs 5, also at 900 px wide (measured, headless Chromium, 2026-11-20) |
 | The loading state has no Start button | A disabled Start button | PLY-04.S10: "Start" is enabled only when the book is loaded |
 | The bubble has 20 px text and radius 22 px, and does not wrap | On a stage: 64 stage units of text, radius 48 stage units, wraps at 60 % of the stage width (about 31 px and 23 px on board 3) | The runtime draws the bubble inside the scaled stage, so its values are stage units. 20 px on the board is about 40 stage units, which is under 10 px on a 390 px phone stage. A 60-character bubble must fit a phone stage |
 | The stage in the editor has radius 12 px | 10 px | One radius for a picture in a card |
@@ -1257,7 +1290,7 @@ state for it.
 | The torn paper edge is 48 px high over the picture | 12 px high, at the top of the narration panel, not over the picture | The spec says that the stage is never cropped. Foot points reach y 1200, the bottom of the stage (`solo-center`, slot `bust`) |
 | Cut-outs are dimmed and tinted by the sky with a CSS `filter` | Not included | ADR 0017 rejects a night tint for the MVP: a filter breaks the page-turn rule. Open item 4 |
 | The night meadow has a moon; the meadow has a river | Not included | The spec makes `meadow` from a sky colour and three hills. A moon would lie under the `sky-*` slots. ADR 0017: no moon asset in the MVP |
-| The progress pill lies over the top left of the picture, with dots (board 3) | In the right gutter, the count only | ADR 0017: on a viewport of 900 px the pill covers up to 41 % of the width of a `sky-1` object at 900 x 600, and its whole width at 900 x 827 (arithmetic). No frame part lies over the picture |
+| The progress pill lies over the top left of the picture, with dots (board 3) | In the right gutter, the count only | ADR 0017: on a viewport of 900 px the pill covers up to 72 % of the width of a `sky-1` object at 900 x 600, and its whole width at 900 x 786 (arithmetic, from the measured 255 px panel). No frame part lies over the picture |
 | A cover on the shelf is a small scene placed by hand, with drawn hills and a CSS `filter` on the art | Page 1 of the release as a still scene, cut to the picture window. No filter | Owner decision (ADR 0017): no new asset. A cover uses only files of its release |
 | A book of 180 x 224 px has a picture window of 151 x 208 px. That leaves 16 px of its height for the title label | A title plate of 54 px above a window of 151 x 148 px | A plate for 2 lines of 18 px text does not fit in 16 px, and no text lies over a picture. The lower window also shows more of the stage: 1224 of its 1600 units, not 872 |
 | The shelf ground has registry art (trees) and characters beside the shelf | The Player draws the ground. No characters stand beside the shelf | A registry file is served only inside a release. ADR 0017, decision 19: the characters are out of the MVP |

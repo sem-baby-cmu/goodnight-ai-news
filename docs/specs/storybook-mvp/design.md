@@ -1066,8 +1066,9 @@ and Failed, the plate of that state.
 - The state stops no sound and starts none. A narration that plays goes
   on to its end, or until Home.
 - No part of the state is cut. If the viewport cannot hold the parts of
-  the state itself, the line is left out first, and then the sign. Home
-  is shown while the viewport has 64 x 64 CSS px. It keeps its 16 CSS px
+  the state itself, the line is left out first, and then the sign. The
+  one exception is the focus ring of Home, which may be cut below 89 x 89
+  CSS px. Home is shown while the viewport has 64 x 64 CSS px. It keeps its 16 CSS px
   offsets while the viewport has 80 x 80 CSS px. In a smaller viewport
   the offsets get smaller, down to 0.
 - When the viewport can hold the fixed parts again, the screen shows as it
@@ -1521,5 +1522,11 @@ against the source.
 | 7 | A 0 px picture area does not trigger the Small screen | Gemini | Minimum picture height 64 px; Home zone and sign placement; shelf plates in the check |
 | 8 | Narrow and Short shelf sizes; narration panel height before Ready; silent clip format and audio element mount; selected-layer chip tokens | Gemini | Defined in `DESIGN.md` and "5. Scene runtime" |
 | 9 | `TASTES.md` rules without the exceptions of `DESIGN.md` | Gemini | Qualified |
+
+Board values (#92), not a review of this document.
+
+| Date and issue | Change |
+| :-- | :-- |
+| 2026-11-20, #92 | Board values for #22, #23, #89 written into `DESIGN.md` (measured in headless Chromium) |
 
 The end of the book is ADR 0016 decision B ("5. Scene runtime", "End page").
