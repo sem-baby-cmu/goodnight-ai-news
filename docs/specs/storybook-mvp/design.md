@@ -649,7 +649,7 @@ Studio routes are behind Cloudflare Access. The content route and
 | Method and route | Does |
 | :-- | :-- |
 | `POST /api/studio/stories` | Body `{ text }` or `{ url }`. Creates a story, a source revision, and a full run. Returns 202 with `{ storyId, runId }`. |
-| `GET /api/studio/stories` | Lists stories. Each story has `onShelf`: true when the release that its pointer names is not withdrawn ("Taking a book off the shelf" below). It is false for a story with no release. So the Studio shows "Off the shelf" only for a story that has a release and `onShelf: false`. A story with no release shows "None". |
+| `GET /api/studio/stories` | Lists stories. Each story has `onShelf`: true when the release that its pointer names is not withdrawn ("Taking a book off the shelf" below). It is false for a story with no release. Each story also has `publishedReleaseNumber`: the number of the release that its pointer names, or null when the pointer is null or names no release of this story. So the Studio shows "Off the shelf" only for a story that has a release and `onShelf: false`. A story with no release shows "None". |
 | `GET /api/studio/stories/:id` | Heads with content, page states (`ok`, `stale`, `missing`, `needs_review`), and releases. The story has `onShelf`, and each release has `withdrawn`. |
 | `GET /api/studio/runs/:id` | Run status and step progress. |
 | `PUT /api/studio/stories/:id/pages/:pageId/text` | Body `{ text, basedOn }`. Checks `basedOn` first: 409 if the head moved, and the text is not validated. Then validated as `PageText` (1 to 3 sentences, at most 40 words). 422 with the error list if it fails validation; nothing is saved. Otherwise saved as a new human `page_text` revision (owner decision Q15). |
