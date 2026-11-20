@@ -16,7 +16,7 @@ function StudioLayout() {
   return (
     <div className="min-h-screen bg-desk text-ink">
       <StudioHeader />
-      <main className="mx-auto max-w-[1360px] px-6 py-6">
+      <main className="mx-auto max-w-[1408px] px-6 pt-6 pb-12">
         <Outlet />
       </main>
     </div>

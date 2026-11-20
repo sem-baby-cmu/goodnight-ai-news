@@ -21,7 +21,7 @@ export function StateChip({ state, label, className }: { state: ChipState; label
   return (
     <Badge
       className={cn(
-        "h-auto gap-[6px] rounded-full border-0 px-[10px] pt-[6px] pb-[5px] text-[14px] leading-none font-bold",
+        "h-auto gap-[6px] rounded-full border-0 px-[10px] pt-[6px] pb-[5px] text-[14px] leading-[1.2] font-bold",
         look,
         className,
       )}

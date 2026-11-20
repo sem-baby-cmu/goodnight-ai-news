@@ -88,3 +88,25 @@ it("StoryListPage shows Could not load the stories (<status>) on an error", asyn
   const alerts = await screen.findAllByRole("alert");
   expect(alerts.some((a) => squash(a.textContent).includes(squash("Could not load the stories (500).")))).toBe(true);
 });
+
+it("StoryListPage with no answer says so and never prints (0)", async () => {
+  stubFetch(
+    routes({
+      "GET /api/studio/stories": () => {
+        throw new TypeError("Failed to fetch");
+      },
+    }),
+  );
+  renderInRouter(<StoryListPage />, "/studio", "/studio");
+
+  const alerts = await screen.findAllByRole("alert");
+  const notice = alerts.find((a) => squash(a.textContent).includes(squash("No answer came from the server.")));
+  expect(squash(notice?.textContent)).toContain(squash("Reload to try again."));
+  expect(document.body.textContent).not.toContain("(0)");
+});
+
+it("StoryListPage gives the Loading line role status", async () => {
+  stubFetch(routes({ "GET /api/studio/stories": () => new Promise(() => {}) }));
+  renderInRouter(<StoryListPage />, "/studio", "/studio");
+  expect((await screen.findByText("Loading the stories.")).getAttribute("role")).toBe("status");
+});

@@ -116,8 +116,9 @@ it("PublishPanel on success shows Release <n> published. and a link to playerUrl
   const { onPublished } = renderPanel({ releases: [releaseFixture(1), releaseFixture(2)] });
   fireEvent.click(publishButton());
 
-  const alerts = await screen.findAllByRole("alert");
-  expect(alerts.some((a) => squash(a.textContent).includes(squash("Release 3 published.")))).toBe(true);
+  // An "ok" notice is a status, not an alert (DESIGN.md 14).
+  const notices = await screen.findAllByRole("status");
+  expect(notices.some((a) => squash(a.textContent).includes(squash("Release 3 published.")))).toBe(true);
   const open = screen.getByText("Open release 3 in the Player").closest("a");
   expect(open?.getAttribute("href")).toBe(created.playerUrl);
   expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([`POST ${publishPath}`]);
@@ -132,7 +133,7 @@ it('PublishPanel on success with texture null shows "Published without the paper
 
   await waitFor(() =>
     expect(
-      screen.getAllByRole("alert").some((a) => squash(a.textContent).includes(squash("Published without the paper texture"))),
+      screen.getAllByRole("status").some((a) => squash(a.textContent).includes(squash("Published without the paper texture"))),
     ).toBe(true),
   );
 });
@@ -149,4 +150,35 @@ it("PublishPanel on publish_conflict shows the conflict notice and calls onPubli
       squash(a.textContent).includes(squash("Another publish ran at the same time. Nothing was published. Try again.")),
     ),
   ).toBe(true);
+});
+
+it("PublishPanel with no answer calls onPublished, says it is not known if the release was published, and never prints (0)", async () => {
+  stubFetch(
+    routes({
+      [`POST ${publishPath}`]: () => {
+        throw new TypeError("Failed to fetch");
+      },
+    }),
+  );
+  const { onPublished } = renderPanel();
+  fireEvent.click(publishButton());
+
+  await waitFor(() => expect(onPublished).toHaveBeenCalledTimes(1));
+  const alerts = screen.getAllByRole("alert");
+  const notice = alerts.find((a) => squash(a.textContent).includes(squash("No answer came from the server.")));
+  expect(notice).toBeDefined();
+  expect(squash(notice?.textContent)).toContain(
+    squash("It is not known if the release was published. Check the Releases card before you try again."),
+  );
+  expect(document.body.textContent).not.toContain("(0)");
+});
+
+it("PublishPanel on another status shows Publishing failed (<status>). and Nothing was published. Try again.", async () => {
+  stubFetch(routes({ [`POST ${publishPath}`]: { status: 500, body: { error: "internal" } } }));
+  const { onPublished } = renderPanel();
+  fireEvent.click(publishButton());
+
+  const alerts = await screen.findAllByRole("alert");
+  expect(alerts.some((a) => squash(a.textContent).includes(squash("Publishing failed (500). Nothing was published. Try again.")))).toBe(true);
+  expect(onPublished).not.toHaveBeenCalled();
 });

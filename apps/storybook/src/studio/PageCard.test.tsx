@@ -169,3 +169,36 @@ it("PageCard shows the page text, or No text", () => {
   render(<PageCard page={pageFixture(5, { text: null })} registry={registryFixture()} />);
   expect(screen.getByText("No text")).toBeTruthy();
 });
+
+it("PageCard shows one review block per target, with the target name and its own lines", () => {
+  const page = pageFixture(1, {
+    state: "needs_review",
+    problems: [
+      { target: "scene", reason: "needs_review" },
+      { target: "audio", reason: "needs_review" },
+    ],
+  });
+  page.scene = revisionFixture("scene", {
+    pageId: page.pageId,
+    status: "needs_review",
+    content: sceneFixture(),
+    assetVersions: { ...SCENE_VERSIONS },
+    error: { issues: [{ path: "layers.0.ref", code: "unknown_asset", message: "No active asset fox2." }] },
+  });
+  page.audio = revisionFixture("audio", {
+    pageId: page.pageId,
+    status: "needs_review",
+    content: null,
+    error: { providerStatus: 400, message: "The voice is not available." },
+  });
+  render(<PageCard page={page} registry={registryFixture()} />);
+
+  const sceneBlock = screen.getByText("Scene").parentElement as HTMLElement;
+  const audioBlock = screen.getByText("Audio").parentElement as HTMLElement;
+  expect(sceneBlock).not.toBe(audioBlock);
+  expect(sceneBlock.textContent).toContain("layers.0.ref unknown_asset No active asset fox2.");
+  expect(sceneBlock.textContent).not.toContain("provider error");
+  expect(audioBlock.textContent).toContain("provider error: The voice is not available.");
+  expect(audioBlock.textContent).not.toContain("unknown_asset");
+  expect(screen.queryByText("Text")).toBeNull();
+});

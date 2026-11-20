@@ -53,8 +53,10 @@ it("ReleasesCard shows Off the shelf and no button on every withdrawn release, a
   expect(screen.queryByText("On the shelf")).toBeNull();
   expect(openHrefs()).toEqual([]);
   expect(container.querySelectorAll("button, a, [role=button]")).toHaveLength(0);
-  const alerts = screen.getAllByRole("alert");
-  expect(alerts.some((a) => squash(a.textContent).includes(squash(OFF_NOTICE)))).toBe(true);
+  // A "working" notice is a status, not an alert (DESIGN.md 14).
+  const notices = screen.getAllByRole("status");
+  expect(notices.some((a) => squash(a.textContent).includes(squash(OFF_NOTICE)))).toBe(true);
+  expect(screen.queryAllByRole("alert")).toHaveLength(0);
 });
 
 it("ReleasesCard shows None without releases", async () => {

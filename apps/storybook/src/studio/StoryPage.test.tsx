@@ -1,5 +1,5 @@
 import type { SceneViewProps } from "@storybook/scene-runtime";
-import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { StoryDetailResponse } from "./api";
 import {
@@ -80,6 +80,11 @@ function alertWith(text: string): HTMLElement | undefined {
   return screen.queryAllByRole("alert").find((a) => squash(a.textContent).includes(squash(text)));
 }
 
+// A notice that is not a refusal: `role="status"` (DESIGN.md 14).
+function statusWith(text: string): HTMLElement | undefined {
+  return screen.queryAllByRole("status").find((a) => squash(a.textContent).includes(squash(text)));
+}
+
 const CUT_NOTICE = "The text had more than 2,000 words. Only the first 2,000 were used.";
 
 it("RUN-01.S15 StoryPage shows the cut notice when source.content.truncated is true", async () => {
@@ -89,14 +94,15 @@ it("RUN-01.S15 StoryPage shows the cut notice when source.content.truncated is t
   stubStory(cut);
   renderStory();
   await screen.findByText("The fox and the river");
-  await waitFor(() => expect(alertWith(CUT_NOTICE)).toBeDefined());
+  await waitFor(() => expect(statusWith(CUT_NOTICE)).toBeDefined());
+  expect(alertWith(CUT_NOTICE)).toBeUndefined();
   cleanup();
 
   // With `truncated: false` the notice is absent.
   stubStory(storyDetailFixture());
   renderStory();
   await screen.findByText("The fox and the river");
-  expect(alertWith(CUT_NOTICE)).toBeUndefined();
+  expect(statusWith(CUT_NOTICE)).toBeUndefined();
   expect(squash(document.body.textContent)).not.toContain(squash(CUT_NOTICE));
 });
 
@@ -139,7 +145,9 @@ it("RUN-01.S16 Run card shows a failed step as a solid failed cell and the note 
   renderStory(RUN_ID);
 
   const row = await screen.findByLabelText("scene: 1 of 2 done, 1 failed");
-  expect(screen.getByText("1 of 2 done, 1 failed")).toBeTruthy();
+  // The failed count is its own span (--bad-chip, 700), so the note is matched by its whole text.
+  expect(screen.getByText((_, el) => el?.tagName === "SPAN" && el.textContent === "1 of 2 done, 1 failed")).toBeTruthy();
+  expect(screen.getByText(", 1 failed").className).toContain("text-[var(--bad-chip)]");
   // One row per step kind.
   expect(screen.getAllByLabelText(/^(script|scene|audio): \d+ of \d+ done/)).toHaveLength(3);
 
@@ -486,4 +494,117 @@ it("StoryPage shows No pages yet. for a story without pages", async () => {
   renderStory();
   expect(await screen.findByText("No pages yet.")).toBeTruthy();
   expect(screen.getAllByText("Queued").length).toBeGreaterThan(0);
+});
+
+// ---- Notice roles, Run card sentences, the back button, no answer (ainews-ui review of #23).
+
+const noAnswer = (): Reply => {
+  throw new TypeError("Failed to fetch");
+};
+
+it("StoryPage gives the cut notice role status and the failed-run notice role alert", async () => {
+  stubStory({
+    ...failedWithoutOutline(),
+    source: revisionFixture("source", { content: { text: "A long text.", url: null, words: 2000, truncated: true } }),
+  });
+  renderStory();
+  await waitFor(() => expect(statusWith(CUT_NOTICE)).toBeDefined());
+  expect(alertWith(CUT_NOTICE)).toBeUndefined();
+  expect(alertWith("The run failed.")).toBeDefined();
+  expect(statusWith("The run failed.")).toBeUndefined();
+});
+
+it("Run card says No run is in progress. only when no run is followed", async () => {
+  stubStory(storyDetailFixture());
+  renderStory();
+  expect(await screen.findByText("No run is in progress.")).toBeTruthy();
+  expect(screen.queryByText("Loading the run.")).toBeNull();
+});
+
+it("Run card says Loading the run. while the first answer of the followed run is awaited", async () => {
+  // The run answer never comes.
+  stubStory(storyDetailFixture(), { [`GET ${runPath(RUN_ID)}`]: () => new Promise<Reply>(() => {}) });
+  renderStory(RUN_ID);
+  const loading = await screen.findByText("Loading the run.");
+  expect(loading.getAttribute("role")).toBe("status");
+  expect(screen.queryByText("No run is in progress.")).toBeNull();
+});
+
+it("Run card with lost contact shows only the lost-contact notice, not No run is in progress.", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  try {
+    stubStory(storyDetailFixture(), { [`GET ${runPath(RUN_ID)}`]: { status: 500, body: { error: "internal" } } });
+    renderStory(RUN_ID);
+    // 5 failed polls, 2000 ms apart.
+    for (let i = 0; i < 14; i++) await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(alertWith("Lost contact with the run.")).toBeDefined();
+    expect(screen.queryByText("No run is in progress.")).toBeNull();
+    expect(screen.queryByText("Loading the run.")).toBeNull();
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("StoryPage has the back button while the story loads", async () => {
+  stubFetch(
+    routes({
+      [`GET ${storyPath}`]: () => new Promise<Reply>(() => {}),
+      [`GET ${registryPath}`]: { status: 200, body: registryFixture() },
+    }),
+  );
+  renderStory();
+  const loading = await screen.findByText("Loading the story.");
+  expect(loading.getAttribute("role")).toBe("status");
+  expect(screen.getByLabelText("Back to stories").closest("a")?.getAttribute("href")).toBe("/studio");
+});
+
+it("StoryPage has the back button with Story not found.", async () => {
+  stubFetch(routes({ [`GET ${registryPath}`]: { status: 200, body: registryFixture() } }));
+  renderStory();
+  await waitFor(() => expect(alertWith("Story not found.")).toBeDefined());
+  expect(screen.getByLabelText("Back to stories").closest("a")?.getAttribute("href")).toBe("/studio");
+});
+
+it("StoryPage with no answer for the story says so and never prints (0)", async () => {
+  stubFetch(
+    routes({ [`GET ${storyPath}`]: noAnswer, [`GET ${registryPath}`]: { status: 200, body: registryFixture() } }),
+  );
+  renderStory();
+  await waitFor(() => expect(alertWith("No answer came from the server.")).toBeDefined());
+  expect(squash(alertWith("No answer came from the server.")?.textContent)).toContain(squash("Reload to try again."));
+  expect(document.body.textContent).not.toContain("(0)");
+});
+
+it("StoryPage run chip follows the polled run when it is the latest run", async () => {
+  stubStory(storyDetailFixture({ latestRun: { id: RUN_ID, status: "queued", scope: { kind: "full" }, error: null } }), {
+    [`GET ${runPath(RUN_ID)}`]: { status: 200, body: runFixture("running") },
+  });
+  renderStory();
+  expect((await screen.findAllByText("Running")).length).toBeGreaterThan(0);
+  expect(screen.queryByText("Queued")).toBeNull();
+});
+
+it("Start again with no answer says it is not known if the run started, and never prints (0)", async () => {
+  stubStory(failedWithoutOutline(), { [`POST ${storyPath}/runs`]: noAnswer });
+  renderStory();
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(alertWith("It is not known if the run started. Try again.")).toBeDefined());
+  expect(squash(alertWith("It is not known if the run started.")?.textContent)).toContain(squash("No answer came from the server."));
+  expect(document.body.textContent).not.toContain("(0)");
+});
+
+it("Publish with no answer fetches the story again and never prints (0)", async () => {
+  const { calls } = stubStory(storyDetailFixture(), { [`POST ${storyPath}/releases`]: noAnswer });
+  renderStory();
+  fireEvent.click(await screen.findByRole("button", { name: "Publish release 1" }));
+  await waitFor(() =>
+    expect(
+      alertWith("It is not known if the release was published. Check the Releases card before you try again."),
+    ).toBeDefined(),
+  );
+  expect(squash(alertWith("It is not known if the release was published.")?.textContent)).toContain(
+    squash("No answer came from the server."),
+  );
+  await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
+  expect(document.body.textContent).not.toContain("(0)");
 });

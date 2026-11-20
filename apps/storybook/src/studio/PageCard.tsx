@@ -65,50 +65,59 @@ export function PageCard({ page, registry }: { page: Page; registry: RegistryRes
   );
 
   const text = textOf(page.text);
-  const lines = TARGETS.flatMap(({ head }) => reviewLines(page[head]));
+  // One block for each target in review: its name, then its lines.
+  const reviews = TARGETS.flatMap(({ head, name }) => {
+    const lines = reviewLines(page[head]);
+    return lines.length === 0 ? [] : [{ name, lines }];
+  });
 
   return (
-    <article className="flex flex-col gap-3 rounded-[18px] bg-card p-3 shadow-[0_3px_0_var(--edge)]">
+    <article
+      aria-label={`Page ${page.number}`}
+      className="flex flex-col gap-3 rounded-[18px] bg-card px-2 pt-2 pb-3 shadow-[0_3px_0_var(--edge)]"
+    >
       <div
         data-testid="page-preview"
         style={{ position: "relative", aspectRatio: "1002 / 610", borderRadius: "10px", overflow: "hidden" }}
-        className="bg-paper"
+        className="bg-cream"
       >
         {resolver !== null && preview !== null ? (
           <div style={{ position: "absolute", inset: 0 }}>
             <SceneView page={preview} assets={resolver} mode="still" />
           </div>
         ) : (
-          <p className="absolute inset-0 grid place-items-center p-3 text-center text-[14px] font-medium text-ink-2">
+          <p className="absolute inset-0 grid place-items-center bg-cream p-3 text-center text-[14px] font-medium text-ink-2">
             {registry === null ? "No preview: the registry did not load." : "No preview for this scene."}
           </p>
         )}
-        <span className="absolute top-2 left-2 rounded-full bg-card px-[10px] pt-[6px] pb-[5px] text-[14px] leading-none font-bold text-ink tabular-nums shadow-[0_2px_0_var(--edge)]">
-          {page.number}
+        <span className="absolute top-2 left-2 rounded-full bg-card px-[10px] pt-[6px] pb-[5px] text-[14px] leading-[1.2] font-bold text-ink tabular-nums shadow-[0_2px_0_var(--edge)]">
+          Page {page.number}
         </span>
       </div>
       {mismatches.map((m) => (
-        <p key={m.key} className={noteClass}>
+        <p key={m.key} className={`${noteClass} px-1`}>
           {`${m.key}: the scene uses v${m.recorded}, the registry has ${m.active === null ? "no active version" : `v${m.active}`}.`}
         </p>
       ))}
-      <p className="line-clamp-3 text-[14px] font-medium text-ink">{text ?? "No text"}</p>
-      <div className="flex flex-wrap gap-2">
+      <p className="line-clamp-3 px-1 text-[14px] font-medium text-ink">{text ?? "No text"}</p>
+      <div className="flex flex-wrap gap-1 px-1">
         {TARGETS.map(({ target, name }) => {
           const reason = page.problems.find((p) => p.target === target)?.reason ?? "ok";
           const chip = PAGE_STATE_CHIP[reason];
           return <StateChip key={target} state={chip.state} label={`${name} ${chip.word}`} />;
         })}
       </div>
-      {lines.length > 0 ? (
-        <ul className="flex flex-col gap-1">
+      {reviews.map(({ name, lines }) => (
+        <div
+          key={name}
+          className="mx-1 rounded-[14px] bg-[var(--warn)] px-[10px] py-2 text-[14px] leading-[1.4] font-medium text-[var(--warn-notice)] [overflow-wrap:anywhere]"
+        >
+          <p className="font-bold">{name}</p>
           {lines.map((line, i) => (
-            <li key={i} className={noteClass}>
-              {line}
-            </li>
+            <p key={i}>{line}</p>
           ))}
-        </ul>
-      ) : null}
+        </div>
+      ))}
     </article>
   );
 }

@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 // The current link has no fill: a Ghost button has none (DESIGN.md 4).
 export function StudioHeader() {
   return (
-    <header className="flex h-16 items-center gap-6 border-b-[5px] border-wood-light bg-paper px-6">
-      <span className="text-[20px] leading-none font-extrabold text-ink">Studio</span>
-      <nav aria-label="Studio">
-        <Button variant="ghost" nativeButton={false} render={<Link to="/studio" />}>
-          Stories
-        </Button>
-      </nav>
+    <header className="border-b-[5px] border-wood-light bg-paper">
+      <div className="mx-auto flex h-16 max-w-[1408px] items-center gap-5 px-6">
+        <span className="text-[20px] leading-[1.2] font-extrabold text-ink">Studio</span>
+        <nav aria-label="Studio">
+          <Button variant="ghost" nativeButton={false} render={<Link to="/studio" />}>
+            Stories
+          </Button>
+        </nav>
+      </div>
     </header>
   );
 }
