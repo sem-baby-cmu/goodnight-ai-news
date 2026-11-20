@@ -95,7 +95,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f647-9dc0-7702-bbca-f676c1cbbeb7",
-            "text": "I'm Euclid! I take sharp pictures of space from a million …"
+            "text": "I'm Euclid! I take sharp pictures."
           },
           {
             "action": "play_sfx",
@@ -111,7 +111,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f647-9dc0-7702-bbca-fa69d0479258",
-            "text": "I'm Roman! Soon I'll join the search and peer even deeper …"
+            "text": "I'm Roman! I look even deeper."
           },
           {
             "action": "play_sfx",

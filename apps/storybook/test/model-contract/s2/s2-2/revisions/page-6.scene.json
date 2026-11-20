@@ -125,7 +125,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f646-562b-7256-a72e-3ed1812286a3",
-            "text": "Photos uploaded! I'll guess each animal's name."
+            "text": "I'll guess each animal's name!"
           }
         ]
       },
@@ -137,7 +137,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f646-562b-7256-a72e-371c9e281648",
-            "text": "Now we scientists check every photo and label. Computers can"
+            "text": "We check every photo."
           }
         ]
       }

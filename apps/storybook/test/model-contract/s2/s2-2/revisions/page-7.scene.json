@@ -147,7 +147,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f646-836d-7757-8f3b-f54263a833b7",
-            "text": "Pictures for everyone, everywhere—for free!"
+            "text": "Pictures for everyone, for free!"
           }
         ]
       },
@@ -168,7 +168,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f646-836d-7757-8f3b-f867d557e640",
-            "text": "Japan, Brazil, Chile, and Paraguay are joining Snapshot ..."
+            "text": "More countries are joining!"
           }
         ]
       },
@@ -185,7 +185,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f646-836d-7757-8f3b-febfb49f0b49",
-            "text": "Together, we can protect wildlife across borders!"
+            "text": "Together we protect wildlife!"
           }
         ]
       }

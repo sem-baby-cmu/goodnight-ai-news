@@ -116,7 +116,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f648-1528-71b5-b46a-8abf96dfac2c",
-            "text": "Three views blend into one super-clear picture!"
+            "text": "Three views blend into one!"
           }
         ]
       },
@@ -128,7 +128,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f648-1528-71b5-b46a-8729c5d21a1d",
-            "text": "AI helps scientists blend more photos than people could sort"
+            "text": "AI helps us blend photos."
           },
           {
             "action": "play_animation",

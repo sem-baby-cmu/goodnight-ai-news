@@ -98,7 +98,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f645-e54f-7287-bbcc-428762991c7c",
-            "text": "Movement noticed. Picture saved, quietly!"
+            "text": "Picture saved, quietly!"
           }
         ]
       },
@@ -110,7 +110,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f645-e54f-7287-bbcc-428762991c7c",
-            "text": "August to November: waiting quietly for wild animals to pass"
+            "text": "We wait for wild animals."
           }
         ]
       }

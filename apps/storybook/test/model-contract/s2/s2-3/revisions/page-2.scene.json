@@ -116,7 +116,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f647-a34d-741c-866e-d7bd5a7a9c0b",
-            "text": "Snap! From the ground in Chile, Rubin takes fast photos of a"
+            "text": "Snap! Rubin takes fast photos."
           }
         ]
       },
@@ -132,7 +132,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f647-a34d-741c-866e-d015914cb065",
-            "text": "Over ten years, Rubin will picture billions of galaxies!"
+            "text": "Billions of galaxies!"
           }
         ]
       }

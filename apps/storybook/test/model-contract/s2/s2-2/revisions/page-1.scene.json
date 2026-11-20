@@ -123,7 +123,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f645-c2f1-71bb-90fc-15e90782c8df",
-            "text": "Scientists and volunteers across 22 European countries work "
+            "text": "Scientists in many countries!"
           },
           {
             "action": "play_sfx",
@@ -139,7 +139,7 @@
           {
             "action": "show_bubble",
             "target": "01a1f645-c2f1-71bb-90fc-1b992b6213e9",
-            "text": "Little cameras in forests, mountains, farms, and beaches!"
+            "text": "Little cameras everywhere!"
           },
           {
             "action": "set_expression",
