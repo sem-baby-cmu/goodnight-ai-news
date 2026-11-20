@@ -71,12 +71,16 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
   const audio = () => (audioRef.current ??= new PlayerAudio(narrationRef.current!, sfxRef.current!));
 
   // The release: the manifest, every page JSON, and one resolver per page,
-  // made once. A stale result (StrictMode, another ID) is dropped.
+  // made once. One load per mount and ID: the StrictMode second effect run
+  // reuses the request, so no release file is requested twice. A stale
+  // result (StrictMode, another ID) is dropped.
+  const loadRef = useRef<{ id: string; promise: Promise<LoadedRelease> } | null>(null);
   useEffect(() => {
     let live = true;
     setState({ kind: "loading", book: null });
     setSettled(false);
-    loadRelease(releaseId).then(
+    if (loadRef.current?.id !== releaseId) loadRef.current = { id: releaseId, promise: loadRelease(releaseId) };
+    loadRef.current.promise.then(
       (release) => {
         if (!live) return;
         const resolvers = release.pages.map((p) => createReleaseResolver(p, release.root));
