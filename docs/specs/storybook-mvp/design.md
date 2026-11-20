@@ -637,7 +637,7 @@ Tap actions (closed list):
 | :-- | :-- |
 | `play_animation` | Same renderer rule as above. |
 | `play_sfx` | `sfx` must be a key of an active `sfx` asset. |
-| `show_bubble` | Text of at most 60 characters. |
+| `show_bubble` | A short line that the character says: at most 40 characters, ends with `.`, `!`, or `?`, and only printable ASCII characters (U+0020 to U+007E). A failure is reported; code never cuts or changes the text. |
 | `set_expression` | The pair (current pose, new expression) must be legal for the character. On `svg-rig` it swaps face parts; on `svg` and `webp` it swaps the image. |
 | `set_pose` | The pair (new pose, current expression) must be legal. |
 
@@ -1202,6 +1202,10 @@ Zod validation then checks what a JSON schema cannot:
   (`slot_pose_mismatch`, "4. Layout engine");
 - every animation parameter is inside the bounds of its primitive
   ("5. Scene runtime");
+- every `show_bubble` text has at most 40 characters, ends with `.`, `!`,
+  or `?`, and holds only printable ASCII (`bubble_too_long`,
+  `bubble_no_end_mark`, `bubble_not_ascii`). The model JSON schema has no
+  length cap on bubble text, so the model is not cut at a cap (#82);
 - the page has at least one character layer, one animation, and one tap
   interaction.
 
