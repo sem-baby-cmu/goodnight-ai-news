@@ -413,7 +413,7 @@ test("Studio frame 1: story view columns at 1440 and 1024", async ({ page }, tes
     // The side column is as wide as each of its cards.
     expectPx((await boxOf(region(page, "Publish"), "Publish")).width, 360, `side column (Publish) at ${width}`);
     expectPx((await boxOf(region(page, "Releases"), "Releases")).width, 360, `side column (Releases) at ${width}`);
-    await shot(page, `studio-columns-${width}x${height}`);
+    // No shot: it would be the same image as studio-story-<size> (frame of the story page).
   }
   expect(api.unrouted).toEqual([]);
   expect(api.missingFiles).toEqual([]);
@@ -433,6 +433,8 @@ test("Studio frame 2: Start again at rest, focused, and pressed", async ({ page 
   await expect(button).toBeVisible();
   await expect(page.getByRole("group", { name: "script: 0 of 1 done, 1 failed" })).toBeVisible();
   await settle(page);
+  // At rest: the pointer is far from the button.
+  await page.mouse.move(1023, 767);
   await shotAround(page, button, "studio-start-again-rest-1024x768");
 
   await tabTo(page, button);
@@ -645,7 +647,21 @@ test("Studio frame 8: the Publish card Blocked, Ready, Done, and with no answer"
   // Done, after a 201.
   await card.getByRole("button", { name: "Publish release 3" }).click();
   await expect(card.getByText("Release 3 published.")).toBeVisible();
+  // The Soft button of the Done notice: Teal text and no underline, off and on hover (DESIGN.md 4).
+  const openDone = card.getByRole("link", { name: "Open release 3 in the Player" });
+  const softLook = () =>
+    openDone.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { line: style.textDecorationLine, color: style.color };
+    });
+  await page.mouse.move(1023, 767);
+  expect(await softLook(), "Done button with the pointer off").toEqual({ line: "none", color: "rgb(15, 102, 94)" });
   await shotOf(card, "studio-publish-done-1024x768");
+  // Tailwind `hover:` is inside @media (hover: hover): a touch context would test nothing.
+  expect(await page.evaluate(() => matchMedia("(hover: hover)").matches)).toBe(true);
+  await openDone.hover();
+  expect(await softLook(), "Done button on hover").toEqual({ line: "none", color: "rgb(15, 102, 94)" });
+  await shotOf(card, "studio-publish-done-hover-1024x768");
 
   // No answer.
   publish = (route) => route.abort("failed");

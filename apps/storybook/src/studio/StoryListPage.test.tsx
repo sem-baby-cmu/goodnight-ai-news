@@ -1,6 +1,6 @@
-import { cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { renderInRouter, routes, squash, storyListFixture, storyListItem, stubFetch, uuid } from "./fixtures";
+import { renderInRouter, routes, squash, storyListFixture, storyListItem, stubFetch, uuid, words } from "./fixtures";
 import { StoryListPage } from "./StoryListPage";
 
 // Vitest globals are off, so Testing Library does not clean up by itself.
@@ -109,4 +109,64 @@ it("StoryListPage gives the Loading line role status", async () => {
   stubFetch(routes({ "GET /api/studio/stories": () => new Promise(() => {}) }));
   renderInRouter(<StoryListPage />, "/studio", "/studio");
   expect((await screen.findByText("Loading the stories.")).getAttribute("role")).toBe("status");
+});
+
+// "Make story" with no answer: the story may have been made, so the form makes
+// the list fetch again (the "Check the stories list" line must not point at a
+// stale list). The first GET is the mount; the second is the fetch again.
+function stubNoAnswerOnMake(again: () => { status: number; body: unknown }) {
+  let gets = 0;
+  return stubFetch(
+    routes({
+      "GET /api/studio/stories": () => {
+        gets += 1;
+        return gets === 1 ? { status: 200, body: storyListFixture([storyListItem(1, { title: "The fox and the river" })]) } : again();
+      },
+      "POST /api/studio/stories": () => {
+        throw new TypeError("Failed to fetch");
+      },
+    }),
+  );
+}
+
+async function makeStoryWithNoAnswer() {
+  await rowOf("The fox and the river");
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: words(250) } });
+  fireEvent.click(screen.getByRole("button", { name: "Make story" }));
+}
+
+const storyGets = (calls: { method: string; path: string }[]) =>
+  calls.filter((c) => c.method === "GET" && c.path === "/api/studio/stories").length;
+
+it("StoryListPage fetches the stories list again when Make story gets no answer", async () => {
+  const { calls } = stubNoAnswerOnMake(() => ({
+    status: 200,
+    body: storyListFixture([storyListItem(2, { title: "The new story" }), storyListItem(1, { title: "The fox and the river" })]),
+  }));
+  renderInRouter(<StoryListPage />, "/studio", "/studio");
+  await makeStoryWithNoAnswer();
+
+  await waitFor(() => expect(storyGets(calls)).toBe(2));
+  expect(await rowOf("The new story")).toBeTruthy();
+  const alert = screen.getAllByRole("alert").find((a) => squash(a.textContent).includes(squash("No answer came from the server.")));
+  expect(squash(alert?.textContent)).toContain(
+    squash("It is not known if the story was made. Check the stories list before you try again."),
+  );
+});
+
+it("StoryListPage keeps the rows on screen when the list fetched again after Make story also gets no answer", async () => {
+  const { calls } = stubNoAnswerOnMake(() => {
+    throw new TypeError("Failed to fetch");
+  });
+  renderInRouter(<StoryListPage />, "/studio", "/studio");
+  await makeStoryWithNoAnswer();
+
+  await waitFor(() => expect(storyGets(calls)).toBe(2));
+  // Let the failed second fetch settle before the checks.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  });
+  expect(await rowOf("The fox and the river")).toBeTruthy();
+  expect(screen.queryByText(/Could not load the stories/)).toBeNull();
+  expect(screen.queryByText("Reload to try again.")).toBeNull();
 });

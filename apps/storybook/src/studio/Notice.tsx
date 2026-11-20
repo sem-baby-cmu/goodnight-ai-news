@@ -50,12 +50,14 @@ export function Notice({
     >
       <Icon className="size-5" />
       <AlertTitle className="leading-[1.45] font-extrabold">{title}</AlertTitle>
-      {children !== undefined || action !== undefined ? (
+      {children !== undefined ? (
         <AlertDescription className="flex flex-col gap-1 text-[16px] leading-[1.45] font-semibold text-current md:text-[16px] [&_p:not(:last-child)]:mb-0">
           {children}
-          {action !== undefined ? <div className="pt-2">{action}</div> : null}
         </AlertDescription>
       ) : null}
+      {/* Outside AlertTitle and AlertDescription: their `[&_a]` rules would
+          underline a link action and give it Ink text (DESIGN.md 4, Soft button). */}
+      {action !== undefined ? <div className="col-start-2 pt-2">{action}</div> : null}
     </Alert>
   );
 }
