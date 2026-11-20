@@ -11,7 +11,8 @@
     "test:browser": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@storybook/dsl": "workspace:*"
+    "@storybook/dsl": "workspace:*",
+    "@storybook/layout": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0",

@@ -1,4 +1,5 @@
 import type { Animation as SceneAnimation, PageScene, PrimitiveId } from "@storybook/dsl";
+import { layerBoxes, type StageRect } from "@storybook/layout";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import { runTap, type TapContext } from "./actions";
 import { type AnimationGroup, Animator } from "./animator";
@@ -15,6 +16,7 @@ import {
   TEXTURE_OPACITY,
   TEXTURE_TILE,
 } from "./frame";
+import { focusRingRect, hitArea, RING_WIDTH_PX } from "./hitArea";
 import { isLoopable, type KeyframeSpec, keyframesFor, STAGE_H, STAGE_W } from "./keyframes";
 import { entryFor, type LayerNodes, LayerView } from "./LayerView";
 import type { AssetFailure, AssetResolver, LayerState, ScenePhase, SceneViewProps } from "./types";
@@ -513,6 +515,36 @@ export function SceneView(props: SceneViewProps) {
   const taps = play && phase === "current";
   const tappable = useMemo(() => new Set(taps ? page.interactions.map((i) => i.on.tap) : []), [page, taps]);
 
+  // The layout box of a tappable layer in its current state (the box of the
+  // layout checks), or null when it has none.
+  const layoutBox = (instanceId: string): StageRect | null => {
+    if (!tappable.has(instanceId)) return null;
+    const l = page.layers.find((x) => x.instanceId === instanceId);
+    const asset = l && assets.get(l.ref);
+    const entry = asset && entryFor(asset, states.current.get(instanceId) ?? {});
+    return l?.at && entry ? layerBoxes(entry, l.at, l.flip).box : null;
+  };
+
+  // Hit layer (#68 Exact changes 14): one margin per tappable layer that
+  // loaded, below every drawn layer. Only in play mode, phase current.
+  const margins: { instanceId: string; z: number; rect: StageRect }[] = [];
+  for (const l of page.layers) {
+    if (!l.at || !settled.current.has(l.instanceId)) continue;
+    if (failures.current.some((f) => f.key === l.instanceId)) continue;
+    const layout = layoutBox(l.instanceId);
+    const rect = layout && hitArea(layout, box.k);
+    if (rect) margins.push({ instanceId: l.instanceId, z: l.at.z, rect });
+  }
+
+  // Focus ring of the layer with :focus-visible, in CSS px (DESIGN.md 14).
+  const [focused, setFocused] = useState<string | null>(null);
+  const onFocusVisible = useCallback((instanceId: string, visible: boolean) => {
+    setFocused((prev) => (visible ? instanceId : prev === instanceId ? null : prev));
+  }, []);
+  const focusLayout = focused === null ? null : layoutBox(focused);
+  const ring = focusLayout && focusRingRect(focusLayout, box.k);
+  const ringWidth = RING_WIDTH_PX / box.k;
+
   return (
     <div
       ref={viewportRef}
@@ -561,6 +593,43 @@ export function SceneView(props: SceneViewProps) {
             />
           ) : null}
         </div>
+        {margins.length > 0 ? (
+          <div
+            className="sv-hits"
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: BLEED,
+              top: 0,
+              width: STAGE_W,
+              height: STAGE_H,
+              overflow: "hidden",
+              isolation: "isolate",
+              pointerEvents: "none",
+            }}
+          >
+            {margins.map(({ instanceId, z, rect }) => (
+              <div
+                key={instanceId}
+                className="sv-margin"
+                data-instance-id={instanceId}
+                aria-hidden="true"
+                onClick={() => onTap(instanceId)}
+                style={{
+                  position: "absolute",
+                  left: rect.x,
+                  top: rect.y,
+                  width: rect.w,
+                  height: rect.h,
+                  zIndex: z,
+                  pointerEvents: "auto",
+                  cursor: "pointer",
+                  touchAction: "manipulation",
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
         <div
           className="sv-stage"
           style={{
@@ -590,6 +659,7 @@ export function SceneView(props: SceneViewProps) {
                 tappable={tappable.has(layer.instanceId)}
                 hidden={play && !enterStarted.current && hasEnterFade(page, layer.instanceId)}
                 onTap={onTap}
+                onFocusVisible={onFocusVisible}
                 register={register}
                 onSvg={onSvg}
                 onReady={onReady}
@@ -623,6 +693,24 @@ export function SceneView(props: SceneViewProps) {
           style={{ position: "absolute", left: BLEED, top: 0, width: STAGE_W, height: STAGE_H, pointerEvents: "none" }}
         >
           {bubble ? <Bubble key={bubble.key} text={bubble.text} x={bubble.x} bottom={bubble.bottom} /> : null}
+          {ring ? (
+            <div
+              className="sv-focus-ring"
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: ring.x,
+                top: ring.y,
+                width: ring.w,
+                height: ring.h,
+                boxSizing: "border-box",
+                // From the outside: 3 px Sun yellow, 3 px Ink, 3 px gap, the box.
+                border: `${ringWidth}px solid var(--sun, #E2AE4A)`,
+                boxShadow: `inset 0 0 0 ${ringWidth}px var(--ink, #3A2E25)`,
+                pointerEvents: "none",
+              }}
+            />
+          ) : null}
         </div>
       </div>
     </div>

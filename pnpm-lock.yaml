@@ -447,6 +447,9 @@ importers:
       '@storybook/dsl':
         specifier: workspace:*
         version: link:../dsl
+      '@storybook/layout':
+        specifier: workspace:*
+        version: link:../layout
     devDependencies:
       '@testing-library/dom':
         specifier: 'catalog:'
