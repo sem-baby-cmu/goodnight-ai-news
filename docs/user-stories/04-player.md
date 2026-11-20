@@ -20,7 +20,7 @@ Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", 
 - Given a release page with `svg-rig`, `svg`, and `webp` layers
 - When the Player shows the page
 - Then `svg` and `svg-rig` assets are inlined, and `webp` assets are `<img>` elements; the stage is 1600 x 1200 units, scaled to the container with CSS; the backdrop variant of the page is drawn in a frame of 2400 x 1200 units with the stage in the middle; the layers are in a stage container that clips them to 1600 x 1200; one paper texture image is tiled over the frame with `mix-blend-mode: multiply`, and no layer has an SVG filter
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ### PLY-01.S3 Animations run on their target layers
 - Given a page with animations
@@ -56,43 +56,43 @@ Spec: requirements US-5, AC-19, "Core Features" 5 · design "4. Layout engine", 
 - Given a page in play mode, and a tappable layer whose drawn box is 30 x 40 CSS px on the screen and is not near the stage edge
 - When the child taps a point 10 CSS px outside the box
 - Then the actions of the layer run; its hit area is 64 x 64 CSS px, centred on the box
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/browser/hit-layer.browser.test.tsx
 
 ### PLY-01.S9 A hit area at the stage edge is cut, not moved
 - Given a page in play mode, and a tappable layer whose drawn box is 30 x 30 CSS px and touches the left edge of the stage
 - When the hit area of the layer is computed
 - Then it is 47 CSS px wide and 64 CSS px high: it starts at the left edge of the stage and ends 17 CSS px right of the box; no part of it is outside the stage, and it is not moved to the right
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/hit-area.test.ts
 
 ### PLY-01.S10 A drawn box wins over the margin of another layer
 - Given two tappable layers, where the margin of the small layer A covers a part of the drawn box of layer B, and A has the higher `z`
 - When the child taps a point in that part
 - Then the actions of B run, and the actions of A do not
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/browser/hit-layer.browser.test.tsx
 
 ### PLY-01.S11 The higher layer wins between two margins
 - Given two tappable layers whose margins overlap, and a point there that is in no drawn box of a tappable layer
 - When the child taps that point
 - Then the actions of the layer with the higher `z` run
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/browser/hit-layer.browser.test.tsx
 
 ### PLY-01.S12 A box that is wider than the stage is cut at the stage edge
 - Given a page in play mode, and a tappable prop whose layout box is 1700 stage units wide and centred on the stage (it passes the bounds check)
 - When the hit area of the layer is computed
 - Then its drawn box is the layout box cut at the stage edge, 1600 stage units wide; the hit area is that box, no part of it is outside the stage, and nothing is moved
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/hit-area.test.ts
 
 ### PLY-01.S13 The keyboard focus is on the layer, not on its margin
 - Given a page in play mode, and a small tappable layer that has a margin in the hit layer
 - When a keyboard user moves the focus with Tab
 - Then the focus is on the layer element, which has the role and the name; the margin element has no role, is not in the tab order, and is hidden from assistive technology
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/scene-view.test.tsx
 
 ### PLY-01.S14 The focus ring of a layer is drawn in the stage overlay
 - Given a stage that is 390 CSS px wide, and a tappable layer whose drawn box touches the left edge of the stage
 - When the layer gets the keyboard focus
 - Then its focus ring is in the stage overlay, around the drawn box: 3 CSS px Ink, 3 CSS px away, and 3 CSS px Sun yellow, not scaled with the stage; the clip of the stage does not cut it, and it stays inside the stage area
-- Test: spec (to implement)
+- Test: @storybook/scene-runtime · packages/scene-runtime/test/browser/hit-layer.browser.test.tsx
 
 ## PLY-02 Each page is read aloud
 
