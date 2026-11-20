@@ -59,7 +59,32 @@ function character(
   };
 }
 
+// A backdrop SVG of 2400 x 1200 units with one local reference (#68).
+const MEADOW = `<svg ${NS} viewBox="0 0 2400 1200"><defs><linearGradient id="sky"><stop offset="0"/></linearGradient></defs><rect fill="url(#sky)" width="2400" height="1200"/></svg>`;
+
 export const ASSETS: Record<string, FakeAsset> = {
+  // Backdrop with an svg variant for every sky (#68, Exact changes 11).
+  meadow: {
+    renderer: "svg",
+    manifest: {
+      kind: "backdrop",
+      description: "an open meadow with soft hills",
+      size: { width: 2400, height: 1200 },
+      variants: (["day", "cloudy", "dusk", "night"] as const).map((sky) => ({ sky, file: `${sky}.svg` })),
+    },
+    files: { "day.svg": MEADOW, "cloudy.svg": MEADOW, "dusk.svg": MEADOW, "night.svg": MEADOW },
+  },
+  // WebP backdrop with the day and night variants only.
+  pond: {
+    renderer: "webp",
+    manifest: {
+      kind: "backdrop",
+      description: "a pond",
+      size: { width: 2400, height: 1200 },
+      variants: (["day", "night"] as const).map((sky) => ({ sky, file: `${sky}.webp` })),
+    },
+    files: {},
+  },
   // svg-rig character. Legal: stand/happy, stand/sad, sit/happy.
   pip: character(
     "svg-rig",
@@ -212,6 +237,7 @@ export function page(
   animations: Animation[] = [],
   interactions: Interaction[] = [],
   sky: PageScene["sky"] = "night",
+  backdrop = "meadow",
 ): PageScene {
-  return { templateId: "t-1", backdrop: "meadow", sky, layers, animations, interactions };
+  return { templateId: "t-1", backdrop, sky, layers, animations, interactions };
 }
