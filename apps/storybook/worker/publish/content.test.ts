@@ -21,6 +21,52 @@ async function published() {
   return { seeded, result };
 }
 
+// A story with releases 1 and 2, and four files of each release: the
+// manifest, a page JSON, an image, and an audio file (paths after the
+// release ID).
+async function twoReleases() {
+  const seeded = await seedPublishableStory(env);
+  const releaseIds: string[] = [];
+  for (const n of [1, 2]) {
+    const result = await publishStory(env, seeded.storyId);
+    if (!result.ok) throw new Error(`publish failed: ${JSON.stringify(result)}`);
+    expect(result.number).toBe(n);
+    releaseIds.push(result.releaseId);
+  }
+  const pageId = seeded.pageIds[0]!;
+  const releases = [];
+  for (const id of releaseIds) {
+    const listed = await env.BUCKET.list({ prefix: `releases/${id}/assets/` });
+    const image = listed.objects.map((o) => o.key).find((k) => k.endsWith(".webp"));
+    expect(image, id).toBeDefined();
+    releases.push({
+      id,
+      files: {
+        manifest: "manifest.json",
+        page: `pages/${pageId}.json`,
+        image: image!.slice(`releases/${id}/`.length),
+        audio: `audio/${pageId}.wav`,
+      },
+    });
+  }
+  return { storyId: seeded.storyId, releases };
+}
+
+// The take-off of release 2 sets `withdrawn_through` to 2 (ADR 0017 decision 20).
+async function withdrawThrough(storyId: string, n: number) {
+  await env.DB.prepare("UPDATE story SET withdrawn_through = ? WHERE id = ?").bind(n, storyId).run();
+}
+
+const url = (releaseId: string, path: string) => `/content/releases/${releaseId}/${path}`;
+
+// The answer for a withdrawn release: the same as for a release that does not exist.
+async function expectGone(res: Response, label: string) {
+  expect(res.status, label).toBe(404);
+  expect(res.headers.get("cache-control"), label).toBe("no-store");
+  expect(res.headers.get("content-range"), label).toBeNull();
+  expect(await res.json(), label).toEqual({ error: "not_found" });
+}
+
 describe("content route", () => {
   it("PUB-01.S8 content route serves the manifest with the immutable header", async () => {
     const { result } = await published();
@@ -68,6 +114,72 @@ describe("content route", () => {
       // A dot-dot path does not reach the handler: the URL parser removes the
       // segments, and the app's own 404 answers. No 404 is cached as immutable.
       expect(res.headers.get("cache-control") ?? "", path).not.toContain("immutable");
+    }
+  });
+
+  it("PUB-04.S3 the content route does not serve a withdrawn release", async () => {
+    const { storyId, releases } = await twoReleases();
+    for (const r of releases) expect((await get(url(r.id, "manifest.json"))).status, r.id).toBe(200);
+    await withdrawThrough(storyId, 2);
+
+    const none = await get(url(newId(), "manifest.json"));
+    const noneBody = await none.text();
+    expect(none.status).toBe(404);
+    expect(JSON.parse(noneBody)).toEqual({ error: "not_found" });
+    for (const r of releases) {
+      const res = await get(url(r.id, "manifest.json"));
+      expect(res.status, r.id).toBe(none.status);
+      expect(res.headers.get("cache-control"), r.id).toBe(none.headers.get("cache-control"));
+      expect(res.headers.get("content-type"), r.id).toBe(none.headers.get("content-type"));
+      expect(await res.text(), r.id).toBe(noneBody);
+    }
+  });
+
+  it("PUB-04.S13 a page JSON of a withdrawn release gives 404", async () => {
+    const { storyId, releases } = await twoReleases();
+    for (const r of releases) expect((await get(url(r.id, r.files.page))).status, r.id).toBe(200);
+    await withdrawThrough(storyId, 2);
+    for (const r of releases) await expectGone(await get(url(r.id, r.files.page)), r.id);
+  });
+
+  it("PUB-04.S14 an image of a withdrawn release gives 404", async () => {
+    const { storyId, releases } = await twoReleases();
+    for (const r of releases) expect((await get(url(r.id, r.files.image))).status, r.id).toBe(200);
+    await withdrawThrough(storyId, 2);
+    for (const r of releases) await expectGone(await get(url(r.id, r.files.image)), r.id);
+  });
+
+  it("PUB-04.S15 a Range request for an audio file of a withdrawn release gives 404", async () => {
+    const { storyId, releases } = await twoReleases();
+    const range = { Range: "bytes=0-" };
+    // The path is a real file before the take-off.
+    for (const r of releases) expect([200, 206], r.id).toContain((await get(url(r.id, r.files.audio), range)).status);
+    await withdrawThrough(storyId, 2);
+    for (const r of releases) {
+      const res = await get(url(r.id, r.files.audio), range);
+      expect(res.status, r.id).not.toBe(206);
+      await expectGone(res, r.id);
+    }
+  });
+
+  it("PUB-04.S16 a conditional request for a file of a withdrawn release gives 404", async () => {
+    const { storyId, releases } = await twoReleases();
+    const tags: Array<{ path: string; etag: string }> = [];
+    for (const r of releases) {
+      for (const file of Object.values(r.files)) {
+        const res = await get(url(r.id, file));
+        expect(res.status, file).toBe(200);
+        const etag = res.headers.get("etag");
+        expect(etag, file).toBeTruthy();
+        tags.push({ path: url(r.id, file), etag: etag! });
+      }
+    }
+    expect(tags).toHaveLength(8);
+    await withdrawThrough(storyId, 2);
+    for (const t of tags) {
+      const res = await get(t.path, { "If-None-Match": t.etag });
+      expect(res.status, t.path).not.toBe(304);
+      await expectGone(res, t.path);
     }
   });
 

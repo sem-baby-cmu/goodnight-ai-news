@@ -67,6 +67,16 @@ async function point(storyId: string, releaseId: string): Promise<void> {
     .run();
 }
 
+// Takes the story off the shelf with the release that its pointer names.
+async function takeOff(storyId: string, releaseId: string): Promise<void> {
+  const res = await app.request(
+    `http://localhost/api/studio/stories/${storyId}/withdrawal`,
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ releaseId }) },
+    env,
+  );
+  expect(res.status).toBe(200);
+}
+
 // The `console.error` calls whose JSON names `storyId`.
 function logsOf(spy: { mock: { calls: unknown[][] } }, storyId: string): string[] {
   return spy.mock.calls
@@ -287,5 +297,45 @@ describe("GET /api/shelf", () => {
     expect(lines).toHaveLength(1);
     expect(JSON.parse(lines[0]!)).toEqual({ event: "shelf_skipped", storyId: b.storyId, releaseId: relA, reason: "wrong_story" });
     expect(lines[0]).not.toContain("Title Of Book A");
+  });
+
+  it("PUB-04.S2 a story that was taken off is not in the shelf list", async () => {
+    const logs = vi.spyOn(console, "error").mockImplementation(() => {});
+    const a = await published();
+    const b = await published();
+    await takeOff(b.storyId, b.releaseId);
+
+    const books = only(await shelfBooks(), [a.releaseId, b.releaseId]);
+    expect(books.map((x) => x.releaseId)).toEqual([a.releaseId]);
+    expect(logsOf(logs, b.storyId)).toEqual([]);
+  });
+
+  it("PUB-04.S10 a new release puts the story back on the shelf", async () => {
+    const a = await published();
+    const a2 = await publishStory(env, a.storyId);
+    if (!a2.ok) throw new Error(`publish failed: ${JSON.stringify(a2)}`);
+    expect(a2.number).toBe(2);
+    const b = await published();
+    await takeOff(a.storyId, a2.releaseId);
+    expect(only(await shelfBooks(), [a.releaseId, a2.releaseId, b.releaseId]).map((x) => x.releaseId)).toEqual([b.releaseId]);
+
+    const a3 = await publishStory(env, a.storyId);
+    if (!a3.ok) throw new Error(`publish failed: ${JSON.stringify(a3)}`);
+    expect(a3.number).toBe(3);
+
+    const books = only(await shelfBooks(), [a.releaseId, a2.releaseId, a3.releaseId, b.releaseId]);
+    expect(books.map((x) => x.releaseId)).toEqual([b.releaseId, a3.releaseId]);
+
+    const manifest = (id: string) => app.request(`http://localhost/content/releases/${id}/manifest.json`, {}, env);
+    const served = await manifest(a3.releaseId);
+    expect(served.status).toBe(200);
+    expect(await served.text()).toBe(await (await env.BUCKET.get(a3.manifestKey))!.text());
+    for (const id of [a.releaseId, a2.releaseId]) {
+      const res = await manifest(id);
+      expect(res.status, id).toBe(404);
+      expect(await res.json()).toEqual({ error: "not_found" });
+    }
+    const [row] = await db().select({ withdrawnThrough: story.withdrawnThrough }).from(story).where(eq(story.id, a.storyId));
+    expect(row!.withdrawnThrough).toBe(2);
   });
 });
