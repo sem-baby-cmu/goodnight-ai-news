@@ -164,6 +164,14 @@ async function box(locator: Locator): Promise<Box> {
   expect(b, "element has a box").not.toBeNull();
   return b!;
 }
+
+// `pip` has a `float` loop, so its box never stops moving and
+// `locator.click()` waits for a stable box until the timeout. A real
+// pointer tap on the middle of the box, as a child taps a moving picture.
+async function tapPip(page: Page) {
+  const b = await box(page.getByRole("button", { name: "pip" }));
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+}
 const intersects = (a: Box, b: Box) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 const inside = (inner: Box, outer: Box) =>
@@ -195,7 +203,7 @@ test("PLY-01.S1 the Player reads the one release in the URL", async ({ page }) =
   expect(content[0]!.path).toBe(`${ROOT}manifest.json`);
   expect(content.every((r) => r.path.startsWith(ROOT))).toBe(true);
   const fetches = await page.evaluate(() => window.__fetches);
-  const first = fetches.find((f) => new URL(f.url, location.href).pathname.startsWith("/content/releases/"))!;
+  const first = fetches.find((f) => new URL(f.url, page.url()).pathname.startsWith("/content/releases/"))!;
   expect(new URL(first.url, page.url()).pathname).toBe(`${ROOT}manifest.json`);
   expect(first.cache).toBe("no-cache");
 
@@ -204,7 +212,7 @@ test("PLY-01.S1 the Player reads the one release in the URL", async ({ page }) =
   );
   expect(ids.sort()).toEqual(pages[0]!.scene.layers.map((l) => l.instanceId).sort());
   expect((await narrationPlays(page)).some((p) => p.src.endsWith(ROOT + pages[0]!.audio))).toBe(true);
-  await page.getByRole("button", { name: "pip" }).click();
+  await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
 });
 
@@ -238,7 +246,7 @@ test("PLY-02.S3 sound effects use a second shared element", async ({ page }) => 
   await setup(page);
   await open(page);
   await startBook(page);
-  await page.getByRole("button", { name: "pip" }).click();
+  await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
   const all = await plays(page);
   const sfx = all.map((p, i) => ({ ...p, i })).filter((p) => p.id === "sfx-audio");
@@ -349,7 +357,7 @@ test("PLY-02.S9 a sound effect that cannot play is quiet", async ({ page }) => {
   net.answer = (rel) => (rel === "assets/ding/v1/ding.wav" ? { status: 404 } : undefined);
   await open(page);
   await startBook(page);
-  await page.getByRole("button", { name: "pip" }).click();
+  await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
   await expect.poll(() => net.count("assets/ding/v1/ding.wav")).toBe(1);
   expect(errors).toEqual([]);
@@ -363,7 +371,7 @@ test("PLY-03.S1 the Player works in Safari on iPad and iPhone", async ({ page },
   await open(page);
   await startBook(page);
   expect(await page.locator("[data-instance-id]:not(.sv-margin)").count()).toBe(pages[0]!.scene.layers.length);
-  await page.getByRole("button", { name: "pip" }).click();
+  await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
   await nextButton(page).click();
   await expect(narration(page)).toHaveText(pages[1]!.text);
@@ -760,7 +768,7 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
   await setup(page);
   await open(page);
   await startBook(page);
-  await page.getByRole("button", { name: "pip" }).click();
+  await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
   await nextButton(page).click();
   await expect(narration(page)).toHaveText(pages[1]!.text);
