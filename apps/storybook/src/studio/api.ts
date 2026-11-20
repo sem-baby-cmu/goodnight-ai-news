@@ -28,15 +28,46 @@ type StartRunResponse = z.infer<typeof StartRunResponseSchema>;
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; body: unknown };
 
-// Same-origin fetch. Never throws: an HTTP error status and a network error
-// are results too (status 0 for no answer).
+// No full answer (the status and the whole body) in this time: the request
+// ends as no answer. design.md "Error Handling" (#119).
+const REQUEST_TIMEOUT_MS = 20_000;
+
+// Same-origin fetch. Never throws: an HTTP error status, a network error, and
+// no answer in REQUEST_TIMEOUT_MS are results too (status 0 for no answer).
+// Only a GET is aborted at the deadline: it writes nothing. A request with
+// another method keeps its connection, so the Worker is not cut off in the
+// middle of a write (#119); its late answer is ignored.
 async function call<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<ApiResult<T>> {
+  const controller = method === "GET" ? new AbortController() : undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<ApiResult<T>>((resolve) => {
+    timer = setTimeout(() => {
+      // Resolve first: a body read that the abort breaks must not win.
+      resolve({ ok: false, status: 0, body: null });
+      controller?.abort();
+    }, REQUEST_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([send<T>(method, path, body, controller?.signal), deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// One request and its body. Never throws.
+async function send<T>(
+  method: "GET" | "POST",
+  path: string,
+  body: unknown,
+  signal: AbortSignal | undefined,
+): Promise<ApiResult<T>> {
   let res: Response;
   try {
     res = await fetch(path, {
       method,
       ...(method === "POST" ? { headers: { "content-type": "application/json" } } : {}),
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      ...(signal ? { signal } : {}),
     });
   } catch {
     return { ok: false, status: 0, body: null };
