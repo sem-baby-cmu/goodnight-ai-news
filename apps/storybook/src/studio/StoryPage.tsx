@@ -16,8 +16,6 @@ import { useRunPoll } from "./useRunPoll";
 type Load = { kind: "loading" } | { kind: "error"; status: number } | { kind: "ok"; data: StoryDetailResponse };
 type Pages = StoryDetailResponse["pages"];
 
-const ACTIVE = new Set(["queued", "running"]);
-
 function sourceOf(source: StoryDetailResponse["source"]): { url: string | null; truncated: boolean } {
   const c = source.content;
   if (typeof c !== "object" || c === null) return { url: null, truncated: false };
@@ -95,14 +93,10 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
     };
   }, []);
 
-  // The run to poll: `runId`, else the latest run while it is queued or
-  // running. Once chosen, it stays, so the Run card keeps its last answer.
+  // The run of the Run card: `runId`, else the latest run. An ended run is read
+  // once (`useRunPoll` stops at an end status).
   const data = load.kind === "ok" ? load.data : undefined;
-  const wanted =
-    runId ?? (data?.latestRun && ACTIVE.has(data.latestRun.status) ? data.latestRun.id : undefined);
-  const [followed, setFollowed] = useState<string | undefined>(undefined);
-  if (wanted !== undefined && wanted !== followed) setFollowed(wanted);
-  const pollId = runId ?? followed;
+  const pollId = runId ?? data?.latestRun?.id;
   const { latest, lost } = useRunPoll(pollId, refetch);
 
   async function startAgain() {
@@ -118,14 +112,10 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
       return;
     }
     const error = errorOf(r.body);
-    const body = r.body as { runId?: unknown };
-    if (r.status === 409 && error === "run_active" && typeof body.runId === "string") {
-      void navigate({ to: "/studio/stories/$storyId", params: { storyId }, search: { runId: body.runId } });
-      void refetch();
-      return;
-    }
     if (r.status === 409 && error === "full_run_not_allowed") {
       setRunFailure({ title: "A full run is not allowed for this story." });
+      // A run may be active: the new `latestRun` is then the run the card follows.
+      void refetch();
       return;
     }
     if (r.status === 503) {

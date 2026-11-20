@@ -434,26 +434,6 @@ it("Start again on 409 full_run_not_allowed fetches the story again and follows 
   await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === runPath(activeRun))).toHaveLength(1));
 });
 
-it("Start again on 409 run_active navigates with the runId of the answer and polls that run", async () => {
-  const activeRun = uuid(322);
-  let answers = 0;
-  const { calls } = stubStory(
-    () => {
-      answers += 1;
-      return answers === 1 ? failedWithoutOutline() : restarted(activeRun);
-    },
-    {
-      [`POST ${storyPath}/runs`]: { status: 409, body: { error: "run_active", runId: activeRun } },
-      [`GET ${runPath(activeRun)}`]: { status: 200, body: runFixture("running", [], { id: activeRun }) },
-    },
-  );
-  const { router } = renderStory();
-
-  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
-  await waitFor(() => expect(searchOf(router).runId).toBe(activeRun));
-  await waitFor(() => expect(calls.some((c) => c.method === "GET" && c.path === runPath(activeRun))).toBe(true));
-});
-
 it('Start again on 503 shows "Could not start the run. Nothing was changed. Try again." and fetches the story again', async () => {
   const { calls } = stubStory(failedWithoutOutline(), {
     [`POST ${storyPath}/runs`]: { status: 503, body: { error: "workflow_unavailable", runId: uuid(323) } },
