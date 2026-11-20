@@ -1,0 +1,211 @@
+{
+  "pageId": "01936b2a-0000-7000-8000-000000000011",
+  "text": "Pip the little robot rolled down to the pond to say hello.",
+  "audio": "audio/01936b2a-0000-7000-8000-000000000011.wav",
+  "scene": {
+    "templateId": "duo-ground",
+    "backdrop": "meadow",
+    "sky": "day",
+    "layers": [
+      {
+        "instanceId": "01936b2a-0000-7000-8000-000000000021",
+        "kind": "character",
+        "ref": "pip",
+        "pose": "stand",
+        "expression": "calm",
+        "slot": "center",
+        "at": {
+          "x": 800,
+          "y": 1050,
+          "scale": 3,
+          "z": 2
+        }
+      },
+      {
+        "instanceId": "01936b2a-0000-7000-8000-000000000031",
+        "kind": "character",
+        "ref": "cat",
+        "pose": "stand",
+        "expression": "calm",
+        "slot": "center",
+        "at": {
+          "x": 1250,
+          "y": 1100,
+          "scale": 4,
+          "z": 1
+        }
+      }
+    ],
+    "animations": [
+      {
+        "target": "01936b2a-0000-7000-8000-000000000021",
+        "primitive": "float",
+        "params": {
+          "amplitude": 0.01,
+          "period": 4
+        },
+        "trigger": "loop"
+      },
+      {
+        "target": "01936b2a-0000-7000-8000-000000000021",
+        "primitive": "fade-in",
+        "params": {
+          "delay": 0
+        },
+        "trigger": "enter"
+      },
+      {
+        "target": "01936b2a-0000-7000-8000-000000000031",
+        "primitive": "fade-in",
+        "params": {
+          "delay": 0
+        },
+        "trigger": "enter"
+      }
+    ],
+    "interactions": [
+      {
+        "on": {
+          "tap": "01936b2a-0000-7000-8000-000000000021"
+        },
+        "do": [
+          {
+            "action": "play_animation",
+            "target": "01936b2a-0000-7000-8000-000000000021",
+            "primitive": "pop"
+          },
+          {
+            "action": "play_sfx",
+            "sfx": "ding"
+          },
+          {
+            "action": "show_bubble",
+            "target": "01936b2a-0000-7000-8000-000000000021",
+            "text": "Hello!"
+          },
+          {
+            "action": "set_expression",
+            "target": "01936b2a-0000-7000-8000-000000000021",
+            "expression": "happy"
+          }
+        ]
+      }
+    ]
+  },
+  "assets": {
+    "meadow": {
+      "renderer": "svg",
+      "manifest": {
+        "kind": "backdrop",
+        "description": "an open meadow with soft hills",
+        "size": {
+          "width": 2400,
+          "height": 1200
+        },
+        "variants": [
+          {
+            "sky": "day",
+            "file": "day.svg"
+          },
+          {
+            "sky": "cloudy",
+            "file": "cloudy.svg"
+          },
+          {
+            "sky": "dusk",
+            "file": "dusk.svg"
+          },
+          {
+            "sky": "night",
+            "file": "night.svg"
+          }
+        ]
+      },
+      "base": "assets/meadow/v1/"
+    },
+    "pip": {
+      "renderer": "svg-rig",
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "stand",
+            "file": "stand.svg",
+            "foot": {
+              "x": 50,
+              "y": 200
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 100,
+              "h": 200
+            }
+          }
+        ],
+        "expressions": [
+          "calm",
+          "happy"
+        ],
+        "legal": [
+          {
+            "pose": "stand",
+            "expression": "calm"
+          },
+          {
+            "pose": "stand",
+            "expression": "happy"
+          }
+        ],
+        "flippable": true,
+        "parts": [
+          "part-eyes"
+        ]
+      },
+      "base": "assets/pip/v1/"
+    },
+    "cat": {
+      "renderer": "webp",
+      "manifest": {
+        "kind": "character",
+        "poses": [
+          {
+            "id": "stand",
+            "file": "stand.webp",
+            "foot": {
+              "x": 32,
+              "y": 64
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 64,
+              "h": 64
+            },
+            "expression": "calm"
+          }
+        ],
+        "expressions": [
+          "calm"
+        ],
+        "legal": [
+          {
+            "pose": "stand",
+            "expression": "calm"
+          }
+        ],
+        "flippable": true
+      },
+      "base": "assets/cat/v1/"
+    },
+    "ding": {
+      "renderer": "audio",
+      "manifest": {
+        "kind": "sfx",
+        "file": "ding.wav",
+        "durationMs": 1000
+      },
+      "base": "assets/ding/v1/"
+    }
+  }
+}
