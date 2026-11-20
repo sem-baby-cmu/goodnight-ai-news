@@ -7,6 +7,7 @@ import {
   type PageScene,
   PageTextSchema,
   type RegistrySnapshot,
+  type Issue,
   type SceneDraft,
   SceneDraftSchema,
   assignSceneIds,
@@ -129,6 +130,20 @@ async function callsOf(runId: string, step?: string) {
   const rows = await db().select().from(callLog).where(eq(callLog.runId, runId));
   return rows.filter((r) => step === undefined || r.step === step);
 }
+
+// The #64 columns, read with SQL: this file must compile before schema.ts has them.
+type CallColumns = { step: string; purpose: "first" | "repair"; model: string; configured_model: string | null; repair_issues: Issue[] | null };
+async function callColumns(runId: string, step?: string): Promise<CallColumns[]> {
+  const { results } = await env.DB.prepare(
+    "SELECT step, purpose, model, configured_model, repair_issues FROM call_log WHERE run_id = ? ORDER BY step, purpose",
+  )
+    .bind(runId)
+    .all<Omit<CallColumns, "repair_issues"> & { repair_issues: string | null }>();
+  return results
+    .filter((r) => step === undefined || r.step === step)
+    .map((r) => ({ ...r, repair_issues: r.repair_issues === null ? null : (JSON.parse(r.repair_issues) as Issue[]) }));
+}
+const repairLines = (issues: Issue[]) => issues.map((i) => `- ${i.path}: ${i.message}`).join("\n");
 
 async function pageNumberOf(storyId: string, pageId: string): Promise<number> {
   return (await readStory(storyId)).pageIds.indexOf(pageId) + 1;
@@ -1207,5 +1222,62 @@ describe("StoryRunWorkflow", () => {
     const shuffled = ["scene:b", "audio:c", "scene:a", "audio:a", "error:x"].map(rec);
     await finishStep(env, d.ids.runId, d.ids.storyId, { failed: false, errors: shuffled });
     expect((await readRun(d.ids.runId)).error!.errors.map((e) => e.step)).toEqual(["audio:a", "audio:c", "error:x", "scene:a", "scene:b"]);
+  });
+
+  it("RUN-05.S15 a scene repair call stores the issues of the first attempt", async () => {
+    const s = await setup((registry) => ({
+      "scene:1": (attempt) => (attempt === 1 ? { value: propInCharacterSlot(registry) } : undefined),
+    }));
+    const prompts = captureScenePrompts(s.stub);
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    const p1 = (await readStory(s.ids.storyId)).pageIds[0]!;
+    const [first, repair] = await callColumns(s.ids.runId, `scene:${p1}`);
+    expect([first!.purpose, repair!.purpose]).toEqual(["first", "repair"]);
+    expect(first!.repair_issues).toBeNull();
+    expect(repair!.repair_issues!.map((i) => i.code)).toContain("slot_kind_mismatch");
+    const repairPrompts = prompts.filter((p) => p.includes("Fix these problems and answer again:"));
+    expect(repairPrompts).toHaveLength(1);
+    expect(repairPrompts[0]!.endsWith(`Fix these problems and answer again:\n${repairLines(repair!.repair_issues!)}`)).toBe(true);
+  });
+
+  it("RUN-05.S15 a script repair call stores the issues of the first attempt", async () => {
+    const s = await setup((registry) => ({
+      script: (attempt) => (attempt === 1 ? { value: { ...stubScript(registry), title: "" } } : undefined),
+    }));
+    const prompts = capturePrompts(s.stub, "script");
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    const [first, repair] = await callColumns(s.ids.runId, "script");
+    expect([first!.purpose, repair!.purpose]).toEqual(["first", "repair"]);
+    expect(first!.repair_issues).toBeNull();
+    expect(repair!.repair_issues!.length).toBeGreaterThan(0);
+    expect(prompts).toHaveLength(2);
+    expect(prompts[1]!.endsWith(`Fix these problems and answer again:\n${repairLines(repair!.repair_issues!)}`)).toBe(true);
+  });
+
+  it("RUN-05.S15 a scene repair that gets a provider 400 still stores the issues", async () => {
+    const s = await setup((registry) => ({
+      "scene:1": (attempt) => (attempt === 1 ? { value: propInCharacterSlot(registry) } : status(400)),
+    }));
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    expect(s.stub.attempts["scene:1"]).toBe(2);
+    const st = await readStory(s.ids.storyId);
+    const p1 = st.pageIds[0]!;
+    const [first, repair] = await callColumns(s.ids.runId, `scene:${p1}`);
+    expect([first!.purpose, repair!.purpose]).toEqual(["first", "repair"]);
+    expect(repair!.repair_issues!.map((i) => i.code)).toContain("slot_kind_mismatch");
+    expect(st.head(`scene:${p1}`)!.error).toMatchObject({ providerStatus: 400 });
+  });
+
+  it("SYS-05.S6 every call row names the configured model", async () => {
+    const s = await fullRun();
+    const rows = await callColumns(s.ids.runId);
+    expect(rows.length).toBeGreaterThan(0);
+    const configuredFor = (step: string) =>
+      step === "script" ? env.MODEL_SCRIPT : step.startsWith("scene:") ? env.MODEL_SCENE : step.startsWith("audio:") ? env.MODEL_TTS : undefined;
+    for (const row of rows) {
+      expect(row.configured_model, row.step).toBe(configuredFor(row.step));
+      expect(row.configured_model, row.step).not.toBe("");
+      if (row.step === "script" || row.step.startsWith("scene:")) expect(row.model, row.step).toBe("stub");
+    }
   });
 });
