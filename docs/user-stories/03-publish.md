@@ -133,6 +133,18 @@ Spec: requirements AC-9 · design "7. Publish", "Staleness", "Error Handling"
 - Then the API returns 409 with the list of the blocking pages and their reasons
 - Test: @storybook/app · apps/storybook/worker/api/routes.test.ts
 
+### PUB-02.S8 The "Publish" card lists the blocking pages
+- Given a draft with 3 pages, whose page 3 has a stale scene
+- When the operator opens the story view
+- Then the "Publish" card has the row "page 3: stale scene", and its primary button is disabled
+- Test: spec (to implement)
+
+### PUB-02.S9 The "Publish" card shows the list of the API
+- Given a draft whose pages the Studio shows as ready
+- When the operator selects "Publish release <n>", and the API answers 409 `publish_blocked`
+- Then the "Publish" card shows the `message` of each blocking item of the answer, and no longer says "All pages are ready."
+- Test: spec (to implement)
+
 ## PUB-03 A published story is a book on the shelf
 
 As the operator, I want a published story to be on the shelf with no other

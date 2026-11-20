@@ -28,6 +28,18 @@ Spec: requirements "Core Features" 4 · design "6. API", "Staleness"
 - Then the `audio` head and the `scene` head of that page are stale, because a basis entry is not the current head
 - Test: @storybook/app · apps/storybook/worker/db/staleness.test.ts
 
+### EDT-01.S4 The Studio shows the stories in a table
+- Given `GET /api/studio/stories` lists two stories, one with a title and one with no title
+- When the operator opens `/studio`
+- Then the "Stories" table has the columns Title, Release, and Created, and one row for each story in the order of the API; each title links to `/studio/stories/<id>`, and the story with no title shows "Untitled"
+- Test: spec (to implement)
+
+### EDT-01.S5 A page card shows the state of each page target
+- Given a page whose `scene` is stale and whose `audio` needs review
+- When the story view shows the card of that page
+- Then the card has the chips "Text ok", "Scene stale", and "Audio needs review"
+- Test: spec (to implement)
+
 ## EDT-02 Change a page text and regenerate only its audio
 
 As the operator, I want to change the text of one page and regenerate only
@@ -228,6 +240,12 @@ Spec: requirements AC-8 · design "3. Calls, revisions, and heads", "Error Handl
 - When `scene:<page 3>` commits
 - Then the scene revision is kept with `status = superseded`; the head does not move; the Studio shows page 3 as missing a current scene, and the operator can regenerate it
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
+
+### EDT-04.S2 The page card shows a page with no current scene
+- Given page 3 of EDT-04.S1, whose `scene` problem in `GET /api/studio/stories/:id` is `missing`
+- When the story view shows the card of page 3
+- Then the card has the chip "Scene missing"
+- Test: spec (to implement)
 
 ## EDT-05 Take a book off the shelf from the Studio
 
