@@ -80,16 +80,15 @@ export function stubScene(registry: RegistrySnapshot): SceneDraft {
   if (!first) throw new Error("stub: no asset with a legal pose and expression pair");
   const sfx = sortedKeys(registry, "sfx")[0];
   if (!sfx) throw new Error("stub: no sfx asset");
-  // The first backdrop in sorted order with a `day` variant, for `sky: "day"`.
-  const backdrop = sortedKeys(registry, "backdrop").find((key) => {
-    const m = registry.assets[key]!.manifest;
-    return m.kind === "backdrop" && m.variants.some((v) => v.sky === "day");
-  });
-  if (!backdrop) throw new Error("stub: no backdrop asset with a day variant");
+  // The first backdrop in sorted order, with its first variant's sky.
+  const backdrop = sortedKeys(registry, "backdrop")[0];
+  const backdropManifest = backdrop === undefined ? undefined : registry.assets[backdrop]!.manifest;
+  const variant = backdropManifest?.kind === "backdrop" ? backdropManifest.variants[0] : undefined;
+  if (!backdrop || !variant) throw new Error("stub: no backdrop asset with a variant");
   return {
     templateId: template.id,
     backdrop,
-    sky: "day",
+    sky: variant.sky,
     layers,
     animations: [{ target: first.slot, primitive: "float", params: { ...PRIMITIVES.float.defaults }, trigger: "loop" }],
     interactions: [

@@ -14,6 +14,10 @@ export async function freezeStep(env: Env, runId: string, storyId: string): Prom
   if (!Object.values(registry.assets).some((a) => a.kind === "character")) {
     throw new NonRetryableError("the active registry has no character asset");
   }
+  // Every scene must name a backdrop; without one every scene step fails.
+  if (!Object.values(registry.assets).some((a) => a.kind === "backdrop")) {
+    throw new NonRetryableError("the active registry has no backdrop asset");
+  }
   await db
     .update(run)
     .set({ status: "running", basis: loaded.story.heads, registry })
