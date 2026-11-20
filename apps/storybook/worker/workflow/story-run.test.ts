@@ -742,6 +742,19 @@ describe("StoryRunWorkflow", () => {
     expect(stub.maxInFlight).toBeLessThanOrEqual(4);
   });
 
+  it("RUN-01.S17 each scene step sees the scenes of the earlier pages", async () => {
+    const s = await setup();
+    const prompts = captureScenePrompts(s.stub);
+    await runWorkflow(s.ids.runId, s.ids.storyId);
+    expect(prompts).toHaveLength(6);
+    prompts.forEach((prompt, i) => {
+      expect(prompt).toContain(`Page ${i + 1}.`);
+      expect(prompt).toContain(`This page: ${i + 1} of 6`);
+      if (i === 0) expect(prompt).toContain("- none");
+      for (let k = 1; k <= i; k++) expect(prompt).toContain(`- page ${k}: solo-center, day, []`);
+    });
+  });
+
   it("RUN-01.S8 finish sets the final status from the heads and does not wait", async () => {
     const a = await directDraft();
     expect(await finishStep(env, a.ids.runId, a.ids.storyId, { failed: false, errors: [] })).toEqual({ status: "draft_ready" });

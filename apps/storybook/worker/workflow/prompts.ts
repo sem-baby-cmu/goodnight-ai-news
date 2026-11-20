@@ -2,6 +2,7 @@ import {
   type AssetManifest,
   type Issue,
   type LayoutTemplate,
+  type PageScene,
   type PrimitiveId,
   type RegistrySnapshot,
   isLayerManifest,
@@ -29,6 +30,12 @@ export const HIDDEN_FROM_MODEL: readonly string[] = ["door", "window"];
 // The registry that prompts and model JSON schemas use (#84).
 export function modelRegistry(registry: RegistrySnapshot): RegistrySnapshot {
   return { assets: Object.fromEntries(Object.entries(registry.assets).filter(([key]) => !HIDDEN_FROM_MODEL.includes(key))) };
+}
+
+export type SceneSummary = { templateId: string; sky: string; scenery: string[] };
+
+export function sceneSummary(scene: PageScene, _shown: RegistrySnapshot): SceneSummary {
+  return { templateId: scene.templateId, sky: scene.sky, scenery: [] };
 }
 
 const PROMPT_PRIMITIVE_KIND: Partial<Record<PrimitiveId, string>> = { sway: "scenery" }; // Prompt rule (#84); validation allows sway on every layer.

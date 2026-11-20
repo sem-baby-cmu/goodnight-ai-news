@@ -1,11 +1,11 @@
 import { env } from "cloudflare:workers";
 import { buildSceneJsonSchema } from "@storybook/dsl";
-import type { RegistrySnapshot } from "@storybook/dsl";
+import type { PageScene, RegistrySnapshot } from "@storybook/dsl";
 import { TEMPLATE_DESCRIPTIONS, TEMPLATES } from "@storybook/layout";
 import { describe, expect, it } from "vitest";
 import { getDb, loadActiveRegistry } from "../db";
 import { seedRegistry } from "../test/fixtures";
-import { modelRegistry, repairSuffix, scenePrompt, scriptPrompt } from "./prompts";
+import { modelRegistry, repairSuffix, scenePrompt, sceneSummary, scriptPrompt } from "./prompts";
 
 // The `enum` values of every schema node under a property with this name.
 function enumsOf(schema: unknown, name: string): unknown[][] {
@@ -199,6 +199,58 @@ describe("prompts", () => {
     };
     const forSchema: RegistrySnapshot = { assets: { ...modelRegistry(r).assets, meadow } };
     expect(enumsOf(buildSceneJsonSchema({ registry: forSchema, templates: TEMPLATES }), "ref")).toEqual([["bear", "tree"]]);
+  });
+
+  it("scenePrompt gives the story so far", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const input = {
+      beat: "b",
+      pageText: "Page 3. Hi.",
+      cast: ["test-bunny"],
+      registry,
+      templates: TEMPLATES,
+      story: { page: 3, pages: 7, earlier: [{ templateId: "solo-center", sky: "day", scenery: ["tree"] }, null] },
+    } as Parameters<typeof scenePrompt>[0];
+    expect(scenePrompt(input).user).toContain(
+      'Story so far (page: template, sky, scenery keys):\n- page 1: solo-center, day, ["tree"]\n- page 2: no scene\nThis page: 3 of 7\n\nBeat:',
+    );
+    const first = { ...input, story: { page: 1, pages: 7, earlier: [] } } as Parameters<typeof scenePrompt>[0];
+    expect(scenePrompt(first).user).toContain("Story so far (page: template, sky, scenery keys):\n- none\nThis page: 1 of 7\n\nBeat:");
+  });
+
+  it("sceneSummary gives the template, the sky, and the sorted unique scenery keys that the model sees", () => {
+    const shown = { assets: { tree: {}, bush: {} } } as unknown as RegistrySnapshot;
+    const scene = {
+      templateId: "big-sky",
+      sky: "dusk",
+      layers: [
+        { kind: "scenery", ref: "tree" },
+        { kind: "character", ref: "bear" },
+        { kind: "scenery", ref: "bush" },
+        { kind: "scenery", ref: "tree" },
+        { kind: "scenery", ref: "door" },
+      ],
+    } as PageScene;
+    expect(sceneSummary(scene, shown)).toEqual({ templateId: "big-sky", sky: "dusk", scenery: ["bush", "tree"] });
+  });
+
+  it("scenePrompt states the neighbour, sky, and last-page rules", async () => {
+    await seedRegistry(env);
+    const registry = await loadActiveRegistry(getDb(env.DB));
+    const input = {
+      beat: "b",
+      pageText: "Page 1. Hi.",
+      cast: ["test-bunny"],
+      registry,
+      templates: TEMPLATES,
+      story: { page: 1, pages: 1, earlier: [] },
+    } as Parameters<typeof scenePrompt>[0];
+    const { system } = scenePrompt(input);
+    expect(system).toContain("Do not use the template of the page just before this one");
+    expect(system).toContain("Change the sky only when the page text gives a reason");
+    expect(system).toContain("choose `dusk` or `night`");
+    expect(system.split("\n").at(-1)).toBe("Answer with JSON only.");
   });
 
   it("scriptPrompt states the reader age, the page count, and the cast rule", () => {
