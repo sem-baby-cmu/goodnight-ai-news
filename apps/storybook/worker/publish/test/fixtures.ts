@@ -11,6 +11,7 @@ export type PublishableOptions = {
   pages?: number;
   missingAudioPage?: number;
   needsReviewScenePage?: number;
+  needsReviewOutline?: boolean;
   staleScenePage?: number;
   missingTextPage?: number;
   missingScenePage?: number;
@@ -78,7 +79,7 @@ export async function seedPublishableStory(env: Env, opts: PublishableOptions = 
   };
   const outlineId = newId();
   const rows: NewRevision[] = [
-    { ...human, id: outlineId, kind: "outline", status: "ok", basis: { source: ids.sourceRevisionId }, content: outline },
+    { ...human, id: outlineId, kind: "outline", status: opts.needsReviewOutline ? "needs_review" : "ok", basis: { source: ids.sourceRevisionId }, content: outline },
   ];
   const moves: Heads = { outline: outlineId };
   const result: PublishableStory = { storyId: ids.storyId, pageIds, outlineId, text: {}, scene: {}, audio: {} };

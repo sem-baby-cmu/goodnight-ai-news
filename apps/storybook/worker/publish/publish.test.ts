@@ -109,7 +109,17 @@ describe("publishStory: block rules", () => {
     expect(result).toEqual({
       ok: false,
       reason: "blocked",
-      blocking: [{ pageId: seeded.pageIds[0], page: 1, target: "scene", reason: "needs_review", message: "page 1: needs_review scene" }],
+      blocking: [{ pageId: seeded.pageIds[0], page: 1, target: "scene", reason: "needs_review", message: "page 1: scene needs review" }],
+    });
+  });
+
+  it("publish blocks a needs_review outline with the message outline needs review", async () => {
+    const seeded = await seedPublishableStory(env, { needsReviewOutline: true });
+    const result = await publishStory(env, seeded.storyId);
+    expect(result).toEqual({
+      ok: false,
+      reason: "blocked",
+      blocking: [{ pageId: null, page: null, target: "outline", reason: "needs_review", message: "outline needs review" }],
     });
   });
 
