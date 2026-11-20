@@ -54,7 +54,8 @@ async function call<T>(method: "GET" | "POST", path: string, body?: unknown): Pr
   }
 }
 
-// One request and its body. Never throws.
+// One request and its body. Never throws. A 2xx whose body cannot be read is no
+// answer (status 0), not ok with no data; another status keeps `body: null`.
 async function send<T>(
   method: "GET" | "POST",
   path: string,
@@ -76,6 +77,7 @@ async function send<T>(
   try {
     parsed = await res.json();
   } catch {
+    if (res.ok) return { ok: false, status: 0, body: null };
     parsed = null;
   }
   return res.ok ? { ok: true, data: parsed as T } : { ok: false, status: res.status, body: parsed };
