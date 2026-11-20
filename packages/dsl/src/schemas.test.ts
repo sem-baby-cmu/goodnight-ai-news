@@ -63,6 +63,14 @@ describe("schemas", () => {
     expect(PageSceneSchema.safeParse({ ...validScene(), sky: "storm" }).success).toBe(false);
   });
 
+  it("PageSceneSchema still parses a stored bubble of 60 characters", () => {
+    const scene = validScene();
+    const bubble = scene.interactions[0]!.do.find((a) => a.action === "show_bubble") as { text: string };
+    bubble.text = `${"a".repeat(59)}.`;
+    expect(bubble.text).toHaveLength(60);
+    expect(PageSceneSchema.safeParse(scene).success).toBe(true);
+  });
+
   it("PageSceneSchema rejects a scene without backdrop", () => {
     const scene = validScene() as unknown as Record<string, unknown>;
     delete scene.backdrop;
