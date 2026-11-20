@@ -1,0 +1,1 @@
+ALTER TABLE `story` ADD `withdrawn_through` integer DEFAULT 0 NOT NULL;

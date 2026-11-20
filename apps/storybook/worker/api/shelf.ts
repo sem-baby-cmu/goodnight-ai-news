@@ -1,8 +1,8 @@
 import type { ShelfResponse } from "./schemas";
 
 // The shelf (ADR 0017, design "6. API" > "Shelf"). One statement. It reads
-// only `story.id` and the pointer from `story`, so no draft value reaches a
-// child (AGENTS section 5). The pointer is the latest release: it moves only
+// only `story.id`, the pointer, and `withdrawn_through` from `story`, so no
+// draft value reaches a child (AGENTS section 5). The pointer is the latest release: it moves only
 // to a higher number of the same story. Order: the first release time of the
 // story, newest first, then the story ID descending. `created_at` is ISO 8601
 // text in one fixed form, so text order is time order.
@@ -10,6 +10,8 @@ const SHELF_SQL = `SELECT s.id AS storyId,
        s.published_release_id AS pointer,
        r.id AS releaseId,
        r.story_id AS releaseStoryId,
+       r.number AS number,
+       s.withdrawn_through AS withdrawnThrough,
        r.title AS title,
        r.created_at AS publishedAt,
        (SELECT MIN(f.created_at) FROM release f WHERE f.story_id = s.id) AS firstAt
@@ -23,6 +25,8 @@ type ShelfRow = {
   pointer: string;
   releaseId: string | null;
   releaseStoryId: string | null;
+  number: number | null;
+  withdrawnThrough: number;
   title: string | null;
   publishedAt: string | null;
   firstAt: string | null;
@@ -48,6 +52,8 @@ export async function loadShelf(d1: D1Database): Promise<ShelfResponse> {
       logSkip(row.storyId, row.pointer, "wrong_story");
       continue;
     }
+    // Taken off the shelf (decision 20). Not a broken pointer: no log line.
+    if (row.number! <= row.withdrawnThrough) continue;
     books.push({ releaseId: row.releaseId, title: row.title!, publishedAt: row.publishedAt! });
   }
   return { books };

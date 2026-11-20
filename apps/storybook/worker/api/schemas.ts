@@ -39,6 +39,9 @@ export const StartRunRequestSchema = z
 // `PageSceneSchema` with an optional `instanceId` (R41). The ID is any
 // string here: an ID that is not a layer of the `basedOn` revision, a
 // malformed one included, is refused as `unknown_instance` (EDT-03.S20).
+// POST /api/studio/stories/:id/withdrawal (ADR 0017 decision 20).
+export const WithdrawalRequestSchema = z.object({ releaseId: uuid }).strict();
+
 export const OperatorLayerSchema = LayerSchema.extend({ instanceId: z.string().optional() });
 export const OperatorSceneSchema = PageSceneSchema.extend({ layers: z.array(OperatorLayerSchema).min(1) });
 
@@ -89,6 +92,9 @@ export const StoryListResponseSchema = z.object({
       status: z.enum(["draft", "published"]),
       createdAt: iso,
       publishedReleaseId: uuid.nullable(),
+      onShelf: z.boolean(),
+      // The number of the pointer's release; null for no pointer or a broken one.
+      publishedReleaseNumber: z.number().int().nullable(),
     }),
   ),
 });
@@ -100,6 +106,7 @@ export const StoryDetailResponseSchema = z.object({
     status: z.enum(["draft", "published"]),
     headsVersion: z.number().int(),
     publishedReleaseId: uuid.nullable(),
+    onShelf: z.boolean(),
     createdAt: iso,
   }),
   heads: z.record(z.string(), uuid),
@@ -116,7 +123,7 @@ export const StoryDetailResponseSchema = z.object({
       audio: RevisionViewSchema.nullable(),
     }),
   ),
-  releases: z.array(z.object({ id: uuid, number: z.number().int(), createdAt: iso })),
+  releases: z.array(z.object({ id: uuid, number: z.number().int(), createdAt: iso, withdrawn: z.boolean() })),
   latestRun: z.object({ id: uuid, status: RUN_STATUS, scope: z.unknown(), error: z.unknown().nullable() }).nullable(),
 });
 
@@ -152,6 +159,14 @@ export const ReleaseCreatedSchema = z.object({
   manifestUrl: z.string(),
   playerUrl: z.string(),
 });
+
+export const WithdrawalResponseSchema = z.object({ storyId: uuid, releaseId: uuid, withdrawnThrough: z.number().int() });
+
+// The pointer names another release than the one in the request.
+export const ReleaseMovedSchema = z.object({ error: z.literal("release_moved"), current: uuid });
+
+// The story has no published release.
+export const NotPublishedSchema = z.object({ error: z.literal("not_published") });
 
 export const PublishBlockedSchema = z.object({ error: z.literal("publish_blocked"), blocking: z.array(BlockingItemSchema) });
 

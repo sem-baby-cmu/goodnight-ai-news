@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { type Issue, type Outline, type PageScene, PageSceneSchema, PageTextSchema, validateScene } from "@storybook/dsl";
 import { TEMPLATES, layoutScene } from "@storybook/layout";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { type Context, Hono, type MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { z } from "zod";
@@ -40,6 +40,7 @@ import {
   StartRunRequestSchema,
   StillFitsRequestSchema,
   UUID_V7,
+  WithdrawalRequestSchema,
 } from "./schemas";
 import { loadShelf } from "./shelf";
 import { fetchArticleText, limitWords } from "./source";
@@ -193,13 +194,29 @@ app.post("/api/studio/stories", body(CreateStoryRequestSchema), async (c) => {
   return c.json({ storyId: ids.storyId, runId: ids.runId, words: limited.words, truncated: limited.truncated }, 202);
 });
 
+// The number of the pointer's release, only when that release row is of the
+// same story; else null (a null or a broken pointer). The outer columns are
+// written as text, so they bind to `story`, not to `r`.
+const pointerNumber = sql<number | null>`(SELECT r.number FROM release r WHERE r.id = story.published_release_id AND r.story_id = story.id)`;
+
 app.get("/api/studio/stories", async (c) => {
   const rows = await getDb(c.env.DB)
-    .select({ id: story.id, title: story.title, status: story.status, createdAt: story.createdAt, publishedReleaseId: story.publishedReleaseId })
+    .select({
+      id: story.id,
+      title: story.title,
+      status: story.status,
+      createdAt: story.createdAt,
+      publishedReleaseId: story.publishedReleaseId,
+      // Invariant 8: on the shelf only when the pointer's release is of the
+      // same story and above `withdrawn_through`. SQLite gives 0 or 1.
+      onShelf: sql<number>`COALESCE(${pointerNumber} > story.withdrawn_through, 0)`,
+      publishedReleaseNumber: pointerNumber,
+    })
     .from(story)
     .orderBy(desc(story.id))
     .limit(100);
-  return c.json({ stories: rows }, 200);
+  const stories = rows.map((r) => ({ ...r, onShelf: Number(r.onShelf) === 1, publishedReleaseNumber: r.publishedReleaseNumber ?? null }));
+  return c.json({ stories }, 200);
 });
 
 app.get("/api/studio/stories/:id", ids, async (c) => {
@@ -219,11 +236,16 @@ app.get("/api/studio/stories/:id", ids, async (c) => {
   const outline = outlineOf(heads, revisions);
   const pages = outline?.pages ?? [];
   const states = pageStates({ pageIds: pages.map((p) => p.pageId), heads, revisions });
-  const releases = await db
+  const rows = await db
     .select({ id: release.id, number: release.number, createdAt: release.createdAt })
     .from(release)
     .where(eq(release.storyId, storyId))
     .orderBy(release.number);
+  const releases = rows.map((r) => ({ ...r, withdrawn: r.number <= row.withdrawnThrough }));
+  // These are the releases of this story, so a pointer to another story's
+  // release, or to no row, gives false (invariant 8).
+  const pointed = releases.find((r) => r.id === row.publishedReleaseId);
+  const onShelf = pointed !== undefined && !pointed.withdrawn;
   const [latest] = await db
     .select({ id: run.id, status: run.status, scope: run.scope, error: run.error })
     .from(run)
@@ -238,6 +260,7 @@ app.get("/api/studio/stories/:id", ids, async (c) => {
         status: row.status,
         headsVersion: row.headsVersion,
         publishedReleaseId: row.publishedReleaseId,
+        onShelf,
         createdAt: row.createdAt,
       },
       heads,
@@ -457,6 +480,48 @@ app.post("/api/studio/stories/:id/releases", ids, async (c) => {
   if (result.reason === "not_found") return notFound(c);
   if (result.reason === "blocked") return c.json({ error: "publish_blocked", blocking: result.blocking }, 409);
   return c.json({ error: "publish_conflict" }, 409);
+});
+
+// Take a book off the shelf (ADR 0017 decision 20). A compare-and-set on the
+// pointer; the only write is `withdrawn_through`. No release, R2 object,
+// head, `heads_version`, status, or pointer changes.
+app.post("/api/studio/stories/:id/withdrawal", ids, body(WithdrawalRequestSchema), async (c) => {
+  const storyId = c.req.param("id");
+  const { releaseId } = c.req.valid("json");
+  const readStory = () =>
+    c.env.DB.prepare("SELECT published_release_id AS pointer, withdrawn_through AS withdrawnThrough FROM story WHERE id = ?")
+      .bind(storyId)
+      .first<{ pointer: string | null; withdrawnThrough: number }>();
+
+  const current = await readStory();
+  if (!current) return notFound(c);
+  const pointer = current.pointer;
+  if (pointer === null) return c.json({ error: "not_published" }, 409);
+  // The number comes from the release row, not from the body. A release row
+  // never changes, so this read and the update need no transaction.
+  const rel = await c.env.DB.prepare("SELECT number FROM release WHERE id = ? AND story_id = ?")
+    .bind(pointer, storyId)
+    .first<{ number: number }>();
+  if (!rel) return c.json({ error: "not_published" }, 409);
+  if (pointer !== releaseId) return c.json({ error: "release_moved", current: pointer }, 409);
+
+  const number = rel.number;
+  const done = { storyId, releaseId, withdrawnThrough: number };
+  const result = await c.env.DB.prepare(
+    "UPDATE story SET withdrawn_through = ?1 WHERE id = ?2 AND published_release_id = ?3 AND withdrawn_through < ?1",
+  )
+    .bind(number, storyId, releaseId)
+    .run();
+  if (result.meta.changes === 1) {
+    // No title (AGENTS section 5).
+    console.log(JSON.stringify({ event: "withdrawal", storyId, releaseId, number }));
+    return c.json(done, 200);
+  }
+  // No change: a repeat of the same take-off, or a publish moved the pointer.
+  const again = await readStory();
+  if (again?.pointer === releaseId && again.withdrawnThrough >= number) return c.json(done, 200);
+  if (again?.pointer && again.pointer !== releaseId) return c.json({ error: "release_moved", current: again.pointer }, 409);
+  throw new Error("withdrawal update changed no row");
 });
 
 // ---- Registry and files ----

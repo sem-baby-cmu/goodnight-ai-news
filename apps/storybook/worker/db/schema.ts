@@ -84,6 +84,9 @@ export const story = sqliteTable("story", {
   headsVersion: integer("heads_version").notNull().default(0),
   // No foreign key: it would make a cycle with `release`.
   publishedReleaseId: text("published_release_id"),
+  // The highest release number taken off the shelf; 0 = none (ADR 0017
+  // decision 20). It only goes up. Publish does not touch it.
+  withdrawnThrough: integer("withdrawn_through").notNull().default(0),
   createdAt: createdAt(),
 });
 
