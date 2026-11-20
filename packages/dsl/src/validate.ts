@@ -82,6 +82,12 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
     if (!asset) add(`${p}.ref`, "unknown_asset", `Asset "${layer.ref}" is not in the registry.`);
     else if (asset.kind !== layer.kind) {
       add(`${p}.kind`, "asset_kind_mismatch", `Asset "${layer.ref}" is a ${asset.kind}, not a ${layer.kind}.`);
+    } else if (asset.manifest.kind !== asset.kind) {
+      add(
+        `${p}.kind`,
+        "asset_kind_mismatch",
+        `Asset "${layer.ref}" is registered as a ${asset.kind}, but its manifest is a ${asset.manifest.kind}.`,
+      );
     }
 
     if (slot && slot.accepts !== layer.kind) {
