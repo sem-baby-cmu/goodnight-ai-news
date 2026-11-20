@@ -84,9 +84,11 @@ export class StoryRunWorkflow extends WorkflowEntrypoint<Env, StoryRunParams> {
           );
           return await finish(true);
         }
-        // Fixed chunks of 4 pages, so at most 4 pages run at a time.
+        // Scenes one at a time, in page order: each scene step sees the earlier scenes (#105).
+        for (const p of script.pages) await pageTask(p.pageId, ["scene"]);
+        // Audio does not depend on a scene: fixed chunks of 4 pages, so at most 4 pages run at a time.
         for (let i = 0; i < script.pages.length; i += 4) {
-          await Promise.all(script.pages.slice(i, i + 4).map((p) => pageTask(p.pageId, ["scene", "audio"])));
+          await Promise.all(script.pages.slice(i, i + 4).map((p) => pageTask(p.pageId, ["audio"])));
         }
       } else {
         await pageTask(scope.pageId, [scope.target]);

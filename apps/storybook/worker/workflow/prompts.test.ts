@@ -30,7 +30,7 @@ describe("prompts", () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
     const pageText = "Page 2. The bunny jumps over a puddle.";
-    const { system, user } = scenePrompt({ beat: "The bunny plays.", pageText, cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { system, user } = scenePrompt({ beat: "The bunny plays.", pageText, cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     for (const t of TEMPLATES) {
       expect(user).toContain(t.id);
       for (const slot of t.slots) expect(user).toContain(slot.id);
@@ -55,7 +55,7 @@ describe("prompts", () => {
     expect(refs).toContain("test-bear");
     expect(refs).not.toContain("meadow");
     expect(refs).not.toContain("riverbank");
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(user).toContain('- meadow: "an open meadow with soft hills"; skies ["day","cloudy","dusk","night"]');
     expect(user).toContain('- riverbank: "a grassy bank by a wide, slow river"; skies ["day","dusk","night"]');
   });
@@ -63,7 +63,7 @@ describe("prompts", () => {
   it("scenePrompt states the bubble rule", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
-    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(system).toContain("2 to 6 words");
     expect(system).toContain("at most 40 characters");
     expect(system).toContain("does not repeat the page text");
@@ -86,7 +86,7 @@ describe("prompts", () => {
         chime: { kind: "sfx", renderer: "audio", version: 1, manifest: { kind: "sfx", file: "chime.mp3", durationMs: 300 } },
       },
     };
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry, templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(user).toContain(
       [
         "Animations (primitive: the assets it works on):",
@@ -104,14 +104,14 @@ describe("prompts", () => {
   it("scenePrompt gives an empty list for a primitive that no asset can play", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(user).toContain("- blink: []\n- wave: []");
   });
 
   it("scenePrompt states the primitive rule", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
-    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(system).toContain('only on a layer whose asset its line under "Animations" names');
     expect(system.split("\n").at(-1)).toBe("Answer with JSON only.");
   });
@@ -119,7 +119,7 @@ describe("prompts", () => {
   it("scenePrompt lists a missing cast key as unknown", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny", "ghost-key"], registry, templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny", "ghost-key"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(user).toContain("- ghost-key: unknown");
     expect(user).toMatch(/- test-bunny: no description; poses/);
   });
@@ -127,7 +127,7 @@ describe("prompts", () => {
   it("scenePrompt gives each template its description", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     for (const t of TEMPLATES) expect(user).toContain(`Template "${t.id}": ${TEMPLATE_DESCRIPTIONS[t.id]}`);
   });
 
@@ -149,7 +149,7 @@ describe("prompts", () => {
         chime: { kind: "sfx", renderer: "audio", version: 1, manifest: { kind: "sfx", file: "chime.mp3", durationMs: 300 } },
       },
     } as RegistrySnapshot;
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry, templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(user).toContain('- bear: "a brown bear"; poses ["stand"]; expressions []; legal pairs []');
     expect(user).toContain(
       'Other assets:\n- ball (prop): "a red ball"\n- nodesc (scenery): no description\n- tree (scenery): "a tall tree"\n- sfx: ["chime"]',
@@ -159,7 +159,7 @@ describe("prompts", () => {
   it("scenePrompt states the tap and expression rules", async () => {
     await seedRegistry(env);
     const registry = await loadActiveRegistry(getDb(env.DB));
-    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES });
+    const { system } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["test-bunny"], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(system).toContain("whose descriptions fit the page text");
     expect(system).toContain("Give every character layer a tap");
     expect(system).toContain("from the feeling words of the page text");
@@ -187,7 +187,7 @@ describe("prompts", () => {
     };
     expect(Object.keys(modelRegistry(r).assets).sort()).toEqual(["bear", "chime", "tree"]);
     expect(Object.keys(r.assets)).toHaveLength(5);
-    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry: modelRegistry(r), templates: TEMPLATES });
+    const { user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: ["bear"], registry: modelRegistry(r), templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
     expect(user).not.toMatch(/\b(door|window)\b/);
     expect(user).toContain('- sway: ["tree"]');
     // `r` stays at the 5 keys of the section; the schema call adds one backdrop, which it requires.
