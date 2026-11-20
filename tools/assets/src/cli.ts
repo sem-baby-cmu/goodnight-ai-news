@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { isLayerManifest } from "@storybook/dsl";
 import { AssetBuildSchema } from "./build";
 import { silhouetteIoU, writeCompareSheet } from "./compare";
 import { ALL_BOARDS, CropMapSchema, proposeCropMap } from "./crops";
@@ -142,7 +143,7 @@ async function svgAsset(key: string, version: number, sources: string, outDir: s
   const build = AssetBuildSchema.parse(JSON.parse(readFileSync(join(src, "asset.json"), "utf8")));
   if (build.key !== key || build.version !== version) throw new Error(`asset.json names ${build.key} v${build.version}`);
   if (build.renderer !== "svg" && build.renderer !== "svg-rig") throw new Error(`renderer ${build.renderer} is not an SVG renderer`);
-  if (build.manifest.kind === "sfx") throw new Error("an sfx asset has no SVG");
+  if (!isLayerManifest(build.manifest)) throw new Error("only a character, prop, or scenery asset has pose SVGs");
   if (build.renderer === "svg-rig" && build.kind !== "character") throw new Error(`an svg-rig must be a character (the IoU check needs a v1 board cut-out); ${key} is a ${build.kind}`);
   const dest = join(outDir, key, `v${version}`);
   const texts = new Map<string, string>();

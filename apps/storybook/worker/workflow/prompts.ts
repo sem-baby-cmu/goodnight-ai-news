@@ -1,4 +1,4 @@
-import type { Issue, LayoutTemplate, RegistrySnapshot } from "@storybook/dsl";
+import { type Issue, type LayoutTemplate, type RegistrySnapshot, isLayerManifest } from "@storybook/dsl";
 
 // Prompts for the script and scene steps (#18, Exact changes 10). Never log a
 // prompt or an output.
@@ -35,6 +35,7 @@ export function scenePrompt(input: {
   const system = [
     "You choose the picture for one page of a children's story.",
     "Choose one `templateId`.",
+    "Choose one `backdrop` and a `sky` that the backdrop has.",
     "Put a registry key whose kind matches each slot's `accepts` into that slot.",
     "Use only legal pose and expression pairs.",
     "Include at least one character, one animation, and one tap interaction.",
@@ -49,10 +50,19 @@ export function scenePrompt(input: {
       (s) => `  - slot "${s.id}" accepts ${s.accepts}` + (s.poses ? `, poses ${JSON.stringify(s.poses)}` : ""),
     ),
   ]);
+  // Each backdrop with its description and its sky palettes (ADR 0016 section 1).
+  const backdrops = Object.keys(input.registry.assets)
+    .sort()
+    .flatMap((key) => {
+      const a = input.registry.assets[key]!;
+      if (a.kind !== "backdrop" || a.manifest.kind !== "backdrop") return [];
+      const skies = a.manifest.variants.map((v) => v.sky);
+      return [`- ${key}: ${JSON.stringify(a.manifest.description)}; skies ${JSON.stringify(skies)}`];
+    });
   const cast = input.cast.flatMap((key) => {
     const m = input.registry.assets[key]?.manifest;
     // A cast key that is not a visual asset stays visible to the model (review item 3).
-    if (!m || m.kind === "sfx") return [`- ${key}: unknown`];
+    if (!m || !isLayerManifest(m)) return [`- ${key}: unknown`];
     const poses = [...new Set(m.poses.map((p) => p.id))];
     return [
       `- ${key}: poses ${JSON.stringify(poses)}; expressions ${JSON.stringify(m.expressions)}; legal pairs ${JSON.stringify(
@@ -65,6 +75,9 @@ export function scenePrompt(input: {
   const user = [
     "Templates:",
     ...templates,
+    "",
+    "Backdrops:",
+    ...backdrops,
     "",
     "Cast:",
     ...cast,

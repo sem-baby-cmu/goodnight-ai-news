@@ -227,13 +227,13 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Given a backdrop whose manifest has the variants `day` and `night`
 - When a scene names that backdrop with `sky = dusk`
 - Then the scene fails validation with `backdrop_sky_mismatch`
-- Test: spec (to implement)
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
 ### RUN-03.S16 The model picks the backdrop from the frozen registry
 - Given a run that froze the registry with its backdrops
 - When the `scene:<pageId>` step builds the model schema
 - Then `backdrop` is an enum of the frozen backdrop keys, and the prompt gives the `description` and the palettes of each backdrop
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/workflow/prompts.test.ts
 
 ## RUN-04 Code places the layers
 

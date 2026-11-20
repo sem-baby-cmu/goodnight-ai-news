@@ -44,9 +44,11 @@ export function pageStates(input: {
   });
 }
 
-// Every asset key that a scene uses: layer refs and play_sfx sounds.
+// Every asset key that a scene uses: the backdrop, layer refs, and play_sfx
+// sounds. The scene step, the operator save, still-fits, and publish record
+// and copy the versions of these keys.
 export function assetKeysOfScene(scene: PageScene): string[] {
-  const keys = new Set(scene.layers.map((l) => l.ref));
+  const keys = new Set([scene.backdrop, ...scene.layers.map((l) => l.ref)]);
   for (const t of scene.interactions) {
     for (const a of t.do) if (a.action === "play_sfx") keys.add(a.sfx);
   }

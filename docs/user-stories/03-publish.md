@@ -69,7 +69,7 @@ Spec: requirements US-4, AC-10, AC-11 · design "7. Publish", "Release layout (R
 - Given a draft whose scenes use two backdrops
 - When the operator publishes the draft
 - Then the release prefix holds a copy of each backdrop version that a snapshot `scene` revision records, and each release page lists its backdrop in `assets`
-- Test: spec (to implement)
+- Test: @storybook/app · apps/storybook/worker/publish/publish.test.ts
 
 ### PUB-01.S11 The release row keeps the title of the manifest
 - Given a draft that can be published
