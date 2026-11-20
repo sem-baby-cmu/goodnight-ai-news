@@ -37,6 +37,12 @@ describe("registry", () => {
     expect(AssetManifestSchema.safeParse({ kind: "sfx", file: "a.mp3", durationMs: 1, poses: [] }).success).toBe(false);
   });
 
+  it("AssetManifestSchema accepts a layer description and rejects an empty one", () => {
+    expect(AssetManifestSchema.safeParse({ ...owl, description: "a small owl" }).success).toBe(true);
+    expect(AssetManifestSchema.safeParse({ ...owl, description: "" }).success).toBe(false);
+    expect(AssetManifestSchema.safeParse(owl).success).toBe(true);
+  });
+
   // A rect with no area gives layout scale Infinity and no issue (#47).
   function withRect(field: "box" | "face", rect: { x: number; y: number; w: number; h: number }) {
     if (!isLayerManifest(owl)) throw new Error("owl is a layer asset");

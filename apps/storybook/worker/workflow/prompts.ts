@@ -19,6 +19,8 @@ const keysOf = (registry: RegistrySnapshot, kind: string) =>
     .filter((key) => registry.assets[key]!.kind === kind)
     .sort();
 
+export function modelRegistry(registry: RegistrySnapshot): RegistrySnapshot { return registry; }
+
 export function scriptPrompt(input: { sourceText: string; registry: RegistrySnapshot }): { system: string; user: string } {
   const system = [
     "You write a short picture story for a child aged 5 to 7, from a news text.",
