@@ -289,6 +289,12 @@ Spec: requirements AC-3 · design "2. StoryRun Workflow", "5. Scene runtime", "S
 - Then validation fails for that action with `bubble_not_ascii`
 - Test: @storybook/dsl · packages/dsl/src/validate.test.ts
 
+### RUN-03.S19 A key that a slot does not list fails validation
+- Given a scene with a layer whose `ref` is not in the `refs` of its slot, for example `tree` in a sky slot
+- When the scene is validated
+- Then validation fails for that layer with `slot_ref_mismatch` at `layers.N.ref`, and a layer with a listed key, or in a slot without `refs`, gives no issue
+- Test: @storybook/dsl · packages/dsl/src/validate.test.ts
+
 ## RUN-04 Code places the layers
 
 As the system, I want code to compute and check every position, so that
