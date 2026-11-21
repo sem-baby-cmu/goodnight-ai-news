@@ -3,14 +3,15 @@ import type { NarrationSize } from "./layout";
 
 type ReadingPanelProps = { text: string; size: NarrationSize; width: number };
 
-// The narration of the reading page. It fades in once, at "Start" (the
-// 200 ms panel swap of DESIGN.md 5); a page change only changes the text.
+// The narration of a page sheet. At "Start" the `onStart` handler fades it
+// in (the 200 ms panel swap of DESIGN.md 5, `fadeIn` in pageTurn.ts); a page
+// turn moves the whole sheet.
 export function ReadingPanel({ text, size, width }: ReadingPanelProps) {
   return (
     <p
       data-testid="narration"
       aria-live="polite"
-      className="text-center font-semibold text-ink motion-safe:animate-[player-fade-in_200ms_ease-out]"
+      className="text-center font-semibold text-ink"
       style={{ fontSize: size.px, lineHeight: size.lh, width, maxWidth: "100%", textWrap: "pretty" }}
     >
       {text}

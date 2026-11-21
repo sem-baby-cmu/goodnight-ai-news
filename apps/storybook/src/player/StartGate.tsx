@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import { PlayIcon } from "./icons";
 import type { LayoutName } from "./layout";
 
-// The form of the panel content of the Start gate, Resting and (Part B) the
-// end page: a stack, or one row in Short with `w` >= 640 (DESIGN.md 12.2).
+// The form of the panel content of the Start gate and Resting: a stack, or
+// one row in Short with `w` >= 640 (DESIGN.md 12.2).
 export function gateClass(layout: LayoutName, w: number): string {
   if (layout === "short" && w >= 640) return "flex flex-row items-center justify-center gap-4 text-left";
   return cn("flex flex-col items-center justify-center text-center", layout === "narrow" || layout === "short" ? "gap-3" : "gap-4");
