@@ -2,12 +2,25 @@ import type { CSSProperties, ReactNode } from "react";
 import { BAR, GUTTER, RAIL } from "./layout";
 import type { PanelMetrics } from "./measure";
 
-type FrameProps = {
-  metrics: PanelMetrics;
+// One page sheet: a picture area and a narration panel on Paper, with a
+// shade above them. During a turn there are two; the leaving one is inert.
+export type FrameSheet = {
+  key: string;
   // The content of the picture area (a SceneView, the night picture, or Paper).
   picture: ReactNode;
   // The content of the narration panel.
   panel: ReactNode;
+  inert: boolean;
+  // The turning sheet lies above the other one.
+  zIndex: 1 | 2;
+  ref: (el: HTMLDivElement | null) => void;
+};
+
+type FrameProps = {
+  metrics: PanelMetrics;
+  // In stacking order by `zIndex`, never by DOM order (a moved node loses
+  // the focus).
+  sheets: FrameSheet[];
   // Frame controls; null leaves the place empty.
   home: ReactNode;
   previous: ReactNode;
@@ -43,10 +56,10 @@ function Slot({ style, children }: { style: CSSProperties; children: ReactNode }
 }
 
 // The frame of one layout (DESIGN.md 12.3): the Desk ground, the page panel
-// with the page sheet (picture area, then narration panel), and the frame
+// with the page sheets (picture area, then narration panel), and the frame
 // parts with their control slots. Every frame part has its full size and
 // place in every state; a part with no control is empty Paper.
-export function Frame({ metrics, picture, panel, home, previous, next, pill }: FrameProps) {
+export function Frame({ metrics, sheets, home, previous, next, pill }: FrameProps) {
   const { layout, w, h, picture: area } = metrics;
   const pad = PADDING[layout];
   const wide = layout === "wide";
@@ -64,25 +77,44 @@ export function Frame({ metrics, picture, panel, home, previous, next, pill }: F
 
   return (
     <>
-      <div className={wide ? "absolute rounded-b-[28px] bg-paper" : "absolute bg-paper"} style={{ ...pagePanel, isolation: "isolate" }}>
-        <div className="flex h-full flex-col">
-          <div data-testid="picture-area" className="relative shrink-0" style={{ width: area.w, height: area.h }}>
-            {picture}
-          </div>
+      <div
+        className={wide ? "absolute rounded-b-[28px] bg-paper" : "absolute bg-paper"}
+        style={{ ...pagePanel, isolation: "isolate", perspective: "2600px" }}
+      >
+        {sheets.map((s) => (
           <div
-            data-testid="narration-panel"
-            className={wide ? "relative shrink-0 rounded-b-[28px] bg-paper" : "relative shrink-0 bg-paper"}
-            style={{ height: metrics.panel }}
+            key={s.key}
+            ref={s.ref}
+            data-testid="page-sheet"
+            inert={s.inert}
+            className={wide ? "absolute inset-0 flex flex-col rounded-b-[28px] bg-paper" : "absolute inset-0 flex flex-col bg-paper"}
+            style={{ zIndex: s.zIndex, transformOrigin: "0 50%" }}
           >
-            <TornEdge />
-            <div
-              className="absolute inset-x-0 bottom-0 flex items-center justify-center"
-              style={{ top: 12, padding: `${pad.y}px ${pad.x}px` }}
-            >
-              {panel}
+            {/* Its own stacking context: the layer z-index values stay inside. */}
+            <div data-testid="picture-area" className="relative shrink-0" style={{ width: area.w, height: area.h, isolation: "isolate" }}>
+              {s.picture}
             </div>
+            <div
+              data-testid="narration-panel"
+              className={wide ? "relative shrink-0 rounded-b-[28px] bg-paper" : "relative shrink-0 bg-paper"}
+              style={{ height: metrics.panel }}
+            >
+              <TornEdge />
+              <div
+                className="absolute inset-x-0 bottom-0 flex items-center justify-center"
+                style={{ top: 12, padding: `${pad.y}px ${pad.x}px` }}
+              >
+                {s.panel}
+              </div>
+            </div>
+            <div
+              data-testid="sheet-shade"
+              aria-hidden="true"
+              className={wide ? "pointer-events-none absolute inset-0 rounded-b-[28px] bg-ink" : "pointer-events-none absolute inset-0 bg-ink"}
+              style={{ opacity: 0 }}
+            />
           </div>
-        </div>
+        ))}
       </div>
 
       {narrow ? (
