@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "StoryRun workflow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "backend": { "label": "D1 step" },
+        "cloud": { "label": "Model step" },
+        "security": { "label": "Error record" },
+        "external": { "label": "Run status" }
+      }
+    }
+  },
+  "components": [
+    { "id": "freeze", "type": "backend", "label": "freeze", "sublabel": "Heads and registry", "pos": [40, 120], "size": [150, 64] },
+    { "id": "script", "type": "cloud", "label": "script", "sublabel": "Outline and page text", "pos": [270, 120], "size": [150, 64] },
+    { "id": "scene", "type": "cloud", "label": "scene:<pageId>", "sublabel": "One page at a time", "pos": [500, 120], "size": [150, 64] },
+    { "id": "audio", "type": "cloud", "label": "audio:<pageId>", "sublabel": "Up to 4 pages at once", "pos": [730, 120], "size": [150, 64] },
+    { "id": "finish", "type": "backend", "label": "finish", "sublabel": "Status from the heads", "pos": [960, 120], "size": [150, 64] },
+    { "id": "draft_ready", "type": "external", "label": "draft_ready", "sublabel": "Every page is ok", "pos": [1190, 120], "size": [150, 64] },
+    { "id": "run_error", "type": "security", "label": "Run error", "sublabel": "The run stops", "pos": [270, 300], "size": [150, 64] },
+    { "id": "page_error", "type": "security", "label": "Page error", "sublabel": "The run goes on", "pos": [615, 300], "size": [150, 64] },
+    { "id": "needs_review", "type": "external", "label": "needs_review", "sublabel": "A person checks pages", "pos": [960, 300], "size": [150, 64] },
+    { "id": "failed", "type": "external", "label": "failed", "sublabel": "No draft", "pos": [270, 460], "size": [150, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Per page", "wraps": ["scene", "audio", "page_error"] }
+  ],
+  "connections": [
+    { "id": "freeze-script", "from": "freeze", "to": "script" },
+    { "id": "script-scene", "from": "script", "to": "scene" },
+    { "id": "scene-audio", "from": "scene", "to": "audio" },
+    { "id": "audio-finish", "from": "audio", "to": "finish" },
+    { "id": "finish-ready", "from": "finish", "to": "draft_ready" },
+    { "id": "freeze-error", "from": "freeze", "to": "run_error", "variant": "dashed" },
+    { "id": "script-error", "from": "script", "to": "run_error", "label": "fails", "variant": "dashed", "labelDy": 24 },
+    { "id": "run-error-failed", "from": "run_error", "to": "failed", "label": "finish", "variant": "dashed", "labelDy": 24 },
+    { "id": "scene-error", "from": "scene", "to": "page_error", "variant": "dashed", "fromSide": "bottom", "toSide": "left" },
+    { "id": "audio-error", "from": "audio", "to": "page_error", "label": "fails", "variant": "dashed", "fromSide": "bottom", "toSide": "right" },
+    { "id": "page-error-finish", "from": "page_error", "to": "finish", "label": "errors kept", "variant": "dashed" },
+    { "id": "finish-review", "from": "finish", "to": "needs_review", "label": "page not ok", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Retries and repair", "items": ["A model step has 3 tries, back-off from 10 s", "A failed check gets one repair, then needs_review"] },
+    { "dot": "emerald", "title": "Replay", "items": ["Each model call has a call ID in call_log", "A replayed step reuses the stored result"] },
+    { "dot": "cyan", "title": "Other runs", "items": ["A page run: freeze, one scene or audio step, finish", "An unexpected error: the fail step sets failed"] }
+  ]
+}
