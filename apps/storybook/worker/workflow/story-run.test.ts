@@ -143,7 +143,15 @@ async function callColumns(runId: string, step?: string): Promise<CallColumns[]>
     .filter((r) => step === undefined || r.step === step)
     .map((r) => ({ ...r, repair_issues: r.repair_issues === null ? null : (JSON.parse(r.repair_issues) as Issue[]) }));
 }
-const repairLines = (issues: Issue[]) => issues.map((i) => `- ${i.path}: ${i.message}`).join("\n");
+// A `layers.N…` issue line names the ref of layer N of the previous answer (#127).
+const repairLines = (issues: Issue[], previous?: SceneDraft) =>
+  issues
+    .map((i) => {
+      const n = /^layers\.(\d+)(\.|$)/.exec(i.path)?.[1];
+      const ref = n === undefined ? undefined : previous?.layers[Number(n)]?.ref;
+      return `- ${i.path}${ref === undefined ? "" : ` (${ref})`}: ${i.message}`;
+    })
+    .join("\n");
 
 async function pageNumberOf(storyId: string, pageId: string): Promise<number> {
   return (await readStory(storyId)).pageIds.indexOf(pageId) + 1;
@@ -684,7 +692,8 @@ describe("StoryRunWorkflow", () => {
       expect(calls.map((c) => c.purpose).sort()).toEqual(["first", "repair"]);
       const page1 = prompts.filter((p) => p.includes("Page 1."));
       expect(page1).toHaveLength(2);
-      expect(page1[1]).toContain(`- ${layoutIssues[0]!.path}: ${layoutIssues[0]!.message}`);
+      expect(layoutIssues[0]!.path).toBe("layers.0");
+      expect(page1[1]).toContain(`- layers.0 (${WIDE}): ${layoutIssues[0]!.message}`);
       expect(st.head(`scene:${p1}`)!.status).toBe("ok");
     } finally {
       await setWideCharacter(false);
@@ -1274,8 +1283,9 @@ describe("StoryRunWorkflow", () => {
   });
 
   it("RUN-05.S15 a scene repair call stores the issues of the first attempt", async () => {
+    let previous: SceneDraft | undefined;
     const s = await setup((registry) => ({
-      "scene:1": (attempt) => (attempt === 1 ? { value: propInCharacterSlot(registry) } : undefined),
+      "scene:1": (attempt) => (attempt === 1 ? { value: (previous = propInCharacterSlot(registry)) } : undefined),
     }));
     const prompts = captureScenePrompts(s.stub);
     await runWorkflow(s.ids.runId, s.ids.storyId);
@@ -1286,7 +1296,8 @@ describe("StoryRunWorkflow", () => {
     expect(repair!.repair_issues!.map((i) => i.code)).toContain("slot_kind_mismatch");
     const repairPrompts = prompts.filter((p) => p.includes("Fix these problems and answer again:"));
     expect(repairPrompts).toHaveLength(1);
-    expect(repairPrompts[0]!.endsWith(`Fix these problems and answer again:\n${repairLines(repair!.repair_issues!)}`)).toBe(true);
+    expect(repairPrompts[0]!.endsWith(`Fix these problems and answer again:\n${repairLines(repair!.repair_issues!, previous)}`)).toBe(true);
+    expect(repairPrompts[0]).toContain(` (${previous!.layers[0]!.ref}): `);
   });
 
   it("RUN-05.S15 a script repair call stores the issues of the first attempt", async () => {

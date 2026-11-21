@@ -74,6 +74,59 @@ describe("templates", () => {
     }
   });
 
+  it("every scenery slot has a width, and no character or prop slot has one (#127)", () => {
+    for (const t of TEMPLATES) {
+      for (const s of t.slots) {
+        const where = `${t.id}.${s.id}`;
+        if (s.accepts === "scenery") expect(s.width !== undefined && s.width > 0, where).toBe(true);
+        else expect(s.width, where).toBeUndefined();
+      }
+    }
+  });
+
+  it("every scenery frame is inside the stage, and no width is wider than 2 · min(footX, 1600 − footX) (#127)", () => {
+    for (const t of TEMPLATES) {
+      for (const s of t.slots.filter((slot) => slot.accepts === "scenery")) {
+        const where = `${t.id}.${s.id}`;
+        const width = s.width ?? Number.NaN;
+        expect(s.footX - width / 2 >= 0, where).toBe(true);
+        expect(s.footX + width / 2 <= 1600, where).toBe(true);
+        expect(s.footY - s.height >= 0, where).toBe(true);
+        expect(s.footY <= 1200, where).toBe(true);
+        expect(width <= 2 * Math.min(s.footX, 1600 - s.footX), where).toBe(true);
+      }
+    }
+  });
+
+  it("the scenery slot widths are the D1 ruling of #127", () => {
+    const widths = TEMPLATES.flatMap((t) => t.slots.filter((s) => s.accepts === "scenery").map((s) => [`${t.id}.${s.id}`, s.width]));
+    expect(widths).toEqual([
+      ["solo-center.back-left", 480],
+      ["solo-center.back-right", 480],
+      ["solo-center.sky-1", 700],
+      ["two-friends.back-left", 480],
+      ["two-friends.back-right", 480],
+      ["two-friends.sky-1", 1600],
+      ["three-friends.back-left", 410],
+      ["three-friends.back-right", 410],
+      ["three-friends.sky-1", 1600],
+      ["hero-and-object.back-left", 440],
+      ["hero-and-object.back-right", 440],
+      ["hero-and-object.sky-1", 600],
+      ["circle-around-object.back-left", 370],
+      ["circle-around-object.back-right", 370],
+      ["big-sky.hill", 720],
+      ["big-sky.sky-1", 840],
+      ["big-sky.sky-2", 800],
+      ["big-sky.sky-3", 1600],
+      ["landscape.place", 900],
+      ["landscape.side", 310],
+      ["landscape.sky-1", 800],
+      ["line-up.back-1", 640],
+      ["line-up.sky-1", 600],
+    ]);
+  });
+
   it("every template has a description", () => {
     expect(Object.keys(TEMPLATE_DESCRIPTIONS).sort()).toEqual(TEMPLATES.map((t) => t.id).sort());
     for (const text of Object.values(TEMPLATE_DESCRIPTIONS)) expect(text.length).toBeGreaterThan(0);
@@ -84,9 +137,12 @@ describe("templates", () => {
       const result = fill(template, slots);
       expect({ name, issues: result.issues }).toEqual({ name, issues: [] });
       const ats = result.scene.layers.map((layer) => layer.at);
+      // scale = min(height, width) / h (#127); x stays footX: the reference
+      // assets have a centred foot.
       const expected = slots.map((slot) => {
         const h = slot.accepts === "character" ? 500 : 300;
-        return { x: slot.footX, y: slot.footY, scale: Math.round((slot.height / h) * 10000) / 10000, z: slot.z };
+        const target = Math.min(slot.height, slot.width ?? Number.POSITIVE_INFINITY);
+        return { x: slot.footX, y: slot.footY, scale: Math.round((target / h) * 10000) / 10000, z: slot.z };
       });
       expect({ name, ats }).toEqual({ name, ats: expected });
     }

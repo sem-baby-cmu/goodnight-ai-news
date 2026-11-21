@@ -2,6 +2,8 @@ import { mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import type { PageScene, RegistrySnapshot } from "@storybook/dsl";
+import { TEMPLATES, layoutScene } from "@storybook/layout";
 import { fixtureFiles, fixtureProblems, missingFixtureFiles, writeFixtures } from "../../scripts/s2/fixtures";
 import { formatRate, summarize, verdict } from "../../scripts/s2/summary";
 import { type Deps, checkInputs, refuseExistingFixtures, rowQueries, runOne, sha256 } from "../../scripts/s2-run";
@@ -9,13 +11,50 @@ import { OTHER_RUN_CALL, PAGE, badScene, fakeRun, okScene } from "./fake-run";
 
 const ROOT = path.join(import.meta.dirname, "s2");
 const slugs = (JSON.parse(readFileSync(path.join(ROOT, "inputs.json"), "utf8")) as Array<{ slug: string }>).map((i) => i.slug);
+// Recorded files that no longer match the current checks (planner ruling D6
+// of #127): s2-2 page 5 (bush in three-friends/back-right) failed
+// `layout.bounds` and fits since the width fit and the centred box.
+const EXPECTED_PROBLEMS: Record<string, string[]> = { "s2-2": ["revisions/page-5.scene.json: needs_review but no issue"] };
+
 it("RUN-06.S2 recorded S2 outputs stay valid against the current schemas", () => {
   // Every recorded story is present and complete, so a deleted fixture fails.
   expect(slugs).toHaveLength(3);
   for (const slug of slugs) {
     const dir = path.join(ROOT, slug);
-    expect([slug, missingFixtureFiles(dir), fixtureProblems(dir)]).toEqual([slug, [], []]);
+    expect([slug, missingFixtureFiles(dir), fixtureProblems(dir)]).toEqual([slug, [], EXPECTED_PROBLEMS[slug] ?? []]);
   }
+});
+
+it("every S2 scenery asset fits alone in every scenery slot, with and without flip (#127)", () => {
+  const registry = JSON.parse(readFileSync(path.join(ROOT, "s2-1", "registry.json"), "utf8")) as RegistrySnapshot;
+  const scenery = Object.keys(registry.assets)
+    .filter((key) => registry.assets[key]!.kind === "scenery")
+    .sort();
+  expect(scenery).toHaveLength(26);
+  const slots = TEMPLATES.flatMap((t) => t.slots.filter((s) => s.accepts === "scenery").map((s) => ({ template: t.id, slot: s.id })));
+  expect(slots).toHaveLength(23);
+  const ctx = { registry, templates: TEMPLATES };
+  let calls = 0;
+  const failures: string[] = [];
+  for (const ref of scenery) {
+    const manifest = registry.assets[ref]!.manifest as { poses: Array<{ id: string }> };
+    for (const { template, slot } of slots) {
+      for (const flip of [false, true]) {
+        const scene: PageScene = {
+          templateId: template,
+          backdrop: "meadow",
+          sky: "day",
+          layers: [{ instanceId: "01900000-0000-7000-8000-000000000001", kind: "scenery", ref, pose: manifest.poses[0]!.id, slot, flip }],
+          animations: [],
+          interactions: [],
+        };
+        calls++;
+        for (const issue of layoutScene(scene, ctx).issues) failures.push(`${ref} ${template}/${slot} flip ${flip}: ${issue.code} ${issue.message}`);
+      }
+    }
+  }
+  expect(calls).toBe(1196);
+  expect(failures).toEqual([]);
 });
 
 function written(rows = fakeRun()): string {
