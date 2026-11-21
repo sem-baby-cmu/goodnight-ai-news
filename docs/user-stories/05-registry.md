@@ -94,7 +94,7 @@ Spec: requirements "Non-functional Requirements" · design "8. Asset pipeline" (
 ### REG-02.S7 A painted backdrop is scaled, compressed, and reviewed
 - Given a painting for each variant of a backdrop
 - When the painted backdrop step runs
-- Then each variant is a WebP of 2400 x 1200 px within the file budget, and a review sheet shows the slot envelopes of all templates over each variant; a slot envelope is the union of the boxes of every active asset of the slot's kind placed in that slot at scale 1, with and without flip
+- Then each variant is a WebP of 2400 x 1200 px within the file budget, and a review sheet shows the slot envelopes of all templates over each variant; a slot envelope is the union of the boxes of every active asset of the slot's kind placed in that slot by the layout rule at f = 100, with and without flip, including the slot's other poses at that place
 - Test: @storybook/assets-tools · tools/assets/test/painted.test.ts
 
 ### REG-02.S8 A backdrop without a matching approval is not published
