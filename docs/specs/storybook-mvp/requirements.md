@@ -7,8 +7,9 @@ reusable SVG/WebP assets, a Studio edits and regenerates single pages, and a
 Player reads immutable releases.
 
 Decision record: [ADR 0015](../../adr/0015-storybook-mvp-reset.md), amended
-by [ADR 0016](../../adr/0016-backdrops-page-turn.md) and
-[ADR 0017](../../adr/0017-shelf-home-player-states.md).
+by [ADR 0016](../../adr/0016-backdrops-page-turn.md),
+[ADR 0017](../../adr/0017-shelf-home-player-states.md), and
+[ADR 0018](../../adr/0018-json-generation-via-ai-gateway-compat.md).
 
 ## Goal
 

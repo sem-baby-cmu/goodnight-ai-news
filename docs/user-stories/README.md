@@ -7,9 +7,11 @@ The stories add no behaviour. Every expected value comes from
 [`requirements.md`](../specs/storybook-mvp/requirements.md),
 [`design.md`](../specs/storybook-mvp/design.md), or
 [ADR 0015](../adr/0015-storybook-mvp-reset.md),
-[ADR 0016](../adr/0016-backdrops-page-turn.md), and
-[ADR 0017](../adr/0017-shelf-home-player-states.md). If a story and the spec
-disagree, the spec wins and the story is corrected (`AGENTS.md` section 1).
+[ADR 0016](../adr/0016-backdrops-page-turn.md),
+[ADR 0017](../adr/0017-shelf-home-player-states.md), and
+[ADR 0018](../adr/0018-json-generation-via-ai-gateway-compat.md). If a story
+and the spec disagree, the spec wins and the story is corrected (`AGENTS.md`
+section 1).
 
 ## Files
 

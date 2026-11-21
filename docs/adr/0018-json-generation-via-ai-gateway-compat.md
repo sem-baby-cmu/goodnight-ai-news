@@ -3,7 +3,9 @@
 - Status: Accepted
 - Date: 2026-11-21
 - Decided by: Jinyu Liu (owner). On 2026-11-21 the owner chose that the spec
-  follows the deployed configuration.
+  follows the deployed configuration, and set the rule that on Cloudflare
+  every model call goes through AI Gateway and no call goes through
+  OpenRouter.
 - Amends: [ADR 0015](0015-storybook-mvp-reset.md), decision "One model
   adapter": the production route of JSON generation. ADR 0015 is not
   superseded.
@@ -31,22 +33,28 @@ record this as a decision. So the spec and the configuration disagreed from
 
 ## Decision
 
+On Cloudflare, every model call goes through AI Gateway: JSON generation
+through `/compat`, TTS through `google-ai-studio`. No model call goes through
+OpenRouter.
+
 1. In production, `generateJson` posts to the OpenAI-compatible endpoint of
    AI Gateway:
    `https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/compat/chat/completions`.
 2. The model ID names the provider, in the form `<provider>/<model>`, for
    example `google-ai-studio/gemini-4-neon` and `openai/gpt-6.1-sol`. The IDs
    come from `MODEL_SCRIPT` and `MODEL_SCENE`.
-3. JSON generation does not go through OpenRouter.
-4. TTS does not change (owner decision Q7): AI Gateway, provider
+3. TTS does not change (owner decision Q7): AI Gateway, provider
    `google-ai-studio`, API `v1beta`.
-5. Development does not change: the same adapter calls a local proxy.
-6. The adapter code does not change. Configuration alone selects the route.
+4. Development does not change: JSON generation calls a local proxy, and TTS
+   calls Google AI Studio directly.
+5. The adapter code does not change. Configuration alone selects the route.
 
 ## Reasons
 
-- Production has run this way since 2026-11-19. This record removes the
-  disagreement and changes nothing in production.
+- The configuration has selected this route since 2026-11-19 (`2790c83`).
+  Real model calls have used it since 2026-11-20, when `61c2475` set
+  `MODEL_MODE` to `real`. This record removes the disagreement and changes
+  nothing in production.
 - One gateway serves both providers. The model ID names the provider, so a
   change of provider is a change of one variable.
 
@@ -55,7 +63,7 @@ record this as a decision. So the spec and the configuration disagreed from
 - **The configuration follows ADR 0015.** Set `OPENAI_BASE_URL` to
   `<gateway>/openrouter` and use OpenRouter model IDs
   (`google/gemini-4-neon`, `openai/gpt-6.1-sol`). Rejected: it changes
-  production behaviour and needs an OpenRouter key in the gateway.
+  production behaviour and needs an OpenRouter API key.
 - **The Cloudflare REST API** (`/ai/v1/chat/completions` on
   `api.cloudflare.com`). Not chosen now. See "Consequences".
 
