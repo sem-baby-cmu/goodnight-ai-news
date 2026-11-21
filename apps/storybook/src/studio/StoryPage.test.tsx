@@ -413,7 +413,18 @@ it('Start again on 409 full_run_not_allowed shows "A full run is not allowed for
   expect(searchOf(router).runId).toBeUndefined();
 });
 
-it("Start again on 409 full_run_not_allowed fetches the story again and follows its running latest run", async () => {
+it("Start again on 409 full_run_not_allowed keeps the notice while the latest run is the same run", async () => {
+  const { calls } = stubStory(failedWithoutOutline(), {
+    [`POST ${storyPath}/runs`]: { status: 409, body: { error: "full_run_not_allowed" } },
+  });
+  renderStory();
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
+  await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
+  expect(alertWith("A full run is not allowed for this story.")).toBeDefined();
+});
+
+it("Start again on 409 full_run_not_allowed fetches the story again, follows its running latest run and clears the notice", async () => {
   const activeRun = uuid(324);
   let answers = 0;
   const { calls } = stubStory(
@@ -429,9 +440,10 @@ it("Start again on 409 full_run_not_allowed fetches the story again and follows 
   renderStory();
 
   fireEvent.click(await screen.findByRole("button", { name: "Start again" }));
-  await waitFor(() => expect(alertWith("A full run is not allowed for this story.")).toBeDefined());
   await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === storyPath)).toHaveLength(2));
   await waitFor(() => expect(calls.filter((c) => c.method === "GET" && c.path === runPath(activeRun))).toHaveLength(1));
+  // The new latest run answers the refused click.
+  await waitFor(() => expect(alertWith("A full run is not allowed for this story.")).toBeUndefined());
 });
 
 it('Start again on 503 shows "Could not start the run. Nothing was changed. Try again." and fetches the story again', async () => {
