@@ -882,11 +882,21 @@ test("Next then Previous within the fade shows the books again", async ({ page }
     document.querySelector<HTMLElement>('[aria-label="Previous books"]')!.click();
     await tick();
   });
-  await page.waitForTimeout(300);
+  // The fade starts at the first rendering frame, and WebKit can be slow to
+  // make one. A page that has finished its fade can keep a stale opacity until
+  // the next frame. So wait for the state, not for a time (#128). A page left
+  // at opacity 0 by a `fill: "forwards"` animation never reaches "1": the poll
+  // times out.
+  const visibleOpacities = () =>
+    page
+      .locator('[data-testid="shelf-page"]:not([inert])')
+      .evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+  await expect.poll(visibleOpacities).toEqual(["1"]);
+  // The leaving page is removed when the fade has finished. In WebKit this
+  // also waits for the next rendering update.
+  await expect.poll(() => page.locator('[data-testid="shelf-page"]').count()).toBe(1);
   await expect(bookLinks(page)).toHaveCount(6);
-  const opacities = await page
-    .locator('[data-testid="shelf-page"]:not([inert])')
-    .evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+  const opacities = await visibleOpacities();
   expect(opacities).toEqual(["1"]);
 });
 
