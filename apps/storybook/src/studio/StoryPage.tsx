@@ -43,7 +43,8 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
   const [load, setLoad] = useState<Load>({ kind: "loading" });
   // undefined while it loads; null when it did not load. Fetched once.
   const [registry, setRegistry] = useState<RegistryResponse | null | undefined>(undefined);
-  const [runFailure, setRunFailure] = useState<Failure | null>(null);
+  // `forRun`: the notice answers a refused click while that run is the latest one.
+  const [runFailure, setRunFailure] = useState<(Failure & { forRun?: string }) | null>(null);
   const [starting, setStarting] = useState(false);
   const request = useRef(0);
   // Story GETs sent and not answered yet, stale ones included.
@@ -113,8 +114,9 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
     }
     const error = errorOf(r.body);
     if (r.status === 409 && error === "full_run_not_allowed") {
-      setRunFailure({ title: "A full run is not allowed for this story." });
-      // A run may be active: the new `latestRun` is then the run the card follows.
+      // A run may be active: the new `latestRun` is then the run the card follows,
+      // and that run answers the refused click, so the notice goes away.
+      setRunFailure({ title: "A full run is not allowed for this story.", forRun: data?.latestRun?.id });
       void refetch();
       return;
     }
@@ -224,7 +226,7 @@ export function StoryPage({ storyId, runId }: { storyId: string; runId: string |
             {data.heads.outline !== undefined ? <p>Open a page to make its scene or audio again.</p> : null}
           </Notice>
         ) : null}
-        {runFailure !== null ? (
+        {runFailure !== null && (runFailure.forRun === undefined || runFailure.forRun === data?.latestRun?.id) ? (
           <Notice tone="bad" title={runFailure.title}>
             {runFailure.body}
           </Notice>
