@@ -336,7 +336,7 @@ Spec: design "4. Layout engine", "Error Handling"
 ### RUN-04.S7 A layer is centred on its slot and fits the slot's width and height
 - Given a slot with a height and, for scenery, a width, and an asset whose foot point is not at the centre of its box
 - When the layout engine places the layer
-- Then the scale is the smaller of slot height / box height and slot width / box width, the box is centred on the slot's `footX` with its foot on `footY`, and a flipped layer gets the same box
+- Then the scale is the smaller of slot height / box height and slot width / box width, and the foot is on `footY`; the box of a single-pose asset is centred on the slot's `footX`, and a flipped layer gets the same box; an asset with several poses keeps its foot point on `footX`, so a pose change never moves it off its spot
 - Test: @storybook/layout · packages/layout/test/layout.test.ts
 
 ## RUN-05 A failure goes to a person
