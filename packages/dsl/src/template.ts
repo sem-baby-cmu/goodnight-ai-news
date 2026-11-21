@@ -8,6 +8,8 @@ export type LayoutTemplate = {
     footX: number;
     footY: number;
     height: number;
+    // The widest box in stage units; scale = min(height / box.h, width / box.w) (#127).
+    width?: number;
     minScale: number;
     z: number;
     // The only poses this slot accepts. A pose that some slot lists is

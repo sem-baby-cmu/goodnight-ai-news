@@ -16,7 +16,6 @@ type Item = {
   entry: PoseEntry;
   // A layer with `at` in the input keeps it: shrink never touches it.
   fixed: boolean;
-  base: number;
   f: number;
   minF: number;
 };
@@ -25,6 +24,23 @@ const LAYER_KINDS = new Set(["character", "prop", "scenery"]);
 
 const round4 = (value: number) => Math.round(value * 10000) / 10000;
 const percent = (ratio: number) => `${(ratio * 100).toFixed(1)}%`;
+
+// The `at` of `entry` in `slot` at factor `f` (design "4. Layout engine",
+// #127): the box fits the slot height and, when set, the slot width; its
+// centre is on `footX` and its foot on `footY`. `at` stays the stage position
+// of the foot point, so a flipped layer gets the same box.
+export function slotAt(
+  slot: Slot,
+  entry: Pick<PoseEntry, "box" | "foot">,
+  flip: boolean | undefined,
+  f = 100,
+): { x: number; y: number; scale: number; z: number } {
+  const base =
+    slot.width === undefined ? slot.height / entry.box.h : Math.min(slot.height / entry.box.h, slot.width / entry.box.w);
+  const scale = round4((base * f) / 100);
+  const off = (entry.box.x + entry.box.w / 2 - entry.foot.x) * scale;
+  return { x: round4(flip === true ? slot.footX + off : slot.footX - off), y: slot.footY, scale, z: slot.z };
+}
 
 // Places every layer of `scene` in its template slot, runs the checks, and
 // shrinks the layers involved down to `minScale`. Never throws, never drops a
@@ -74,7 +90,6 @@ export function layoutScene(
       slot,
       entry,
       fixed: layer.at !== undefined,
-      base: slot.height / entry.box.h,
       f: 100,
       minF: Math.round(slot.minScale * 100),
     });
@@ -84,12 +99,7 @@ export function layoutScene(
   let failures: Failure[];
   for (;;) {
     for (const item of free) {
-      item.layer.at = {
-        x: item.slot.footX,
-        y: item.slot.footY,
-        scale: round4((item.base * item.f) / 100),
-        z: item.slot.z,
-      };
+      item.layer.at = slotAt(item.slot, item.entry, item.layer.flip, item.f);
     }
     failures = runChecks(items.map(toPlaced));
     if (failures.length === 0) break;
