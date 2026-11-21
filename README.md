@@ -70,7 +70,7 @@ highlighting, content safety and copyright policy, user accounts, export.
 | Production steps and retries | Workflows (one instance per run) |
 | Registry, stories, revisions, releases | D1 |
 | Character assets, audio, releases | R2 |
-| Model calls | AI Gateway `/compat` to Google AI Studio and OpenAI; TTS through AI Gateway `google-ai-studio` (a local proxy in development) |
+| Model calls | All through AI Gateway, none through OpenRouter. JSON: `/compat` to Google AI Studio and OpenAI (a local proxy in development). TTS: `google-ai-studio` (Google AI Studio directly in development) |
 | Studio protection | Cloudflare Access |
 
 ## Repository layout
