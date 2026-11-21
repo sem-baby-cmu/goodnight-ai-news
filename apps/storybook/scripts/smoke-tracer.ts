@@ -1,14 +1,17 @@
 // Tracer smoke of a deployed Worker (#25): create a story, run it, publish
 // it, and read it back through the public routes, all by HTTP.
 //
-//   pnpm --filter @storybook/app exec tsx --env-file=.dev.vars scripts/smoke-tracer.ts [--base URL] [--run --text-file .s2/s2-1.txt]
+//   env -u CF_ACCESS_CLIENT_ID -u CF_ACCESS_CLIENT_SECRET \
+//     pnpm --filter @storybook/app exec tsx --env-file=.dev.vars scripts/smoke-tracer.ts [--base URL] [--run --text-file .s2/s2-1.txt]
 //
 // `pnpm exec` runs in apps/storybook, so `.dev.vars` and `.s2/` are relative to it.
+// `--env-file` does not replace a variable that the shell already has, so
+// `env -u` clears CF_ACCESS_* from the shell profile first.
 // Without `--run` it only checks the Access token and the public shelf.
 //
 // `--run` with MODEL_MODE "real" on the Worker spends money (model and TTS calls).
 // The Access service token (CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET) comes from `.dev.vars`.
-// The usage line above has not been run yet.
+// The check-only form (no `--run`) was run against lullabyte.ioenv.com on 2026-11-21.
 //
 // It prints only IDs, statuses, counts and timings (AGENTS.md section 5): no
 // news text, no model output, no header value, and of a server body only the
