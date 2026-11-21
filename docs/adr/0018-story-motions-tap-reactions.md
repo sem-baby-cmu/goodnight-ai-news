@@ -8,8 +8,9 @@
   pass). On the same day the owner ruled on two differences between the mock
   and the runtime, from a comparison page (decisions 5 and 6). One item
   waits for an owner ruling ("Still open").
-- Reviewed: not yet. This record needs a review by two models of other
-  families before it is accepted (`AGENTS.md` section 11).
+- Reviewed: 2026-11-21, by two models of other families (a Codex seat and
+  a Gemini seat), one round. The findings and what was done with each are
+  in "Review".
 - Amends: [ADR 0016](0016-backdrops-page-turn.md), section 1: layers are
   cut at the frame, not at the stage (section 10 of this record). Amends
   ADR 0016 and [ADR 0017](0017-shelf-home-player-states.md) in the rules of
@@ -19,7 +20,7 @@
   "Data Models". The spec changes when this record is accepted.
 - Issue: #137
 
-Baseline: `origin/main` `cf12fe8`. Every `file:line` below is of that commit.
+Baseline: `origin/main` `2be0f2e`. Every `file:line` below is of that commit.
 
 ## Context
 
@@ -53,6 +54,8 @@ Causes, from the source:
 - The closed list has 7 primitives (`packages/dsl/src/primitives.ts:19-27`).
   None moves a layer away from its place. The largest travel is `bounce`,
   5% of the stage height. Nothing can show "walk", "drift", or "fall".
+- The prompt asks for a tap on each character
+  (`prompts.ts:108`). It does not ask for an action in that tap.
 - `blink` and `wave` need the `svg-rig` renderer. Every layer file of the
   live release is a `webp` file, so these two never run.
 - Two lists say which trigger a primitive allows, in two packages:
@@ -112,13 +115,23 @@ keep every trigger that they have today, and they keep "all" kinds:
 
 The list grows from 7 to 21 primitives (sections 2 and 3).
 
+The schemas are made from the table, one trigger group at a time:
+
+- `animations` has one member for each primitive that allows `enter` or
+  `loop`: 14 members. A new primitive has only its own triggers in its
+  member. The 7 old members keep both triggers, as today, so a stored
+  revision parses as before, and the code `loop_not_allowed` stays.
+- `play_animation` names the primitives that allow `tap`: the 7 old ones
+  and the 7 reactions.
+- So a reaction in `animations`, and a story motion in `play_animation`,
+  fail in the schema. The model cannot write them in a strict mode.
+
 Validation (implementation decision; the codes are settled in the issue):
 
-- A trigger that the table does not allow fails. For the 7 old primitives
-  the code stays `loop_not_allowed`.
 - A primitive on a layer whose kind the table does not allow fails.
 - `walk-in` on a character whose pose is not `walk` or `run` fails. A
-  character that sits and moves across the ground looks wrong.
+  character that sits and moves across the ground looks wrong. `pip` has
+  only the pose `front`, so `pip` cannot have `walk-in`.
 
 ### 2. Story motions
 
@@ -127,7 +140,7 @@ code places it. No model output holds a distance, a direction, or a path.
 
 | Primitive | Trigger | Kinds | What it shows | Parameters (bounded) |
 | :-- | :-- | :-- | :-- | :-- |
-| `walk-in` | `enter` | character, pose `walk` or `run` | The character walks from the side to its place. Steps of 130 units, a rise of 16 units and a lean of 3.4 degrees for each step, at 300 units for each second | delay 0 to 3 s |
+| `walk-in` | `enter` | character, pose `walk` or `run` | The character walks from the side to its place. Steps of 130 units, a rise of 16 units and a lean of 3.4 degrees for each step, at 300 units for each second | none |
 | `grow` | `enter` | scenery | The layer grows from its foot point, goes a little over its size (1.08 x 1.14), and settles. 1 s | delay 0 to 3 s |
 | `drift` | `loop` | scenery | The layer moves slowly to one side and to the other, by up to 18% of the stage width | period 20 to 40 s |
 | `fall` | `loop` | scenery | The layer and 7 copies of it fall from above their place to 520 units below it, and fade in and out. The copies are spread over the stage width and start at different times | period 2 to 4 s |
@@ -135,16 +148,27 @@ code places it. No model output holds a distance, a direction, or a path.
 | `shine` | `loop` | scenery | The layer gets a little larger (1 to 1.12) and rocks by 5 degrees to each side | period 4 to 8 s |
 | `doze` | `loop` | character | The character nods slowly: 3 degrees forward, a hold, then back | period 6 to 10 s |
 
-- **Direction of `walk-in`.** The `walk` and `run` art of all 13 characters
-  faces right (checked on the 26 files of the registry). So a character
-  comes from the left. A layer with `flip` faces left and comes from the
-  right.
+- **Direction of `walk-in`.** The `walk` and `run` art of the 12 WebP
+  characters faces right (checked on the 24 files of the registry). So a
+  character comes from the left. A layer with `flip` faces left and comes
+  from the right.
+- **`flip`.** `flip` is a mirror on the asset element
+  (`packages/scene-runtime/src/LayerView.tsx:152-156`), inside the wrappers
+  that move. So for a layer with `flip`, every motion and reaction mirrors
+  its travel to the side and its rotation. Without this rule a flipped
+  walker leans back.
 - **Start point of `walk-in`.** The whole layout box of the layer is
   outside the frame (decision 5, section 10). From the left that is a
   travel of `at.x` + 400 + the part of the box to the right of the foot
-  point. The time is the travel at 300 units for each second: about 4 s for
-  the slot at x 520 and about 6 s for the slot at x 1080 of `two-friends`.
-  That is 1.4 s more than the mock showed.
+  point. From the right it is 1600 - `at.x` + 400 + the part of the box to
+  the left of the foot point. The time is the travel at 300 units for each
+  second: about 4 s for the slot at x 520 and about 6 s for the slot at
+  x 1080 of `two-friends`. That is 1.4 s more than the mock showed.
+- **Order of the walkers.** Code gives it; `walk-in` has no parameter. Of
+  the walkers from one side, the one with the longest travel starts first,
+  and each next one starts 1.4 s later. So two walkers are 420 units apart
+  and do not cover each other. The four characters of `line-up` are in
+  place after about 7 s.
 - **Copies of `fall`.** The runtime makes the copies. They are not layers:
   the scene has one layer, the layout checks see one box, and a copy takes
   no tap. The places and the start times of the copies are fixed values in
@@ -153,8 +177,8 @@ code places it. No model output holds a distance, a direction, or a path.
   slot. A layer near the stage edge drifts over the bleed (section 10). In
   a 4:3 picture area the edge of the picture cuts it, as a cloud that
   leaves the picture.
-- **Order of `enter` motions.** The `delay` parameter gives the order. The
-  prompt asks for different delays when a page has two or more.
+- **Order of `grow`.** The `delay` parameter gives it. The prompt asks for
+  different delays when a page has two or more.
 - `shine` is the motion that the mock showed on the sun. The mock named it
   `twinkle`; it is a different motion, so it has its own name.
 
@@ -193,9 +217,18 @@ parameters.
 
 ### 5. A pose for the time of a reaction
 
-`set_pose` gets an optional field, `revert: true`. With it, the layer
-shows the new pose for 1.7 s and then shows the pose that it had before the
-tap. Without it, `set_pose` works as today: the new pose stays.
+`set_pose` gets a field, `revert`. With `revert: true`, the layer shows the
+new pose for 1.7 s and then shows the pose that it had before the tap. With
+`false`, or without the field, `set_pose` works as today: the new pose
+stays.
+
+- In a stored scene the field is an optional boolean. In the draft that
+  the model writes it is a required boolean, as `flip` is
+  (`packages/dsl/src/draft.ts:47`). The model JSON schema makes every key
+  required (`packages/dsl/src/json-schema.ts:21-24`), so an optional
+  `true` would be forced on every `set_pose`.
+- A return that waits is dropped when a later action sets the pose of the
+  layer, and when the page is no longer `current`.
 
 - The pair rule of today applies to the new pose and to the return.
 - A pose change keeps `at`. Two poses of one character have boxes of
@@ -214,28 +247,42 @@ tap. Without it, `set_pose` works as today: the new pose stays.
   motions add up. The mock ran in this way.
 - **Busy rule.** While the reaction of a layer runs, a tap on that layer
   shows its bubble again and runs no other action. This stops a pile of
-  bits and sounds from fast taps.
+  bits and sounds from fast taps. The busy time is the time of the reaction
+  in the table of section 3, also when the reaction is not drawn (reduced
+  motion).
+- **Part primitives do not change.** A tap `blink` on a layer with a loop
+  `blink` replaces the loop on the same part element, and the loop does not
+  come back. This fault is in the code of today (`animator.ts:15-16`). The
+  third wrapper does not repair it, and this record does not.
 
-### 7. Before `enter`, reduced motion, still mode, late images
+### 7. Before `enter`, reduced motion, still mode, slow images
 
 One flag in the table, not a test for each primitive: `fade-in`, `walk-in`,
 and `grow` **start away from rest**.
 
 | State | A layer with such an `enter` motion |
 | :-- | :-- |
-| Before its `enter` motion starts (`incoming`, and the Start gate) | Is not shown. This is the rule of `fade-in` of today, for all three (decision 6) |
-| `current`, all assets loaded | The motion runs once, after its delay |
+| `incoming`, and the Start gate | Is not shown. This is the rule of `fade-in` of today, for all three (decision 6) |
+| `current`, an asset of the page not settled | Is not shown. The `enter` gate is one gate for the page: every asset is loaded or has failed (`SceneView.tsx:415-432`). One slow image holds back every `enter` motion of the page |
+| `current`, all assets settled | The motion runs once, after its delay |
+| `outgoing` | A running `walk-in` or `grow` ends at once, and the layer is at rest. A reaction, its bits, and a waiting pose return are removed |
 | Still mode | Shown at rest. No animation runs (ADR 0017) |
-| An image that loads late | The layer runs its own `enter` motion when the image is loaded, as `fade-in` does today |
+
+- **A layer that is not shown takes no tap and no focus.** Today a hidden
+  `fade-in` layer of a `current` page takes both
+  (`SceneView.tsx:547-548`, `LayerView.tsx:163-176`). This record closes
+  that fault for all three motions.
+- The gate is the gate of today. This record does not add a gate for each
+  layer: the motions of a page then start together and in their order.
 
 Reduced motion (`prefers-reduced-motion`):
 
 | Part | With reduced motion |
 | :-- | :-- |
 | Loops, old and new | Off, as today |
-| `walk-in`, `grow` | Do not run. The layer is shown at rest when the page is `current` |
+| `walk-in`, `grow` | Do not run, and the layer is never hidden: it is shown at rest in every phase. So nothing appears with a jump on "Start" |
 | `fade-in`, `bounce`, `pop` on `enter` | Run, as today. `startEnter` has no test for reduced motion (`SceneView.tsx:267-278`) |
-| Tap reactions, bits, the bubble pop | Do not run |
+| Tap reactions, bits, the bubble pop | Do not run. The busy rule holds |
 | Bubble, sound, `set_expression`, `set_pose` without `revert` | Work, as today |
 | `set_pose` with `revert` | The pose does not change |
 | Breathing | Off |
@@ -257,7 +304,12 @@ adds it. It is not in the scene, and the model does not choose it.
 - The "Animations" block gets one line for each primitive: what it shows,
   its triggers, and the assets that it works on.
 - New rule: for each thing that the page text says moves, the scene has one
-  animation that shows that movement. A page can have several.
+  animation that shows that movement, when a primitive fits its kind and
+  the template has a slot for it. A page can have several.
+- Code does not check this rule. A template can have no slot for the thing
+  (`circle-around-object` has no sky slot), a prop has no story motion, and
+  `pip` cannot walk in. A scene that leaves a motion out passes validation.
+  The model run of "Order of work" measures how often that happens.
 - New rule: the tap of a character has a reaction, a `show_bits`, a
   `show_bubble`, and a `play_sfx`.
 - The schema keeps `animations.min(1)` and every bound of today. A count
@@ -269,16 +321,20 @@ ADR 0016 section 1 says: "Layers are drawn in a separate container that
 clips to the stage, so no layer shows in the bleed." Decision 5 changes
 this sentence. The container of the layers
 (`packages/scene-runtime/src/SceneView.tsx:669-680`) cuts its content at
-the frame: 2400 x 1200 units, the stage and the bleed on each side.
+the frame: 2400 x 1200 units, the stage and the bleed on each side. The
+frame element has no clip today (`SceneView.tsx:601-612`); it gets one.
 
 - The top and the bottom do not change: the frame and the stage have the
   same height.
 - In a 4:3 picture area the picture shows the stage only, so nothing
   changes there. In a wider picture area, the part of a layer that is
   beside the stage is drawn over the bleed.
-- The layout checks do not change. A layer at rest is inside the stage. A
-  layer is outside it only during a motion, or after a `set_pose` to a
-  wider pose.
+- The layout checks do not change. They let up to 10% of the box of a
+  layer be outside the stage (`packages/layout/src/checks.ts:4`, `62-63`).
+  So a layer at rest can have a part beside the stage. That part is drawn
+  in a wide picture area, in every mode, also in a book that is live today.
+- In a picture area wider than 2:1 the paper colour shows beyond the frame
+  (`design.md` "5. Scene runtime"). A layer is cut at the frame there.
 - The hit-area rule of ADR 0017, decision 10, does not change: a margin is
   cut at the stage edge. The drawn part of a tappable layer takes a tap
   where it is drawn, also beside the stage.
@@ -300,7 +356,7 @@ the frame: 2400 x 1200 units, the stage and the bleed on each side.
 - **Parsing does not change.** Every new field is optional, and every new
   primitive and action is a new member of a list. A stored revision and a
   published release pass the new schemas. No release file changes.
-- **The look of every live book changes in five ways**, because the
+- **Every live book changes in six ways**, because the
   runtime is part of the app, not of a release:
   1. Each character breathes.
   2. A bubble pops.
@@ -308,9 +364,10 @@ the frame: 2400 x 1200 units, the stage and the bleed on each side.
      a tap during an `enter` animation: the two now add up.
   4. The busy rule: a second tap during a reaction shows the bubble only.
   5. In a picture area wider than 4:3, the part of a layer that is beside
-     the stage is drawn, not cut (section 10). At rest no layer is there.
-     It shows during a `sway`, a `bounce`, or a `pop` near the stage edge,
-     and after a `set_pose` to a wider pose.
+     the stage is drawn, not cut (section 10). At rest that is up to 10%
+     of the box of a layer near the stage edge. It is more during a `sway`
+     or a `pop`, and after a `set_pose` to a wider pose.
+  6. A hidden `fade-in` layer takes no tap and no focus before it shows.
 - A live book gets story motions only when its scenes are generated again
   and a new release is published. That is an owner action.
 
@@ -345,7 +402,7 @@ the frame: 2400 x 1200 units, the stage and the bleed on each side.
 
 - `packages/dsl`: the table fields, 14 primitives, `show_bits`, `revert`,
   the validation rules. The scene JSON schema for the model grows: the
-  animation union has 21 members, not 7.
+  animation union and the `play_animation` list have 14 members each, not 7.
 - `packages/scene-runtime`: keyframes, the `tap` wrapper, the copies of
   `fall`, the bits, the bubble pop, the busy rule, breathing, and the cut
   of the layers at the frame.
@@ -360,22 +417,33 @@ the frame: 2400 x 1200 units, the stage and the bleed on each side.
 
 Order of work (each line is one issue, refined before code):
 
-1. The table fields, the `tap` wrapper, the "start away from rest" flag,
-   the cut at the frame, `walk-in`, `jump`, and the prompt lines.
-   Acceptance: a run with the real
-   model over the 7 page texts of this book, with a table of the motions
-   that the text names and the motions that the model chose, page by page.
-2. `drift`, `fall`, `twinkle`, `shine`, `doze`. The frame time on the rain
-   page.
+1. The table fields, the schemas by trigger, the "start away from rest"
+   flag with the tap and focus rule, the cut at the frame, `walk-in`,
+   `grow`, `jump`, and the prompt lines of these three.
+2. `drift`, `fall`, `twinkle`, `shine`, `doze`, and their prompt lines. The
+   frame time on the rain page.
 3. The other 6 reactions, `show_bits`, the bubble pop, the busy rule.
 4. Breathing.
 5. `revert`, after #85.
 
+The model run comes after issue 2, when every story motion exists. Issue 1
+alone cannot show pages 6 and 7.
+
+- Before the run, a person writes a table from the 7 page texts of this
+  book: for each page, the motions that the text names and that a primitive
+  and a slot of some template can show.
+- The run uses the real model and the new prompt, once for each page.
+- It passes when all 7 scenes pass validation, the scenes have 80% or more
+  of the motions of the table, and each page with two or more motions in
+  the table has two or more animations.
+- If it fails, the prompt changes first. A new primitive needs a new
+  record.
+
 ## Still open
 
-One item needs an owner ruling before this record is accepted.
+Two items need an owner ruling before this record is accepted.
 
-**A cloud and rain on one page.** Page 6 of the mock has two drifting
+**1. A cloud and rain on one page.** Page 6 of the mock has two drifting
 clouds and the rain. `two-friends` has one sky slot, and only `big-sky` has
 three (`packages/layout/src/templates.ts:78-80`).
 
@@ -387,6 +455,20 @@ three (`packages/layout/src/templates.ts:78-80`).
 Recommendation: A now, and look at B with #131, which changes the sky
 slots. A costs nothing and loses one thing that the mock showed.
 
+**2. A tap on a character that walks in.** The mock let a tap work during
+the walk, and the two motions added up. In the runtime the bubble, the hit
+margin, and the focus ring are drawn at the place of the layer
+(`SceneView.tsx:549-570`), not where the walker is. The bubble of a tap
+during the walk is then far from the character. The review found this.
+
+| Option | Result |
+| :-- | :-- |
+| A: a layer takes no tap and no focus until its `enter` animations end | One rule. No third wrapper (section 6 keeps only the busy rule). A character does not answer for the 4 to 7 s of its walk. In a live book, a tap in the first 1 to 2 s of a page on a layer with an `enter` `bounce` or `pop` does nothing |
+| B: as the mock | Section 6 as written. The bubble, the margin, the ring, and the bits must follow the moving layer: the runtime reads the place of the layer in each frame of the walk |
+
+Recommendation: A. It removes the special case. B is more code for a few
+seconds of each page.
+
 ## Not verified
 
 - No model run was made with the new prompt. Whether the model picks story
@@ -394,12 +476,59 @@ slots. A costs nothing and loses one thing that the mock showed.
 - The registry of production was not read. That it has active `sfx` assets
   is inferred from the fixture and from the 8 recipes in
   `tools/assets/src/sfx/recipes.ts`.
-- Whether each model provider accepts a schema with 21 union members in
+- Whether each model provider accepts a schema with 14 union members in
   its strict mode.
-- The frame time of `fall` and of the bits on a device.
+- How long a slow asset holds back the `enter` motions of a page on 4G,
+  and whether the Player turns to a page before its assets are settled.
+- The frame time of `fall`, of breathing, and of the bits on a device, with
+  the paper texture over the picture (a `multiply` blend).
 - Whether a walk of 6 s fits the narration of a short page. The longest
   travel of today's templates was not computed.
 - Whether a control of the Player (ADR 0017) can sit over a layer that is
   drawn beside the stage. The controls are above the picture in the stack.
 - The mock was checked in one desktop browser. The owner judged its look;
   no device was used.
+
+## Review
+
+One round, 2026-11-21, on the commit before this section. The Codex seat
+had the correctness lens and the Gemini seat the boundaries lens. The
+findings are merged as a union. Each was checked against the source by the
+author.
+
+| # | Finding | Seat | Check | Result |
+| :-- | :-- | :-- | :-- | :-- |
+| 1 | The "late image" row was wrong: the `enter` gate is one gate for the page | Both | True (`SceneView.tsx:415-432`) | Section 7 rewritten |
+| 2 | With reduced motion, a hidden walker appears with a jump on "Start" | Gemini | True: `startEnter` has no reduced-motion test | Section 7: never hidden with reduced motion |
+| 3 | A hidden layer of a `current` page takes a tap and the focus | Codex | True (`SceneView.tsx:547-548`) | Section 7: no tap, no focus |
+| 4 | An optional `revert: true` becomes required in the model schema | Codex | True (`json-schema.ts:21-24`) | Section 5: a boolean, required in the draft |
+| 5 | "A layer at rest is inside the stage" is false | Codex | True: the bounds check allows 10% | Section 10 and "Compatibility" corrected |
+| 6 | The frame has no clip; removing the stage clip alone lets a layer reach the paper beyond 2:1 | Gemini | True (`SceneView.tsx:601-612`) | Section 10 |
+| 7 | A walk goes on while the page turns | Gemini | True: the turn stops loops only | Section 7, row `outgoing` |
+| 8 | `flip` is inside the wrappers, so a flipped walker leans back; no rule for a walk from the right | Gemini | True (`LayerView.tsx:152-156`) | Section 2: `flip` rule and the travel from the right |
+| 9 | Two walkers with one delay cover each other | Gemini | True by the start point rule | Section 2: code gives the order; `walk-in` has no parameter |
+| 10 | The bubble and the margin stay at the place of the layer during a walk | Gemini | True (`SceneView.tsx:549-570`) | "Still open", item 2 |
+| 11 | All 21 primitives in `animations` and in `play_animation` lets wrong triggers through | Gemini | True for the schemas of today (`schemas.ts:27-37`, `51`) | Section 1: schemas by trigger, 14 members each |
+| 12 | The prompt rule cannot always be met (no sky slot, props, `pip`), and a missing motion passes | Gemini | True; `pip` has only `front` | Section 9. The count "13 characters, 26 files" was wrong and is corrected |
+| 13 | The acceptance of issue 1 cannot fail and needs the motions of issue 2 | Gemini; Codex said it does not prove the runtime | True | "Order of work": the run is after issue 2, with a pass rule |
+| 14 | `grow` was in no issue | Codex | True | Issue 1 |
+| 15 | No rule for a pose return at a page turn or after another action; no busy time with reduced motion | Gemini | True | Sections 5 and 6 |
+| 16 | A tap `blink` stops a loop `blink` on the same part | Codex | True, and in the code of today | Recorded in section 6. Not repaired here |
+| 17 | The baseline was `cf12fe8`; `origin/main` had moved | Codex | True. No cited file changed between the two commits | Rebased; the baseline is `2be0f2e` |
+
+Not adopted:
+
+- **A `revert` can leave an illegal pose and expression pair** (Gemini). The
+  example is a `set_expression` to an expression that the starting pose
+  does not have. Validation rejects that action today
+  (`packages/dsl/src/validate.ts:206-211`).
+- **Reactions that are close to `sway`, `pop`, and `bounce` could be
+  parameters of those** (Gemini). The bounds of the old primitives are
+  small on purpose, and the owner approved each reaction as a look
+  (decision 2). The list stays.
+- **The prompt file has had 5 rule patches; one more rule is the wrong
+  tier** (Gemini). Code cannot know which things a text says move. The
+  model run with a pass rule is the check.
+
+No seat found a simpler form with the same result. Both said that a change
+to the prompt alone cannot show a walk.
