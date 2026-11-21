@@ -5,6 +5,7 @@ import { SILENT_WAV } from "./audio";
 import {
   animations,
   deferred,
+  FIXTURE_FILES,
   FIXTURE_ID,
   FIXTURE_PAGES,
   FIXTURE_ROOT,
@@ -272,6 +273,58 @@ it("a tap during a turn finishes it and starts a turn from its target", async ()
   expect(within(arriving).getByTestId("narration").textContent).toBe(FIXTURE_PAGES[2]!.text);
 });
 
+it("the end of an interrupted turn leaves the next turn running", async () => {
+  await ready();
+  fireEvent.click(start());
+  fireEvent.click(button("Next page"));
+  fireEvent.click(button("Next page"));
+  // Every pending callback runs, also the one of the first turn. No
+  // animation ends on its own in the fake, so the second turn still runs.
+  await act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
+  const sheets = screen.getAllByTestId("page-sheet");
+  expect(sheets).toHaveLength(2);
+  expect(within(sheets.find((s) => s.hasAttribute("inert"))!).getByTestId("narration").textContent).toBe(FIXTURE_PAGES[1]!.text);
+
+  await finishAll();
+  expect(screen.getAllByTestId("page-sheet")).toHaveLength(1);
+  expect(currentNarration().textContent).toBe(FIXTURE_PAGES[2]!.text);
+});
+
+it("a book of one page: next is The end, and Read again plays page 1", async () => {
+  const manifest = JSON.parse(FIXTURE_FILES["manifest.json"]!) as { pages: unknown[] };
+  const onePage = JSON.stringify({ ...manifest, pages: manifest.pages.slice(0, 1) });
+  vi.stubGlobal(
+    "fetch",
+    fixtureFetch((path) => (path === "manifest.json" ? new Response(onePage, { status: 200 }) : undefined)).fetchImpl,
+  );
+  renderBook(FIXTURE_ID);
+  await screen.findByTestId("scene");
+  await settle();
+  await waitFor(() => expect(start().getAttribute("aria-disabled")).not.toBe("true"));
+
+  // DESIGN.md 14: "Start" moves the focus to "next", whose name on the last
+  // page is "The end".
+  fireEvent.click(start());
+  expect(screen.queryByRole("button", { name: "Next page" })).toBeNull();
+  expect(document.activeElement).toBe(button("The end"));
+  expect(screen.getByRole("status", { name: "Page 1 of 1" })).toBeTruthy();
+  expect(button("Previous page").getAttribute("aria-disabled")).toBe("true");
+
+  // "Next" on the last page: the end page, the focus on "Read again".
+  fireEvent.click(button("The end"));
+  await finishAll();
+  expect(document.activeElement).toBe(button("Read again"));
+  expect(screen.queryByRole("status")).toBeNull();
+
+  // "Read again": page 1 plays in the tap, the focus on "next" of page 1.
+  fireEvent.click(button("Read again"));
+  expect(plays.at(-1)).toMatchObject({ id: "narration-audio", src: narrationUrl(0) });
+  expect(document.activeElement).toBe(button("The end"));
+  expect(screen.queryByRole("button", { name: "Start the story" })).toBeNull();
+  await finishAll();
+  expect(currentNarration().textContent).toBe(FIXTURE_PAGES[0]!.text);
+});
+
 it("next on the last page shows the end page and moves the focus to Read again", async () => {
   await ready();
   fireEvent.click(start());
@@ -291,19 +344,23 @@ it("next on the last page shows the end page and moves the focus to Read again",
 it("Read again plays page 1 in the click and moves the focus to next", async () => {
   await ready();
   fireEvent.click(start());
-  // The gate sheet, kept from Start.
-  const gateSheet = screen.queryAllByTestId("page-sheet")[0];
   await toLastPage();
   fireEvent.click(button("The end"));
   await finishAll();
+  // The end page sheet, before the tap.
+  const endSheets = screen.getAllByTestId("page-sheet");
+  expect(endSheets).toHaveLength(1);
+  const endSheet = endSheets[0]!;
 
   fireEvent.click(button("Read again"));
   expect(plays.at(-1)).toMatchObject({ id: "narration-audio", src: narrationUrl(0) });
   const arriving = screen.getAllByTestId("page-sheet").find((s) => !s.hasAttribute("inert"))!;
   // The first layer of page 1 (pip).
   expect(sceneOf(arriving).getAttribute("data-page")).toBe("01936b2a-0000-7000-8000-000000000021");
-  expect(gateSheet).toBeDefined();
-  expect(arriving).not.toBe(gateSheet);
+  // Page 1 is a new sheet; the end page sheet leaves (inert).
+  expect(arriving).not.toBe(endSheet);
+  expect(endSheet.isConnected).toBe(true);
+  expect(endSheet.hasAttribute("inert")).toBe(true);
   expect(document.activeElement).toBe(button("Next page"));
   expect(button("Previous page").getAttribute("aria-disabled")).toBe("true");
   expect(screen.queryByRole("button", { name: "Start the story" })).toBeNull();
