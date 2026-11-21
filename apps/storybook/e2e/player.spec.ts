@@ -1114,6 +1114,26 @@ test("PLY-04.S5 a tap during a turn starts the next turn", async ({ page }) => {
   expect((await narrationPlays(page)).at(-1)!.src.endsWith(audioOf(3))).toBe(true);
 });
 
+test("PLY-04.S5 the end of the interrupted turn does not end the next turn", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  expect((await tapInPage(page, "Next page", 200)).held).toBeGreaterThan(0);
+  // The second tap ends the first turn and holds its own turn.
+  expect((await tapInPage(page, "Next page", 200)).held).toBeGreaterThan(0);
+  // Two frames: the end callback of the first turn has run by then.
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(leavingSheet(page)).toHaveCount(1);
+  await expect(leavingSheet(page).getByTestId("narration")).toHaveText(pages[2]!.text);
+  const states = await heldStates(page);
+  expect(states).toEqual(states.map(() => "paused"));
+
+  await releaseTurn(page);
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[3]!.text);
+});
+
 test("PLY-04.S6 reduced motion gives a cross-fade", async ({ page }) => {
   await setup(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -1130,6 +1150,9 @@ test("PLY-04.S6 reduced motion gives a cross-fade", async ({ page }) => {
     }
   }
   expect(tap.shades.flatMap((s) => s.animations)).toHaveLength(0);
+  await turnEnd(page);
+  await expect(page.locator('[data-testid="page-sheet"]')).toHaveCount(1);
+  await expect(narration(page)).toHaveText(pages[1]!.text);
 });
 
 test("PLY-04.S7 a page whose images are not loaded yet still shows", async ({ page }) => {
@@ -1454,6 +1477,8 @@ test("Part B screenshots: the end page and a forward turn", async ({ page }, tes
   await page.setViewportSize({ width: 1194, height: 834 });
   await open(page);
   await startBook(page);
+  // From page 2: the enter animations of page 1 would still run.
+  await turnTo(page, 2);
   expect((await tapInPage(page, "Next page", 250)).held).toBeGreaterThan(0);
   await shotNow(page, "turn-forward-1194x834");
 });
