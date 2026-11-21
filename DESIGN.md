@@ -474,7 +474,8 @@ placed (S2 results, or the operator's notes).
 - The Studio shows an identifier of the spec (`backdrop_sky_mismatch`, a
   template ID, an asset key) as it is written in the spec. The one
   exception is the state `needs_review`: the Studio writes it "needs
-  review".
+  review". A page state is "ok", "stale", "needs review", or "missing". A
+  run chip says "Queued", "Running", "Ready", "Needs review", or "Failed".
 - The link to the news source is in the Studio only.
 
 ## 10. Child surfaces
