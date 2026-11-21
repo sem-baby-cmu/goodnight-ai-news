@@ -1,8 +1,9 @@
 import type { AssetsSettledReport, SceneViewProps } from "@storybook/scene-runtime";
-import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { SILENT_WAV } from "./audio";
 import {
+  animations,
   deferred,
   FIXTURE_ID,
   FIXTURE_PAGES,
@@ -37,6 +38,7 @@ beforeEach(() => {
   scene.last = null;
   plays.length = 0;
   pauses.length = 0;
+  animations.length = 0;
 });
 afterEach(() => {
   cleanup();
@@ -44,6 +46,16 @@ afterEach(() => {
 });
 
 const start = () => screen.getByRole("button", { name: "Start the story" });
+const button = (name: string) => screen.getByRole("button", { name });
+// The narration of the sheet that is not inert (the arriving one in a turn).
+const currentNarration = () => screen.getAllByTestId("narration").find((el) => !el.closest("[inert]"))!;
+const narrationUrl = (i: number) => new URL(FIXTURE_ROOT + FIXTURE_PAGES[i]!.audio, document.baseURI).href;
+const sceneOf = (sheet: HTMLElement) => within(sheet).getByTestId("scene");
+// Ends every animation that runs, and lets the `finished` callbacks run.
+const finishAll = () =>
+  act(async () => {
+    animations.forEach((a) => a.finish());
+  });
 const settle = (report: AssetsSettledReport = { failed: [] }) =>
   act(() => {
     scene.last!.onAssetsSettled!(report);
@@ -145,13 +157,19 @@ it("exactly two audio elements exist in every state", async () => {
   expect(audios()).toEqual(first);
 
   fireEvent.click(start());
-  expect(screen.getByTestId("narration").textContent).toBe(FIXTURE_PAGES[0]!.text);
+  expect(currentNarration().textContent).toBe(FIXTURE_PAGES[0]!.text);
   expect(audios()).toEqual(first);
   for (let i = 1; i < PAGE_IDS.length; i++) {
     fireEvent.click(screen.getByRole("button", { name: "Next page" }));
-    expect(screen.getByTestId("narration").textContent).toBe(FIXTURE_PAGES[i]!.text);
+    expect(currentNarration().textContent).toBe(FIXTURE_PAGES[i]!.text);
     expect(audios()).toEqual(first);
   }
+  fireEvent.click(screen.getByRole("button", { name: "The end" }));
+  await finishAll();
+  expect(audios()).toEqual(first);
+  fireEvent.click(screen.getByRole("button", { name: "Read again" }));
+  await finishAll();
+  expect(audios()).toEqual(first);
   cleanup();
 
   vi.stubGlobal("fetch", fixtureFetch((path) => (path === "manifest.json" ? new Response("", { status: 404 }) : undefined)).fetchImpl);
@@ -203,4 +221,105 @@ it("a failed first page in Loading shows the Resting state", async () => {
   expect(await screen.findByText("This book is sleeping. Come back soon.")).toBeTruthy();
   expect(screen.getAllByRole("button")).toHaveLength(1);
   expect(screen.getByRole("button", { name: "Home" }).textContent).toContain("Home");
+});
+
+// From Start to page 4 with "next", each turn finished.
+async function toLastPage() {
+  for (let i = 1; i < PAGE_IDS.length; i++) {
+    fireEvent.click(button("Next page"));
+    await finishAll();
+  }
+}
+
+it("a turn keeps two sheets until it finishes, and its end plays nothing", async () => {
+  await ready();
+  fireEvent.click(start());
+  const pauseCount = pauses.length;
+  fireEvent.click(button("Next page"));
+  // A turn never touches the sound-effect element.
+  expect(pauses.slice(pauseCount).map((p) => p.id)).not.toContain("sfx-audio");
+  const sheets = screen.getAllByTestId("page-sheet");
+  expect(sheets).toHaveLength(2);
+  expect(sheets[0]!.hasAttribute("inert")).toBe(true);
+  expect(sceneOf(sheets[0]!).getAttribute("data-phase")).toBe("outgoing");
+  expect(sheets[1]!.hasAttribute("inert")).toBe(false);
+  expect(sceneOf(sheets[1]!).getAttribute("data-phase")).toBe("incoming");
+  const count = plays.length;
+
+  await finishAll();
+  const after = screen.getAllByTestId("page-sheet");
+  expect(after).toHaveLength(1);
+  expect(sceneOf(after[0]!).getAttribute("data-phase")).toBe("current");
+  expect(plays).toHaveLength(count);
+});
+
+it("a tap during a turn finishes it and starts a turn from its target", async () => {
+  await ready();
+  fireEvent.click(start());
+  const before = animations.length;
+  fireEvent.click(button("Next page"));
+  const firstTurn = animations.slice(before);
+  expect(firstTurn.length).toBeGreaterThan(0);
+
+  fireEvent.click(button("Next page"));
+  expect(firstTurn.map((a) => a.playState)).toEqual(firstTurn.map(() => "finished"));
+  expect(screen.getByRole("status", { name: "Page 3 of 4" })).toBeTruthy();
+  const sheets = screen.getAllByTestId("page-sheet");
+  expect(sheets).toHaveLength(2);
+  const leaving = sheets.find((s) => s.hasAttribute("inert"))!;
+  const arriving = sheets.find((s) => !s.hasAttribute("inert"))!;
+  expect(within(leaving).getByTestId("narration").textContent).toBe(FIXTURE_PAGES[1]!.text);
+  expect(within(arriving).getByTestId("narration").textContent).toBe(FIXTURE_PAGES[2]!.text);
+});
+
+it("next on the last page shows the end page and moves the focus to Read again", async () => {
+  await ready();
+  fireEvent.click(start());
+  await toLastPage();
+  const playCount = plays.length;
+  const pauseCount = pauses.length;
+
+  fireEvent.click(button("The end"));
+  expect(pauses.slice(pauseCount).map((p) => p.id)).toContain("narration-audio");
+  expect(plays).toHaveLength(playCount);
+  expect(document.activeElement).toBe(button("Read again"));
+  expect(screen.queryByRole("button", { name: "Next page" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "The end" })).toBeNull();
+  expect(screen.queryByRole("status")).toBeNull();
+});
+
+it("Read again plays page 1 in the click and moves the focus to next", async () => {
+  await ready();
+  fireEvent.click(start());
+  // The gate sheet, kept from Start.
+  const gateSheet = screen.queryAllByTestId("page-sheet")[0];
+  await toLastPage();
+  fireEvent.click(button("The end"));
+  await finishAll();
+
+  fireEvent.click(button("Read again"));
+  expect(plays.at(-1)).toMatchObject({ id: "narration-audio", src: narrationUrl(0) });
+  const arriving = screen.getAllByTestId("page-sheet").find((s) => !s.hasAttribute("inert"))!;
+  // The first layer of page 1 (pip).
+  expect(sceneOf(arriving).getAttribute("data-page")).toBe("01936b2a-0000-7000-8000-000000000021");
+  expect(gateSheet).toBeDefined();
+  expect(arriving).not.toBe(gateSheet);
+  expect(document.activeElement).toBe(button("Next page"));
+  expect(button("Previous page").getAttribute("aria-disabled")).toBe("true");
+  expect(screen.queryByRole("button", { name: "Start the story" })).toBeNull();
+});
+
+it("a tap on previous with the focus in the leaving sheet gives the focus to previous", async () => {
+  await ready();
+  fireEvent.click(start());
+  await toLastPage();
+  fireEvent.click(button("The end"));
+  await finishAll();
+  expect(document.activeElement).toBe(button("Read again"));
+
+  // A pointer tap in Safari does not focus the button.
+  fireEvent.click(button("Previous page"));
+  const previous = button("Previous page");
+  expect(document.activeElement).toBe(previous);
+  expect(previous.closest("[inert]")).toBeNull();
 });

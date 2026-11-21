@@ -56,10 +56,28 @@ export type PlayRecord = { el: HTMLMediaElement; id: string | undefined; src: st
 export const plays: PlayRecord[] = [];
 export const pauses: PlayRecord[] = [];
 
+// A Web Animation of the `Element.prototype.animate` fake. Nothing runs on
+// its own: a test calls `finish()` to end it.
+export type FakeAnimation = {
+  target: Element;
+  keyframes: Keyframe[] | PropertyIndexedKeyframes | null;
+  options: number | KeyframeAnimationOptions | undefined;
+  playState: AnimationPlayState;
+  currentTime: number;
+  finished: Promise<Animation>;
+  finish(): void;
+  cancel(): void;
+  pause(): void;
+};
+
+// The animate() calls since installBrowserStubs, in order.
+export const animations: FakeAnimation[] = [];
+
 // Stubs for the browser APIs that jsdom lacks or does not implement.
 export function installBrowserStubs(): () => void {
   const media = HTMLMediaElement.prototype;
   const image = HTMLImageElement.prototype;
+  const element = Element.prototype;
   const saved = {
     play: Object.getOwnPropertyDescriptor(media, "play"),
     pause: Object.getOwnPropertyDescriptor(media, "pause"),
@@ -67,6 +85,7 @@ export function installBrowserStubs(): () => void {
     fonts: Object.getOwnPropertyDescriptor(document, "fonts"),
     resizeObserver: Object.getOwnPropertyDescriptor(globalThis, "ResizeObserver"),
     matchMedia: Object.getOwnPropertyDescriptor(window, "matchMedia"),
+    animate: Object.getOwnPropertyDescriptor(element, "animate"),
   };
   const define = (target: object, key: string, value: unknown) =>
     Object.defineProperty(target, key, { value, configurable: true, writable: true });
@@ -99,6 +118,42 @@ export function installBrowserStubs(): () => void {
     removeListener() {},
     dispatchEvent: () => false,
   }));
+  define(
+    element,
+    "animate",
+    function (this: Element, keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions) {
+      let resolve!: (value: Animation) => void;
+      let reject!: (reason: unknown) => void;
+      const finished = new Promise<Animation>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      // A cancelled animation rejects `finished`; no test waits for that.
+      finished.catch(() => {});
+      const animation: FakeAnimation = {
+        target: this,
+        keyframes,
+        options,
+        playState: "running",
+        currentTime: 0,
+        finished,
+        finish() {
+          if (animation.playState !== "running" && animation.playState !== "paused") return;
+          animation.playState = "finished";
+          resolve(animation as unknown as Animation);
+        },
+        cancel() {
+          animation.playState = "idle";
+          reject(new DOMException("", "AbortError"));
+        },
+        pause() {
+          animation.playState = "paused";
+        },
+      };
+      animations.push(animation);
+      return animation as unknown as Animation;
+    },
+  );
 
   return () => {
     const restore = (target: object, key: string, d: PropertyDescriptor | undefined) => {
@@ -111,6 +166,7 @@ export function installBrowserStubs(): () => void {
     restore(document, "fonts", saved.fonts);
     restore(globalThis, "ResizeObserver", saved.resizeObserver);
     restore(window, "matchMedia", saved.matchMedia);
+    restore(element, "animate", saved.animate);
   };
 }
 

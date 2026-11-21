@@ -3,7 +3,7 @@ import path from "node:path";
 import { expect, type Locator, type Page, type Response, type Route, test } from "@playwright/test";
 import { makeSilentWav } from "./wav";
 
-// Browser tests of the book route (#22 Part A). Every request under
+// Browser tests of the book route (#22 Part A, #90). Every request under
 // /content/releases/ is answered here from e2e/fixtures/release/.
 
 const ID = "01936b2a-0000-7000-8000-000000000001";
@@ -34,6 +34,7 @@ declare global {
     __playElements: HTMLMediaElement[];
     __pauses: PauseRecord[];
     __startEnabled: boolean;
+    __held: Animation[];
   }
 }
 
@@ -131,9 +132,14 @@ const nextButton = (page: Page) => page.getByRole("button", { name: "Next page" 
 const previousButton = (page: Page) => page.getByRole("button", { name: "Previous page" });
 const homeButton = (page: Page) => page.getByRole("button", { name: "Home" });
 const pill = (page: Page) => page.getByRole("status").filter({ hasText: "/" });
-const narration = (page: Page) => page.getByTestId("narration");
-const pictureArea = (page: Page) => page.getByTestId("picture-area");
-const narrationPanel = (page: Page) => page.getByTestId("narration-panel");
+// The parts of the sheet that is not inert: during a turn, the arriving one.
+const narration = (page: Page) => page.locator('[data-testid="narration"]:not([inert] *)');
+const pictureArea = (page: Page) => page.locator('[data-testid="picture-area"]:not([inert] *)');
+const narrationPanel = (page: Page) => page.locator('[data-testid="narration-panel"]:not([inert] *)');
+const sheet = (page: Page) => page.locator('[data-testid="page-sheet"]:not([inert])');
+const leavingSheet = (page: Page) => page.locator('[data-testid="page-sheet"][inert]');
+const theEndButton = (page: Page) => page.getByRole("button", { name: "The end", exact: true });
+const readAgainButton = (page: Page) => page.getByRole("button", { name: "Read again", exact: true });
 const restingLine = (page: Page) => page.getByText("This book is sleeping. Come back soon.");
 const plays = (page: Page) => page.evaluate(() => window.__plays);
 const narrationPlays = async (page: Page) => (await plays(page)).filter((p) => p.id === "narration-audio");
@@ -153,12 +159,137 @@ async function startBook(page: Page) {
   await expect(narration(page)).toHaveText(pages[0]!.text);
 }
 
+// A turn has ended: the leaving sheet is gone.
+async function turnEnd(page: Page) {
+  await expect(leavingSheet(page)).toHaveCount(0);
+}
+
 // Goes from page 1 to page `n` (1-based) with "next".
 async function turnTo(page: Page, n: number) {
   for (let i = 2; i <= n; i++) {
     await nextButton(page).click();
+    await turnEnd(page);
     await expect(narration(page)).toHaveText(pages[i - 1]!.text);
   }
+}
+
+// Holds the running turn at `ms`: every animation of a sheet or a shade
+// that has not ended is paused at that time, and kept in `window.__held`.
+// Returns the count of held animations (0: no turn runs). Never the first
+// hold after a tap: that one is `tapInPage(page, name, ms)` (#128).
+async function holdTurnAt(page: Page, ms: number): Promise<number> {
+  return page.evaluate((t) => {
+    const held: Animation[] = [];
+    for (const el of document.querySelectorAll('[data-testid="page-sheet"], [data-testid="sheet-shade"]')) {
+      for (const a of el.getAnimations()) {
+        if (a.playState !== "running" && a.playState !== "paused") continue;
+        a.pause();
+        a.currentTime = t;
+        held.push(a);
+      }
+    }
+    window.__held = held;
+    return held.length;
+  }, ms);
+}
+
+// Lets a held turn run to its end (a paused turn never ends by itself).
+async function releaseTurn(page: Page) {
+  await page.evaluate(() => {
+    for (const a of window.__held ?? []) if (a.playState === "paused") a.play();
+  });
+}
+
+type TurnAnimation = { duration: number; easing: string; fill: string; playState: string; keyframes: Record<string, unknown>[] };
+type TapSheet = { inert: boolean; zIndex: number; text: string; animations: TurnAnimation[] };
+type TapShade = { inert: boolean; animations: TurnAnimation[] };
+type Tap = { sheets: TapSheet[]; shades: TapShade[]; lastPlay: PlayRecord | null; held: number };
+
+// Taps the button with the accessible name `name` and reads the sheets in
+// the same task, before any frame of the turn: their animations, their
+// stacking, and the last play() record. With `holdAt`, the turn that the tap
+// starts is held at that time in the same task, as `holdTurnAt` does: the
+// first frame of a turn can come 84-151 ms after the click (#128), so a
+// mid-turn state is never read in a later call. `held` is the count.
+async function tapInPage(page: Page, name: string, holdAt?: number): Promise<Tap> {
+  return page.evaluate(([label, at]) => {
+    const target = [...document.querySelectorAll("button")].find(
+      (b) => (b.getAttribute("aria-label") ?? b.textContent?.trim()) === label,
+    );
+    if (!target) throw new Error(`no button "${label}"`);
+    target.click();
+    let held = 0;
+    if (at !== null) {
+      const list: Animation[] = [];
+      for (const el of document.querySelectorAll('[data-testid="page-sheet"], [data-testid="sheet-shade"]')) {
+        for (const a of el.getAnimations()) {
+          if (a.playState !== "running" && a.playState !== "paused") continue;
+          a.pause();
+          a.currentTime = at;
+          list.push(a);
+        }
+      }
+      window.__held = list;
+      held = list.length;
+    }
+    const read = (el: Element) =>
+      el.getAnimations().map((a) => {
+        const timing = a.effect!.getTiming();
+        return {
+          duration: Number(timing.duration),
+          easing: String(timing.easing),
+          fill: String(timing.fill),
+          playState: a.playState,
+          keyframes: (a.effect as KeyframeEffect).getKeyframes().map((k) => ({ ...k }) as Record<string, unknown>),
+        };
+      });
+    const sheetEls = [...document.querySelectorAll<HTMLElement>('[data-testid="page-sheet"]')];
+    return {
+      sheets: sheetEls.map((el) => ({
+        inert: el.hasAttribute("inert"),
+        zIndex: Number(getComputedStyle(el).zIndex),
+        text: el.querySelector('[data-testid="narration"]')?.textContent ?? "",
+        animations: read(el),
+      })),
+      shades: sheetEls.map((el) => {
+        const shade = el.querySelector(':scope > [data-testid="sheet-shade"]');
+        return { inert: el.hasAttribute("inert"), animations: shade ? read(shade) : [] };
+      }),
+      lastPlay: window.__plays.at(-1) ?? null,
+      held,
+    };
+  }, [name, holdAt ?? null] as const);
+}
+
+// The keys of every keyframe of every sheet and shade animation of a tap.
+const keyframeKeys = (tap: Tap) =>
+  [...tap.sheets, ...tap.shades].flatMap((s) => s.animations.flatMap((a) => a.keyframes.flatMap((k) => Object.keys(k))));
+const KEYFRAME_KEYS = ["transform", "opacity", "offset", "easing", "composite", "computedOffset"];
+
+// Waits until no request reaches the route for 10 animation frames.
+async function quiet(page: Page, net: Net) {
+  await expect
+    .poll(async () => {
+      const n = net.requests.length;
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) => {
+            let frames = 10;
+            const step = () => (--frames === 0 ? resolve() : requestAnimationFrame(step));
+            requestAnimationFrame(step);
+          }),
+      );
+      return net.requests.length === n;
+    })
+    .toBe(true);
+}
+
+// From Start to the end page: page 4, then "The end", and the turn ended.
+async function toEndPage(page: Page) {
+  await turnTo(page, 4);
+  await expect(theEndButton(page)).toBeVisible();
+  await theEndButton(page).click();
+  await turnEnd(page);
 }
 
 type Box = { x: number; y: number; width: number; height: number };
@@ -253,6 +384,7 @@ test("PLY-02.S2 a page turn plays the narration of the new page", async ({ page 
   await open(page);
   await startBook(page);
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[1]!.text);
   let last = (await narrationPlays(page)).at(-1)!;
   expect(last.src.endsWith(ROOT + pages[1]!.audio)).toBe(true);
@@ -260,6 +392,7 @@ test("PLY-02.S2 a page turn plays the narration of the new page", async ({ page 
   expect(await page.evaluate(() => document.querySelectorAll("audio").length)).toBe(2);
 
   await previousButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[0]!.text);
   last = (await narrationPlays(page)).at(-1)!;
   expect(last.src.endsWith(ROOT + pages[0]!.audio)).toBe(true);
@@ -318,6 +451,7 @@ test("PLY-02.S5 no frame part lies over the picture", async ({ page }) => {
     await open(page);
     await startBook(page);
     await nextButton(page).click();
+    await turnEnd(page);
     const picture = await box(pictureArea(page));
     for (const [name, locator] of [
       ["Home", homeButton(page)],
@@ -399,6 +533,7 @@ test("PLY-03.S1 the Player works in Safari on iPad and iPhone", async ({ page },
   await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[1]!.text);
   const records = await narrationPlays(page);
   expect(records.filter((p) => p.event === "click").map((p) => p.src.slice(p.src.indexOf(ROOT)))).toEqual([
@@ -532,7 +667,10 @@ test("PLY-04.S18 the panel has the height of the longest page before Ready", asy
   const atReady = (await box(narrationPanel(page))).height;
   await startButton(page).click();
   for (let i = 1; i <= pages.length; i++) {
-    if (i > 1) await nextButton(page).click();
+    if (i > 1) {
+      await nextButton(page).click();
+      await turnEnd(page);
+    }
     await expect(narration(page)).toHaveText(pages[i - 1]!.text);
     expect(Math.abs((await box(narrationPanel(page))).height - atReady), `page ${i}`).toBeLessThanOrEqual(0.5);
     if (i === 3) {
@@ -626,6 +764,7 @@ test("PLY-06.S11 a narration that fails after Start does not rest", async ({ pag
   await open(page);
   await startBook(page);
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[1]!.text);
   await expect(pictureArea(page)).toBeVisible();
   await expect(previousButton(page)).toBeVisible();
@@ -633,6 +772,7 @@ test("PLY-06.S11 a narration that fails after Start does not rest", async ({ pag
   await expect.poll(() => net.count(pages[1]!.audio)).toBe(1);
   expect(errors).toEqual([]);
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[2]!.text);
   await expect(restingLine(page)).toHaveCount(0);
 });
@@ -703,9 +843,11 @@ test("PLY-06.S18 a book that is open stays open after a take-off", async ({ page
   await open(page);
   await startBook(page);
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[1]!.text);
   net.answer = () => ({ status: 404 });
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[2]!.text);
   await expect(previousButton(page)).toBeVisible();
   await expect(nextButton(page)).toBeVisible();
@@ -743,6 +885,7 @@ test("PLY-07.S1 a viewport under 365 px high uses the Short layout", async ({ pa
   await open(page);
   await startBook(page);
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(page.getByTestId("rail-left")).toBeVisible();
   await expect(page.getByTestId("rail-right")).toBeVisible();
   await expect(page.getByTestId("top-bar")).toHaveCount(0);
@@ -797,8 +940,10 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
   await tapPip(page);
   await expect(page.getByText("Hello!")).toBeVisible();
   await nextButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[1]!.text);
   await previousButton(page).click();
+  await turnEnd(page);
   await expect(narration(page)).toHaveText(pages[0]!.text);
 
   // Stop collecting, then read every `Set-Cookie` header. A `headerValue` that rejects
@@ -828,12 +973,413 @@ test("SYS-04.S1 reading, tapping, and turning pages sends no child data", async 
   expect(stored).toEqual({ cookie: "", local: 0, session: 0 });
 });
 
+// Part B (#90): the page turn, the end page and "Read again".
+
+const PIP_1 = '[data-instance-id="01936b2a-0000-7000-8000-000000000021"]:not(.sv-margin)';
+const CAT_1_ONCE = '[data-instance-id="01936b2a-0000-7000-8000-000000000031"]:not(.sv-margin) .sv-once';
+const TURN_EASING = "cubic-bezier(0.4, 0.1, 0.5, 1)";
+const audioOf = (i: number) => ROOT + pages[i]!.audio;
+const sfxCount = async (page: Page) => (await plays(page)).filter((p) => p.id === "sfx-audio").length;
+const heldStates = (page: Page) => page.evaluate(() => window.__held.map((a) => a.playState));
+const sfxPauses = async (page: Page) => (await page.evaluate(() => window.__pauses)).filter((p) => p.id === "sfx-audio").length;
+const narrationPauses = async (page: Page) =>
+  (await page.evaluate(() => window.__pauses)).filter((p) => p.id === "narration-audio").length;
+
+// A keyframe `transform` equals `expected`: the 16 components of both
+// matrices are built in the browser (WebKit and Chromium spell a transform
+// differently) and compared within 1e-6.
+async function expectTransform(page: Page, actual: unknown, expected: string, name: string) {
+  expect(typeof actual, `${name} has a transform`).toBe("string");
+  const [a, e] = await page.evaluate(
+    ([x, y]) => [Array.from(new DOMMatrix(x).toFloat64Array()), Array.from(new DOMMatrix(y).toFloat64Array())],
+    [actual as string, expected] as const,
+  );
+  expect(a, name).toHaveLength(16);
+  a!.forEach((v, i) => expect(Math.abs(v - e![i]!), `${name} component ${i}`).toBeLessThanOrEqual(1e-6));
+}
+
+// Within 0.01: a float from a box or a computed style (#77).
+const expectNear = (actual: number, expected: number, name: string) =>
+  expect(Math.abs(actual - expected), `${name}: ${actual}, not ${expected}`).toBeLessThanOrEqual(0.01);
+
+// At the middles of Home and "previous", the element is inside that control.
+// Also returns the box of the sheet that `sheetSelector` names.
+async function controlHits(page: Page, home: Box, previous: Box, sheetSelector: string) {
+  return page.evaluate(
+    ([h, p, selector]) => {
+      const named = (label: string) =>
+        [...document.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent?.trim()) === label);
+      const hits = (b: { x: number; y: number; width: number; height: number }, label: string) => {
+        const control = named(label);
+        const el = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
+        return !!control && !!el && control.contains(el);
+      };
+      const r = document.querySelector(selector)!.getBoundingClientRect();
+      return { home: hits(h, "Home"), previous: hits(p, "Previous page"), sheet: { x: r.x, y: r.y, width: r.width, height: r.height } };
+    },
+    [home, previous, sheetSelector] as const,
+  );
+}
+
+test("PLY-04.S1 a forward turn shows the page-turn transition", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  const tap = await tapInPage(page, "Next page");
+  const leaving = tap.sheets.find((s) => s.inert);
+  const arriving = tap.sheets.find((s) => !s.inert);
+  expect(leaving, "a leaving sheet").toBeDefined();
+  expect(arriving, "an arriving sheet").toBeDefined();
+  expect(leaving!.animations).toHaveLength(1);
+  expect(leaving!.animations[0]).toMatchObject({ duration: 500, easing: TURN_EASING, fill: "forwards" });
+  expect(keyframeKeys(tap).filter((k) => !KEYFRAME_KEYS.includes(k))).toEqual([]);
+  expect(leaving!.zIndex).toBeGreaterThan(arriving!.zIndex);
+  await turnEnd(page);
+  await expect(page.locator('[data-testid="page-sheet"]')).toHaveCount(1);
+  await expect(narration(page)).toHaveText(pages[2]!.text);
+});
+
+test("PLY-04.S2 a backward turn runs the other way", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 3);
+  const tap = await tapInPage(page, "Previous page");
+  const leaving = tap.sheets.find((s) => s.inert);
+  const arriving = tap.sheets.find((s) => !s.inert);
+  expect(leaving, "a leaving sheet").toBeDefined();
+  expect(arriving, "an arriving sheet").toBeDefined();
+  expect(arriving!.text).toBe(pages[1]!.text);
+  expect(arriving!.animations).toHaveLength(1);
+  const turn = arriving!.animations[0]!;
+  expect(turn.duration).toBe(500);
+  await expectTransform(page, turn.keyframes[0]!.transform, "rotateY(-100deg)", "first keyframe");
+  await expectTransform(page, turn.keyframes.at(-1)!.transform, "rotateY(0deg)", "last keyframe");
+  expect(arriving!.zIndex).toBeGreaterThan(leaving!.zIndex);
+});
+
+test("PLY-04.S3 the narration does not wait for the turn", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  const sfxPauseCount = await sfxPauses(page);
+  const tap = await tapInPage(page, "Next page");
+  const leaving = tap.sheets.find((s) => s.inert);
+  expect(leaving, "a leaving sheet").toBeDefined();
+  expect(leaving!.animations.map((a) => a.playState)).toEqual(["running"]);
+  expect(tap.lastPlay).toMatchObject({ id: "narration-audio", event: "click" });
+  expect(tap.lastPlay!.src.endsWith(audioOf(2))).toBe(true);
+  // A turn never touches the sound-effect element.
+  expect(await sfxPauses(page)).toBe(sfxPauseCount);
+});
+
+test("PLY-04.S4 loops stop when the turn starts", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  expect((await tapInPage(page, "Previous page", 200)).held).toBeGreaterThan(0);
+  await expect(leavingSheet(page).locator(".sv-viewport")).toHaveAttribute("data-phase", "outgoing");
+  const loops = await page.evaluate(() => {
+    const leaving = document.querySelector('[data-testid="page-sheet"][inert]')!;
+    return document.getAnimations().filter((a) => {
+      const target = (a.effect as KeyframeEffect | null)?.target;
+      return a.effect?.getComputedTiming().iterations === Infinity && a.playState === "running" && !!target && leaving.contains(target);
+    }).length;
+  });
+  expect(loops, "running loops in the leaving sheet").toBe(0);
+  await expect(sheet(page).locator(".sv-viewport")).toHaveAttribute("data-phase", "incoming");
+  const once = sheet(page).locator(CAT_1_ONCE);
+  expect(await once.evaluate((el) => (el as HTMLElement).style.opacity)).toBe("0");
+
+  await releaseTurn(page);
+  await turnEnd(page);
+  await expect(sheet(page).locator(".sv-viewport")).toHaveAttribute("data-phase", "current");
+  await expect.poll(() => once.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+});
+
+test("PLY-04.S5 a tap during a turn starts the next turn", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  expect((await tapInPage(page, "Next page", 200)).held).toBeGreaterThan(0);
+  const tap = await tapInPage(page, "Next page");
+  const states = await heldStates(page);
+  expect(states).toEqual(states.map(() => "finished"));
+  expect(tap.sheets.filter((s) => s.inert).map((s) => s.text)).toEqual([pages[2]!.text]);
+  expect(tap.sheets.filter((s) => !s.inert).map((s) => s.text)).toEqual([pages[3]!.text]);
+  expect((await narrationPlays(page)).at(-1)!.src.endsWith(audioOf(3))).toBe(true);
+});
+
+test("PLY-04.S6 reduced motion gives a cross-fade", async ({ page }) => {
+  await setup(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await open(page);
+  await startBook(page);
+  const tap = await tapInPage(page, "Next page");
+  const sheetAnimations = tap.sheets.flatMap((s) => s.animations);
+  expect(sheetAnimations).toHaveLength(2);
+  for (const a of sheetAnimations) {
+    expect(a.duration).toBe(200);
+    for (const k of a.keyframes) {
+      expect(k).toHaveProperty("opacity");
+      expect(k).not.toHaveProperty("transform");
+    }
+  }
+  expect(tap.shades.flatMap((s) => s.animations)).toHaveLength(0);
+});
+
+test("PLY-04.S7 a page whose images are not loaded yet still shows", async ({ page }) => {
+  const net = await setup(page);
+  net.answer = (rel) => (rel === "assets/meadow/v1/cloudy.svg" ? "hang" : undefined);
+  await open(page);
+  await startBook(page);
+  const tap = await tapInPage(page, "Next page");
+  expect(tap.sheets.filter((s) => s.inert), "one leaving sheet right after the tap").toHaveLength(1);
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[1]!.text);
+  await expect(sheet(page).locator(".sv-viewport")).toHaveCSS("background-color", PAPER);
+});
+
+test("PLY-04.S8 previous during a forward turn turns back from the current page", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  expect((await tapInPage(page, "Next page", 200)).held).toBeGreaterThan(0);
+  const tap = await tapInPage(page, "Previous page");
+  const leaving = tap.sheets.find((s) => s.inert);
+  const arriving = tap.sheets.find((s) => !s.inert);
+  expect(leaving?.text).toBe(pages[2]!.text);
+  expect(arriving?.text).toBe(pages[1]!.text);
+  expect(arriving!.animations).toHaveLength(1);
+  await expectTransform(page, arriving!.animations[0]!.keyframes[0]!.transform, "rotateY(-100deg)", "first keyframe");
+  expect((await narrationPlays(page)).at(-1)!.src.endsWith(audioOf(1))).toBe(true);
+});
+
+test("PLY-04.S9 taps on layers are ignored during a turn", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  const tapPipIn = async (where: Locator) => {
+    const b = await box(where.locator(PIP_1));
+    const before = await sfxCount(page);
+    await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+    expect(await sfxCount(page)).toBe(before);
+    await expect(page.getByText("Hello!")).toHaveCount(0);
+  };
+
+  expect((await tapInPage(page, "Next page", 200)).held).toBeGreaterThan(0);
+  await tapPipIn(leavingSheet(page));
+  await releaseTurn(page);
+  await turnEnd(page);
+
+  await expect(narration(page)).toHaveText(pages[1]!.text);
+  expect((await tapInPage(page, "Previous page", 200)).held).toBeGreaterThan(0);
+  await tapPipIn(sheet(page));
+});
+
+test("PLY-04.S11 next on the last page turns to the end page", async ({ page }) => {
+  const net = await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 4);
+  // The requests of page 4 reach the route before the tap.
+  await expect.poll(() => net.count(pages[3]!.audio)).toBeGreaterThan(0);
+  await quiet(page, net);
+  const narrationCount = (await narrationPlays(page)).length;
+  const requestCount = net.requests.length;
+  const narrationPauseCount = await narrationPauses(page);
+  const sfxPauseCount = await sfxPauses(page);
+
+  await expect(theEndButton(page)).toBeVisible();
+  await theEndButton(page).click();
+  // Paused by the tap, not only ended (the clip is 1000 ms long).
+  expect(await narrationPauses(page)).toBeGreaterThan(narrationPauseCount);
+  expect(await sfxPauses(page)).toBe(sfxPauseCount);
+  const audio = await page
+    .getByTestId("narration-audio")
+    .evaluate((el) => ({ paused: (el as HTMLAudioElement).paused, src: (el as HTMLAudioElement).src }));
+  expect(audio.paused).toBe(true);
+  expect(audio.src.endsWith(audioOf(3))).toBe(true);
+  expect(await narrationPlays(page)).toHaveLength(narrationCount);
+
+  await turnEnd(page);
+  await expect(sheet(page).locator("[data-instance-id]")).toHaveCount(0);
+  await expect(page.getByText("The end", { exact: true })).toBeVisible();
+  await expect(readAgainButton(page)).toBeVisible();
+  await expect(previousButton(page)).toBeVisible();
+  await expect(homeButton(page)).toHaveCount(1);
+  await expect(homeButton(page)).toBeVisible();
+  await expect(nextButton(page)).toHaveCount(0);
+  await expect(theEndButton(page)).toHaveCount(0);
+  await expect(pill(page)).toHaveCount(0);
+  await expect(readAgainButton(page)).toBeFocused();
+  await quiet(page, net);
+  expect(net.requests.slice(requestCount).filter((r) => r.path.startsWith("/content/"))).toEqual([]);
+});
+
+test("PLY-04.S12 Read again starts page 1 without the Start gate", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await toEndPage(page);
+  const tap = await tapInPage(page, "Read again");
+  expect(tap.lastPlay).toMatchObject({ id: "narration-audio", event: "click" });
+  expect(tap.lastPlay!.src.endsWith(audioOf(0))).toBe(true);
+  const fade = tap.sheets.flatMap((s) => s.animations);
+  expect(fade).toHaveLength(2);
+  for (const a of fade) {
+    expect(a.duration).toBe(200);
+    for (const k of a.keyframes) {
+      expect(k).toHaveProperty("opacity");
+      expect(k).not.toHaveProperty("transform");
+      expect(Object.keys(k).filter((key) => !KEYFRAME_KEYS.includes(key))).toEqual([]);
+    }
+  }
+  await expect(startButton(page)).toHaveCount(0);
+  await expect(nextButton(page)).toBeFocused();
+
+  // A tap on "next" during the cross-fade ends it and turns to page 2.
+  await turnEnd(page);
+  await toEndPage(page);
+  expect((await tapInPage(page, "Read again", 100)).held).toBeGreaterThan(0);
+  await nextButton(page).click();
+  const states = await heldStates(page);
+  expect(states).toEqual(states.map(() => "finished"));
+  expect((await narrationPlays(page)).at(-1)!.src.endsWith(audioOf(1))).toBe(true);
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[1]!.text);
+});
+
+test("PLY-04.S13 previous on the end page returns to the last page", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await toEndPage(page);
+  await previousButton(page).focus();
+  await page.keyboard.press("Enter");
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[3]!.text);
+  const last = (await narrationPlays(page)).at(-1)!;
+  expect(last.src.endsWith(audioOf(3))).toBe(true);
+  expect(last.event).toBe("click");
+  await expect(previousButton(page)).toBeFocused();
+
+  // "Previous" during the turn to the end page.
+  await expect(theEndButton(page)).toBeVisible();
+  expect((await tapInPage(page, "The end", 200)).held).toBeGreaterThan(0);
+  const count = (await narrationPlays(page)).length;
+  await previousButton(page).click();
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[3]!.text);
+  const after = await narrationPlays(page);
+  expect(after.length).toBeGreaterThan(count);
+  expect(after.at(-1)!.src.endsWith(audioOf(3))).toBe(true);
+});
+
+test("PLY-06.S1 each screen of a book has one Home control", async ({ page }) => {
+  const net = await setup(page);
+  const home = page.getByRole("button", { name: "Home", exact: true });
+  const oneHome = async (name: string) => {
+    await expect(home, name).toHaveCount(1);
+    const b = await box(home);
+    expectNear(b.width, 64, `${name} width`);
+    expectNear(b.height, 64, `${name} height`);
+  };
+
+  net.answer = (rel) => (rel === manifest.pages[0]!.json ? "hang" : undefined);
+  await open(page);
+  await expect(page.getByText("Opening the book")).toBeVisible();
+  await oneHome("Loading");
+
+  net.answer = () => undefined;
+  await open(page);
+  await ready(page);
+  await oneHome("Ready");
+  await startButton(page).click();
+  await expect(narration(page)).toHaveText(pages[0]!.text);
+  await oneHome("reading");
+
+  await toEndPage(page);
+  await oneHome("end page");
+});
+
+test("PLY-06.S3 Home works during a page turn", async ({ page }) => {
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  expect((await tapInPage(page, "Next page", 200)).held).toBeGreaterThan(0);
+  const pauseCount = (await page.evaluate(() => window.__pauses)).length;
+  await homeButton(page).click();
+  await expect(page.getByTestId("shelf")).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe("/");
+  const first = (await page.evaluate(() => window.__pauses)).slice(pauseCount).find((p) => p.id === "narration-audio");
+  expect(first, "narration paused").toBeTruthy();
+  expect(first!.path).toBe(`/read/${ID}`);
+});
+
+test("PLY-06.S14 a turning sheet does not lie over a frame control", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "webkit-ipad", "webkit-ipad only");
+  await setup(page);
+  await open(page);
+  await startBook(page);
+  await turnTo(page, 2);
+  const home = await box(homeButton(page));
+  const previous = await box(previousButton(page));
+  expect((await tapInPage(page, "Next page", 0)).held).toBeGreaterThan(0);
+
+  let crosses = false;
+  let leftmost = { left: Infinity, ms: -1 };
+  for (let ms = 0; ms <= 480; ms += 20) {
+    expect(await holdTurnAt(page, ms), `held at ${ms} ms`).toBeGreaterThan(0);
+    const step = await controlHits(page, home, previous, '[data-testid="page-sheet"][inert]');
+    expect(step.home, `Home at ${ms} ms`).toBe(true);
+    expect(step.previous, `previous at ${ms} ms`).toBe(true);
+    if (intersects(step.sheet, home)) crosses = true;
+    if (step.sheet.x < leftmost.left) leftmost = { left: step.sheet.x, ms };
+  }
+  expect(crosses, "the leaving sheet crosses Home at some step").toBe(true);
+
+  expect(await holdTurnAt(page, leftmost.ms)).toBeGreaterThan(0);
+  const count = (await narrationPlays(page)).length;
+  await page.mouse.click(previous.x + previous.width / 2, previous.y + previous.height / 2);
+  await expect
+    .poll(async () => (await narrationPlays(page)).slice(count).some((p) => p.src.endsWith(audioOf(1))))
+    .toBe(true);
+
+  // Backward: the sheet that moves is the arriving one, and it is not inert,
+  // so a hit test can find it (a forward turn moves only an inert sheet).
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[1]!.text);
+  await nextButton(page).click();
+  await turnEnd(page);
+  await expect(narration(page)).toHaveText(pages[2]!.text);
+  expect((await tapInPage(page, "Previous page", 0)).held).toBeGreaterThan(0);
+  let covers = false;
+  for (let ms = 0; ms <= 480; ms += 20) {
+    expect(await holdTurnAt(page, ms), `backward held at ${ms} ms`).toBeGreaterThan(0);
+    const step = await controlHits(page, home, previous, '[data-testid="page-sheet"]:not([inert])');
+    expect(step.home, `backward: Home at ${ms} ms`).toBe(true);
+    expect(step.previous, `backward: previous at ${ms} ms`).toBe(true);
+    if (intersects(step.sheet, home)) covers = true;
+  }
+  expect(covers, "the arriving sheet crosses Home at some step").toBe(true);
+});
+
 // Screenshots of the Part A frames for the PR (#22, line 313). CI uploads
 // test-results/screenshots/ as the `player-screenshots` artifact. The
 // Chromium project only: one set of frames keeps the run short.
 const SHOTS = path.join(import.meta.dirname, "..", "test-results", "screenshots");
 const shot = (page: Page, name: string) =>
   page.screenshot({ path: path.join(SHOTS, `${name}.png`), animations: "disabled" });
+// A frame of a held turn: "disabled" would finish the turn.
+const shotNow = (page: Page, name: string) =>
+  page.screenshot({ path: path.join(SHOTS, `${name}.png`), animations: "allow" });
 
 test("Part A screenshots: Ready, reading page 1, and Resting", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
@@ -863,4 +1409,51 @@ test("Part A screenshots: Ready, reading page 1, and Resting", async ({ page }, 
     await expect(restingLine(page)).toBeVisible();
     await shot(page, `resting-${width}x${height}`);
   }
+});
+
+test("Part B screenshots: the end page and a forward turn", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium-android", "Chromium project only");
+  test.setTimeout(120_000);
+  await setup(page);
+  for (const [width, height] of [
+    [1194, 834],
+    [900, 600],
+    [390, 844],
+    [568, 320],
+    [667, 375],
+  ] as const) {
+    const size = `${width} x ${height}`;
+    await page.setViewportSize({ width, height });
+    await open(page);
+    await startBook(page);
+    await toEndPage(page);
+    const panel = await box(narrationPanel(page));
+    const end = await box(page.getByText("The end", { exact: true }));
+    const again = await box(readAgainButton(page));
+    expect(inside(end, panel), `${size} "The end" inside the panel`).toBe(true);
+    expect(inside(again, panel), `${size} "Read again" inside the panel`).toBe(true);
+    expect(intersects(end, again), `${size} "The end" and "Read again"`).toBe(false);
+    // DESIGN.md 12.5: 16 px below in Wide and Narrow; in Short one row 16 px
+    // apart when w >= 640, a stack 12 px apart when w < 640. "The end" is
+    // 40 px / 1.1 (28 px in Short).
+    const short = (width >= 640 && height < 600) || height < 365;
+    if (short && width >= 640) {
+      expect(Math.abs(again.x - (end.x + end.width) - 16), `${size} row gap`).toBeLessThanOrEqual(1);
+      expect(Math.abs(again.y + again.height / 2 - (end.y + end.height / 2)), `${size} one row`).toBeLessThanOrEqual(1);
+    } else {
+      const gapY = again.y - (end.y + end.height);
+      expect(Math.abs(gapY - (short ? 12 : 16)), `${size} stack gap ${gapY}`).toBeLessThanOrEqual(1);
+    }
+    const type = await page
+      .getByText("The end", { exact: true })
+      .evaluate((el) => ({ size: parseFloat(getComputedStyle(el).fontSize), line: parseFloat(getComputedStyle(el).lineHeight) }));
+    expectNear(type.size, short ? 28 : 40, `${size} font-size`);
+    expectNear(type.line, short ? 30.8 : 44, `${size} line-height`);
+    await shot(page, `end-page-${width}x${height}`);
+  }
+  await page.setViewportSize({ width: 1194, height: 834 });
+  await open(page);
+  await startBook(page);
+  expect((await tapInPage(page, "Next page", 250)).held).toBeGreaterThan(0);
+  await shotNow(page, "turn-forward-1194x834");
 });
