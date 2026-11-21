@@ -1,14 +1,15 @@
 // The backdrop review sheet (#67, ADR 0016 section 1, design "8. Asset
 // pipeline"): one sheet per variant with the slot envelopes of all templates
 // drawn over it. A slot envelope is the union of the boxes of every active
-// asset of the slot's kind, placed in that slot at scale 1 (the factor 1 of
-// the layout engine: box height = slot height), with and without flip.
+// asset of the slot's kind, placed in that slot by the layout rule at f = 100
+// (`slotAt`: the box fits the slot height and width, centred on footX), with
+// and without flip.
 // Build output in <out>/review/; never tracked. The board review sheet of the
 // cut step is `review.ts`.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
 import { isLayerManifest, type LayoutTemplate } from "@storybook/dsl";
-import { layerBoxes, type StageRect, TEMPLATES } from "@storybook/layout";
+import { layerBoxes, slotAt, type StageRect, TEMPLATES } from "@storybook/layout";
 import sharp from "sharp";
 import { templatesDigest } from "./approval";
 import type { AssetBuild } from "./build";
@@ -24,8 +25,6 @@ export type SlotEnvelope = { template: string; slot: string; accepts: LayerKind;
 
 const COLOURS: Record<LayerKind, string> = { character: "#ff00ff", prop: "#00a0ff", scenery: "#ff8a00" };
 const esc = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-// The scale of layoutScene at f = 100 (round4 in packages/layout/src/layout.ts).
-const round4 = (value: number) => Math.round(value * 10000) / 10000;
 
 // The envelope of every slot of `templates`, in order. Active builds are the
 // highest local version per key. A pose is in a slot's envelope only if the
@@ -47,9 +46,8 @@ export function slotEnvelopes(builds: AssetBuild[], templates: LayoutTemplate[])
         if (b.kind !== slot.accepts || !isLayerManifest(b.manifest)) continue;
         for (const e of b.manifest.poses) {
           if (slot.poses ? !slot.poses.includes(e.id) : reserved.has(e.id)) continue;
-          const at = { x: slot.footX, y: slot.footY, scale: round4(slot.height / e.box.h) };
           for (const flip of [false, true]) {
-            const box = layerBoxes(e, at, flip).box;
+            const box = layerBoxes(e, slotAt(slot, e, flip), flip).box;
             const frame = { ...box, x: box.x + STAGE_OFFSET_X };
             boxes.set(`${frame.x} ${frame.y} ${frame.w} ${frame.h}`, frame);
           }

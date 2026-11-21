@@ -200,11 +200,25 @@ export function scenePrompt(input: {
   return { system, user };
 }
 
+// The asset key of layer `n` of the previous answer, if it has one (#127).
+function layerRef(previous: unknown, path: string): string | undefined {
+  const n = /^layers\.(\d+)(\.|$)/.exec(path)?.[1];
+  if (n === undefined || previous === null || typeof previous !== "object") return undefined;
+  const layers = (previous as { layers?: unknown }).layers;
+  if (!Array.isArray(layers)) return undefined;
+  const ref = (layers[Number(n)] as { ref?: unknown } | null | undefined)?.ref;
+  return typeof ref === "string" ? ref : undefined;
+}
+
 export function repairSuffix(previous: unknown, issues: Issue[]): string {
+  const line = (i: Issue) => {
+    const ref = layerRef(previous, i.path);
+    return ref === undefined ? `- ${i.path}: ${i.message}` : `- ${i.path} (${ref}): ${i.message}`;
+  };
   return (
     "\n\nYour previous answer:\n" +
     JSON.stringify(previous) +
     "\n\nFix these problems and answer again:\n" +
-    issues.map((i) => `- ${i.path}: ${i.message}`).join("\n")
+    issues.map(line).join("\n")
   );
 }
