@@ -7,15 +7,18 @@
 // `pnpm exec` runs in apps/storybook, so `.dev.vars` and `.s2/` are relative to it.
 // `--env-file` does not replace a variable that the shell already has, so
 // `env -u` clears CF_ACCESS_* from the shell profile first.
-// Without `--run` it only checks the Access token and the public shelf.
+// Without `--run` it only checks the Access token, that the studio API refuses a
+// call without it, and the public shelf. `--base` (or SMOKE_BASE) must be https://,
+// or http:// for localhost or 127.0.0.1 only.
 //
 // `--run` with MODEL_MODE "real" on the Worker spends money (model and TTS calls).
 // The Access service token (CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET) comes from `.dev.vars`.
 // The check-only form (no `--run`) was run against lullabyte.ioenv.com on 2026-11-21.
 //
-// It prints only IDs, statuses, counts and timings (AGENTS.md section 5): no
-// news text, no model output, no header value, and of a server body only the
-// `error`, `reason`, `step` and `pageId` strings, each cut to 80 characters.
+// It prints only timings and these server fields (AGENTS.md section 5): IDs,
+// statuses, counts, and the body strings `error`, `reason`, `step` and `pageId`,
+// all cut to 80 characters. No news text, no model output, no header value, and
+// no argument value.
 import { readFileSync, realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -76,11 +79,6 @@ export async function runSmoke(opts: SmokeOptions, deps: SmokeDeps): Promise<Smo
   const result: SmokeResult = { ok: false, failedStep: null };
   const start = deps.now();
   const seconds = () => Math.round((deps.now() - start) / 1000);
-  const studio = (extra: Record<string, string> = {}) => ({
-    "CF-Access-Client-Id": opts.auth.clientId,
-    "CF-Access-Client-Secret": opts.auth.clientSecret,
-    ...extra,
-  });
   const fail = (step: string, line: string): never => {
     deps.log(`${step}: ${line}`);
     throw new StepFailed(step);
@@ -93,27 +91,39 @@ export async function runSmoke(opts: SmokeOptions, deps: SmokeDeps): Promise<Smo
       return fail(step, `network error ${error instanceof Error ? cut(error.name) : "unknown"}`);
     }
   };
+  // A studio call: the Access headers, no redirect follow, and a 302, 401 or 403
+  // (Access refused the token) fails at once with access_rejected.
+  const studio = async (step: string, path: string, init: FetchInit = {}): Promise<SmokeResponse> => {
+    const headers = { "CF-Access-Client-Id": opts.auth.clientId, "CF-Access-Client-Secret": opts.auth.clientSecret, ...init.headers };
+    const res = await request(step, path, { ...init, headers, redirect: "manual" });
+    if (res.status === 302 || res.status === 401 || res.status === 403) {
+      fail("access_rejected", `${init.method ?? "GET"} ${cut(path)} answered ${res.status}`);
+    }
+    return res;
+  };
 
   try {
     if (opts.run && !opts.text) fail("missing_text", "--run needs a text");
 
-    // 1. Preflight: the studio API with the Access headers, the shelf without them.
-    const stories = await request("preflight_failed", "/api/studio/stories", { headers: studio(), redirect: "manual" });
-    if (stories.status === 302 || stories.status === 401 || stories.status === 403) {
-      fail("access_rejected", `GET /api/studio/stories answered ${stories.status}`);
-    }
+    // 1. Preflight: the studio API with the Access headers, the same call without
+    // them (Access must refuse it), and the shelf without them.
+    const stories = await studio("preflight_failed", "/api/studio/stories");
     if (stories.status !== 200) fail("preflight_failed", `GET /api/studio/stories answered ${stories.status}`);
+    const refused = await request("preflight_failed", "/api/studio/stories", { redirect: "manual" });
+    if (refused.status === 200) fail("studio_public", "GET /api/studio/stories answered 200 without the service token");
+    if (refused.status !== 302 && refused.status !== 401 && refused.status !== 403) {
+      fail("preflight_failed", `GET /api/studio/stories without the service token answered ${refused.status}`);
+    }
     const shelf = await request("shelf_not_public", "/api/shelf");
     if (shelf.status !== 200) fail("shelf_not_public", `GET /api/shelf answered ${shelf.status}`);
-    deps.log("preflight ok: studio API 200 with the service token, shelf 200 without it");
+    deps.log(`preflight ok: studio API 200 with the service token, refuses an unauthenticated call with ${refused.status}, shelf 200 without it`);
     if (!opts.run) return { ok: true, failedStep: null };
 
     // 2. Create.
-    const created = await request("create_rejected", "/api/studio/stories", {
+    const created = await studio("create_rejected", "/api/studio/stories", {
       method: "POST",
-      headers: studio({ "content-type": "application/json" }),
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ text: opts.text }),
-      redirect: "manual",
     });
     const createdBody = await readJson(created);
     const storyId = field(createdBody, "storyId");
@@ -137,7 +147,7 @@ export async function runSmoke(opts: SmokeOptions, deps: SmokeDeps): Promise<Smo
         fail("run_timeout", `run ${cut(runId)} did not end within ${Math.round(opts.timeoutMs / 1000)} s`);
       }
       await deps.sleep(opts.pollMs);
-      const polled = await request("poll_failed", `/api/studio/runs/${runId}`, { headers: studio(), redirect: "manual" });
+      const polled = await studio("poll_failed", `/api/studio/runs/${runId}`);
       if (polled.status !== 200) {
         deps.log(`poll answered ${polled.status} at ${seconds()} s`);
         continue;
@@ -157,11 +167,7 @@ export async function runSmoke(opts: SmokeOptions, deps: SmokeDeps): Promise<Smo
     }
 
     // 4. Publish; the API decides whether a needs_review run can be published.
-    const published = await request("publish_rejected", `/api/studio/stories/${storyId}/releases`, {
-      method: "POST",
-      headers: studio(),
-      redirect: "manual",
-    });
+    const published = await studio("publish_rejected", `/api/studio/stories/${storyId}/releases`, { method: "POST" });
     const pubBody = await readJson(published);
     if (published.status === 409 && field(pubBody, "error") === "publish_blocked") {
       const blocking = field(pubBody, "blocking");
@@ -223,8 +229,9 @@ export async function runSmoke(opts: SmokeOptions, deps: SmokeDeps): Promise<Smo
 
 type Cli = { base: string; run: boolean; textFile: string | null; timeoutS: number; pollS: number };
 
-function args(argv: string[]): Cli {
-  const cli: Cli = { base: process.env.SMOKE_BASE || "https://lullabyte.ioenv.com", run: false, textFile: null, timeoutS: 900, pollS: 5 };
+// Exported for the tests; `env` is process.env in main.
+export function args(argv: string[], env: Record<string, string | undefined> = process.env): Cli {
+  const cli: Cli = { base: env.SMOKE_BASE || "https://lullabyte.ioenv.com", run: false, textFile: null, timeoutS: 900, pollS: 5 };
   const seconds = (name: string, value: string | undefined) => {
     const n = Number(value);
     if (!Number.isFinite(n) || n <= 0) throw new Error(`${name} <seconds> must be a positive number`);
@@ -237,9 +244,13 @@ function args(argv: string[]): Cli {
     else if (a === "--run") cli.run = true;
     else if (a === "--timeout-s") cli.timeoutS = seconds(a, argv[++i]);
     else if (a === "--poll-s") cli.pollS = seconds(a, argv[++i]);
-    else throw new Error(`unknown argument ${a}`);
+    // Only the position: the value could be a pasted secret.
+    else throw new Error(`unknown argument at position ${i + 1}`);
   }
-  if (!/^https?:\/\//.test(cli.base)) throw new Error("--base <url> must start with http:// or https://");
+  // No echo of the value: it could be a pasted secret.
+  if (!/^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$))/.test(cli.base)) {
+    throw new Error("--base <url> or SMOKE_BASE must start with https:// (http:// only for localhost or 127.0.0.1)");
+  }
   cli.base = cli.base.replace(/\/+$/, "");
   if (cli.run && !cli.textFile) throw new Error("--run needs --text-file <path>");
   return cli;
