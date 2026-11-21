@@ -255,7 +255,11 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
     const { book, at } = state;
     const n = book.release.pages.length;
     if (target < 0 || target > n || target === at.index) return;
-    const focusLeaves = sheetEls.current.get(at.key)?.contains(document.activeElement) ?? false;
+    // The focus is lost when it is in the sheet that becomes inert, or on the
+    // document (Safari does not focus a tapped button).
+    const active = document.activeElement;
+    const focusLeaves =
+      active === null || active === document.body || (sheetEls.current.get(at.key)?.contains(active) ?? false);
 
     const running = turnRef.current;
     turnRef.current = null;
@@ -283,7 +287,8 @@ export function BookRoute({ releaseId, textureUrl = PAPER_TEXTURE_URL }: { relea
       () => {},
     );
 
-    // The focus never stays in the sheet that becomes inert (DESIGN.md 14).
+    // The focus never stays in the sheet that becomes inert, and never falls
+    // back to the document (DESIGN.md 14).
     if (target === n) readAgainRef.current?.focus();
     else if (motion === "fade") nextRef.current?.focus();
     else if (focusLeaves) (target > at.index ? nextRef : previousRef).current?.focus();

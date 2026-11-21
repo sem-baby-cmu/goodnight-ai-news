@@ -323,3 +323,18 @@ it("a tap on previous with the focus in the leaving sheet gives the focus to pre
   expect(document.activeElement).toBe(previous);
   expect(previous.closest("[inert]")).toBeNull();
 });
+
+it("a tap on next with the focus on the document gives the focus to next", async () => {
+  await ready();
+  fireEvent.click(start());
+  await finishAll();
+  (document.activeElement as HTMLElement | null)?.blur();
+  expect(document.activeElement).toBe(document.body);
+
+  // A pointer tap in Safari does not focus the button.
+  fireEvent.click(button("Next page"));
+  await finishAll();
+  const next = button("Next page");
+  expect(document.activeElement).toBe(next);
+  expect(next.closest("[inert]")).toBeNull();
+});
