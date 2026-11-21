@@ -8,6 +8,9 @@
 - Revised: 2026-11-19. Owner decision Q7: TTS does not go through OpenRouter.
   The "One model adapter" rule and the open TTS question in "Consequences"
   are corrected (#32).
+- Amended: 2026-11-21 by [ADR 0018](0018-json-generation-via-ai-gateway-compat.md).
+  In production, JSON generation goes through the AI Gateway `/compat`
+  endpoint to the provider that the model ID names, not to OpenRouter.
 - Decided by: Jinyu Liu (owner of all technical decisions for the MVP)
 - Detail: [`docs/specs/storybook-mvp/`](../specs/storybook-mvp/requirements.md)
 - Supersedes: ADR 0003, 0004, 0005, 0006, 0012, 0014
@@ -65,6 +68,8 @@ Rules that hold from the first version:
   proxy. TTS is Gemini 3.8 Flash TTS. It does not go through OpenRouter: in
   development the adapter calls Google AI Studio directly, and on Cloudflare
   it goes through AI Gateway (`google-ai-studio`).
+  Amended by ADR 0018: production JSON generation uses the AI Gateway
+  `/compat` endpoint, not OpenRouter.
 
 ## Reasons
 

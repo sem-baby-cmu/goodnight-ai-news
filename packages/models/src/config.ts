@@ -1,5 +1,5 @@
 export type ModelConfig = {
-  baseUrl: string; // OpenAI-compatible text API: AI Gateway to OpenRouter, or the local gateway
+  baseUrl: string; // OpenAI-compatible text API: the AI Gateway /compat endpoint, or the local gateway
   apiKey: string;
   gatewayToken?: string; // AI Gateway token, sent as cf-aig-authorization on both routes
   models: { script: string; scene: string; tts: string }; // model IDs from env
