@@ -51,7 +51,7 @@ skinparam componentStyle rectangle
 actor Operator
 actor Child
 
-package "Worker: storybook-mvp" {
+package "Worker: lullabyte" {
   [Studio SPA\n/studio, /studio/*] as Studio
   [Player SPA\n/, /read/:releaseId] as Player
   [Hono API\n/api/studio/*] as API
@@ -64,8 +64,8 @@ package "Worker: storybook-mvp" {
 database "D1" as D1
 storage "R2" as R2
 cloud "AI Gateway" as GW
-cloud "OpenRouter" as OR
 cloud "Google AI Studio" as GAS
+cloud "OpenAI" as OAI
 node "Cloudflare Access" as Access
 
 Operator --> Access
@@ -80,8 +80,8 @@ API --> WF : create(run)
 WF --> D1
 WF --> R2
 WF --> GW
-GW --> OR : JSON
-GW --> GAS : TTS
+GW --> GAS : JSON, TTS
+GW --> OAI : JSON
 Player --> Content
 Content --> R2
 Player --> Shelf
@@ -93,13 +93,13 @@ Shelf --> D1
 
 | Item | Value |
 | :-- | :-- |
-| Worker | `storybook-mvp`. Serves the SPA (Static Assets), the API, the content route, and the Workflow class. |
+| Worker | `lullabyte` (#25). Serves the SPA (Static Assets), the API, the content route, and the Workflow class. |
 | D1 | New database `storybook-mvp`. |
 | R2 | New bucket `storybook-mvp`. |
 | Workflow | `StoryRunWorkflow`, binding `STORY_RUN`. |
 | Access | One Access application with three paths: `/studio`, `/studio/*`, and `/api/studio/*`. `/`, `/read/*`, `/api/shelf`, and `/content/*` stay public (ADR 0017). The Worker does not check `Cf-Access-Jwt-Assertion` in the MVP. Access protects the routes at the edge. The `workers.dev` route and preview URLs are off, so no route bypasses Access (#25). |
 | Player routes | `/` is the shelf, the home of the Player. `/read/:releaseId` is one book. Both are static asset paths with the SPA fallback. `/api/*` and `/content/*` run the Worker first (ADR 0017). A path that matches no route shows the shelf ("9. Player screens", "Unknown path"). |
-| Models | JSON generation: AI Gateway, then OpenRouter. Development points the same adapter at a local proxy. TTS: AI Gateway, provider `google-ai-studio`. Development calls Google AI Studio directly. TTS never goes through OpenRouter (owner decision Q7). |
+| Models | JSON generation: the AI Gateway endpoint `/compat`. The model ID names the provider: `google-ai-studio/<model>` or `openai/<model>` (ADR 0018). Development points the same adapter at a local proxy. TTS: AI Gateway, provider `google-ai-studio` (owner decision Q7). Development calls Google AI Studio directly. No model call goes through OpenRouter. |
 
 The existing Worker `goodnight-ai-news` (folder `app/`), its D1 database, and
 its R2 bucket stay untouched until the new Worker is live. Removing them is a
@@ -131,18 +131,18 @@ pnpm workspaces, Node.js 22 or later, TypeScript strict mode, Vitest.
 ### 1. Model adapter (`packages/models`)
 
 One client for every model call. JSON generation speaks the
-OpenAI-compatible API. TTS speaks the Google AI Studio API (`v1beta`) and
-never goes through OpenRouter (owner decision Q7). Production and development
-differ only in configuration.
+OpenAI-compatible API. TTS speaks the Google AI Studio API (`v1beta`)
+(owner decision Q7). No call goes through OpenRouter (ADR 0018). Production
+and development differ only in configuration.
 
 | Call | Development | Cloudflare |
 | :-- | :-- | :-- |
-| `generateJson` | Local proxy | AI Gateway, then OpenRouter |
+| `generateJson` | Local proxy | AI Gateway: `https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/compat`, model ID `<provider>/<model>` (ADR 0018) |
 | `synthesizeSpeech` | Google AI Studio directly: `https://generativelanguage.googleapis.com/v1beta` | AI Gateway: `https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio/v1beta` |
 
 ```ts
 interface ModelConfig {
-  baseUrl: string;        // AI Gateway URL for OpenRouter, or the local proxy
+  baseUrl: string;        // AI Gateway `/compat` URL, or the local proxy
   apiKey: string;         // Worker secret
   gatewayToken?: string;  // AI Gateway token, sent on both routes
   models: { script: string; scene: string; tts: string }; // model IDs from env

@@ -66,11 +66,11 @@ highlighting, content safety and copyright policy, user accounts, export.
 
 | Need | Cloudflare service |
 | :-- | :-- |
-| Studio, Player, API, content | One Worker `storybook-mvp` (Hono API, React in Static Assets) |
+| Studio, Player, API, content | One Worker `lullabyte` (Hono API, React in Static Assets) |
 | Production steps and retries | Workflows (one instance per run) |
 | Registry, stories, revisions, releases | D1 |
 | Character assets, audio, releases | R2 |
-| Model calls | AI Gateway, then OpenRouter (a local proxy in development) |
+| Model calls | AI Gateway `/compat` to Google AI Studio and OpenAI; TTS through AI Gateway `google-ai-studio` (a local proxy in development) |
 | Studio protection | Cloudflare Access |
 
 ## Repository layout
