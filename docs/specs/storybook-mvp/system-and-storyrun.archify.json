@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Lullabyte system and StoryRun workflow",
+    "locale": "en",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "operator", "type": "external", "label": "Operator", "sublabel": "Makes the books", "pos": [40, 100], "size": [150, 64] },
+    { "id": "access", "type": "security", "label": "Cloudflare Access", "sublabel": "Login at the edge", "pos": [270, 100], "size": [150, 64] },
+    { "id": "studio", "type": "frontend", "label": "Studio SPA", "sublabel": "/studio/*", "pos": [500, 100], "size": [150, 64] },
+    { "id": "api", "type": "backend", "label": "Hono API", "sublabel": "Studio, shelf, content", "pos": [730, 100], "size": [150, 64] },
+    { "id": "child", "type": "external", "label": "Child", "sublabel": "Ages 5 to 10", "pos": [40, 260], "size": [150, 64] },
+    { "id": "player", "type": "frontend", "label": "Player SPA", "sublabel": "/ and /read/:releaseId", "pos": [500, 260], "size": [150, 64] },
+    { "id": "d1", "type": "database", "label": "D1", "sublabel": "Stories, revisions, runs", "pos": [960, 180], "size": [150, 64] },
+    { "id": "r2", "type": "database", "label": "R2", "sublabel": "Assets, audio, releases", "pos": [1190, 180], "size": [150, 64] },
+    { "id": "freeze", "type": "backend", "label": "freeze", "sublabel": "Heads and registry", "pos": [40, 440], "size": [150, 64] },
+    { "id": "script", "type": "backend", "label": "script", "sublabel": "Outline and page text", "pos": [270, 440], "size": [150, 64] },
+    { "id": "scene", "type": "backend", "label": "scene:<pageId>", "sublabel": "One page at a time", "pos": [500, 440], "size": [150, 64] },
+    { "id": "audio", "type": "backend", "label": "audio:<pageId>", "sublabel": "Up to 4 pages at once", "pos": [730, 440], "size": [150, 64] },
+    { "id": "finish", "type": "backend", "label": "finish", "sublabel": "Status from the heads", "pos": [960, 440], "size": [150, 64] },
+    { "id": "status", "type": "external", "label": "Run status", "sublabel": "Ready, review, failed", "pos": [1190, 440], "size": [150, 64] },
+    { "id": "gw", "type": "cloud", "label": "AI Gateway", "sublabel": "Google AI Studio, OpenAI", "pos": [500, 600], "size": [150, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Worker lullabyte", "wraps": ["studio", "api", "player"] },
+    { "kind": "region", "label": "StoryRun Workflow, one instance per run", "wraps": ["freeze", "script", "scene", "audio", "finish"] }
+  ],
+  "connections": [
+    { "id": "operator-to-access", "from": "operator", "to": "access", "variant": "security" },
+    { "id": "access-to-studio", "from": "access", "to": "studio", "variant": "security" },
+    { "id": "studio-to-api", "from": "studio", "to": "api", "label": "Edit drafts" },
+    { "id": "child-to-player", "from": "child", "to": "player" },
+    { "id": "player-to-api", "from": "player", "to": "api", "label": "Read only" },
+    { "id": "api-to-d1", "from": "api", "to": "d1", "fromSide": "right", "toSide": "top" },
+    { "id": "api-to-r2", "from": "api", "to": "r2", "label": "Freeze release", "fromSide": "right", "toSide": "top" },
+    { "id": "api-to-freeze", "from": "api", "to": "freeze", "label": "Create run", "fromSide": "bottom", "toSide": "top", "via": [[805, 380], [115, 380]] },
+    { "id": "freeze-to-script", "from": "freeze", "to": "script" },
+    { "id": "script-to-scene", "from": "script", "to": "scene" },
+    { "id": "scene-to-audio", "from": "scene", "to": "audio" },
+    { "id": "audio-to-finish", "from": "audio", "to": "finish" },
+    { "id": "finish-to-status", "from": "finish", "to": "status" },
+    { "id": "audio-to-r2", "from": "audio", "to": "r2", "label": "Narration audio", "fromSide": "top", "toSide": "bottom", "via": [[805, 397], [1265, 397]] },
+    { "id": "script-to-gw", "from": "script", "to": "gw", "fromSide": "bottom", "toSide": "left" },
+    { "id": "scene-to-gw", "from": "scene", "to": "gw", "label": "Model calls", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "audio-to-gw", "from": "audio", "to": "gw", "fromSide": "bottom", "toSide": "right" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Access boundary", "items": ["Access protects /studio, /studio/*, and /api/studio/*", "/, /read/*, /api/shelf, and /content/* are public and read-only"] },
+    { "dot": "amber", "title": "Errors", "items": ["A freeze or script error ends the run as failed", "A page error is kept and the run goes on"] },
+    { "dot": "emerald", "title": "Repair and replay", "items": ["A failed check gets one repair, then needs_review", "A call stored in call_log is never requested again", "Every step writes its revisions and call_log rows to D1"] }
+  ]
+}
