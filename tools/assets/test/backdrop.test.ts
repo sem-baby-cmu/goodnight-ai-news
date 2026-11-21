@@ -180,12 +180,16 @@ describe("meadow", () => {
 describe("slotEnvelopes", () => {
   it("slotEnvelopes places each pose at the slot target height, with and without flip, in frame units", () => {
     // two-friends/left: footX 520, footY 1080, height 600 -> scale 3; frame x = stage x + 400.
-    // The box is centred on footX (#127), so both flips give one box.
+    // `kit` has several poses, so the foot of `front` stays on footX (#141):
+    // stage x 520 - 30 * 3 = 430, flipped 520 - 70 * 3 = 310.
     expect(envelopeOf(slotEnvelopes(synthetic(), TEMPLATES), "two-friends", "left")).toEqual({
       template: "two-friends",
       slot: "left",
       accepts: "character",
-      boxes: [{ x: 770, y: 480, w: 300, h: 600 }],
+      boxes: [
+        { x: 710, y: 480, w: 300, h: 600 },
+        { x: 830, y: 480, w: 300, h: 600 },
+      ],
     });
   });
 
@@ -200,8 +204,12 @@ describe("slotEnvelopes", () => {
     const envelopes = slotEnvelopes(synthetic(), TEMPLATES);
     // solo-center/bust: footX 800, footY 1200, height 900 lists `bust`: scale 3.
     expect(envelopeOf(envelopes, "solo-center", "bust").boxes).toEqual([{ x: 975, y: 300, w: 450, h: 900 }]);
-    // solo-center/hero: footX 800, footY 1090, height 640: only `front`, scale 3.2, centred (#127); no `bust` box.
-    expect(envelopeOf(envelopes, "solo-center", "hero").boxes).toEqual([{ x: 1040, y: 450, w: 320, h: 640 }]);
+    // solo-center/hero: footX 800, footY 1090, height 640: only `front`, scale 3.2, foot on footX (#141):
+    // stage x 800 - 30 * 3.2 = 704, flipped 800 - 70 * 3.2 = 576; no `bust` box.
+    expect(envelopeOf(envelopes, "solo-center", "hero").boxes).toEqual([
+      { x: 976, y: 450, w: 320, h: 640 },
+      { x: 1104, y: 450, w: 320, h: 640 },
+    ]);
   });
 
   it("slotEnvelopes has one entry per slot of every template, in TEMPLATES order", () => {
@@ -235,15 +243,19 @@ describe("slotEnvelopes", () => {
   it("slotEnvelopes draws every other pose of a key at the at of each starting pose (#127)", () => {
     // The runtime keeps the starting pose's `at` on set_pose and pins the shown
     // pose's foot at at.x. two-friends/left: footX 520, height 600 -> scale 3.
-    // `a` (foot 30) starts at at.x 460, or 580 flipped; `b` (foot 80) at 610, or 430 flipped.
+    // `kit` has several poses, so every starting pose has its foot on footX
+    // (#141): at.x 520 with and without flip, and the envelope is the boxes of
+    // each pose at its own foot.
     const a: PoseEntry = { id: "walk-a", file: "a.webp", foot: { x: 30, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 }, face: { x: 20, y: 20, w: 60, h: 60 } };
     const b: PoseEntry = { id: "walk-b", file: "b.webp", foot: { x: 80, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 }, face: { x: 20, y: 20, w: 60, h: 60 } };
     const builds = [layer("kit", "character", [a, b, BUST]), ...synthetic().slice(1)];
-    // Stage x: centred 370; `b` at the at of `a` 220 (flipped 520); `a` at the at of `b` 520 (flipped 220).
+    // Stage x: `b` 520 - 80 * 3 = 280; `a` flipped 520 - 70 * 3 = 310;
+    // `a` 520 - 30 * 3 = 430; `b` flipped 520 - 20 * 3 = 460.
     expect(envelopeOf(slotEnvelopes(builds, TEMPLATES), "two-friends", "left").boxes).toEqual([
-      { x: 620, y: 480, w: 300, h: 600 },
-      { x: 770, y: 480, w: 300, h: 600 },
-      { x: 920, y: 480, w: 300, h: 600 },
+      { x: 680, y: 480, w: 300, h: 600 },
+      { x: 710, y: 480, w: 300, h: 600 },
+      { x: 830, y: 480, w: 300, h: 600 },
+      { x: 860, y: 480, w: 300, h: 600 },
     ]);
   });
 
