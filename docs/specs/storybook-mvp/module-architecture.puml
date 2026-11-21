@@ -1,0 +1,90 @@
+@startuml module-architecture
+' Module architecture of the storybook MVP.
+' module-architecture.html shows the same modules and leaves out some edges.
+' This file draws every workspace dependency and every cross-module import.
+' Sources: the package.json files, the imports under apps/storybook,
+' apps/storybook/wrangler.jsonc, and tools/assets/src/publish.ts.
+title Lullabyte module architecture
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Monospaced
+skinparam ranksep 60
+skinparam nodesep 40
+
+package "apps/storybook/src (runs in the browser)" {
+  [src/studio\nStudio SPA] as Studio
+  [src/player\nPlayer SPA] as Player
+}
+
+package "apps/storybook/worker (Worker lullabyte)" {
+  [index.ts\nentry point] as Entry
+  [api\nHono routes, schemas] as Api
+  [publish\nbuild and serve releases] as Publish
+  [workflow\nStoryRun and steps] as Workflow
+  [db\nDrizzle schema, heads] as Db
+}
+
+package "packages" {
+  [scene-runtime\ndraws a page scene] as Runtime
+  [models\nmodel and TTS client] as Models
+  [layout\ntemplates, geometry] as Layout
+  [dsl\nschemas, registry] as Dsl
+}
+
+package "tools" {
+  [tools/assets\nasset pipeline CLI] as Assets
+}
+
+database "D1\nstorybook-mvp" as D1
+storage "R2\nstorybook-mvp" as R2
+cloud "AI Gateway\nstorybook-mvp" as GW
+
+' Browser to Worker: HTTP calls. The SPAs also import worker/api/schemas.ts.
+Studio --> Api : HTTP
+Player --> Api : HTTP
+Studio --> Runtime
+Player --> Runtime
+
+' Inside the Worker
+Entry --> Api
+Entry --> Workflow
+Api --> Publish
+Api ..> Workflow : STORY_RUN
+Api --> Db
+Publish --> Db
+Workflow --> Db
+
+' Worker to packages
+Workflow --> Models
+Workflow --> Layout
+Api --> Layout
+Runtime --> Layout
+
+' Platform
+Db --> D1 : Drizzle
+Publish --> R2 : release files
+Workflow --> R2 : model bytes
+Models --> GW : fetch
+Assets --> R2 : wrangler
+Assets --> D1 : wrangler
+Assets --> Layout
+
+' Every module except models imports dsl (grey)
+Studio -[#AAAAAA]-> Dsl
+Player -[#AAAAAA]-> Dsl
+Api -[#AAAAAA]-> Dsl
+Publish -[#AAAAAA]-> Dsl
+Workflow -[#AAAAAA]-> Dsl
+Db -[#AAAAAA]-> Dsl
+Runtime -[#AAAAAA]-> Dsl
+Layout -[#AAAAAA]-> Dsl
+Assets -[#AAAAAA]-> Dsl
+
+legend right
+  --> imports or calls
+  ..> starts a Workflow instance (binding STORY_RUN)
+  grey --> imports packages/dsl
+  The SPAs also import worker/api/schemas.ts.
+  tools/assets uploads files to R2 before it writes D1 rows.
+endlegend
+@enduml

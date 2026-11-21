@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Lullabyte module architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": { "label": "Browser module" },
+        "backend": { "label": "Worker module" },
+        "messagebus": { "label": "Package" },
+        "database": { "label": "Data store" },
+        "cloud": { "label": "External service" },
+        "external": { "label": "Tool" }
+      }
+    }
+  },
+  "components": [
+    { "id": "studio", "type": "frontend", "label": "src/studio", "sublabel": "Studio SPA", "pos": [40, 100], "size": [150, 64] },
+    { "id": "runtime", "type": "frontend", "label": "scene-runtime", "sublabel": "Draws a page scene", "pos": [40, 260], "size": [150, 64] },
+    { "id": "player", "type": "frontend", "label": "src/player", "sublabel": "Player SPA", "pos": [40, 420], "size": [150, 64] },
+    { "id": "assets", "type": "external", "label": "tools/assets", "sublabel": "Asset pipeline CLI", "pos": [40, 580], "size": [150, 64] },
+    { "id": "publish", "type": "backend", "label": "worker/publish", "sublabel": "Build and serve releases", "pos": [290, 100], "size": [150, 64] },
+    { "id": "api", "type": "backend", "label": "worker/api", "sublabel": "Hono routes, schemas", "pos": [290, 260], "size": [150, 64] },
+    { "id": "db", "type": "backend", "label": "worker/db", "sublabel": "Drizzle schema, heads", "pos": [290, 420], "size": [150, 64] },
+    { "id": "d1", "type": "database", "label": "D1", "sublabel": "storybook-mvp", "pos": [290, 580], "size": [150, 64] },
+    { "id": "workflow", "type": "backend", "label": "worker/workflow", "sublabel": "StoryRun and steps", "pos": [540, 260], "size": [150, 64] },
+    { "id": "r2", "type": "database", "label": "R2", "sublabel": "storybook-mvp", "pos": [790, 100], "size": [150, 64] },
+    { "id": "models", "type": "messagebus", "label": "models", "sublabel": "Model and TTS client", "pos": [790, 260], "size": [150, 64] },
+    { "id": "layout", "type": "messagebus", "label": "layout", "sublabel": "Templates, geometry", "pos": [790, 420], "size": [150, 64] },
+    { "id": "dsl", "type": "messagebus", "label": "dsl", "sublabel": "Schemas, registry", "pos": [790, 580], "size": [150, 64] },
+    { "id": "gw", "type": "cloud", "label": "AI Gateway", "sublabel": "storybook-mvp", "pos": [1040, 260], "size": [150, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Browser", "wraps": ["studio", "runtime", "player"] },
+    { "kind": "region", "label": "Worker lullabyte", "wraps": ["publish", "api", "db", "workflow"] },
+    { "kind": "region", "label": "packages", "wraps": ["models", "layout", "dsl"] }
+  ],
+  "connections": [
+    { "id": "studio-runtime", "from": "studio", "to": "runtime" },
+    { "id": "player-runtime", "from": "player", "to": "runtime" },
+    { "id": "studio-api", "from": "studio", "to": "api", "label": "HTTP" },
+    { "id": "player-api", "from": "player", "to": "api", "label": "HTTP" },
+    { "id": "api-publish", "from": "api", "to": "publish" },
+    { "id": "api-workflow", "from": "api", "to": "workflow", "label": "STORY_RUN" },
+    { "id": "api-db", "from": "api", "to": "db" },
+    { "id": "workflow-db", "from": "workflow", "to": "db" },
+    { "id": "workflow-models", "from": "workflow", "to": "models" },
+    { "id": "workflow-layout", "from": "workflow", "to": "layout" },
+    { "id": "layout-dsl", "from": "layout", "to": "dsl" },
+    { "id": "publish-r2", "from": "publish", "to": "r2", "label": "Release files" },
+    { "id": "models-gw", "from": "models", "to": "gw" },
+    { "id": "db-d1", "from": "db", "to": "d1" },
+    { "id": "assets-d1", "from": "assets", "to": "d1", "label": "Asset registry" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Shared schemas", "items": ["Every module imports packages/dsl, except models", "The SPAs import the API schemas from worker/api"] },
+    { "dot": "amber", "title": "Not drawn", "items": ["scene-runtime uses dsl and layout", "publish reads D1; workflow writes model bytes to R2"] },
+    { "dot": "emerald", "title": "Tools", "items": ["tools/assets runs wrangler from apps/storybook", "It uploads asset files to R2 before the D1 rows"] }
+  ]
+}
