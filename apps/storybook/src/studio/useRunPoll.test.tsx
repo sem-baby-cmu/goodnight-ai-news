@@ -159,8 +159,9 @@ it("useRunPoll ignores a reply that arrives after runId changed", async () => {
 });
 
 it("useRunPoll counts a 2xx answer that is not a run as a failed request and reports lost after 5", async () => {
-  // An empty body: `call` gives `{ ok: true, data: null }` (#108, comment item 3).
-  const { calls } = stubFetch(() => ({ status: 200 }));
+  // A 2xx JSON body that is not a run. An empty or non-JSON 2xx body never
+  // reaches the hook: since #119 `call` gives status 0 for it.
+  const { calls } = stubFetch(() => ({ status: 200, body: { ok: true } }));
   const onDone = vi.fn<(r: RunResponse) => void>();
   const { result } = renderHook(() => useRunPoll(RUN_ID, onDone));
 
