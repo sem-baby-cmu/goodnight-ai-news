@@ -1,6 +1,6 @@
 import type { ReleaseManifest, ReleasePage } from "@storybook/dsl";
 import { describe, expect, it } from "vitest";
-import { type SmokeDeps, type SmokeOptions, type SmokeResult, runSmoke } from "./smoke-tracer";
+import { type SmokeDeps, type SmokeOptions, type SmokeResult, args, runSmoke } from "./smoke-tracer";
 
 const BASE = "https://smoke.example.test";
 const CLIENT_ID = "client-id-7f3a.access";
@@ -82,7 +82,8 @@ function polls(statuses: Array<string | FakeResponse>): Handler {
 
 function happyRoutes(): Record<string, Handler> {
   return {
-    "GET /api/studio/stories": () => reply(200, { stories: [] }),
+    // Access answers a call without the service token with a redirect to its login.
+    "GET /api/studio/stories": (req) => (hasAccess(req) ? reply(200, { stories: [] }) : reply(302, "")),
     "GET /api/shelf": () => reply(200, { books: [] }),
     "POST /api/studio/stories": () => reply(202, { storyId: STORY, runId: RUN, words: 250, truncated: false }),
     [`GET /api/studio/runs/${RUN}`]: polls(["queued", "running", "running", "draft_ready"]),
@@ -148,16 +149,20 @@ const isPublic = (r: Recorded) => r.path === "/api/shelf" || r.path.startsWith("
 const route = (r: Recorded) => `${r.method} ${r.path}`;
 
 describe("smoke-tracer", () => {
-  it("smoke-tracer: preflight only checks the studio API with the Access headers and the shelf without them", async () => {
+  it("smoke-tracer: preflight checks the studio API with the Access headers, its refusal without them, and the shelf", async () => {
     const h = harness();
     const result = await runSmoke(options({ run: false, text: undefined }), h.deps);
 
     expect(result).toEqual({ ok: true, failedStep: null });
-    expect(h.requests.map(route)).toEqual(["GET /api/studio/stories", "GET /api/shelf"]);
-    const [stories, shelf] = h.requests;
+    expect(h.requests.map(route)).toEqual(["GET /api/studio/stories", "GET /api/studio/stories", "GET /api/shelf"]);
+    const [stories, unauthenticated, shelf] = h.requests;
     expect(stories!.url).toBe(`${BASE}/api/studio/stories`);
     expect(hasAccess(stories!)).toBe(true);
     expect(stories!.redirect).toBe("manual");
+    expect(unauthenticated!.url).toBe(`${BASE}/api/studio/stories`);
+    expect(noAccess(unauthenticated!)).toBe(true);
+    expect(unauthenticated!.redirect).toBe("manual");
+    expect(h.logs.some((l) => l.includes("refuses") && l.includes("302"))).toBe(true);
     expect(shelf!.url).toBe(`${BASE}/api/shelf`);
     expect(noAccess(shelf!)).toBe(true);
     expect(h.requests.some((r) => r.method === "POST")).toBe(false);
@@ -176,6 +181,43 @@ describe("smoke-tracer", () => {
       expect(result.ok).toBe(false);
       expect(result.failedStep).toBe("access_rejected");
       expect(h.requests.map(route)).toEqual(["GET /api/studio/stories"]);
+    }
+  });
+
+  it("smoke-tracer: a studio API that answers 200 without the Access headers fails with studio_public", async () => {
+    const h = harness({ "GET /api/studio/stories": () => reply(200, { stories: [] }) });
+    const result = await runSmoke(options(), h.deps);
+
+    expect(result).toEqual({ ok: false, failedStep: "studio_public" });
+    expect(h.requests.map(route)).toEqual(["GET /api/studio/stories", "GET /api/studio/stories"]);
+    expect(noAccess(h.requests[1]!)).toBe(true);
+  });
+
+  it("smoke-tracer: a studio API that answers 500 without the Access headers fails with preflight_failed", async () => {
+    const h = harness({ "GET /api/studio/stories": (req) => (hasAccess(req) ? reply(200, { stories: [] }) : reply(500, "")) });
+    const result = await runSmoke(options(), h.deps);
+
+    expect(result).toEqual({ ok: false, failedStep: "preflight_failed" });
+    expect(h.requests.map(route)).toEqual(["GET /api/studio/stories", "GET /api/studio/stories"]);
+  });
+
+  it("smoke-tracer: a 302, 401 or 403 on a later studio call fails at once with access_rejected", async () => {
+    const later: Record<string, (status: number) => Record<string, Handler>> = {
+      poll: (status) => ({ [`GET /api/studio/runs/${RUN}`]: () => reply(status, "") }),
+      create: (status) => ({ "POST /api/studio/stories": () => reply(status, "") }),
+      publish: (status) => ({ [`POST /api/studio/stories/${STORY}/releases`]: () => reply(status, "") }),
+    };
+    for (const [name, overrides] of Object.entries(later)) {
+      for (const status of [302, 401, 403]) {
+        const h = harness(overrides(status));
+        const result = await runSmoke(options(), h.deps);
+
+        expect(result.failedStep, `${name} ${status}`).toBe("access_rejected");
+        expect(h.requests.filter((r) => r.path === `/api/studio/runs/${RUN}`).length, `${name} ${status}`).toBeLessThanOrEqual(
+          name === "poll" ? 1 : 4,
+        );
+        expect(h.requests.some((r) => r.path.startsWith("/read/") || r.path.startsWith("/content/"))).toBe(false);
+      }
     }
   });
 
@@ -228,8 +270,11 @@ describe("smoke-tracer", () => {
       `GET ${AUDIO_PATH}`,
     ]);
     expect(publicReads.every(noAccess)).toBe(true);
-    expect(studio.length).toBeGreaterThanOrEqual(4);
-    expect(studio.every(hasAccess)).toBe(true);
+    expect(studio.length).toBeGreaterThanOrEqual(5);
+    // Only the second request, the preflight check that the studio refuses a caller without the token, has no Access headers.
+    expect(studio.filter(noAccess)).toEqual([h.requests[1]]);
+    expect(route(h.requests[1]!)).toBe("GET /api/studio/stories");
+    expect(studio.filter((r) => r !== h.requests[1]).every(hasAccess)).toBe(true);
     expect(publicReads.length + studio.length).toBe(h.requests.length);
   });
 
@@ -376,5 +421,41 @@ describe("smoke-tracer", () => {
     expect(all).toContain("too_short");
     expect(bad.logs.some(leaks)).toBe(false);
     expect(leaks(rejected.thrown ?? "")).toBe(false);
+  });
+
+  describe("args", () => {
+    const fails = (argv: string[], env: Record<string, string | undefined> = {}) => {
+      try {
+        args(argv, env);
+        return null;
+      } catch (error) {
+        return error instanceof Error ? error.message : String(error);
+      }
+    };
+
+    it("smoke-tracer: --base and SMOKE_BASE accept https and http only for localhost or 127.0.0.1", () => {
+      expect(args([], {}).base).toBe("https://lullabyte.ioenv.com");
+      expect(args(["--base", "https://smoke.example.test/"], {}).base).toBe("https://smoke.example.test");
+      expect(args([], { SMOKE_BASE: "https://smoke.example.test" }).base).toBe("https://smoke.example.test");
+      expect(args(["--base", "http://localhost:8787"], {}).base).toBe("http://localhost:8787");
+      expect(args(["--base", "http://127.0.0.1:8787/"], {}).base).toBe("http://127.0.0.1:8787");
+      expect(args(["--base", "http://localhost"], {}).base).toBe("http://localhost");
+
+      const bad = ["http://smoke.example.test", "http://localhost.evil.test", "http://127.0.0.1.evil.test", "ftp://x", "sekret-BASE"];
+      for (const base of bad) {
+        for (const message of [fails(["--base", base]), fails([], { SMOKE_BASE: base })]) {
+          expect(message, base).not.toBeNull();
+          expect(message, base).not.toContain(base);
+        }
+      }
+    });
+
+    it("smoke-tracer: an unknown argument is named by its position, not its value", () => {
+      const message = fails(["--run", "--text-file", "a.txt", "sekret-PASTED"]);
+
+      expect(message).not.toBeNull();
+      expect(message).not.toContain("sekret-PASTED");
+      expect(message).toContain("4");
+    });
   });
 });
