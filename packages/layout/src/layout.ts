@@ -1,4 +1,4 @@
-import { type Issue, type LayoutTemplate, type PageScene, type PoseEntry, type RegistrySnapshot, selectPoseEntry } from "@storybook/dsl";
+import { isLayerManifest, type Issue, type LayoutTemplate, type PageScene, type PoseEntry, type RegistrySnapshot, selectPoseEntry } from "@storybook/dsl";
 import { CHECK_LIMITS, type Failure, type PlacedLayer, runChecks } from "./checks";
 import { layerBoxes } from "./geometry";
 
@@ -16,6 +16,9 @@ type Item = {
   entry: PoseEntry;
   // A layer with `at` in the input keeps it: shrink never touches it.
   fixed: boolean;
+  // A single-pose asset has its box centred on footX (#127); an asset with
+  // several poses keeps its foot point on footX (#141).
+  centre: boolean;
   f: number;
   minF: number;
 };
@@ -26,19 +29,22 @@ const round4 = (value: number) => Math.round(value * 10000) / 10000;
 const percent = (ratio: number) => `${(ratio * 100).toFixed(1)}%`;
 
 // The `at` of `entry` in `slot` at factor `f` (design "4. Layout engine",
-// #127): the box fits the slot height and, when set, the slot width; its
-// centre is on `footX` and its foot on `footY`. `at` stays the stage position
-// of the foot point, so a flipped layer gets the same box.
+// #127, #141): the box fits the slot height and, when set, the slot width;
+// its foot is on `footY`. With `centre` the box centre is on `footX`, so a
+// flipped layer gets the same box; without it the foot point is on `footX`,
+// so every pose of the asset drawn at this `at` keeps its feet there. `at`
+// stays the stage position of the foot point.
 export function slotAt(
   slot: Slot,
   entry: Pick<PoseEntry, "box" | "foot">,
   flip: boolean | undefined,
   f = 100,
+  centre = true,
 ): { x: number; y: number; scale: number; z: number } {
   const base =
     slot.width === undefined ? slot.height / entry.box.h : Math.min(slot.height / entry.box.h, slot.width / entry.box.w);
   const scale = round4((base * f) / 100);
-  const off = (entry.box.x + entry.box.w / 2 - entry.foot.x) * scale;
+  const off = centre ? (entry.box.x + entry.box.w / 2 - entry.foot.x) * scale : 0;
   return { x: round4(flip === true ? slot.footX + off : slot.footX - off), y: slot.footY, scale, z: slot.z };
 }
 
@@ -90,6 +96,7 @@ export function layoutScene(
       slot,
       entry,
       fixed: layer.at !== undefined,
+      centre: isLayerManifest(asset.manifest) && asset.manifest.poses.length === 1,
       f: 100,
       minF: Math.round(slot.minScale * 100),
     });
@@ -99,7 +106,7 @@ export function layoutScene(
   let failures: Failure[];
   for (;;) {
     for (const item of free) {
-      item.layer.at = slotAt(item.slot, item.entry, item.layer.flip, item.f);
+      item.layer.at = slotAt(item.slot, item.entry, item.layer.flip, item.f, item.centre);
     }
     failures = runChecks(items.map(toPlaced));
     if (failures.length === 0) break;

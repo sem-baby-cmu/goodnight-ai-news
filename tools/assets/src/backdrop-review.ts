@@ -2,8 +2,9 @@
 // pipeline"): one sheet per variant with the slot envelopes of all templates
 // drawn over it. A slot envelope is the union of the boxes of every active
 // asset of the slot's kind, placed in that slot by the layout rule at f = 100
-// (`slotAt`: the box fits the slot height and width, centred on footX), with
-// and without flip, including the slot's other poses of the key at that place.
+// (`slotAt`: the box fits the slot height and width; a single-pose asset is
+// centred on footX, an asset with several poses keeps its foot point on footX),
+// with and without flip, including the slot's other poses of the key at that place.
 // Build output in <out>/review/; never tracked. The board review sheet of the
 // cut step is `review.ts`.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -50,7 +51,7 @@ export function slotEnvelopes(builds: AssetBuild[], templates: LayoutTemplate[])
         // is drawn at the `at` of every allowed starting pose.
         for (const start of allowed) {
           for (const flip of [false, true]) {
-            const at = slotAt(slot, start, flip);
+            const at = slotAt(slot, start, flip, 100, b.manifest.poses.length === 1);
             for (const shown of allowed) {
               const box = layerBoxes(shown, at, flip).box;
               const frame = { ...box, x: box.x + STAGE_OFFSET_X };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LayoutTemplate } from "@storybook/dsl";
+import { type LayoutTemplate, type PoseEntry, selectPoseEntry } from "@storybook/dsl";
 import { layerBoxes, layoutScene, SHRINK_STEP, slotAt, TEMPLATES } from "../src/index";
 import { codes, type LayerSpec, registryOf, sceneOf, type TestAsset } from "./helpers";
 
@@ -202,12 +202,22 @@ describe("layoutScene", () => {
 
   describe("width fit and centred box (#127)", () => {
     // A wide scenery asset with its foot near the right edge (as fence, log,
-    // bush), and a character with its foot left of the box centre.
+    // bush), and a character with its foot left of the box centre. `off-char`
+    // has a second pose `sit` with its foot right of the box centre (#141);
+    // `solo-char` and `off-prop` have one pose each.
     const offScenery: TestAsset = { kind: "scenery", entry: { box: { x: 0, y: 0, w: 400, h: 100 }, foot: { x: 350, y: 100 } } };
     const offChar: TestAsset = {
       kind: "character",
       entry: { box: { x: 0, y: 0, w: 400, h: 500 }, foot: { x: 100, y: 500 }, face: { x: 80, y: 25, w: 240, h: 175 } },
     };
+    const offCharSit: PoseEntry = {
+      id: "sit",
+      file: "sit.svg",
+      box: { x: 0, y: 0, w: 400, h: 500 },
+      foot: { x: 300, y: 500 },
+      face: { x: 80, y: 25, w: 240, h: 175 },
+    };
+    const offProp: TestAsset = { kind: "prop", entry: { box: { x: 0, y: 0, w: 400, h: 100 }, foot: { x: 100, y: 100 } } };
     const fit: LayoutTemplate = {
       id: "fit",
       stage: { width: 1600, height: 1200 },
@@ -215,13 +225,27 @@ describe("layoutScene", () => {
         { id: "wide", accepts: "scenery", footX: 800, footY: 1000, height: 200, width: 300, minScale: 1, z: 10 },
         { id: "tall", accepts: "scenery", footX: 800, footY: 1000, height: 200, minScale: 1, z: 11 },
         { id: "hero", accepts: "character", footX: 800, footY: 1100, height: 500, minScale: 1, z: 50 },
+        { id: "front", accepts: "prop", footX: 800, footY: 1150, height: 100, minScale: 1, z: 60 },
       ],
     };
-    const fitCtx = { registry: registryOf({ "off-scenery": offScenery, "off-char": offChar }), templates: [fit] };
+    const fitRegistry = registryOf({ "off-scenery": offScenery, "solo-char": offChar, "off-prop": offProp });
+    fitRegistry.assets["off-char"] = {
+      kind: "character",
+      renderer: "svg",
+      version: 1,
+      manifest: {
+        kind: "character",
+        poses: [{ id: "default", file: "default.svg", ...offChar.entry }, offCharSit],
+        expressions: [],
+        legal: [],
+        flippable: true,
+      },
+    };
+    const fitCtx = { registry: fitRegistry, templates: [fit] };
     const placeOne = (spec: LayerSpec) => {
       const result = layoutScene(sceneOf("fit", [spec]), fitCtx);
       const layer = result.scene.layers[0]!;
-      const entry = spec.ref === "off-char" ? offChar.entry : offScenery.entry;
+      const entry = selectPoseEntry(fitRegistry.assets[spec.ref]!.manifest, spec.pose, spec.expression)!;
       return { issues: result.issues, at: layer.at, box: layer.at ? layerBoxes(entry, layer.at, layer.flip).box : undefined };
     };
 
@@ -245,12 +269,40 @@ describe("layoutScene", () => {
       expect(tall.at?.scale).toBe(2);
       expect(tall.box).toMatchObject({ x: 400, w: 800 });
 
-      // The anchor applies to characters too: off = (200 - 100) * 1 = 100.
+      // A character or prop with one pose is centred too: off = (200 - 100) * 1 = 100.
+      const solo = placeOne({ ref: "solo-char", kind: "character", slot: "hero" });
+      const soloFlip = placeOne({ ref: "solo-char", kind: "character", slot: "hero", flip: true });
+      expect([solo.issues, soloFlip.issues]).toEqual([[], []]);
+      expect([solo.at?.x, soloFlip.at?.x]).toEqual([700, 900]);
+      expect([solo.box?.x, soloFlip.box?.x]).toEqual([600, 600]);
+      const prop = placeOne({ ref: "off-prop", kind: "prop", slot: "front" });
+      const propFlip = placeOne({ ref: "off-prop", kind: "prop", slot: "front", flip: true });
+      expect([prop.issues, propFlip.issues]).toEqual([[], []]);
+      expect([prop.at?.x, propFlip.at?.x]).toEqual([700, 900]);
+      expect([prop.box?.x, propFlip.box?.x]).toEqual([600, 600]);
+
+      // An asset with several poses keeps its foot point on footX (#141): the
+      // box is x 700..1100, or 500..900 flipped (mirrored around the foot).
       const hero = placeOne({ ref: "off-char", kind: "character", slot: "hero" });
       const heroFlip = placeOne({ ref: "off-char", kind: "character", slot: "hero", flip: true });
       expect([hero.issues, heroFlip.issues]).toEqual([[], []]);
-      expect([hero.at?.x, heroFlip.at?.x]).toEqual([700, 900]);
-      expect([hero.box?.x, heroFlip.box?.x]).toEqual([600, 600]);
+      expect([hero.at?.x, heroFlip.at?.x]).toEqual([800, 800]);
+      expect([hero.box?.x, heroFlip.box?.x]).toEqual([700, 500]);
+    });
+
+    it("a pose change keeps the feet of a multi-pose asset on footX (#141)", () => {
+      // The runtime keeps `at` on set_pose and draws the shown pose with its
+      // foot point at at.x, at at.scale, mirrored when flipped (LayerView):
+      // pose point px goes to stage x at.x + sx * (px - foot.x), sx = -s flipped.
+      const drawnX = (entry: PoseEntry, at: { x: number; scale: number }, flip: boolean, px: number) =>
+        at.x + (flip ? -at.scale : at.scale) * (px - entry.foot.x);
+      const footX = fit.slots.find((s) => s.id === "hero")!.footX;
+      for (const flip of [false, true]) {
+        // Start with pose `default` (foot 100 in a box 400 wide), then show `sit` (foot 300).
+        const start = placeOne({ ref: "off-char", kind: "character", slot: "hero", pose: "default", flip });
+        expect(start.issues, `flip ${flip}`).toEqual([]);
+        expect(drawnX(offCharSit, start.at!, flip, offCharSit.foot.x), `flip ${flip}`).toBe(footX);
+      }
     });
 
     it("a layer with a stored at is not placed again, also when its flip changes (#127)", () => {

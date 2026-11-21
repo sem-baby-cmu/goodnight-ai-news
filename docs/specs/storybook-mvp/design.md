@@ -399,7 +399,7 @@ type LayoutTemplate = {
   slots: Array<{
     id: string;                       // "left", "right", "sky-1", "ground-1"
     accepts: "character" | "prop" | "scenery";
-    footX: number;                    // where the box centre goes in x (the foot lands at at.x)
+    footX: number;                    // where the box centre (single pose) or the foot point (several poses) goes in x
     footY: number;                    // the foot line
     height: number;                   // target height in stage units
     width?: number;                   // the widest box in stage units (scenery slots, #127)
@@ -422,9 +422,10 @@ slot `bust` (owner decision 2026-11-19).
 
 Placement: for each layer, take the slot, read the asset's foot point and
 box from the registry, and compute `x`, `y`, `scale`, `z`: scale = min(height
-/ box.h, width / box.w) when the slot has `width`; the box is centred on
-`footX` with its foot on `footY`; `at` is the stage position of the foot point
-(#127). Then check:
+/ box.h, width / box.w) when the slot has `width`; the box of a single-pose
+asset is centred on `footX`; an asset with several poses keeps its foot point
+on `footX`, so a pose change never moves it off its spot; the foot is on
+`footY`; `at` is the stage position of the foot point (#127, #141). Then check:
 
 | Check | Fails when |
 | :-- | :-- |
