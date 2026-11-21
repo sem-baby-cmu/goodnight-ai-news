@@ -180,14 +180,12 @@ describe("meadow", () => {
 describe("slotEnvelopes", () => {
   it("slotEnvelopes places each pose at the slot target height, with and without flip, in frame units", () => {
     // two-friends/left: footX 520, footY 1080, height 600 -> scale 3; frame x = stage x + 400.
+    // The box is centred on footX (#127), so both flips give one box.
     expect(envelopeOf(slotEnvelopes(synthetic(), TEMPLATES), "two-friends", "left")).toEqual({
       template: "two-friends",
       slot: "left",
       accepts: "character",
-      boxes: [
-        { x: 710, y: 480, w: 300, h: 600 },
-        { x: 830, y: 480, w: 300, h: 600 },
-      ],
+      boxes: [{ x: 770, y: 480, w: 300, h: 600 }],
     });
   });
 
@@ -202,11 +200,8 @@ describe("slotEnvelopes", () => {
     const envelopes = slotEnvelopes(synthetic(), TEMPLATES);
     // solo-center/bust: footX 800, footY 1200, height 900 lists `bust`: scale 3.
     expect(envelopeOf(envelopes, "solo-center", "bust").boxes).toEqual([{ x: 975, y: 300, w: 450, h: 900 }]);
-    // solo-center/hero: footX 800, footY 1090, height 640: only `front`, scale 3.2; no `bust` box.
-    expect(envelopeOf(envelopes, "solo-center", "hero").boxes).toEqual([
-      { x: 976, y: 450, w: 320, h: 640 },
-      { x: 1104, y: 450, w: 320, h: 640 },
-    ]);
+    // solo-center/hero: footX 800, footY 1090, height 640: only `front`, scale 3.2, centred (#127); no `bust` box.
+    expect(envelopeOf(envelopes, "solo-center", "hero").boxes).toEqual([{ x: 1040, y: 450, w: 320, h: 640 }]);
   });
 
   it("slotEnvelopes has one entry per slot of every template, in TEMPLATES order", () => {
@@ -235,6 +230,30 @@ describe("slotEnvelopes", () => {
     expect(placed.issues).toEqual([]);
     const box = layerBoxes(FRONT, placed.scene.layers[0]!.at!, false).box;
     expect(envelopeOf(slotEnvelopes(synthetic(), TEMPLATES), "two-friends", "left").boxes).toContainEqual({ ...box, x: box.x + 400 });
+  });
+
+  it("the envelope box of a scenery slot is the box that layoutScene places (#127)", () => {
+    // A wide scenery pose with its foot near the right edge, as fence: the slot width decides the scale.
+    const fence: PoseEntry = { id: "default", file: "default.webp", foot: { x: 350, y: 100 }, box: { x: 0, y: 0, w: 400, h: 100 } };
+    const builds = [...synthetic().slice(0, 2), layer("fence", "scenery", [fence])];
+    const f = builds[2]!;
+    const registry: RegistrySnapshot = { assets: { fence: { kind: f.kind, renderer: f.renderer, version: f.version, manifest: f.manifest } } };
+    const placedBox = (flip: boolean) => {
+      const scene: PageScene = {
+        templateId: "two-friends",
+        backdrop: "meadow",
+        sky: "day",
+        layers: [{ instanceId: "01900000-0000-7000-8000-000000000001", ref: "fence", kind: "scenery", slot: "back-left", flip }],
+        animations: [],
+        interactions: [],
+      };
+      const placed = layoutScene(scene, { registry, templates: TEMPLATES });
+      expect(placed.issues).toEqual([]);
+      const box = layerBoxes(fence, placed.scene.layers[0]!.at!, flip).box;
+      return { ...box, x: box.x + 400 };
+    };
+    expect(placedBox(true)).toEqual(placedBox(false));
+    expect(envelopeOf(slotEnvelopes(builds, TEMPLATES), "two-friends", "back-left").boxes).toEqual([placedBox(false)]);
   });
 });
 

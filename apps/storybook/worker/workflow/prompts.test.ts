@@ -282,4 +282,19 @@ describe("prompts", () => {
     const suffix = repairSuffix({ a: 1 }, [{ path: "interactions", code: "too_small", message: "Too small" }]);
     expect(suffix).toBe('\n\nYour previous answer:\n{"a":1}\n\nFix these problems and answer again:\n- interactions: Too small');
   });
+
+  it("repairSuffix names the asset key of a layer issue", () => {
+    const previous = { layers: [{ ref: "fence" }, { ref: "bush" }] };
+    const suffix = repairSuffix(previous, [
+      { path: "layers.1", code: "layout.bounds", message: "back-right is 32.1% outside the stage (limit 10%)" },
+      { path: "layers.0.slot", code: "unknown_slot", message: "Unknown slot" },
+      { path: "interactions", code: "too_small", message: "Too small" },
+    ]);
+    expect(suffix).toBe(
+      `\n\nYour previous answer:\n${JSON.stringify(previous)}\n\nFix these problems and answer again:\n` +
+        "- layers.1 (bush): back-right is 32.1% outside the stage (limit 10%)\n" +
+        "- layers.0.slot (fence): Unknown slot\n" +
+        "- interactions: Too small",
+    );
+  });
 });

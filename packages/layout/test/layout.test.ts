@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LayoutTemplate } from "@storybook/dsl";
-import { layoutScene, SHRINK_STEP, TEMPLATES } from "../src/index";
+import { layerBoxes, layoutScene, SHRINK_STEP, slotAt, TEMPLATES } from "../src/index";
 import { codes, type LayerSpec, registryOf, sceneOf, type TestAsset } from "./helpers";
 
 // Shared test assets of the refinement.
@@ -197,6 +197,92 @@ describe("layoutScene", () => {
       expect(result.issues).toEqual([expect.objectContaining({ path: "layers.0", code: "layout.face-missing" })]);
       // Still placed: 480 / 500 = 0.96.
       expect(result.scene.layers[0]?.at).toEqual({ x: 250, y: 1080, scale: 0.96, z: 50 });
+    });
+  });
+
+  describe("width fit and centred box (#127)", () => {
+    // A wide scenery asset with its foot near the right edge (as fence, log,
+    // bush), and a character with its foot left of the box centre.
+    const offScenery: TestAsset = { kind: "scenery", entry: { box: { x: 0, y: 0, w: 400, h: 100 }, foot: { x: 350, y: 100 } } };
+    const offChar: TestAsset = {
+      kind: "character",
+      entry: { box: { x: 0, y: 0, w: 400, h: 500 }, foot: { x: 100, y: 500 }, face: { x: 80, y: 25, w: 240, h: 175 } },
+    };
+    const fit: LayoutTemplate = {
+      id: "fit",
+      stage: { width: 1600, height: 1200 },
+      slots: [
+        { id: "wide", accepts: "scenery", footX: 800, footY: 1000, height: 200, width: 300, minScale: 1, z: 10 },
+        { id: "tall", accepts: "scenery", footX: 800, footY: 1000, height: 200, minScale: 1, z: 11 },
+        { id: "hero", accepts: "character", footX: 800, footY: 1100, height: 500, minScale: 1, z: 50 },
+      ],
+    };
+    const fitCtx = { registry: registryOf({ "off-scenery": offScenery, "off-char": offChar }), templates: [fit] };
+    const placeOne = (spec: LayerSpec) => {
+      const result = layoutScene(sceneOf("fit", [spec]), fitCtx);
+      const layer = result.scene.layers[0]!;
+      const entry = spec.ref === "off-char" ? offChar.entry : offScenery.entry;
+      return { issues: result.issues, at: layer.at, box: layer.at ? layerBoxes(entry, layer.at, layer.flip).box : undefined };
+    };
+
+    it("RUN-04.S7 a layer is centred on its slot and fits the slot's width and height", () => {
+      // scale = min(200 / 100, 300 / 400) = 0.75; off = (200 - 350) * 0.75 = -112.5.
+      const plain = placeOne({ ref: "off-scenery", kind: "scenery", slot: "wide" });
+      expect(plain.issues).toEqual([]);
+      expect(plain.at).toEqual({ x: 912.5, y: 1000, scale: 0.75, z: 10 });
+      expect(plain.box).toEqual({ x: 650, y: 925, w: 300, h: 75 });
+      expect(slotAt(fit.slots[0]!, offScenery.entry, undefined)).toEqual({ x: 912.5, y: 1000, scale: 0.75, z: 10 });
+
+      // With flip the foot point moves to the other side; the box stays.
+      const flipped = placeOne({ ref: "off-scenery", kind: "scenery", slot: "wide", flip: true });
+      expect(flipped.issues).toEqual([]);
+      expect(flipped.at?.x).toBe(687.5);
+      expect(flipped.box).toEqual({ x: 650, y: 925, w: 300, h: 75 });
+
+      // A slot without `width`: height only, scale 2; still centred on footX.
+      const tall = placeOne({ ref: "off-scenery", kind: "scenery", slot: "tall" });
+      expect(tall.issues).toEqual([]);
+      expect(tall.at?.scale).toBe(2);
+      expect(tall.box).toMatchObject({ x: 400, w: 800 });
+
+      // The anchor applies to characters too: off = (200 - 100) * 1 = 100.
+      const hero = placeOne({ ref: "off-char", kind: "character", slot: "hero" });
+      const heroFlip = placeOne({ ref: "off-char", kind: "character", slot: "hero", flip: true });
+      expect([hero.issues, heroFlip.issues]).toEqual([[], []]);
+      expect([hero.at?.x, heroFlip.at?.x]).toEqual([700, 900]);
+      expect([hero.box?.x, heroFlip.box?.x]).toEqual([600, 600]);
+    });
+
+    it("a layer with a stored at is not placed again, also when its flip changes (#127)", () => {
+      const at = { x: 800, y: 1000, scale: 1, z: 10 };
+      const stored = placeOne({ ref: "off-scenery", kind: "scenery", slot: "wide", at, flip: true });
+      expect(stored.issues).toEqual([]);
+      expect(stored.at).toEqual(at);
+      // Mirrored around the foot point at at.x: unflipped x 450..850, flipped 750..1150.
+      expect(stored.box).toEqual({ x: 750, y: 900, w: 400, h: 100 });
+      expect(layerBoxes(offScenery.entry, at, false).box).toEqual({ x: 450, y: 900, w: 400, h: 100 });
+    });
+
+    it("scenery can cover the face of a character with a stored low z (#127)", () => {
+      const cover: LayoutTemplate = {
+        id: "cover",
+        stage: { width: 1600, height: 1200 },
+        slots: [
+          { id: "hero", accepts: "character", footX: 800, footY: 1000, height: 500, minScale: 1, z: 50 },
+          { id: "back", accepts: "scenery", footX: 800, footY: 700, height: 200, width: 300, minScale: 1, z: 10 },
+        ],
+      };
+      const coverCtx = { registry: registryOf({ "ref-char": refChar, "off-scenery": offScenery }), templates: [cover] };
+      const back: LayerSpec = { ref: "off-scenery", kind: "scenery", slot: "back" };
+      // Face x 680..920, y 525..700; scenery box x 650..950, y 625..700: 42.9% covered.
+      const low = layoutScene(
+        sceneOf("cover", [{ ref: "ref-char", kind: "character", slot: "hero", at: { x: 800, y: 1000, scale: 1, z: 3 } }, back]),
+        coverCtx,
+      );
+      expect(codes(low.issues)).toEqual(["layout.face-covered"]);
+      expect(low.issues[0]?.path).toBe("layers.0");
+      const placed = layoutScene(sceneOf("cover", [{ ref: "ref-char", kind: "character", slot: "hero" }, back]), coverCtx);
+      expect(placed.issues).toEqual([]);
     });
   });
 
