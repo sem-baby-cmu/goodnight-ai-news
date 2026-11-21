@@ -401,6 +401,7 @@ type LayoutTemplate = {
     accepts: "character" | "prop" | "scenery";
     footX: number; footY: number;     // where the asset's foot point goes
     height: number;                   // target height in stage units
+    width?: number;                   // the widest box in stage units (scenery slots, #127)
     minScale: number;                 // 0.7 to 1.0; the engine may shrink to this
     z: number;
     poses?: string[];                 // the only poses this slot accepts; reserved for slots that list them
@@ -419,7 +420,10 @@ For example, a `bust` pose has its own slot: template `solo-center` has the
 slot `bust` (owner decision 2026-11-19).
 
 Placement: for each layer, take the slot, read the asset's foot point and
-height from the registry, and compute `x`, `y`, `scale`, `z`. Then check:
+box from the registry, and compute `x`, `y`, `scale`, `z`: scale = min(height
+/ box.h, width / box.w) when the slot has `width`; the box is centred on
+`footX` with its foot on `footY`; `at` is the stage position of the foot point
+(#127). Then check:
 
 | Check | Fails when |
 | :-- | :-- |
@@ -830,7 +834,7 @@ Offline Node.js scripts, run by the developer.
 | Sounds | A small set (about 8) of short sound effects synthesised in code (no third-party audio), normalised | `sfx` assets |
 | Code backdrop | The backdrop `meadow` drawn in code: sky colour and three hills, one SVG per sky palette (all 4) | `backdrop` asset, renderer `svg` |
 | Painted backdrops | One painting per variant from the Producer, scaled to 2400 × 1200 px, WebP within the file budget. The source paintings live in R2; a tracked source list holds their SHA-256 digests, and the pipeline downloads them to an untracked cache and checks them (ADR 0016, decision D). The approval record holds the digests of the built variants, not of the sources | `backdrop` asset, renderer `webp` |
-| Backdrop review | A sheet per backdrop variant with the slot envelopes of all templates drawn over it. A slot envelope is the union of the boxes of every active asset of the slot's kind, placed in that slot at scale 1, with and without flip | `tools/assets/out/review/` |
+| Backdrop review | A sheet per backdrop variant with the slot envelopes of all templates drawn over it. A slot envelope is the union of the boxes of every active asset of the slot's kind, placed in that slot by the layout rule at f = 100 | `tools/assets/out/review/` |
 | Backdrop approval | A person approves the sheets. The approval is a tracked file `tools/assets/reviews/<key>-v<n>.json` with the SHA-256 of every variant file and of the template list. Publish refuses a backdrop version without an approval whose digests match | Approval record |
 | Publish | Upload to R2 `assets/<key>/v<n>/...`; upsert `asset` and `asset_version` rows. One (`key`, `version`) always holds the same bytes (R65): publish compares the file digests, renderer and manifest of an existing version, and any difference is an error, never a skip | Registry rows |
 
