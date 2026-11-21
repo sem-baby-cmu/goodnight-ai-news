@@ -14,16 +14,22 @@ function slot(
   minScale: number,
   z: number,
   poses?: string[],
+  refs?: string[],
 ): Slot {
   const out: Slot = { id, accepts, footX, footY, height, minScale, z };
   if (width !== undefined) out.width = width;
   if (poses) out.poses = poses;
+  if (refs) out.refs = refs;
   return out;
 }
 
 function template(id: string, slots: Slot[]): LayoutTemplate {
   return { id, stage: { width: 1600, height: 1200 }, slots };
 }
+
+// The scenery keys that a sky slot accepts (D4 ruling of #131). Ground slots
+// accept every scenery key.
+export const SKY_SCENERY = ["burst", "clouds", "raindrops", "stars", "sun", "wind"];
 
 // The 8 MVP templates (design "4. Layout engine"; values from the #13
 // refinement). Characters are above props and scenery in z, except the front
@@ -38,7 +44,7 @@ export const TEMPLATES: LayoutTemplate[] = [
     slot("prop-right", "prop", 1240, 1100, 260, undefined, 0.7, 41),
     slot("back-left", "scenery", 300, 880, 560, 480, 0.7, 10),
     slot("back-right", "scenery", 1300, 880, 560, 480, 0.7, 11),
-    slot("sky-1", "scenery", 1250, 330, 220, 700, 0.7, 5),
+    slot("sky-1", "scenery", 1250, 330, 220, 700, 0.7, 5, undefined, SKY_SCENERY),
   ]),
   template("two-friends", [
     slot("left", "character", 520, 1080, 600, undefined, 0.8, 50),
@@ -46,7 +52,7 @@ export const TEMPLATES: LayoutTemplate[] = [
     slot("prop-center", "prop", 800, 1110, 220, undefined, 0.7, 52),
     slot("back-left", "scenery", 300, 880, 560, 480, 0.7, 10),
     slot("back-right", "scenery", 1300, 880, 560, 480, 0.7, 11),
-    slot("sky-1", "scenery", 800, 300, 200, 1600, 0.7, 5),
+    slot("sky-1", "scenery", 800, 300, 200, 1600, 0.7, 5, undefined, SKY_SCENERY),
   ]),
   template("three-friends", [
     slot("center", "character", 800, 1100, 600, undefined, 0.8, 52),
@@ -54,14 +60,14 @@ export const TEMPLATES: LayoutTemplate[] = [
     slot("right", "character", 1220, 1010, 480, undefined, 0.8, 51),
     slot("back-left", "scenery", 260, 820, 480, 410, 0.7, 10),
     slot("back-right", "scenery", 1340, 820, 480, 410, 0.7, 11),
-    slot("sky-1", "scenery", 800, 260, 200, 1600, 0.7, 5),
+    slot("sky-1", "scenery", 800, 260, 200, 1600, 0.7, 5, undefined, SKY_SCENERY),
   ]),
   template("hero-and-object", [
     slot("hero", "character", 520, 1090, 620, undefined, 0.8, 50),
     slot("object", "prop", 1120, 1090, 520, undefined, 0.7, 40),
     slot("back-left", "scenery", 230, 860, 520, 440, 0.7, 10),
     slot("back-right", "scenery", 1360, 820, 520, 440, 0.7, 11),
-    slot("sky-1", "scenery", 300, 300, 200, 600, 0.7, 5),
+    slot("sky-1", "scenery", 300, 300, 200, 600, 0.7, 5, undefined, SKY_SCENERY),
   ]),
   template("circle-around-object", [
     slot("object", "prop", 800, 1150, 260, undefined, 0.7, 60),
@@ -75,15 +81,15 @@ export const TEMPLATES: LayoutTemplate[] = [
     slot("hero", "character", 800, 1100, 520, undefined, 0.8, 50),
     slot("friend", "character", 1220, 1100, 460, undefined, 0.8, 49),
     slot("hill", "scenery", 800, 1000, 360, 720, 0.7, 10),
-    slot("sky-1", "scenery", 420, 420, 300, 840, 0.7, 5),
-    slot("sky-2", "scenery", 1200, 300, 180, 800, 0.7, 6),
-    slot("sky-3", "scenery", 800, 220, 140, 1600, 0.7, 7),
+    slot("sky-1", "scenery", 420, 420, 300, 840, 0.7, 5, undefined, SKY_SCENERY),
+    slot("sky-2", "scenery", 1200, 300, 180, 800, 0.7, 6, undefined, SKY_SCENERY),
+    slot("sky-3", "scenery", 800, 220, 140, 1600, 0.7, 7, undefined, SKY_SCENERY),
   ]),
   template("landscape", [
     slot("place", "scenery", 1050, 1000, 760, 900, 0.7, 10),
     slot("hero", "character", 420, 1100, 440, undefined, 0.8, 50),
     slot("side", "scenery", 180, 1000, 360, 310, 0.7, 11),
-    slot("sky-1", "scenery", 400, 300, 200, 800, 0.7, 5),
+    slot("sky-1", "scenery", 400, 300, 200, 800, 0.7, 5, undefined, SKY_SCENERY),
     slot("prop-front", "prop", 1350, 1140, 200, undefined, 0.7, 40),
   ]),
   template("line-up", [
@@ -92,7 +98,7 @@ export const TEMPLATES: LayoutTemplate[] = [
     slot("pos-3", "character", 983, 1080, 480, undefined, 0.8, 52),
     slot("pos-4", "character", 1350, 1080, 480, undefined, 0.8, 53),
     slot("back-1", "scenery", 800, 820, 520, 640, 0.7, 10),
-    slot("sky-1", "scenery", 1300, 280, 180, 600, 0.7, 5),
+    slot("sky-1", "scenery", 1300, 280, 180, 600, 0.7, 5, undefined, SKY_SCENERY),
   ]),
 ];
 

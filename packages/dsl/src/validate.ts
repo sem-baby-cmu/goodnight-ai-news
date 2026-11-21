@@ -93,6 +93,9 @@ function semanticIssues(scene: PageScene, ctx: Ctx): Issue[] {
     if (slot && slot.accepts !== layer.kind) {
       add(`${p}.slot`, "slot_kind_mismatch", `Slot "${slot.id}" accepts a ${slot.accepts}, not a ${layer.kind}.`);
     }
+    if (slot?.refs && !slot.refs.includes(layer.ref)) {
+      add(`${p}.ref`, "slot_ref_mismatch", `Asset "${layer.ref}" is not allowed in slot "${slot.id}".`);
+    }
     if (slot && layer.pose !== undefined && slotRejects(slot, layer.pose)) {
       add(`${p}.pose`, "slot_pose_mismatch", `Pose "${layer.pose}" is not allowed in slot "${slot.id}".`);
     }
