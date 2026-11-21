@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Lullabyte Storybook MVP architecture",
+    "locale": "en",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "operator", "type": "external", "label": "Operator", "sublabel": "Makes the books", "pos": [40, 120], "size": [150, 64] },
+    { "id": "access", "type": "security", "label": "Cloudflare Access", "sublabel": "Login at the edge", "pos": [270, 120], "size": [150, 64] },
+    { "id": "studio", "type": "frontend", "label": "Studio SPA", "sublabel": "/studio/*", "pos": [500, 120], "size": [150, 64] },
+    { "id": "api", "type": "backend", "label": "Hono API", "sublabel": "Studio, shelf, content", "pos": [730, 120], "size": [150, 64] },
+    { "id": "child", "type": "external", "label": "Child", "sublabel": "Ages 5 to 10", "pos": [40, 350], "size": [150, 64] },
+    { "id": "player", "type": "frontend", "label": "Player SPA", "sublabel": "/ and /read/:releaseId", "pos": [500, 350], "size": [150, 64] },
+    { "id": "wf", "type": "backend", "label": "StoryRun Workflow", "sublabel": "One instance per run", "pos": [730, 350], "size": [150, 64] },
+    { "id": "d1", "type": "database", "label": "D1", "sublabel": "Stories, revisions, assets", "pos": [960, 235], "size": [150, 64] },
+    { "id": "r2", "type": "database", "label": "R2", "sublabel": "Assets, audio, releases", "pos": [1190, 235], "size": [150, 64] },
+    { "id": "gw", "type": "cloud", "label": "AI Gateway", "sublabel": "Gateway storybook-mvp", "pos": [960, 480], "size": [150, 64] },
+    { "id": "providers", "type": "external", "label": "Model providers", "sublabel": "Google AI Studio, OpenAI", "pos": [1190, 480], "size": [150, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Worker lullabyte", "wraps": ["studio", "api", "player", "wf"] }
+  ],
+  "connections": [
+    { "id": "operator-to-access", "from": "operator", "to": "access", "variant": "security" },
+    { "id": "access-to-studio", "from": "access", "to": "studio", "variant": "security" },
+    { "id": "studio-to-api", "from": "studio", "to": "api", "label": "Edit drafts" },
+    { "id": "child-to-player", "from": "child", "to": "player" },
+    { "id": "player-to-api", "from": "player", "to": "api", "label": "Read only" },
+    { "id": "api-to-wf", "from": "api", "to": "wf", "label": "Create run", "labelDy": 96 },
+    { "id": "api-to-d1", "from": "api", "to": "d1", "fromSide": "right", "toSide": "top" },
+    { "id": "api-to-r2", "from": "api", "to": "r2", "label": "Freeze release", "fromSide": "right", "toSide": "top" },
+    { "id": "wf-to-d1", "from": "wf", "to": "d1", "fromSide": "right", "toSide": "bottom" },
+    { "id": "wf-to-r2", "from": "wf", "to": "r2", "label": "Narration audio", "fromSide": "right", "toSide": "bottom" },
+    { "id": "wf-to-gw", "from": "wf", "to": "gw", "label": "Model calls", "fromSide": "bottom", "toSide": "left", "via": [[805, 512]] },
+    { "id": "gw-to-providers", "from": "gw", "to": "providers" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Access boundary", "items": ["Access protects /studio, /studio/*, and /api/studio/*", "/, /read/*, /api/shelf, and /content/* are public and read-only"] },
+    { "dot": "emerald", "title": "Invariants", "items": ["Models choose; code places and creates every ID", "Revisions are append-only; release content never changes"] },
+    { "dot": "amber", "title": "Model routing", "items": ["JSON generation uses the AI Gateway /compat endpoint", "TTS uses the google-ai-studio v1beta endpoint"] }
+  ]
+}
