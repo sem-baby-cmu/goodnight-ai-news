@@ -232,6 +232,21 @@ describe("slotEnvelopes", () => {
     expect(envelopeOf(slotEnvelopes(synthetic(), TEMPLATES), "two-friends", "left").boxes).toContainEqual({ ...box, x: box.x + 400 });
   });
 
+  it("slotEnvelopes draws every other pose of a key at the at of each starting pose (#127)", () => {
+    // The runtime keeps the starting pose's `at` on set_pose and pins the shown
+    // pose's foot at at.x. two-friends/left: footX 520, height 600 -> scale 3.
+    // `a` (foot 30) starts at at.x 460, or 580 flipped; `b` (foot 80) at 610, or 430 flipped.
+    const a: PoseEntry = { id: "walk-a", file: "a.webp", foot: { x: 30, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 }, face: { x: 20, y: 20, w: 60, h: 60 } };
+    const b: PoseEntry = { id: "walk-b", file: "b.webp", foot: { x: 80, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 }, face: { x: 20, y: 20, w: 60, h: 60 } };
+    const builds = [layer("kit", "character", [a, b, BUST]), ...synthetic().slice(1)];
+    // Stage x: centred 370; `b` at the at of `a` 220 (flipped 520); `a` at the at of `b` 520 (flipped 220).
+    expect(envelopeOf(slotEnvelopes(builds, TEMPLATES), "two-friends", "left").boxes).toEqual([
+      { x: 620, y: 480, w: 300, h: 600 },
+      { x: 770, y: 480, w: 300, h: 600 },
+      { x: 920, y: 480, w: 300, h: 600 },
+    ]);
+  });
+
   it("the envelope box of a scenery slot is the box that layoutScene places (#127)", () => {
     // A wide scenery pose with its foot near the right edge, as fence: the slot width decides the scale.
     const fence: PoseEntry = { id: "default", file: "default.webp", foot: { x: 350, y: 100 }, box: { x: 0, y: 0, w: 400, h: 100 } };
