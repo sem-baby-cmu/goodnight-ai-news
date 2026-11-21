@@ -70,15 +70,21 @@ const SKY_POINTS = [
 ] as const;
 
 // The synthetic layer builds: one character with poses `front` and `bust`,
-// one prop, one scenery. The face box keeps layoutScene free of
-// `layout.face-missing`; it does not change the envelope.
+// one prop, one ground scenery (`tree`) and one sky scenery (`sun`, a key of
+// SKY_SCENERY, so the sky slots are not empty; #131). The face box keeps
+// layoutScene free of `layout.face-missing`; it does not change the envelope.
 const FRONT: PoseEntry = { id: "front", file: "front.webp", foot: { x: 30, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 }, face: { x: 20, y: 20, w: 60, h: 60 } };
 const BUST: PoseEntry = { id: "bust", file: "bust.webp", foot: { x: 75, y: 300 }, box: { x: 0, y: 0, w: 150, h: 300 }, face: { x: 30, y: 30, w: 90, h: 90 } };
 const DEFAULT: PoseEntry = { id: "default", file: "default.webp", foot: { x: 50, y: 100 }, box: { x: 0, y: 0, w: 100, h: 100 } };
 function layer(key: string, kind: "character" | "prop" | "scenery", poses: PoseEntry[], version = 1): AssetBuild {
   return { key, kind, name: key, version, renderer: "webp", manifest: { kind, poses, expressions: [], legal: [], flippable: true } };
 }
-const synthetic = (): AssetBuild[] => [layer("kit", "character", [FRONT, BUST]), layer("crate", "prop", [DEFAULT]), layer("tree", "scenery", [DEFAULT])];
+const synthetic = (): AssetBuild[] => [
+  layer("kit", "character", [FRONT, BUST]),
+  layer("crate", "prop", [DEFAULT]),
+  layer("tree", "scenery", [DEFAULT]),
+  layer("sun", "scenery", [DEFAULT]),
+];
 
 // Writes `build` to <out>/<key>/v<n>/ with placeholder bytes for each file (as in publish.test.ts).
 function writeBuild(out: string, build: AssetBuild, files: Record<string, string | Buffer> = {}): void {
@@ -250,7 +256,8 @@ describe("slotEnvelopes", () => {
   it("the envelope box of a scenery slot is the box that layoutScene places (#127)", () => {
     // A wide scenery pose with its foot near the right edge, as fence: the slot width decides the scale.
     const fence: PoseEntry = { id: "default", file: "default.webp", foot: { x: 350, y: 100 }, box: { x: 0, y: 0, w: 400, h: 100 } };
-    const builds = [...synthetic().slice(0, 2), layer("fence", "scenery", [fence])];
+    // `sun` keeps the sky slots filled: fence is not a sky key (#131).
+    const builds = [...synthetic().slice(0, 2), layer("fence", "scenery", [fence]), ...synthetic().slice(3)];
     const f = builds[2]!;
     const registry: RegistrySnapshot = { assets: { fence: { kind: f.kind, renderer: f.renderer, version: f.version, manifest: f.manifest } } };
     const placedBox = (flip: boolean) => {
@@ -268,7 +275,30 @@ describe("slotEnvelopes", () => {
       return { ...box, x: box.x + 400 };
     };
     expect(placedBox(true)).toEqual(placedBox(false));
-    expect(envelopeOf(slotEnvelopes(builds, TEMPLATES), "two-friends", "back-left").boxes).toEqual([placedBox(false)]);
+    // A ground slot takes every scenery key, so `sun` is there too: scale
+    // min(560 / 100, 480 / 100) = 4.8, centred on footX 300, foot at footY 880.
+    expect(envelopeOf(slotEnvelopes(builds, TEMPLATES), "two-friends", "back-left").boxes).toEqual([
+      { x: 460, y: 400, w: 480, h: 480 },
+      placedBox(false),
+    ]);
+  });
+
+  it("the envelope of a slot with refs holds only boxes of the listed keys (#131)", () => {
+    // A tall tree, so that its box differs from the box of `sun`.
+    const tall: PoseEntry = { id: "default", file: "default.webp", foot: { x: 50, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 } };
+    const builds = [...synthetic().slice(0, 2), layer("tree", "scenery", [tall]), ...synthetic().slice(3)];
+    const envelopes = slotEnvelopes(builds, TEMPLATES);
+    // landscape/sky-1 lists SKY_SCENERY: footX 400, footY 300, height 200,
+    // width 800. Only `sun`: scale 2, stage x 300. No box of `tree`.
+    expect(envelopeOf(envelopes, "landscape", "sky-1").boxes).toEqual([{ x: 700, y: 100, w: 200, h: 200 }]);
+    // landscape/place has no refs: footX 1050, footY 1000, height 760, width
+    // 900. `sun` at scale 7.6 (stage x 670) and `tree` at scale 3.8 (stage x 860).
+    expect(envelopeOf(envelopes, "landscape", "place").boxes).toEqual([
+      { x: 1070, y: 240, w: 760, h: 760 },
+      { x: 1260, y: 240, w: 380, h: 760 },
+    ]);
+    // With the synthetic builds, no envelope is empty.
+    expect(slotEnvelopes(synthetic(), TEMPLATES).filter((e) => e.boxes.length === 0)).toEqual([]);
   });
 });
 
