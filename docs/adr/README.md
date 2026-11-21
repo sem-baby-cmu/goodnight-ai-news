@@ -21,6 +21,7 @@ One file per decision. Format and rules: [ADR 0001](0001-record-architecture-dec
 | [0015](0015-storybook-mvp-reset.md) | Reset to a TypeScript storybook compiler MVP on Cloudflare | Accepted |
 | [0016](0016-backdrops-page-turn.md) | Painted backdrops, narration below the stage, page-turn transition | Accepted |
 | [0017](0017-shelf-home-player-states.md) | The shelf at `/`, one Home control on each book screen, the resting state, and the hit area of a tappable layer | Accepted |
+| [0018](0018-story-motions-tap-reactions.md) | Story motions, tap reactions, and one table for the triggers and kinds of every primitive | Proposed |
 
 "Proposed" means the Integration owner accepts it and the team has not agreed
 yet. To add a decision, copy the sections of an existing ADR: Status, Context,
