@@ -300,7 +300,7 @@ Spec: design "4. Layout engine", "Error Handling"
 ### RUN-04.S1 The engine places each layer from its slot
 - Given a valid scene and a layout template
 - When the layout engine runs
-- Then for each layer it takes the slot, reads the foot point and height of the asset from the registry, and computes `x`, `y`, `scale`, and `z`
+- Then for each layer it reads the foot point and box of the asset, and the slot's height and width, and computes `x`, `y`, `scale`, and `z`
 - Test: @storybook/layout · packages/layout/test/layout.test.ts
 
 ### RUN-04.S2 A hidden face fails the face check
@@ -332,6 +332,12 @@ Spec: design "4. Layout engine", "Error Handling"
 - When the `scene:<pageId>` step continues
 - Then the page counts as a validation failure, and the repair rule of RUN-05 applies
 - Test: @storybook/app · apps/storybook/worker/workflow/story-run.test.ts
+
+### RUN-04.S7 A layer is centred on its slot and fits the slot's width and height
+- Given a slot with a height and, for scenery, a width, and an asset whose foot point is not at the centre of its box
+- When the layout engine places the layer
+- Then the scale is the smaller of slot height / box height and slot width / box width, the box is centred on the slot's `footX` with its foot on `footY`, and a flipped layer gets the same box
+- Test: @storybook/layout · packages/layout/test/layout.test.ts
 
 ## RUN-05 A failure goes to a person
 
