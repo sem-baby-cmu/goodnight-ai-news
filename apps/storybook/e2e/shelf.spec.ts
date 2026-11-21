@@ -160,7 +160,8 @@ const lookAgain = (page: Page) => page.getByRole("button", { name: "Look again" 
 const homeButton = (page: Page) => page.getByRole("button", { name: "Home" });
 const startButton = (page: Page) => page.getByRole("button", { name: "Start the story" });
 const nextPage = (page: Page) => page.getByRole("button", { name: "Next page" });
-const narration = (page: Page) => page.getByTestId("narration");
+const narration = (page: Page) => page.locator('[data-testid="narration"]:not([inert] *)');
+const leavingSheet = (page: Page) => page.locator('[data-testid="page-sheet"][inert]');
 const drawn = (page: Page) => page.locator('[data-cover="drawn"]');
 const pathname = (page: Page) => new URL(page.url()).pathname;
 
@@ -173,6 +174,11 @@ async function startBook(page: Page) {
   await ready(page);
   await startButton(page).click();
   await expect(narration(page)).toHaveText(pages[0]!.text);
+}
+
+// A turn has ended: the leaving sheet is gone.
+async function turnEnd(page: Page) {
+  await expect(leavingSheet(page)).toHaveCount(0);
 }
 
 type Box = { x: number; y: number; width: number; height: number };
@@ -561,6 +567,7 @@ test("PLY-06.S4 a book that is opened again shows its Start gate", async ({ page
   await startBook(page);
   for (const i of [1, 2]) {
     await nextPage(page).click();
+    await turnEnd(page);
     await expect(narration(page)).toHaveText(pages[i]!.text);
   }
   await homeButton(page).click();
@@ -576,6 +583,7 @@ test("PLY-06.S15 Home moves the focus to the shelf", async ({ page }) => {
   await startBook(page);
   for (const i of [1, 2]) {
     await nextPage(page).click();
+    await turnEnd(page);
     await expect(narration(page)).toHaveText(pages[i]!.text);
   }
   await homeButton(page).focus();
