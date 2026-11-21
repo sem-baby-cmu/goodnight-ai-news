@@ -406,6 +406,7 @@ type LayoutTemplate = {
     minScale: number;                 // 0.7 to 1.0; the engine may shrink to this
     z: number;
     poses?: string[];                 // the only poses this slot accepts; reserved for slots that list them
+    refs?: string[];                  // the only asset keys this slot accepts (#131); the sky slots list SKY_SCENERY
   }>;
 };
 ```
@@ -419,6 +420,12 @@ The rule holds in both directions, and each case fails validation with
 
 For example, a `bust` pose has its own slot: template `solo-center` has the
 slot `bust` (owner decision 2026-11-19).
+
+A slot with `refs` accepts only the asset keys that it lists, and a layer with
+another key fails validation with `slot_ref_mismatch` at `layers.N.ref` (#131).
+The nine `sky-*` slots list `SKY_SCENERY`: `burst`, `clouds`, `raindrops`,
+`stars`, `sun`, `wind`. The rule has one direction: a ground slot has no
+`refs` and accepts every scenery key.
 
 Placement: for each layer, take the slot, read the asset's foot point and
 box from the registry, and compute `x`, `y`, `scale`, `z`: scale = min(height
@@ -1252,6 +1259,8 @@ Zod validation then checks what a JSON schema cannot:
 - a pose that a slot lists in `poses` is placed only in a slot that lists
   it, and a slot with `poses` holds only the poses that it lists
   (`slot_pose_mismatch`, "4. Layout engine");
+- a slot with `refs` holds only the asset keys that it lists
+  (`slot_ref_mismatch`, "4. Layout engine");
 - every animation parameter is inside the bounds of its primitive
   ("5. Scene runtime");
 - every `show_bubble` text has at most 40 characters, ends with `.`, `!`,

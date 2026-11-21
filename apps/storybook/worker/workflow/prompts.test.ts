@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { buildSceneJsonSchema } from "@storybook/dsl";
 import type { PageScene, RegistrySnapshot } from "@storybook/dsl";
-import { TEMPLATE_DESCRIPTIONS, TEMPLATES } from "@storybook/layout";
+import { SKY_SCENERY, TEMPLATE_DESCRIPTIONS, TEMPLATES } from "@storybook/layout";
 import { describe, expect, it } from "vitest";
 import { getDb, loadActiveRegistry } from "../db";
 import { seedRegistry } from "../test/fixtures";
@@ -43,6 +43,22 @@ describe("prompts", () => {
     expect(user).toMatch(/test-bunny/);
     expect(system).toMatch(/bust/);
     expect(system).toMatch(/JSON/);
+  });
+
+  it("scenePrompt lists the keys of a slot that has refs, and the keys rule (#131)", () => {
+    const registry: RegistrySnapshot = { assets: {} };
+    const { system, user } = scenePrompt({ beat: "b", pageText: "Page 1. Hi.", cast: [], registry, templates: TEMPLATES, story: { page: 1, pages: 1, earlier: [] } });
+    expect(system).toContain("A slot that lists `keys` takes only those keys.");
+    const keys = `, keys ${JSON.stringify(SKY_SCENERY)}`;
+    const landscape = user.slice(user.indexOf('Template "landscape"'));
+    expect(landscape).toContain('  - slot "place" accepts scenery\n');
+    expect(landscape).toContain(`  - slot "sky-1" accepts scenery${keys}\n`);
+    // One line per slot, in TEMPLATES order; only a slot with refs shows keys.
+    const lines = user.split("\n").filter((line) => line.startsWith("  - slot "));
+    const slots = TEMPLATES.flatMap((t) => t.slots);
+    expect(lines).toHaveLength(slots.length);
+    expect(lines.map((line) => line.endsWith(keys))).toEqual(slots.map((s) => s.refs !== undefined));
+    expect(lines.filter((line) => line.includes(", keys "))).toHaveLength(9);
   });
 
   it("RUN-03.S16 the model picks the backdrop from the frozen registry", async () => {

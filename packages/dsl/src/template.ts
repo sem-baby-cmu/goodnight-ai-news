@@ -15,5 +15,7 @@ export type LayoutTemplate = {
     // The only poses this slot accepts. A pose that some slot lists is
     // reserved for slots that list it (implementation decision R35).
     poses?: string[];
+    // The only asset keys this slot accepts (#131).
+    refs?: string[];
   }>;
 };

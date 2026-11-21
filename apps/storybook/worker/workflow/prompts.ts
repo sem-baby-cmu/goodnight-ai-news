@@ -104,6 +104,7 @@ export function scenePrompt(input: {
     'Use a primitive (in `animations` or in a `play_animation` action) only on a layer whose asset its line under "Animations" names; "all" means every asset.',
     "Name layers by slot ID: every `target` and `on.tap` is a slot ID.",
     'A `bust` pose goes only into a slot that lists it in `poses`.',
+    "A slot that lists `keys` takes only those keys.",
     "Each template and each asset has a description. Choose the template and the assets whose descriptions fit the page text. Do not use an asset for a thing that its description does not name.",
     "Give every character layer a tap: an interaction whose `on.tap` is that character's slot.",
     'Choose each character\'s expression from the feeling words of the page text (for example "sad", "surprised", "worried"), from its legal pairs. Use `happy` only when the text is happy, has no feeling word, or no legal pair has that feeling.',
@@ -120,7 +121,10 @@ export function scenePrompt(input: {
   const templates = input.templates.flatMap((t) => [
     `Template "${t.id}": ${TEMPLATE_DESCRIPTIONS[t.id] ?? "no description"}`,
     ...t.slots.map(
-      (s) => `  - slot "${s.id}" accepts ${s.accepts}` + (s.poses ? `, poses ${JSON.stringify(s.poses)}` : ""),
+      (s) =>
+        `  - slot "${s.id}" accepts ${s.accepts}` +
+        (s.poses ? `, poses ${JSON.stringify(s.poses)}` : "") +
+        (s.refs ? `, keys ${JSON.stringify(s.refs)}` : ""),
     ),
   ]);
   // Each backdrop with its description and its sky palettes (ADR 0016 section 1).

@@ -204,6 +204,21 @@ describe("validateScene", () => {
     expectIssue(issues, "slot_kind_mismatch", "layers.2.slot");
   });
 
+  it("RUN-03.S19 a key that a slot does not list fails validation", () => {
+    // The fixture scene has `tree` in sky-1 (layers.3); sky-1 lists only `sun` (#131).
+    const c = ctx();
+    c.templates[0]!.slots.find((slot) => slot.id === "sky-1")!.refs = ["sun"];
+    c.registry.assets.sun = structuredClone(c.registry.assets.tree!);
+    const tree = check(() => {}, c);
+    expectIssue(tree, "slot_ref_mismatch", "layers.3.ref");
+    expect(tree).toEqual([
+      expect.objectContaining({ code: "slot_ref_mismatch", path: "layers.3.ref", message: 'Asset "tree" is not allowed in slot "sky-1".' }),
+    ]);
+    expect(check((s) => void (s.layers[3]!.ref = "sun"), c)).toEqual([]);
+    // A slot without `refs` accepts every key of its kind.
+    expect(validateScene(validScene(), ctx())).toEqual([]);
+  });
+
   it("a bust pose outside a bust slot fails", () => {
     const c = ctx();
     c.templates = [twoFriends(), soloCenter()];

@@ -1,7 +1,11 @@
-import type { LayoutTemplate } from "@storybook/dsl";
+import type { LayoutTemplate, RegistrySnapshot } from "@storybook/dsl";
 import { describe, expect, it } from "vitest";
-import { layoutScene, TEMPLATE_DESCRIPTIONS, TEMPLATES } from "../src/index";
+import s2Registry from "../../../apps/storybook/test/model-contract/s2/s2-1/registry.json";
+import { layoutScene, SKY_SCENERY, TEMPLATE_DESCRIPTIONS, TEMPLATES } from "../src/index";
 import { codes, type LayerSpec, registryOf, sceneOf, type TestAsset } from "./helpers";
+
+// The registry of the recorded S2 run (apps/storybook/test/model-contract/s2).
+const S2_REGISTRY = s2Registry as RegistrySnapshot;
 
 // Shared test assets of the refinement.
 const refChar: TestAsset = {
@@ -43,6 +47,32 @@ describe("templates", () => {
   it("the bust slot of solo-center lists poses [\"bust\"] and no other slot lists poses", () => {
     const withPoses = TEMPLATES.flatMap((t) => t.slots.filter((s) => s.poses !== undefined).map((s) => [t.id, s.id, s.poses]));
     expect(withPoses).toEqual([["solo-center", "bust", ["bust"]]]);
+  });
+
+  it("SKY_SCENERY is the D4 list of #131", () => {
+    expect(SKY_SCENERY).toEqual(["burst", "clouds", "raindrops", "stars", "sun", "wind"]);
+  });
+
+  it("only the 9 sky slots list refs, and each lists SKY_SCENERY (#131)", () => {
+    const withRefs = TEMPLATES.flatMap((t) => t.slots.filter((s) => s.refs !== undefined).map((s) => [t.id, s.id, s.refs]));
+    expect(withRefs).toEqual([
+      ["solo-center", "sky-1", SKY_SCENERY],
+      ["two-friends", "sky-1", SKY_SCENERY],
+      ["three-friends", "sky-1", SKY_SCENERY],
+      ["hero-and-object", "sky-1", SKY_SCENERY],
+      ["big-sky", "sky-1", SKY_SCENERY],
+      ["big-sky", "sky-2", SKY_SCENERY],
+      ["big-sky", "sky-3", SKY_SCENERY],
+      ["landscape", "sky-1", SKY_SCENERY],
+      ["line-up", "sky-1", SKY_SCENERY],
+    ]);
+    const skySlots = TEMPLATES.flatMap((t) => t.slots.filter((s) => s.id.startsWith("sky-")).map((s) => [t.id, s.id]));
+    expect(withRefs.map(([t, s]) => [t, s])).toEqual(skySlots);
+  });
+
+  it("every key of SKY_SCENERY is a scenery key of the S2 registry (#131)", () => {
+    const scenery = Object.keys(S2_REGISTRY.assets).filter((key) => S2_REGISTRY.assets[key]!.kind === "scenery");
+    for (const key of SKY_SCENERY) expect(scenery, key).toContain(key);
   });
 
   it("TEMPLATES has the 8 ids in order", () => {

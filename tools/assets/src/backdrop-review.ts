@@ -44,6 +44,7 @@ export function slotEnvelopes(builds: AssetBuild[], templates: LayoutTemplate[])
       const boxes = new Map<string, StageRect>();
       for (const b of active.values()) {
         if (b.kind !== slot.accepts || !isLayerManifest(b.manifest)) continue;
+        if (slot.refs && !slot.refs.includes(b.key)) continue;
         const allowed = b.manifest.poses.filter((e) => (slot.poses ? slot.poses.includes(e.id) : !reserved.has(e.id)));
         // The runtime keeps the starting pose's `at` on set_pose and draws the
         // shown pose with its foot at at.x (LayerView), so every allowed pose

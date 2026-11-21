@@ -104,7 +104,7 @@ const gets = (calls: string[][]) => calls.filter((c) => c[0] === "r2" && c[1] ==
 const webp = (out: string, sky: string) => readFileSync(join(out, "riverbank/v1", `${sky}.webp`));
 
 // The synthetic layer builds of backdrop.test.ts: the review sheet needs a
-// character, a prop, and a scenery.
+// character, a prop, a ground scenery, and a sky scenery (`sun`, #131).
 const FRONT: PoseEntry = { id: "front", file: "front.webp", foot: { x: 30, y: 200 }, box: { x: 0, y: 0, w: 100, h: 200 }, face: { x: 20, y: 20, w: 60, h: 60 } };
 // The template slot "bust" holds only the pose `bust` (packages/layout templates).
 const BUST: PoseEntry = { id: "bust", file: "bust.webp", foot: { x: 75, y: 300 }, box: { x: 0, y: 0, w: 150, h: 300 }, face: { x: 30, y: 30, w: 90, h: 90 } };
@@ -144,7 +144,7 @@ describe("painted backdrop", () => {
     expect(build.manifest.description).toBe(RIVERBANK);
     expect(build.manifest.variants).toEqual(SKIES.map((sky) => ({ sky, file: `${sky}.webp` })));
 
-    for (const b of [layer("kit", "character", [FRONT, BUST]), layer("crate", "prop", [DEFAULT]), layer("tree", "scenery", [DEFAULT])]) writeBuild(s.out, b);
+    for (const b of [layer("kit", "character", [FRONT, BUST]), layer("crate", "prop", [DEFAULT]), layer("tree", "scenery", [DEFAULT]), layer("sun", "scenery", [DEFAULT])]) writeBuild(s.out, b);
     expect(await main(["review", "riverbank", "--version", "1", "--out", s.out], io), io.lines.join("\n")).toBe(0);
     for (const sky of SKIES) {
       const meta = await sharp(join(s.out, "review", `riverbank-v1-${sky}.png`)).metadata();
