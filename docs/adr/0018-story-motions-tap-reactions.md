@@ -5,12 +5,16 @@
 - Decided by: Jinyu Liu (owner) approved the look in a motion mock on
   2026-11-21 (version 2; an HTML mock, not in the repository). The rules
   that implement the look are proposals of the author (a Fable 5.2 design
-  pass). Three items wait for an owner ruling ("Still open").
+  pass). On the same day the owner ruled on two differences between the mock
+  and the runtime, from a comparison page (decisions 5 and 6). One item
+  waits for an owner ruling ("Still open").
 - Reviewed: not yet. This record needs a review by two models of other
   families before it is accepted (`AGENTS.md` section 11).
-- Amends: [ADR 0016](0016-backdrops-page-turn.md) and
-  [ADR 0017](0017-shelf-home-player-states.md) in the rules of the page
-  phases, the Start gate, and reduced motion. ADR 0015 is not superseded.
+- Amends: [ADR 0016](0016-backdrops-page-turn.md), section 1: layers are
+  cut at the frame, not at the stage (section 10 of this record). Amends
+  ADR 0016 and [ADR 0017](0017-shelf-home-player-states.md) in the rules of
+  the page phases, the Start gate, and reduced motion. ADR 0015 is not
+  superseded.
 - Spec: [`design.md`](../specs/storybook-mvp/design.md) "5. Scene runtime",
   "Data Models". The spec changes when this record is accepted.
 - Issue: #137
@@ -76,8 +80,17 @@ Owner decisions (2026-11-21, from the mock):
    completely still.
 4. The last page stays slow and quiet. It is the bedtime page.
 
+Owner rulings (2026-11-21, from a page that compared the options on the
+live page 1 in a 16:9 picture area):
+
+5. A `walk-in` character comes from outside the whole picture, on every
+   screen. A layer can be drawn over the bleed of the backdrop.
+6. Scenery can grow on any page, as the mock showed. During a page turn and
+   on the Start gate, a page shows only the layers that have no such
+   `enter` motion. On page 1 of the mock that is the backdrop and the sun.
+
 The rules below implement them. They are proposals of the author. They are
-accepted with this record, after the review and the rulings of "Still open".
+accepted with this record, after the review and the ruling of "Still open".
 
 ### 1. One table for every primitive
 
@@ -125,14 +138,21 @@ code places it. No model output holds a distance, a direction, or a path.
 - **Direction of `walk-in`.** The `walk` and `run` art of all 13 characters
   faces right (checked on the 26 files of the registry). So a character
   comes from the left. A layer with `flip` faces left and comes from the
-  right. The start point is the subject of "Still open", item 1.
+  right.
+- **Start point of `walk-in`.** The whole layout box of the layer is
+  outside the frame (decision 5, section 10). From the left that is a
+  travel of `at.x` + 400 + the part of the box to the right of the foot
+  point. The time is the travel at 300 units for each second: about 4 s for
+  the slot at x 520 and about 6 s for the slot at x 1080 of `two-friends`.
+  That is 1.4 s more than the mock showed.
 - **Copies of `fall`.** The runtime makes the copies. They are not layers:
   the scene has one layer, the layout checks see one box, and a copy takes
   no tap. The places and the start times of the copies are fixed values in
   the code.
-- **Room for `drift`.** The stage container cuts a layer at the stage edge.
-  So the travel of `drift` is the smaller of 18% of the stage width and the
-  room between the layout box and the nearer stage edge.
+- **Travel of `drift`.** 18% of the stage width to each side, for every
+  slot. A layer near the stage edge drifts over the bleed (section 10). In
+  a 4:3 picture area the edge of the picture cuts it, as a cloud that
+  leaves the picture.
 - **Order of `enter` motions.** The `delay` parameter gives the order. The
   prompt asks for different delays when a page has two or more.
 - `shine` is the motion that the mock showed on the sun. The mock named it
@@ -203,7 +223,7 @@ and `grow` **start away from rest**.
 
 | State | A layer with such an `enter` motion |
 | :-- | :-- |
-| Before its `enter` motion starts (`incoming`, and the Start gate) | Is not shown. This is the rule of `fade-in` of today, for all three. "Still open", item 2 |
+| Before its `enter` motion starts (`incoming`, and the Start gate) | Is not shown. This is the rule of `fade-in` of today, for all three (decision 6) |
 | `current`, all assets loaded | The motion runs once, after its delay |
 | Still mode | Shown at rest. No animation runs (ADR 0017) |
 | An image that loads late | The layer runs its own `enter` motion when the image is loaded, as `fade-in` does today |
@@ -243,13 +263,34 @@ adds it. It is not in the scene, and the model does not choose it.
 - The schema keeps `animations.min(1)` and every bound of today. A count
   that the text decides cannot be a schema bound.
 
+### 10. Layers are cut at the frame, not at the stage
+
+ADR 0016 section 1 says: "Layers are drawn in a separate container that
+clips to the stage, so no layer shows in the bleed." Decision 5 changes
+this sentence. The container of the layers
+(`packages/scene-runtime/src/SceneView.tsx:669-680`) cuts its content at
+the frame: 2400 x 1200 units, the stage and the bleed on each side.
+
+- The top and the bottom do not change: the frame and the stage have the
+  same height.
+- In a 4:3 picture area the picture shows the stage only, so nothing
+  changes there. In a wider picture area, the part of a layer that is
+  beside the stage is drawn over the bleed.
+- The layout checks do not change. A layer at rest is inside the stage. A
+  layer is outside it only during a motion, or after a `set_pose` to a
+  wider pose.
+- The hit-area rule of ADR 0017, decision 10, does not change: a margin is
+  cut at the stage edge. The drawn part of a tappable layer takes a tap
+  where it is drawn, also beside the stage.
+- The bubble stays inside the stage area (ADR 0017, decision 16).
+
 ## What the mock showed and the runtime cannot show as it is
 
 | The mock | The runtime | Where it is settled |
 | :-- | :-- | :-- |
-| A stage of 4:3 only. A character walks in from outside the picture | A picture area wider than 4:3 shows bleed beside the stage (ADR 0016). The stage container cuts layers, so the character appears at a hard line inside the picture | "Still open", item 1 |
-| The replay starts with the motions. The page turn and the Start gate were not shown | During a turn and on the Start gate, a layer with `walk-in` or `grow` is not shown. Page 1 of the mock then shows the backdrop and the sun only | "Still open", item 2 |
-| Page 6 has two drifting clouds and the rain | `two-friends` has one sky slot. Only `big-sky` has three (`packages/layout/src/templates.ts:78-80`). A cloud and the rain need two | "Still open", item 3 |
+| A stage of 4:3 only. A character walks in from outside the picture | A picture area wider than 4:3 shows bleed beside the stage (ADR 0016). The stage container cuts layers, so the character would appear at a hard line inside the picture | Decision 5, section 10: the cut moves to the frame |
+| The replay starts with the motions. The page turn and the Start gate were not shown | During a turn and on the Start gate, a layer with `walk-in` or `grow` is not shown. Page 1 of the mock then shows the backdrop and the sun only | Decision 6: accepted as it is |
+| Page 6 has two drifting clouds and the rain | `two-friends` has one sky slot. Only `big-sky` has three (`packages/layout/src/templates.ts:78-80`). A cloud and the rain need two | "Still open" |
 | The bits of a tap on `stars` fall | `star` bits fly up. The direction comes from the shape, not from the layer | Section 4 |
 | A swapped pose at a scale set by hand | The pose keeps `at` | Section 5, #85 |
 | Sounds made in the page | `sfx` assets of the registry | Section 4 |
@@ -259,13 +300,17 @@ adds it. It is not in the scene, and the model does not choose it.
 - **Parsing does not change.** Every new field is optional, and every new
   primitive and action is a new member of a list. A stored revision and a
   published release pass the new schemas. No release file changes.
-- **The look of every live book changes in four ways**, because the
+- **The look of every live book changes in five ways**, because the
   runtime is part of the app, not of a release:
   1. Each character breathes.
   2. A bubble pops.
   3. A tap animation runs on the `tap` wrapper. It looks the same, but for
      a tap during an `enter` animation: the two now add up.
   4. The busy rule: a second tap during a reaction shows the bubble only.
+  5. In a picture area wider than 4:3, the part of a layer that is beside
+     the stage is drawn, not cut (section 10). At rest no layer is there.
+     It shows during a `sway`, a `bounce`, or a `pop` near the stage edge,
+     and after a `set_pose` to a wider pose.
 - A live book gets story motions only when its scenes are generated again
   and a new release is published. That is an owner action.
 
@@ -292,6 +337,9 @@ adds it. It is not in the scene, and the model does not choose it.
 | Start each motion when the narration reads its sentence | It needs a time for each sentence of the narration. No such data exists. It can follow this record |
 | A registry asset for each paper bit | 7 more approvals and files for shapes of one colour. A shape in the code costs no request |
 | Tap reactions on the `once` wrapper | A tap during `walk-in` replaces the walk: the character jumps to its place |
+| `walk-in` starts outside the stage, and the stage cuts it (the mock as it is) | In a picture area wider than 4:3 the character appears at a hard line inside the picture. The owner compared it and chose decision 5 |
+| `walk-in` fades in over its first steps inside the stage | No line and no change to ADR 0016. It was the recommendation of the author. The owner compared it and chose decision 5 |
+| `grow` only when the text says that a thing grows or appears | The page is not empty during a turn. The owner compared it and kept the look of the mock (decision 6) |
 
 ## Consequences
 
@@ -299,7 +347,13 @@ adds it. It is not in the scene, and the model does not choose it.
   the validation rules. The scene JSON schema for the model grows: the
   animation union has 21 members, not 7.
 - `packages/scene-runtime`: keyframes, the `tap` wrapper, the copies of
-  `fall`, the bits, the bubble pop, the busy rule, breathing.
+  `fall`, the bits, the bubble pop, the busy rule, breathing, and the cut
+  of the layers at the frame.
+- `design.md` "5. Scene runtime" and ADR 0016 section 1 say that no layer
+  shows in the bleed. Both sentences change with this record.
+- A page that has `grow` on its scenery and `walk-in` on its characters is
+  nearly empty during a turn and on the Start gate, and the last character
+  can be in place about 6 s after the turn. The owner saw both.
 - `apps/storybook/worker/workflow/prompts.ts`: section 9.
 - Frame time: `fall` animates 8 images, and a tap adds 10 elements for
   under 2 s. PLY-03.S3 is measured again on a rain page.
@@ -307,7 +361,8 @@ adds it. It is not in the scene, and the model does not choose it.
 Order of work (each line is one issue, refined before code):
 
 1. The table fields, the `tap` wrapper, the "start away from rest" flag,
-   `walk-in`, `jump`, and the prompt lines. Acceptance: a run with the real
+   the cut at the frame, `walk-in`, `jump`, and the prompt lines.
+   Acceptance: a run with the real
    model over the 7 page texts of this book, with a table of the motions
    that the text names and the motions that the model chose, page by page.
 2. `drift`, `fall`, `twinkle`, `shine`, `doze`. The frame time on the rain
@@ -318,13 +373,19 @@ Order of work (each line is one issue, refined before code):
 
 ## Still open
 
-Each item needs an owner ruling before this record is accepted.
+One item needs an owner ruling before this record is accepted.
 
-| # | Question | Options | Recommendation |
-| :-- | :-- | :-- | :-- |
-| 1 | Where does a `walk-in` character appear in a picture area wider than 4:3? | A: outside the stage; a hard line shows. B: the same path, and the character fades in over its first steps inside the stage. C: outside the whole frame; the stage container stops cutting layers, which changes ADR 0016 for every book | B. No line shows, and the clip rule and the hit-area rules of ADR 0017 stay |
-| 2 | What does a page show during a turn and on the Start gate? | A: no layer that has `walk-in` or `grow`; scenery can grow on any page. B: the same rule, and the prompt allows `grow` only when the text says that a thing grows or appears, so the scenery is there | B. The page is not empty during the turn, and the motion follows the text |
-| 3 | A cloud and rain on one page | A: no change; the model has one sky slot in most templates, and the `cloudy` backdrop paints its clouds. B: a second sky slot in each template; the template digest changes, so each backdrop needs a new approval | A now. Look at B with #131, which changes the sky slots |
+**A cloud and rain on one page.** Page 6 of the mock has two drifting
+clouds and the rain. `two-friends` has one sky slot, and only `big-sky` has
+three (`packages/layout/src/templates.ts:78-80`).
+
+| Option | Result |
+| :-- | :-- |
+| A: no change | A page of most templates shows a cloud or the rain, not both. The `cloudy` backdrop paints its clouds, and they do not move |
+| B: a second sky slot in each template | A page can show both. The template digest changes, so each backdrop needs a new owner approval, as in #127 |
+
+Recommendation: A now, and look at B with #131, which changes the sky
+slots. A costs nothing and loses one thing that the mock showed.
 
 ## Not verified
 
@@ -336,5 +397,9 @@ Each item needs an owner ruling before this record is accepted.
 - Whether each model provider accepts a schema with 21 union members in
   its strict mode.
 - The frame time of `fall` and of the bits on a device.
+- Whether a walk of 6 s fits the narration of a short page. The longest
+  travel of today's templates was not computed.
+- Whether a control of the Player (ADR 0017) can sit over a layer that is
+  drawn beside the stage. The controls are above the picture in the stack.
 - The mock was checked in one desktop browser. The owner judged its look;
   no device was used.
