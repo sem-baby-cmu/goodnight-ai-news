@@ -7,8 +7,9 @@ const ENDED = new Set<RunResponse["run"]["status"]>(["draft_ready", "needs_revie
 
 type PollState = { runId: string; latest: RunResponse | undefined; lost: boolean };
 
-// A 2xx answer that is not a run (for example a body that is not JSON)
-// counts as a failed request (#108, comment item 3).
+// A 2xx answer with a JSON body that is not a run counts as a failed request
+// (#108, comment item 3). A 2xx answer with a body that cannot be read never
+// gets here: `call` gives status 0 for it (#119).
 function isRun(data: unknown): data is RunResponse {
   if (typeof data !== "object" || data === null) return false;
   const { run, steps } = data as { run?: unknown; steps?: unknown };
